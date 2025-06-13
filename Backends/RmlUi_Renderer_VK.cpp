@@ -56,10 +56,10 @@ static Rml::String FormatByteSize(VkDeviceSize size) noexcept
 {
 	constexpr VkDeviceSize K = VkDeviceSize(1024);
 	if (size < K)
-		return Rml::CreateString(32, "%zu B", size);
+		return Rml::CreateString("%zu B", size);
 	else if (size < K * K)
-		return Rml::CreateString(32, "%g KB", double(size) / double(K));
-	return Rml::CreateString(32, "%g MB", double(size) / double(K * K));
+		return Rml::CreateString("%g KB", double(size) / double(K));
+	return Rml::CreateString("%g MB", double(size) / double(K * K));
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severityFlags,
@@ -193,7 +193,7 @@ void RenderInterface_VK::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rm
 	{
 		// it means our state is dirty and we need to update data, but it is not right in terms of architecture, for real better experience would
 		// be great to free all "compiled" geometries and "re-build" them in one general way, but here I got only three callings for
-		// font-face-layer textures (loaddocument example) and that shit. So better to think how to make it right, if it is fine okay, if it is
+		// font-face-layer textures (load_document example) and that shit. So better to think how to make it right, if it is fine okay, if it is
 		// not okay and like we really expect that ReleaseCompiledGeometry for all objects that needs to be rebuilt so better to implement that,
 		// but still it is a big architectural thing (or at least you need to do something big commits here to implement a such feature), so my
 		// implementation doesn't break anything what we had, but still it looks strange. If I get callings for releasing maybe I need to use it
@@ -485,6 +485,7 @@ Rml::TextureHandle RenderInterface_VK::LoadTexture(Rml::Vector2i& texture_dimens
 
 Rml::TextureHandle RenderInterface_VK::GenerateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions)
 {
+	RMLUI_ASSERT(source_data.data() && source_data.size() == size_t(source_dimensions.x * source_dimensions.y * 4));
 	Rml::String source_name = "generated-texture";
 	return CreateTexture(source_data, source_dimensions, source_name);
 }

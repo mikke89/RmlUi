@@ -37,7 +37,7 @@
 
 #if !defined RMLUI_STATIC_LIB
 	#ifdef RMLUI_PLATFORM_WIN32
-		#if defined RmlLua_EXPORTS
+		#if defined RMLUI_LUA_EXPORTS
 			#define RMLUILUA_API __declspec(dllexport)
 		#else
 			#define RMLUILUA_API __declspec(dllimport)

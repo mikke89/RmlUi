@@ -40,6 +40,7 @@
 
 #include <limits>
 #include <algorithm>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <functional>

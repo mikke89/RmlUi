@@ -1,0 +1,36 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>CSS Flexbox Test: gap - vertical</title>
+	<link href="https://test.csswg.org/suites/css-align-3_dev/nightly-unstable/xhtml1/reference/gap-002-ltr-ref.xht"
+		  rel="source"/>
+	<link href="mailto:argyle@google.com" rel="author" title="Adam Argyle"/>
+	<style>
+		section {
+			background-color: green;
+			width: 200px;
+			height: 400px;
+			display: flex;
+			flex-direction: column;
+		}
+
+		section > div {
+			background-color: grey;
+			flex: 1 1 auto;
+		}
+
+		section > div:not(:first-child) {
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body>
+<p>Test passes if there is <strong>a green horizontal line between boxes</strong>.</p>
+<section>
+	<div></div>
+	<div></div>
+	<div></div>
+</section>
+<hr/>
+</body>
+</rml>

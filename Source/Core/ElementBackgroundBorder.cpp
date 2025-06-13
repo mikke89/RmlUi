@@ -60,7 +60,10 @@ void ElementBackgroundBorder::Render(Element* element)
 	if (shadow && shadow->geometry)
 		shadow->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border), shadow->texture);
 	else if (Background* background = GetBackground(BackgroundType::BackgroundBorder))
-		background->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border));
+	{
+		auto offset = element->GetAbsoluteOffset(BoxArea::Border);
+		background->geometry.Render(offset);
+	}
 }
 
 void ElementBackgroundBorder::DirtyBackground()
@@ -84,15 +87,13 @@ Geometry* ElementBackgroundBorder::GetClipGeometry(Element* element, BoxArea cli
 	default: RMLUI_ERROR; return nullptr;
 	}
 
+	RenderManager* render_manager = element->GetRenderManager();
 	Geometry& geometry = GetOrCreateBackground(type).geometry;
-	if (!geometry)
+	if (render_manager && !geometry)
 	{
 		Mesh mesh = geometry.Release(Geometry::ReleaseMode::ClearMesh);
-		const Box& box = element->GetBox();
-		const Vector4f border_radius = element->GetComputedValues().border_radius();
-		MeshUtilities::GenerateBackground(mesh, box, {}, border_radius, ColourbPremultiplied(255), clip_area);
-		if (RenderManager* render_manager = element->GetRenderManager())
-			geometry = render_manager->MakeGeometry(std::move(mesh));
+		MeshUtilities::GenerateBackground(mesh, element->GetRenderBox(clip_area), ColourbPremultiplied(255));
+		geometry = render_manager->MakeGeometry(std::move(mesh));
 	}
 
 	return &geometry;
@@ -144,17 +145,14 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 		ConvertColor(computed.border_bottom_color()),
 		ConvertColor(computed.border_left_color()),
 	};
-	const Vector4f border_radius = computed.border_radius();
+	const CornerSizes border_radius = computed.border_radius();
 
 	Geometry& geometry = GetOrCreateBackground(BackgroundType::BackgroundBorder).geometry;
 	Mesh mesh = geometry.Release(Geometry::ReleaseMode::ClearMesh);
 
 	for (int i = 0; i < element->GetNumBoxes(); i++)
-	{
-		Vector2f offset;
-		const Box& box = element->GetBox(i, offset);
-		MeshUtilities::GenerateBackgroundBorder(mesh, box, offset, border_radius, background_color, border_colors);
-	}
+		MeshUtilities::GenerateBackgroundBorder(mesh, element->GetRenderBox(BoxArea::Padding, i), background_color, border_colors);
+
 	geometry = render_manager->MakeGeometry(std::move(mesh));
 
 	if (has_box_shadow)

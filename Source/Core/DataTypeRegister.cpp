@@ -83,7 +83,7 @@ DataTypeRegister::DataTypeRegister()
 
 		String format_specifier = String(remove_trailing_zeros ? "%#." : "%.") + ToString(precision) + 'f';
 		String result;
-		if (FormatString(result, 64, format_specifier.c_str(), value) == 0)
+		if (FormatString(result, format_specifier.c_str(), value) == 0)
 			return {};
 
 		if (remove_trailing_zeros)

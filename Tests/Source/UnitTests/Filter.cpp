@@ -127,8 +127,6 @@ TEST_CASE("filter")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	TestsShell::GetTestsRenderInterface()->ResetCounters();
-
 	FilterTestInstancer instancer;
 	Rml::Factory::RegisterFilterInstancer("test", &instancer);
 

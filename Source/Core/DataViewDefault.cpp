@@ -41,7 +41,7 @@
 namespace Rml {
 
 // Some data views need to offset the update order for proper behavior.
-//  'data-value' may need other attributes applied first, eg. min/max attributes.
+//  'data-value' may need other attributes applied first, e.g. min/max attributes.
 static constexpr int SortOffset_DataValue = 100;
 //  'data-checked' may need a value attribute already set.
 static constexpr int SortOffset_DataChecked = 110;
@@ -104,7 +104,7 @@ bool DataViewAttribute::Update(DataModel& model)
 		const String value = variant.Get<String>();
 		const Variant* attribute = element->GetAttribute(attribute_name);
 
-		if (!attribute || (attribute && attribute->Get<String>() != value))
+		if (!attribute || attribute->Get<String>() != value)
 		{
 			element->SetAttribute(attribute_name, value);
 			result = true;

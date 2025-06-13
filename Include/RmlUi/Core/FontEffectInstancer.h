@@ -56,7 +56,6 @@ public:
 	/// Instances a font effect given the property tag and attributes from the RCSS file.
 	/// @param[in] name The type of font effect desired. For example, "font-effect: outline(1px black);" is declared as type "outline".
 	/// @param[in] properties All RCSS properties associated with the font effect.
-	/// @param[in] interface An interface for querying the active style sheet.
 	/// @return A shared_ptr to the font-effect if it was instanced successfully.
 	virtual SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) = 0;
 
@@ -72,10 +71,10 @@ protected:
 	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool affects_generation = true);
 	/// Registers a shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
-	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is
-	/// the order in which the values will be processed.
+	/// @param[in] property_names A comma-separated list of the properties this definition is shorthand for. The order
+	/// in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
-	/// @param True if all the property names exist, false otherwise.
+	/// @return An ID for the new shorthand, or 'Invalid' if the shorthand declaration is invalid.
 	ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
 
 private:

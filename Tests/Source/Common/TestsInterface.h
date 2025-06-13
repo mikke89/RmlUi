@@ -29,6 +29,7 @@
 #ifndef RMLUI_TESTS_TESTSINTERFACE_H
 #define RMLUI_TESTS_TESTSINTERFACE_H
 
+#include <RmlUi/Core/Mesh.h>
 #include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/SystemInterface.h>
 #include <Shell.h>
@@ -102,12 +103,20 @@ public:
 	void ReleaseShader(Rml::CompiledShaderHandle shader) override;
 
 	const Counters& GetCounters() const { return counters; }
-	void ResetCounters() { counters = {}; }
+	void ResetCounters();
+	const Counters& GetCountersFromPreviousReset() const { return counters_from_previous_reset; }
 
-	void Reset() { ResetCounters(); }
+	void ExpectCompileGeometry(Rml::Vector<Rml::Mesh> meshes);
+
+	void Reset();
 
 private:
+	void VerifyMeshes();
+
 	Counters counters = {};
+	Counters counters_from_previous_reset = {};
+	Rml::Vector<Rml::Mesh> meshes;
+	bool meshes_set = false;
 };
 
 #endif

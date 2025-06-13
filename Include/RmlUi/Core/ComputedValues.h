@@ -30,6 +30,7 @@
 
 #include "Animation.h"
 #include "Element.h"
+#include "RenderBox.h"
 #include "StyleTypes.h"
 #include "Types.h"
 #include <cfloat>
@@ -114,8 +115,8 @@ namespace Style {
 		InheritedValues() :
 			font_weight(FontWeight::Normal), has_letter_spacing(0), font_style(FontStyle::Normal), has_font_effect(false),
 			pointer_events(PointerEvents::Auto), focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None),
-			text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal),
-			direction(Direction::Auto), line_height_inherit_type(LineHeight::Number)
+			text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal), direction(Direction::Auto),
+			line_height_inherit_type(LineHeight::Number)
 		{}
 
 		// Font face used to render text and resolve ex properties. Does not represent a true property
@@ -213,7 +214,7 @@ namespace Style {
 		explicit ComputedValues(Element* element) : element(element) {}
 
 		// clang-format off
-		
+
 		// -- Common --
 		LengthPercentageAuto width()               const { return LengthPercentageAuto(common.width_type, common.width_value); }
 		LengthPercentageAuto height()              const { return LengthPercentageAuto(common.height_type, common.height_value); }
@@ -248,7 +249,7 @@ namespace Style {
 		Colourb              border_bottom_color() const { return common.border_bottom_color; }
 		Colourb              border_left_color()   const { return common.border_left_color; }
 		bool                 has_decorator()       const { return common.has_decorator; }
-		
+
 		// -- Inherited --
 		String         font_family()      const;
 		String         cursor()           const;
@@ -275,7 +276,7 @@ namespace Style {
 		MinWidth          min_width()                  const { return LengthPercentage(rare.min_width_type, rare.min_width); }
 		MaxWidth          max_width()                  const { return LengthPercentage(rare.max_width_type, rare.max_width); }
 		MinHeight         min_height()                 const { return LengthPercentage(rare.min_height_type, rare.min_height); }
-		MinHeight         max_height()                 const { return LengthPercentage(rare.max_height_type, rare.max_height); }
+		MaxHeight         max_height()                 const { return LengthPercentage(rare.max_height_type, rare.max_height); }
 		VerticalAlign     vertical_align()             const { return VerticalAlign(rare.vertical_align_type, rare.vertical_align_length); }
 		const             AnimationList* animation()   const;
 		const             TransitionList* transition() const;
@@ -301,7 +302,7 @@ namespace Style {
 		float             border_top_right_radius()    const { return (float)rare.border_top_right_radius; }
 		float             border_bottom_right_radius() const { return (float)rare.border_bottom_right_radius; }
 		float             border_bottom_left_radius()  const { return (float)rare.border_bottom_left_radius; }
-		Vector4f          border_radius()              const { return {(float)rare.border_top_left_radius,     (float)rare.border_top_right_radius,
+		CornerSizes       border_radius()              const { return {(float)rare.border_top_left_radius,     (float)rare.border_top_right_radius,
 		                                                               (float)rare.border_bottom_right_radius, (float)rare.border_bottom_left_radius}; }
 		Clip              clip()                       const { return rare.clip; }
 		Drag              drag()                       const { return rare.drag; }
@@ -315,7 +316,7 @@ namespace Style {
 		bool              has_filter()                 const { return rare.has_filter; }
 		bool              has_backdrop_filter()        const { return rare.has_backdrop_filter; }
 		bool              has_box_shadow()             const { return rare.has_box_shadow; }
-		
+
 		// -- Assignment --
 		// Common
 		void width              (LengthPercentageAuto value) { common.width_type          = value.type; common.width_value          = value.value; }

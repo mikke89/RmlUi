@@ -79,7 +79,7 @@ public:
 	/// @param[in] rhs The colour to subtract.
 	inline void operator-=(Colour rhs);
 	/// Scales this colour component-wise in-place.
-	/// @param[in] rhs The value to scale this colours's components by.
+	/// @param[in] rhs The value to scale this colour's components by.
 	inline void operator*=(float rhs);
 	/// Scales this colour component-wise in-place by the inverse of a value.
 	/// @param[in] rhs The value to divide this colour's components by.

@@ -37,6 +37,7 @@
 #include "DocumentHeader.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
+#include "Layout/LayoutDetails.h"
 #include "Layout/LayoutEngine.h"
 #include "StreamFile.h"
 #include "StyleSheetFactory.h"
@@ -93,9 +94,7 @@ namespace {
 	bool IsScrollContainer(Element* element)
 	{
 		const auto& computed = element->GetComputedValues();
-		if (computed.overflow_x() != Style::Overflow::Visible || computed.overflow_y() != Style::Overflow::Visible)
-			return true;
-		return false;
+		return LayoutDetails::IsScrollContainer(computed.overflow_x(), computed.overflow_y());
 	}
 
 	int GetNavigationHeuristic(const BoundingBox& source, const BoundingBox& target, NavigationSearchDirection direction)
@@ -175,8 +174,9 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 	context = nullptr;
 
 	modal = false;
-	layout_dirty = true;
+	focusable_from_modal = false;
 
+	layout_dirty = true;
 	position_dirty = false;
 
 	ForceLocalStackingContext();
@@ -697,6 +697,16 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 void ElementDocument::OnResize()
 {
 	DirtyPosition();
+}
+
+bool ElementDocument::IsFocusableFromModal() const
+{
+	return focusable_from_modal && IsVisible();
+}
+
+void ElementDocument::SetFocusableFromModal(bool focusable)
+{
+	focusable_from_modal = focusable;
 }
 
 Element* ElementDocument::FindNextTabElement(Element* current_element, bool forward)

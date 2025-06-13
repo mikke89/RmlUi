@@ -143,6 +143,15 @@ TEST_CASE("Properties")
 				},
 			},
 			{
+				"hsl(10000, 0%, 50%), hsl(240, 100%, 50%) 50%, hsla(-240, 100%, 50%, 0.5) 10dp",
+				"#7f7f7f, #0000ff 50%, #00ff007f 10dp",
+				{
+					ColorStop{ColourbPremultiplied(127, 127, 127), NumericValue{}},
+					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{50.f, Unit::PERCENT}},
+					ColorStop{ColourbPremultiplied(0, 127, 0, 127), NumericValue{10.f, Unit::DP}},
+				},
+			},
+			{
 				"red 50px 20%, blue 10in",
 				"#ff0000 50px, #ff0000 20%, #0000ff 10in",
 				{
@@ -194,6 +203,7 @@ TEST_CASE("Property.ToString")
 	CHECK(ParsedValue("transform", "translateX(10px)") == "translateX(10px)");
 	CHECK(ParsedValue("transform", "translate(20in, 50em)") == "translate(20in, 50em)");
 
+	CHECK(ParsedValue("box-shadow", "2px 2px 0px, rgba(0, 0, 255, 255) 4px 4px 2em") == "#000000 2px 2px 0px, #0000ff 4px 4px 2em");
 	CHECK(ParsedValue("box-shadow", "2px 2px 0px, #00ff 4px 4px 2em") == "#000000 2px 2px 0px, #0000ff 4px 4px 2em");
 
 	// Due to conversion to and from premultiplied alpha, some color information is lost.

@@ -77,6 +77,12 @@ public:
 	/// @note Only applies to text and password input types.
 	void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
 
+	/// Sets visual feedback used for the IME composition in the range.
+	/// @param[in] range_start The first character to be selected.
+	/// @param[in] range_end The first character *after* the selection.
+	/// @note Only applies to text and password input types.
+	void SetCompositionRange(int range_start, int range_end);
+
 protected:
 	/// Updates the element's underlying type.
 	void OnUpdate() override;

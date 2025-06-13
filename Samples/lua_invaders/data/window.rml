@@ -1,0 +1,35 @@
+<template name="luawindow" content="content">
+<head>
+	<link type="text/template" href="../../assets/window.rml" />
+	<script>
+Window = Window or {} --namespace
+
+function Window.OnWindowLoad(document)
+	document:GetElementById('title').inner_rml = document.title
+end
+
+function Window.LoadMenu(name,document)
+	local doc = document.context:LoadDocument('lua_invaders/data/' .. name .. '.rml')
+	if doc then
+		doc:Show()
+		document:Close()
+	end
+	return doc
+end
+
+function Window.OpenDocument(name,document)
+	local doc = document.context:LoadDocument('lua_invaders/data/' .. name .. '.rml')
+	if doc then
+		doc:Show()
+	end
+	return doc
+end
+
+function Window.EscapePressed(event)
+	return event.parameters['key_identifier'] == rmlui.key_identifier.ESCAPE
+end
+	</script>
+</head>
+<body template="window">
+</body>
+</template>

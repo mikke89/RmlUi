@@ -27,6 +27,7 @@
  */
 
 #include "ElementAnimation.h"
+#include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Filter.h"
@@ -44,6 +45,12 @@
 namespace Rml {
 
 static Property InterpolateProperties(const Property& p0, const Property& p1, float alpha, Element& element, const PropertyDefinition* definition);
+
+template <typename T>
+static T Mix(const T& v0, const T& v1, float alpha)
+{
+	return v0 * (1.0f - alpha) + v1 * alpha;
+}
 
 static Colourf ColourToLinearSpace(Colourb c)
 {
@@ -67,6 +74,14 @@ static Colourb ColourFromLinearSpace(Colourf c)
 	result.blue = (byte)Math::Clamp(Math::SquareRoot(c.blue) * 255.f, 0.0f, 255.f);
 	result.alpha = (byte)Math::Clamp(c.alpha * 255.f, 0.0f, 255.f);
 	return result;
+}
+
+static Colourb InterpolateColour(Colourb c0, Colourb c1, float alpha)
+{
+	Colourf c0f = ColourToLinearSpace(c0);
+	Colourf c1f = ColourToLinearSpace(c1);
+	Colourf c = Mix(c0f, c1f, alpha);
+	return ColourFromLinearSpace(c);
 }
 
 // Merges all the primitives to a single DecomposedMatrix4 primitive
@@ -177,44 +192,53 @@ static bool InterpolateEffectProperties(PropertyDictionary& properties, const Ef
 	return false;
 }
 
+static NumericValue InterpolateNumericValue(NumericValue v0, NumericValue v1, float alpha, Element& element, const PropertyDefinition* definition)
+{
+	// If we have the same units, we can simply interpolate regardless of what the value represents.
+	if (v0.unit == v1.unit)
+		return NumericValue{Mix(v0.number, v1.number, alpha), v0.unit};
+
+	// When mixing lengths or relative sizes, resolve them to pixel lengths and interpolate. This only works if we have a definition.
+	if (Any(v0.unit & Unit::NUMBER_LENGTH_PERCENT) && Any(v1.unit & Unit::NUMBER_LENGTH_PERCENT) && definition)
+	{
+		float f0 = element.GetStyle()->ResolveRelativeLength(v0, definition->GetRelativeTarget());
+		float f1 = element.GetStyle()->ResolveRelativeLength(v1, definition->GetRelativeTarget());
+		return NumericValue{Mix(f0, f1, alpha), Unit::PX};
+	}
+
+	// As long as we don't mix lengths and percentages, we can still resolve lengths without a definition.
+	if (Any(v0.unit & Unit::LENGTH) && Any(v1.unit & Unit::LENGTH))
+	{
+		float f0 = element.ResolveLength(v0);
+		float f1 = element.ResolveLength(v0);
+		return NumericValue{Mix(f0, f1, alpha), Unit::PX};
+	}
+
+	if (Any(v0.unit & Unit::ANGLE) && Any(v1.unit & Unit::ANGLE))
+	{
+		float f = Mix(ComputeAngle(v0), ComputeAngle(v1), alpha);
+		return NumericValue{f, Unit::RAD};
+	}
+
+	// Fall back to discrete interpolation for incompatible units.
+	return alpha < 0.5f ? v0 : v1;
+}
+
 static Property InterpolateProperties(const Property& p0, const Property& p1, float alpha, Element& element, const PropertyDefinition* definition)
 {
 	const Property& p_discrete = (alpha < 0.5f ? p0 : p1);
 
-	if (Any(p0.unit & Unit::NUMBER_LENGTH_PERCENT) && Any(p1.unit & Unit::NUMBER_LENGTH_PERCENT))
+	if (Any(p0.unit & Unit::NUMERIC) && Any(p1.unit & Unit::NUMERIC))
 	{
-		if (p0.unit == p1.unit || !definition)
-		{
-			// If we have the same units, we can just interpolate regardless of what the value represents.
-			// Or if we have distinct units but no definition, all bets are off. This shouldn't occur, just interpolate values.
-			float f0 = p0.value.Get<float>();
-			float f1 = p1.value.Get<float>();
-			float f = (1.0f - alpha) * f0 + alpha * f1;
-			return Property{f, p0.unit};
-		}
-		else
-		{
-			// Otherwise, convert units to pixels.
-			float f0 = element.GetStyle()->ResolveRelativeLength(p0.GetNumericValue(), definition->GetRelativeTarget());
-			float f1 = element.GetStyle()->ResolveRelativeLength(p1.GetNumericValue(), definition->GetRelativeTarget());
-			float f = (1.0f - alpha) * f0 + alpha * f1;
-			return Property{f, Unit::PX};
-		}
-	}
-
-	if (Any(p0.unit & Unit::ANGLE) && Any(p1.unit & Unit::ANGLE))
-	{
-		float f0 = ComputeAngle(p0.GetNumericValue());
-		float f1 = ComputeAngle(p1.GetNumericValue());
-		float f = (1.0f - alpha) * f0 + alpha * f1;
-		return Property{f, Unit::RAD};
+		NumericValue v = InterpolateNumericValue(p0.GetNumericValue(), p1.GetNumericValue(), alpha, element, definition);
+		return Property{v.number, v.unit};
 	}
 
 	if (p0.unit == Unit::KEYWORD && p1.unit == Unit::KEYWORD)
 	{
 		// Discrete interpolation, swap at alpha = 0.5.
 		// Special case for the 'visibility' property as in the CSS specs:
-		//   Apply the visible property if present during the entire transition period, ie. alpha (0,1).
+		//   Apply the visible property if present during the entire transition period, i.e. alpha (0,1).
 		if (definition && definition->GetId() == PropertyId::Visibility)
 		{
 			if (p0.Get<int>() == (int)Style::Visibility::Visible)
@@ -228,12 +252,8 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 
 	if (p0.unit == Unit::COLOUR && p1.unit == Unit::COLOUR)
 	{
-		Colourf c0 = ColourToLinearSpace(p0.value.Get<Colourb>());
-		Colourf c1 = ColourToLinearSpace(p1.value.Get<Colourb>());
-
-		Colourf c = c0 * (1.0f - alpha) + c1 * alpha;
-
-		return Property{ColourFromLinearSpace(c), Unit::COLOUR};
+		Colourb c = InterpolateColour(p0.value.Get<Colourb>(), p1.value.Get<Colourb>(), alpha);
+		return Property{c, Unit::COLOUR};
 	}
 
 	if (p0.unit == Unit::TRANSFORM && p1.unit == Unit::TRANSFORM)
@@ -360,6 +380,32 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 		}
 
 		return Property{FiltersPtr(std::move(filter)), Unit::FILTER};
+	}
+
+	if (p0.unit == Unit::COLORSTOPLIST && p1.unit == Unit::COLORSTOPLIST)
+	{
+		RMLUI_ASSERT(p0.value.GetType() == Variant::COLORSTOPLIST && p1.value.GetType() == Variant::COLORSTOPLIST);
+		const auto& c0 = p0.value.GetReference<ColorStopList>();
+		const auto& c1 = p1.value.GetReference<ColorStopList>();
+
+		if (c0.size() != c1.size())
+			return p_discrete;
+
+		const size_t N = c0.size();
+		ColorStopList result(N);
+
+		for (size_t i = 0; i < N; i++)
+		{
+			result[i].color = InterpolateColour(c0[i].color.ToNonPremultiplied(), c1[i].color.ToNonPremultiplied(), alpha).ToPremultiplied();
+
+			// We don't provide the property definition in the following, because it doesn't actually represent how
+			// percentages are resolved for stop positions. Here, we don't trivially know how they are resolved, so if
+			// users try to mix lengths and percentages, we instead fall back to discrete interpolation. See the
+			// gradient decorators for how stop positions are resolved.
+			result[i].position = InterpolateNumericValue(c0[i].position, c1[i].position, alpha, element, nullptr);
+		}
+
+		return Property{std::move(result), Unit::COLORSTOPLIST};
 	}
 
 	// Fall back to discrete interpolation for incompatible units.
@@ -598,9 +644,8 @@ static void PrepareFilter(AnimationKey& key)
 
 ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, Element& element,
 	double start_world_time, float duration, int num_iterations, bool alternate_direction) :
-	property_id(property_id),
-	duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction), last_update_world_time(start_world_time),
-	origin(origin)
+	property_id(property_id), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
+	last_update_world_time(start_world_time), origin(origin)
 {
 	if (!current_value.definition)
 	{
@@ -617,7 +662,8 @@ bool ElementAnimation::InternalAddKey(float time, const Property& in_property, E
 
 	if (!Any(in_property.unit & valid_units))
 	{
-		Log::Message(Log::LT_WARNING, "Property value '%s' is not a valid target for interpolation.", in_property.ToString().c_str());
+		const char* property_type = (in_property.unit == Unit::BOXSHADOWLIST ? "Box shadows do not" : "Property value does not");
+		Log::Message(Log::LT_WARNING, "%s support animations or transitions. Value: %s", property_type, in_property.ToString().c_str());
 		return false;
 	}
 

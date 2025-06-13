@@ -1,0 +1,68 @@
+<rml>
+<head>
+	<title>Mask image</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/css-masking-1/#the-mask-image" />
+	<meta name="Description" content="The `mask-image` property can be used with any decorator, using the resulting alpha channel as a mask for its element." />
+	<style>
+		@spritesheet effects-sheet
+		{
+			src: /assets/invader.tga;
+			icon-invader: 179px 152px 51px 39px;
+			icon-lives: 383px 152px 51px 39px;
+		}
+		body {
+			background: #ddd;
+			color: #444;
+		}
+		div {
+			margin: 20dp auto;
+			width: 180dp;
+			height: 80dp;
+			background: #c3c3c3;
+			border-color: #f9a #f57 #f9a #f57;
+			border-width: 10dp 5dp 20dp 18dp;
+			border-radius: 80dp 30dp;
+			font-size: 22dp;
+			line-height: 80dp;
+			text-align: center;
+			decorator: horizontal-gradient(#ffd34f #ecda6f);
+		}
+		img {
+			height: 22dp;
+			vertical-align: baseline;
+		}
+		.heart {
+			mask-image: image(icon-lives contain);
+		}
+		.present {
+			mask-image: image("/assets/present.tga" scale-none);
+		}
+		.radial-gradient {
+			mask-image: radial-gradient(circle closest-side, black 50%, transparent);
+		}
+		.horizontal-gradient {
+			mask-image: horizontal-gradient(black transparent);
+		}
+	</style>
+</head>
+
+<body>
+<div>
+	I <img sprite="icon-lives"/> RmlUi
+</div>
+<hr/>
+<div class="heart">
+	I <img sprite="icon-lives"/> RmlUi
+</div>
+<div class="present">
+	I <img sprite="icon-lives"/> RmlUi
+</div>
+<div class="radial-gradient">
+	I <img sprite="icon-lives"/> RmlUi
+</div>
+<div class="horizontal-gradient">
+	I <img sprite="icon-lives"/> RmlUi
+</div>
+</body>
+</rml>

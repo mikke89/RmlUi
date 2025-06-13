@@ -43,8 +43,6 @@ namespace Rml {
 */
 class ContainerBox : public LayoutBox {
 public:
-	bool IsScrollContainer() const { return overflow_x != Style::Overflow::Visible || overflow_y != Style::Overflow::Visible; }
-
 	// Enable or disable scrollbars for the element we represent, preparing it for the first round of layouting, according to our properties.
 	void ResetScrollbars(const Box& box);
 
@@ -55,6 +53,8 @@ public:
 
 	ContainerBox* GetParent() { return parent_container; }
 	Element* GetElement() { return element; }
+
+	bool IsScrollContainer() const;
 
 	// Returns true if this box acts as a containing block for absolutely positioned descendants.
 	bool IsAbsolutePositioningContainingBlock() const { return is_absolute_positioning_containing_block; }

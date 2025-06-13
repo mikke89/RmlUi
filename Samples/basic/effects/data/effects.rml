@@ -80,8 +80,8 @@
 .invert { filter: invert(100%); }
 .opacity_low { filter: opacity(0.2); }
 
-.blur { filter: blur(25px); }
-.back_blur { backdrop-filter: blur(15px);  }
+.blur { filter: blur(10px); }
+.back_blur { backdrop-filter: blur(5px);  }
 
 .dropshadow { filter: drop-shadow(#f33f 30px 20px 5px); }
 
@@ -142,7 +142,7 @@
 			<tr><td>Contrast</td><td><input type="range" min="0" max="2" step="0.02" data-value="contrast"/></td><td>{{ contrast*100 }} %</td></tr>
 			<tr><td>Hue</td><td><input type="range" min="0" max="360" step="1" data-value="hue_rotate"/></td><td>{{ hue_rotate }} deg</td></tr>
 			<tr><td>Invert</td><td><input type="range" min="0" max="1" step="0.01" data-value="invert"/></td><td>{{ invert*100 }} %</td></tr>
-			<tr><td>Blur</td><td><input type="range" min="0" max="150" step="1" data-value="blur"/></td><td>{{ blur }} px</td></tr>
+			<tr><td>Blur</td><td><input type="range" min="0" max="50" step="1" data-value="blur"/></td><td>{{ blur }} px</td></tr>
 			<tr><td><label for="drop_shadow">Drop shadow</label></td><td colspan="2"><input id="drop_shadow" type="checkbox" data-checked="drop_shadow"/></td></tr>
 		</tbody>
 		<tbody data-if="submenu == 'transform'">

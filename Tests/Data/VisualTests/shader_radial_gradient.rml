@@ -25,6 +25,20 @@
 			margin-bottom: 1em;
 		}
 
+		button {
+			decorator: radial-gradient(circle farthest-side at center, #ff6b6b, #fec84d, #4ecdc4);
+			display: block;
+			width: 200dp;
+			margin: 8dp 0;
+			padding: 15dp 0;
+			border: 4dp #fff;
+			border-radius: 50dp;
+			box-shadow: #000a 0 4dp 12dp, #000a 0 1dp 3dp;
+			color: white;
+			font-size: 26dp;
+			text-align: center;
+		}
+
 		.ellipse > :nth-child(1) { decorator: radial-gradient(yellow, green); }
 		.ellipse > :nth-child(2) { decorator: radial-gradient(ellipse at center, yellow 0%, green 100%); }
 		.ellipse > :nth-child(3) { decorator: radial-gradient(farthest-corner at 50% 50%, yellow, green); }
@@ -70,6 +84,11 @@
 </head>
 
 <body>
+Button with radial gradient background
+<group>
+	<button>Button</button>
+</group>
+
 Ellipse, yellow (center) to green (corners) [equivalent]
 <group class="ellipse">
 	<div/>

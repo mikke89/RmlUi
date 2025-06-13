@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/ContextInstancer.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/DataModelHandle.h"
+#include "../../Include/RmlUi/Core/Debug.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
@@ -38,13 +39,13 @@
 #include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
-#include "../../Include/RmlUi/Core/Debug.h"
 #include "DataModel.h"
 #include "EventDispatcher.h"
 #include "PluginRegistry.h"
 #include "ScrollController.h"
 #include "StreamFile.h"
 #include <algorithm>
+#include <clocale>
 #include <iterator>
 #include <limits>
 
@@ -54,7 +55,32 @@ static constexpr float DOUBLE_CLICK_TIME = 0.5f;    // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f; // [dp]
 static constexpr float UNIT_SCROLL_LENGTH = 80.f;   // [dp]
 
-Context::Context(const String& name, RenderManager* render_manager) : name(name), render_manager(render_manager)
+static void DebugVerifyLocaleSetting()
+{
+#ifdef RMLUI_DEBUG
+	constexpr float expected_value = 1000.5f;
+	const Rml::String expected_string = "1000.5";
+	const Rml::String formatted_string = Rml::ToString(expected_value);
+	const float parsed_value = Rml::FromString<float>(expected_string);
+
+	const char* description = "RmlUi expects the global locale to be set to the default minimal \"C\" locale, please see `std::setlocale`.";
+	if (formatted_string != expected_string)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR,
+			"Incompatible locale setting detected while formatting %f. Formatted: \"%s\". Expected: \"%s\". Current locale: %s. %s", expected_value,
+			formatted_string.c_str(), expected_string.c_str(), std::setlocale(LC_ALL, nullptr), description);
+	}
+	if (parsed_value != expected_value)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR,
+			"Incompatible locale setting detected while parsing \"%s\". Parsed: %f. Expected: %f. Current locale: %s. %s", expected_string.c_str(),
+			parsed_value, expected_value, std::setlocale(LC_ALL, nullptr), description);
+	}
+#endif
+}
+
+Context::Context(const String& name, RenderManager* render_manager, TextInputHandler* text_input_handler) :
+	name(name), render_manager(render_manager), text_input_handler(text_input_handler)
 {
 	instancer = nullptr;
 
@@ -148,11 +174,11 @@ Vector2i Context::GetDimensions() const
 	return dimensions;
 }
 
-void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_ratio)
+void Context::SetDensityIndependentPixelRatio(float dp_ratio)
 {
-	if (density_independent_pixel_ratio != _density_independent_pixel_ratio)
+	if (density_independent_pixel_ratio != dp_ratio)
 	{
-		density_independent_pixel_ratio = _density_independent_pixel_ratio;
+		density_independent_pixel_ratio = dp_ratio;
 
 		for (int i = 0; i < root->GetNumChildren(true); ++i)
 		{
@@ -174,6 +200,7 @@ float Context::GetDensityIndependentPixelRatio() const
 bool Context::Update()
 {
 	RMLUI_ZoneScoped;
+	DebugVerifyLocaleSetting();
 
 	next_update_timeout = std::numeric_limits<double>::infinity();
 
@@ -215,7 +242,7 @@ bool Context::Render()
 {
 	RMLUI_ZoneScoped;
 
-	render_manager->PrepareRender();
+	render_manager->PrepareRender(dimensions);
 
 	root->Render();
 
@@ -273,6 +300,7 @@ ElementDocument* Context::LoadDocument(const String& document_path)
 
 ElementDocument* Context::LoadDocument(Stream* stream)
 {
+	DebugVerifyLocaleSetting();
 	PluginRegistry::NotifyDocumentOpen(this, stream->GetSourceURL().GetURL());
 
 	ElementPtr element = Factory::InstanceDocumentStream(this, stream, GetDocumentsBaseTag());
@@ -857,6 +885,11 @@ RenderManager& Context::GetRenderManager()
 	return *render_manager;
 }
 
+TextInputHandler* Context::GetTextInputHandler() const
+{
+	return text_input_handler;
+}
+
 void Context::SetInstancer(ContextInstancer* _instancer)
 {
 	RMLUI_ASSERT(instancer == nullptr);
@@ -983,9 +1016,16 @@ bool Context::OnFocusChange(Element* new_focus, bool focus_visible)
 	ElementDocument* old_document = old_focus ? old_focus->GetOwnerDocument() : nullptr;
 	ElementDocument* new_document = new_focus->GetOwnerDocument();
 
-	// If the current focus is modal and the new focus is not modal, deny the request
-	if (old_document && old_document->IsModal() && (!new_document || !new_document->GetOwnerDocument()->IsModal()))
+	// If the current focus is modal and the new focus is cannot receive focus from modal, deny the request.
+	if (old_document && old_document->IsModal() && (!new_document || !(new_document->IsModal() || new_document->IsFocusableFromModal())))
 		return false;
+
+	// If the document of the new focus has been closed, deny the request.
+	if (std::find_if(unloaded_documents.begin(), unloaded_documents.end(),
+			[&](const auto& unloaded_document) { return unloaded_document.get() == new_document; }) != unloaded_documents.end())
+	{
+		return false;
+	}
 
 	// Build the old chains
 	Element* element = old_focus;
@@ -1156,17 +1196,15 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 		element = root.get();
 	}
 
-	// Check if any documents have modal focus; if so, only check down than document.
-	if (element == root.get())
+	bool is_modal = false;
+	ElementDocument* focus_document = nullptr;
+
+	// If we have modal focus, only check down documents that can receive focus from modals.
+	if (element == root.get() && focus)
 	{
-		if (focus)
-		{
-			ElementDocument* focus_document = focus->GetOwnerDocument();
-			if (focus_document && focus_document->IsModal())
-			{
-				element = focus_document;
-			}
-		}
+		focus_document = focus->GetOwnerDocument();
+		if (focus_document && focus_document->IsModal())
+			is_modal = true;
 	}
 
 	// Check any elements within our stacking context. We want to return the lowest-down element
@@ -1178,10 +1216,11 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 
 		for (int i = (int)element->stacking_context.size() - 1; i >= 0; --i)
 		{
+			Element* stacking_child = element->stacking_context[i];
 			if (ignore_element)
 			{
 				// Check if the element is a descendant of the element we're ignoring.
-				Element* element_hierarchy = element->stacking_context[i];
+				Element* element_hierarchy = stacking_child;
 				while (element_hierarchy)
 				{
 					if (element_hierarchy == ignore_element)
@@ -1194,7 +1233,14 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 					continue;
 			}
 
-			Element* child_element = GetElementAtPoint(point, ignore_element, element->stacking_context[i]);
+			if (is_modal)
+			{
+				ElementDocument* child_document = stacking_child->GetOwnerDocument();
+				if (!child_document || !(child_document == focus_document || child_document->IsFocusableFromModal()))
+					continue;
+			}
+
+			Element* child_element = GetElementAtPoint(point, ignore_element, stacking_child);
 			if (child_element)
 				return child_element;
 		}

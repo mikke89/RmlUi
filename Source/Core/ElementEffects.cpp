@@ -162,12 +162,15 @@ void ElementEffects::ReloadEffectsData()
 		{
 			for (DecoratorEntry& decorator : *list)
 			{
-				if (decorator.decorator_data)
-					decorator.decorator->ReleaseElementData(decorator.decorator_data);
+				const DecoratorDataHandle old_data = decorator.decorator_data;
 
 				decorator.decorator_data = decorator.decorator->GenerateElementData(element, decorator.paint_area);
 				if (!decorator.decorator_data)
 					decorator_data_failed = true;
+
+				// Release old element data after generating new data, so that the decorator can reuse any cache.
+				if (old_data)
+					decorator.decorator->ReleaseElementData(old_data);
 			}
 		}
 
@@ -233,7 +236,7 @@ void ElementEffects::RenderEffects(RenderStage render_stage)
 	if (!render_manager)
 		return;
 
-	Rectanglei initial_scissor_region = render_manager->GetState().scissor_region;
+	Rectanglei initial_scissor_region = render_manager->GetScissorRegion();
 
 	auto ApplyClippingRegion = [this, &render_manager](PropertyId filter_id) {
 		RMLUI_ASSERT(filter_id == PropertyId::Filter || filter_id == PropertyId::BackdropFilter);
@@ -254,8 +257,7 @@ void ElementEffects::RenderEffects(RenderStage render_stage)
 
 		Math::ExpandToPixelGrid(filter_region);
 
-		Rectanglei scissor_region = Rectanglei(filter_region);
-		scissor_region.IntersectIfValid(render_manager->GetState().scissor_region);
+		Rectanglei scissor_region = Rectanglei(filter_region).IntersectIfValid(render_manager->GetScissorRegion());
 		render_manager->SetScissorRegion(scissor_region);
 	};
 	auto ApplyScissorRegionForBackdrop = [this, &render_manager]() {

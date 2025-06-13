@@ -39,10 +39,7 @@ namespace Rml {
 ElementFormControlTextArea::ElementFormControlTextArea(const String& tag) : ElementFormControl(tag)
 {
 	widget = MakeUnique<WidgetTextInputMultiLine>(this);
-
-	SetProperty(PropertyId::OverflowX, Property(Style::Overflow::Auto));
-	SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Auto));
-	SetProperty(PropertyId::WhiteSpace, Property(Style::WhiteSpace::Prewrap));
+	SetWordWrapProperties();
 }
 
 ElementFormControlTextArea::~ElementFormControlTextArea() {}
@@ -119,10 +116,15 @@ void ElementFormControlTextArea::GetSelection(int* selection_start, int* selecti
 	widget->GetSelection(selection_start, selection_end, selected_text);
 }
 
+void ElementFormControlTextArea::SetCompositionRange(int range_start, int range_end)
+{
+	widget->SetCompositionRange(range_start, range_end);
+}
+
 bool ElementFormControlTextArea::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {
 	dimensions.x = (float)(GetNumColumns() * ElementUtilities::GetStringWidth(this, "m"));
-	dimensions.y = (float)GetNumRows() * GetLineHeight();
+	dimensions.y = (float)GetNumRows() * Math::Round(GetLineHeight());
 
 	return true;
 }
@@ -152,12 +154,7 @@ void ElementFormControlTextArea::OnAttributeChange(const ElementAttributes& chan
 	ElementFormControl::OnAttributeChange(changed_attributes);
 
 	if (changed_attributes.find("wrap") != changed_attributes.end())
-	{
-		if (GetWordWrap())
-			SetProperty(PropertyId::WhiteSpace, Property(Style::WhiteSpace::Prewrap));
-		else
-			SetProperty(PropertyId::WhiteSpace, Property(Style::WhiteSpace::Pre));
-	}
+		SetWordWrapProperties();
 
 	if (changed_attributes.find("rows") != changed_attributes.end() || changed_attributes.find("cols") != changed_attributes.end())
 		DirtyLayout();
@@ -192,6 +189,14 @@ void ElementFormControlTextArea::OnPropertyChange(const PropertyIdSet& changed_p
 void ElementFormControlTextArea::GetInnerRML(String& content) const
 {
 	content = GetValue();
+}
+
+void ElementFormControlTextArea::SetWordWrapProperties()
+{
+	const bool word_wrap = GetWordWrap();
+	SetProperty(PropertyId::OverflowX, Property(word_wrap ? Style::Overflow::Hidden : Style::Overflow::Auto));
+	SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Auto));
+	SetProperty(PropertyId::WhiteSpace, Property(word_wrap ? Style::WhiteSpace::Prewrap : Style::WhiteSpace::Pre));
 }
 
 } // namespace Rml

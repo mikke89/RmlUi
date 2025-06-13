@@ -76,12 +76,13 @@ public:
 	RenderManager(RenderInterface* render_interface);
 	~RenderManager();
 
-	void PrepareRender();
+	void PrepareRender(Vector2i dimensions);
 	void SetViewport(Vector2i dimensions);
 	Vector2i GetViewport() const;
 
 	void DisableScissorRegion();
 	void SetScissorRegion(Rectanglei region);
+	Rectanglei GetScissorRegion() const;
 
 	void DisableClipMask();
 	void SetClipMask(ClipMaskGeometryList clip_elements);
@@ -121,6 +122,7 @@ private:
 	void Render(const Geometry& geometry, Vector2f translation, Texture texture, const CompiledShader& shader);
 
 	void GetTextureSourceList(StringList& source_list) const;
+	const Mesh& GetMesh(const Geometry& geometry) const;
 
 	bool ReleaseTexture(const String& texture_source);
 	void ReleaseAllTextures();

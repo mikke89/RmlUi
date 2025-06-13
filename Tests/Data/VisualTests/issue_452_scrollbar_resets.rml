@@ -31,10 +31,13 @@
 			border: 1px white;
 		}
 
+		.container > * {
+			overflow-y: auto;
+		}
+
 		.list {
 			display: block;
 			height: 100%;
-			overflow-y: auto;
 		}
 
 		.list > div {

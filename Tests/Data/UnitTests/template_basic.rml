@@ -1,0 +1,7 @@
+<template name="basic" content="text">
+<head></head>
+<body>
+	<h1>Header</h1>
+	<p id="text"></p>
+</body>
+</template>

@@ -59,8 +59,8 @@ protected:
 	/// Registers a shorthand property definition. Specify a shorthand name of 'decorator' or 'filter' to parse
 	/// anonymous decorators or filters, respectively.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
-	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in
-	/// which they are specified here is the order in which the values will be processed.
+	/// @param[in] property_names A comma-separated list of the properties this definition is a shorthand for. The order
+	/// in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @return An ID for the new shorthand, or 'Invalid' if the shorthand declaration is invalid.
 	ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);

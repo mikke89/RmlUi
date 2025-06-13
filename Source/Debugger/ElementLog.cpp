@@ -39,7 +39,7 @@ namespace Debugger {
 
 const int MAX_LOG_MESSAGES = 50;
 
-ElementLog::ElementLog(const String& tag) : ElementDocument(tag)
+ElementLog::ElementLog(const String& tag) : ElementDebugDocument(tag)
 {
 	dirty_logs = false;
 	beacon = nullptr;
@@ -83,10 +83,10 @@ ElementLog::~ElementLog()
 	RemoveEventListener(EventId::Click, this);
 
 	if (beacon && beacon->GetFirstChild())
-	{
 		beacon->GetFirstChild()->RemoveEventListener(EventId::Click, this);
+
+	if (beacon && beacon->GetParentNode())
 		beacon->GetParentNode()->RemoveChild(beacon);
-	}
 
 	if (message_content)
 	{
@@ -114,7 +114,8 @@ bool ElementLog::Initialise()
 	AddEventListener(EventId::Click, this);
 
 	// Create the log beacon.
-	beacon = GetContext()->CreateDocument();
+	beacon = GetContext()->CreateDocument("debug-document");
+	RMLUI_ASSERT(rmlui_dynamic_cast<ElementDebugDocument*>(beacon));
 	if (!beacon)
 		return false;
 
@@ -210,7 +211,7 @@ void ElementLog::OnUpdate()
 			int num_messages = 0;
 			while (next_type != -1 && num_messages < MAX_LOG_MESSAGES)
 			{
-				messages += CreateString(128, "<div class=\"log-entry\"><div class=\"icon %s\">%s</div><p class=\"message\">",
+				messages += CreateString("<div class=\"log-entry\"><div class=\"icon %s\">%s</div><p class=\"message\">",
 					log_types[next_type].class_name.c_str(), log_types[next_type].alert_contents.c_str());
 				messages += log_types[next_type].log_messages[log_pointers[next_type]].message;
 				messages += "</p></div>";

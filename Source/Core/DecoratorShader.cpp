@@ -52,14 +52,14 @@ bool DecoratorShader::Initialise(String&& in_value)
 	return true;
 }
 
-DecoratorDataHandle DecoratorShader::GenerateElementData(Element* element, BoxArea render_area) const
+DecoratorDataHandle DecoratorShader::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	RenderManager* render_manager = element->GetRenderManager();
 	if (!render_manager)
 		return INVALID_DECORATORDATAHANDLE;
 
-	const Box& box = element->GetBox();
-	const Vector2f dimensions = box.GetSize(render_area);
+	const RenderBox render_box = element->GetRenderBox(paint_area);
+	const Vector2f dimensions = render_box.GetFillSize();
 	CompiledShader shader = render_manager->CompileShader("shader", Dictionary{{"value", Variant(value)}, {"dimensions", Variant(dimensions)}});
 	if (!shader)
 		return INVALID_DECORATORDATAHANDLE;
@@ -68,9 +68,9 @@ DecoratorDataHandle DecoratorShader::GenerateElementData(Element* element, BoxAr
 
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	MeshUtilities::GenerateBackground(mesh, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), render_area);
+	MeshUtilities::GenerateBackground(mesh, render_box, ColourbPremultiplied(alpha, alpha));
 
-	const Vector2f offset = box.GetPosition(render_area);
+	const Vector2f offset = render_box.GetFillOffset();
 	for (Vertex& vertex : mesh.vertices)
 		vertex.tex_coord = (vertex.position - offset) / dimensions;
 

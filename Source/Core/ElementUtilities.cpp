@@ -49,36 +49,6 @@
 
 namespace Rml {
 
-// Builds and sets the box for an element.
-static void SetBox(Element* element)
-{
-	Element* parent = element->GetParentNode();
-	RMLUI_ASSERT(parent != nullptr);
-
-	Vector2f containing_block = parent->GetBox().GetSize();
-	containing_block.x -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL);
-	containing_block.y -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
-
-	Box box;
-	LayoutDetails::BuildBox(box, containing_block, element);
-
-	if (element->GetComputedValues().height().type != Style::Height::Auto)
-		box.SetContent(Vector2f(box.GetSize().x, containing_block.y));
-
-	element->SetBox(box);
-}
-
-// Positions an element relative to an offset parent.
-static void SetElementOffset(Element* element, Vector2f offset)
-{
-	Vector2f relative_offset = element->GetParentNode()->GetBox().GetPosition(BoxArea::Content);
-	relative_offset += offset;
-	relative_offset.x += element->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
-	relative_offset.y += element->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
-
-	element->SetOffset(relative_offset, element->GetParentNode());
-}
-
 Element* ElementUtilities::GetElementById(Element* root_element, const String& id)
 {
 	// Breadth first search on elements for the corresponding id
@@ -157,10 +127,10 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element* element)
 	return context->GetDensityIndependentPixelRatio();
 }
 
-int ElementUtilities::GetStringWidth(Element* element, const String& string, Character prior_character)
+int ElementUtilities::GetStringWidth(Element* element, StringView string, Character prior_character)
 {
 	const auto& computed = element->GetComputedValues();
-	const TextShapingContext text_shaping_context{ computed.language(), computed.direction(), computed.letter_spacing() };
+	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.letter_spacing()};
 
 	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
 	if (font_face_handle == 0)
@@ -182,7 +152,7 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 	// Search through the element's ancestors, finding all elements that clip their overflow and have overflow to clip.
 	// For each that we find, we combine their clipping region with the existing clipping region, and so build up a
 	// complete clipping region for the element.
-	Element* clipping_element = (force_clip_self ? element : element->GetParentNode());
+	Element* clipping_element = (force_clip_self ? element : element->GetOffsetParent());
 
 	Rectanglef clip_region = Rectanglef::MakeInvalid();
 
@@ -198,7 +168,7 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 		// Merge the existing clip region with the current clip region, unless we are ignoring clip regions.
 		if (((clip_always || clip_enabled) && num_ignored_clips == 0) || force_clip_current_element)
 		{
-			const BoxArea client_area = (force_clip_current_element ? BoxArea::Border : clipping_element->GetClientArea());
+			const BoxArea clip_area = (force_clip_current_element ? BoxArea::Border : clipping_element->GetClipArea());
 			const bool has_clipping_content =
 				(clip_always || force_clip_current_element || clipping_element->GetClientWidth() < clipping_element->GetScrollWidth() - 0.5f ||
 					clipping_element->GetClientHeight() < clipping_element->GetScrollHeight() - 0.5f);
@@ -215,9 +185,9 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 				// region to be clipped. If the element has a transform we only use a clip mask when the content clips.
 				if (has_border_radius || (transform && has_clipping_content))
 				{
-					Geometry* clip_geometry = clipping_element->GetElementBackgroundBorder()->GetClipGeometry(clipping_element, client_area);
+					Geometry* clip_geometry = clipping_element->GetElementBackgroundBorder()->GetClipGeometry(clipping_element, clip_area);
 					const ClipMaskOperation clip_operation = (out_clip_mask_list->empty() ? ClipMaskOperation::Set : ClipMaskOperation::Intersect);
-					const Vector2f absolute_offset = clipping_element->GetAbsoluteOffset(BoxArea::Border);
+					const Vector2f absolute_offset = clipping_element->GetAbsoluteOffset(BoxArea::Border).Round();
 					out_clip_mask_list->push_back(ClipMaskGeometry{clip_operation, clip_geometry, absolute_offset, transform});
 				}
 
@@ -231,10 +201,11 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 			if (has_clipping_content && !disable_scissor_clipping)
 			{
 				// Shrink the scissor region to the element's client area.
-				Vector2f element_offset = clipping_element->GetAbsoluteOffset(client_area);
-				Vector2f element_size = clipping_element->GetBox().GetSize(client_area);
+				Vector2f element_offset = clipping_element->GetAbsoluteOffset(clip_area).Round();
+				Vector2f element_size = clipping_element->GetRenderBox(clip_area).GetFillSize();
+				Rectanglef element_region = Rectanglef::FromPositionSize(element_offset, element_size);
 
-				clip_region.IntersectIfValid(Rectanglef::FromPositionSize(element_offset, element_size));
+				clip_region = element_region.IntersectIfValid(clip_region);
 			}
 		}
 
@@ -255,7 +226,7 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 
 	if (clip_region.Valid())
 	{
-		Math::ExpandToPixelGrid(clip_region);
+		Math::SnapToPixelGrid(clip_region);
 		out_clip_region = Rectanglei(clip_region);
 	}
 
@@ -316,8 +287,7 @@ bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* elemen
 
 	// Element bounds in non-transformed space.
 	Rectanglef bounds = Rectanglef::FromPositionSize(element->GetAbsoluteOffset(box_area), element->GetBox().GetSize(box_area));
-	bounds.ExtendTopLeft(shadow_extent_top_left);
-	bounds.ExtendBottomRight(shadow_extent_bottom_right);
+	bounds = bounds.Extend(shadow_extent_top_left, shadow_extent_bottom_right);
 
 	const TransformState* transform_state = element->GetTransformState();
 	const Matrix4f* transform = (transform_state ? transform_state->GetTransform() : nullptr);
@@ -366,7 +336,7 @@ bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* elemen
 	// Find the rectangle covering the projected corners.
 	out_rectangle = Rectanglef::FromPosition(corners[0]);
 	for (int i = 1; i < num_corners; i++)
-		out_rectangle.Join(corners[i]);
+		out_rectangle = out_rectangle.Join(corners[i]);
 
 	return true;
 }
@@ -384,23 +354,35 @@ void ElementUtilities::BuildBox(Box& box, Vector2f containing_block, Element* el
 bool ElementUtilities::PositionElement(Element* element, Vector2f offset, PositionAnchor anchor)
 {
 	Element* parent = element->GetParentNode();
-	if (parent == nullptr)
+	if (!parent)
 		return false;
 
-	SetBox(element);
+	const Box& parent_box = parent->GetBox();
+	Vector2f containing_block = parent_box.GetSize();
+	containing_block.x -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL);
+	containing_block.y -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
 
-	Vector2f containing_block = element->GetParentNode()->GetBox().GetSize(BoxArea::Content);
-	Vector2f element_block = element->GetBox().GetSize(BoxArea::Margin);
+	Box box;
+	LayoutDetails::BuildBox(box, containing_block, element);
+	if (box.GetSize().y < 0.f)
+		box.SetContent(Vector2f(box.GetSize().x, containing_block.y));
+	element->SetBox(box);
 
+	Vector2f element_block = box.GetSize(BoxArea::Margin);
 	Vector2f resolved_offset = offset;
 
 	if (anchor & RIGHT)
 		resolved_offset.x = containing_block.x - (element_block.x + offset.x);
-
 	if (anchor & BOTTOM)
 		resolved_offset.y = containing_block.y - (element_block.y + offset.y);
 
-	SetElementOffset(element, resolved_offset);
+	// Position element relative to its parent.
+	Vector2f relative_offset = parent_box.GetPosition(BoxArea::Content);
+	relative_offset += resolved_offset;
+	relative_offset.x += box.GetEdge(BoxArea::Margin, BoxEdge::Left);
+	relative_offset.y += box.GetEdge(BoxArea::Margin, BoxEdge::Top);
+
+	element->SetOffset(relative_offset, parent);
 
 	return true;
 }

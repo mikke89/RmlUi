@@ -89,10 +89,10 @@ public:
 	float GetCumulativeEdge(BoxArea area, BoxEdge edge) const;
 
 	/// Returns the size along a single direction of the given 'area', including all inner areas up-to and including 'area_end'.
-	/// @example GetSizeAcross(Horizontal, Border, Padding) returns the total width of the horizontal borders and paddings.
 	/// @param direction The desired direction.
 	/// @param area The widest area to include.
 	/// @param area_end The last area to include, anything inside this is excluded.
+	/// @example GetSizeAcross(Horizontal, Border, Padding) returns the total width of the horizontal borders and paddings.
 	float GetSizeAcross(BoxDirection direction, BoxArea area, BoxArea area_end = BoxArea::Content) const;
 
 	/// Returns the size of the frame defined by the given area, not including inner areas.

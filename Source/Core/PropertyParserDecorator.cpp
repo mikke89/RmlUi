@@ -35,11 +35,24 @@
 
 namespace Rml {
 
-const SmallUnorderedMap<String, BoxArea> PropertyParserDecorator::area_keywords = {
-	{"border-box", BoxArea::Border},
-	{"padding-box", BoxArea::Padding},
-	{"content-box", BoxArea::Content},
+struct PropertyParserDecoratorData {
+	const SmallUnorderedMap<String, BoxArea> area_keywords = {
+		{"border-box", BoxArea::Border},
+		{"padding-box", BoxArea::Padding},
+		{"content-box", BoxArea::Content},
+	};
 };
+
+ControlledLifetimeResource<PropertyParserDecoratorData> PropertyParserDecorator::parser_data;
+
+void PropertyParserDecorator::Initialize()
+{
+	parser_data.Initialize();
+}
+void PropertyParserDecorator::Shutdown()
+{
+	parser_data.Shutdown();
+}
 
 PropertyParserDecorator::PropertyParserDecorator() {}
 
@@ -79,12 +92,12 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 		const size_t shorthand_open = decorator_string.find('(');
 		const size_t shorthand_close = decorator_string.rfind(')');
 		const bool invalid_parenthesis = (shorthand_open == String::npos || shorthand_close == String::npos || shorthand_open >= shorthand_close);
+		const size_t keywords_begin = (invalid_parenthesis ? decorator_string.find(' ') : shorthand_close + 1);
 
 		// Look-up keywords for customized paint area.
 		BoxArea paint_area = BoxArea::Auto;
 
 		{
-			const size_t keywords_begin = (invalid_parenthesis ? decorator_string.find(' ') : shorthand_close + 1);
 			StringList keywords;
 			if (keywords_begin < decorator_string.size())
 				StringUtilities::ExpandString(keywords, decorator_string.substr(keywords_begin), ' ');
@@ -94,8 +107,8 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 				if (keyword.empty())
 					continue;
 
-				auto it = area_keywords.find(StringUtilities::ToLower(keyword));
-				if (it == area_keywords.end())
+				auto it = parser_data->area_keywords.find(StringUtilities::ToLower(keyword));
+				if (it == parser_data->area_keywords.end())
 					return false; // Bail out if we have an invalid keyword.
 
 				paint_area = it->second;
@@ -105,7 +118,7 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 		if (invalid_parenthesis)
 		{
 			// We found no parenthesis, that means the value must be a name of a @decorator rule.
-			decorators.list.emplace_back(DecoratorDeclaration{decorator_string, nullptr, {}, paint_area});
+			decorators.list.emplace_back(DecoratorDeclaration{decorator_string.substr(0, keywords_begin), nullptr, {}, paint_area});
 		}
 		else
 		{
@@ -150,7 +163,7 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 
 String PropertyParserDecorator::ConvertAreaToString(BoxArea area)
 {
-	for (const auto& it : area_keywords)
+	for (const auto& it : parser_data->area_keywords)
 	{
 		if (it.second == area)
 			return it.first;

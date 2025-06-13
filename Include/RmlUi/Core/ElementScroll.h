@@ -77,6 +77,9 @@ public:
 	/// Formats the enabled scrollbars based on the current size of the host element.
 	void FormatScrollbars();
 
+	/// Updates the scrollbar elements to reflect their current state.
+	void UpdateProperties();
+
 private:
 	struct Scrollbar {
 		Scrollbar();

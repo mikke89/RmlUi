@@ -50,7 +50,7 @@ public:
 	explicit operator bool() const { return static_cast<bool>(program_data); }
 
 	// The viewport should be updated whenever the window size changes.
-	void SetViewport(int viewport_width, int viewport_height);
+	void SetViewport(int viewport_width, int viewport_height, int viewport_offset_x = 0, int viewport_offset_y = 0);
 
 	// Sets up OpenGL states for taking rendering commands from RmlUi.
 	void BeginFrame();
@@ -83,7 +83,7 @@ public:
 		Rml::Span<const Rml::CompiledFilterHandle> filters) override;
 	void PopLayer() override;
 
-	Rml::TextureHandle SaveLayerAsTexture(Rml::Vector2i dimensions) override;
+	Rml::TextureHandle SaveLayerAsTexture() override;
 
 	Rml::CompiledFilterHandle SaveLayerAsMaskImage() override;
 
@@ -99,6 +99,11 @@ public:
 	static constexpr Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
 	// Can be passed to RenderGeometry() to leave the bound texture and used program unchanged.
 	static constexpr Rml::TextureHandle TexturePostprocess = Rml::TextureHandle(-2);
+
+	// -- Utility functions for clients --
+
+	const Rml::Matrix4f& GetTransform() const;
+	void ResetProgram();
 
 private:
 	void UseProgram(ProgramId program_id);
@@ -126,6 +131,8 @@ private:
 
 	int viewport_width = 0;
 	int viewport_height = 0;
+	int viewport_offset_x = 0;
+	int viewport_offset_y = 0;
 
 	Rml::CompiledGeometryHandle fullscreen_quad_geometry = {};
 
@@ -185,6 +192,7 @@ private:
 		bool enable_blend;
 		bool enable_stencil_test;
 		bool enable_scissor_test;
+		bool enable_depth_test;
 
 		int viewport[4];
 		int scissor[4];

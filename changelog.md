@@ -1,3 +1,5 @@
+* [RmlUi 6.1](#rmlui-61)
+* [RmlUi 6.0](#rmlui-60)
 * [RmlUi 5.1](#rmlui-51)
 * [RmlUi 5.0](#rmlui-50)
 * [RmlUi 4.4](#rmlui-44)
@@ -11,8 +13,214 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
+## RmlUi 6.1
 
-## RmlUi 6.0 (WIP)
+### Prevent single pixel gaps between elements
+
+This release addresses the issue of 1px gaps appearing between fractionally sized elements when placed border-to-border. This was particularly pronounced in DPI-scaled layouts, as that often leads to fractionally sized elements.
+
+The solution involves rounding the rendered size of elements based on their absolute positions to ensure that the bottom/right of one element matches the top/left of the next element. This implies that the rendered size of a fractional element may vary by up to one pixel. This generally matches how web browsers behave. Floating-point precision issues may still cause rare gaps, but the improvements should cover almost all cases. See the [commit message](https://github.com/mikke89/RmlUi/commit/b197f985b328d5493af3190e27d4290bb496ff1d) for details. Resolves #438, thanks to @mwl4 for the extensive initiative and proof of concept.
+
+In particular, this fixes several situations with single pixel gaps and overlaps:
+
+- Gap of 1px between border or backgrounds of neighboring elements.
+- Overlap of 1px between border or backgrounds of neighboring elements.
+- Table cell backgrounds overlap the table border by 1px.
+- Gap between nested elements in a flex container.
+- Clipping area offset by 1px compared to the border area.
+
+![Single pixel gap fix examples - before and after comparisons](https://github.com/user-attachments/assets/f1b29382-4686-4fea-a4dc-ea9628669b80)
+
+### Handle element
+
+The `<handle>` element has received several major improvements.
+
+- The handle now retains the anchoring that applies to the target element, even after moving or sizing it. #637
+  - If an element has all of its inset (top/right/bottom/left) properties set, this determines the size, and anchors to all edges. Previously, we would break the anchoring and just declare its new position or size. Now, positioning and sizing is performed in a way that retains this anchoring. Similarly, this applies to every combination of anchoring.
+  - Thus, when first sizing and moving the target and then resizing its container, the element can now still resize itself to match the new dimensions.
+- The `edge_margin` attribute is introduced to constrain the target placement to the edges of its containing block. #631 
+  - Applies to both position and size targets.
+  - This attribute can take any length or percentage, which specifies the minimum distance between the target and the edges of its containing block. Each side can be specified individually, and negative values are allowed. See the [documentation](https://mikke89.github.io/RmlUiDoc/pages/rml/controls.html#handle) for details.
+  - Defaults to `0px`, which means that handle targets will now be constrained exactly to the edges of their containing block.
+- Fix several issues where the element jolts some distance at drag start:
+  - When the target's containing block has a border.
+  - When the target is set to relative positioning and offset from the top-left corner.
+
+### New decorator: `text`
+
+Implement a new decorator to render text as a background on elements. This can be particularly helpful when using icon fonts, and even allows using such fonts for generated elements. #348 #655 #679
+
+```
+decorator: text("Hello 🌎 world!" blue bottom right);
+```
+
+The font face will be inherited from the element it is being applied to. However, it can be colored independently. Further, the text can be freely aligned within the element using lengths, percentages, or keywords. Unicode numerical references are supported with the HTML syntax, e.g. `&#x1F30E;`.
+
+![Text decorator examples](https://github.com/mikke89/RmlUiDoc/blob/b050d5d0b316c961cd05ed37cdd3dda1b809d80e/assets/images/decorators/text.png)
+
+### Flexbox layout improvements
+
+- Apply automatic minimum size of flex items in column mode with auto size. #658
+- Performance improvement: Skip calculating hypothetical cross size when not needed. Avoids a potentially expensive formatting step in some situations. #658 
+- Fix the hypothetical width of replaced elements (such as images) in column direction layout. #666
+- Fix hitting an assertion due to negative flex item size in some situations when the edge size is fractional. #657
+
+### Data binding
+
+- Allow custom getter/setter on scoped enum. #693 #699 (thanks @AmaiKinono)
+- Ternary expressions are now implemented with jumps so that only one branch is evaluated. This makes it possible to e.g. avoid invalid array access in case of an empty array. #740 (thanks @rminderhoud and @exjam)
+- Fix an issue where the `FamilyId` would have the same value for different types across shared library boundaries, which could lead to a crash or other unexpected behavior. 
+
+### Animations
+
+- Add interpolation of color stop lists, which enables animation of color and position of stops in gradient decorators. #667
+- Improve warning message when trying to animate box shadows. #688
+
+### RCSS Values
+
+- Support `hsl` and `hsla` colors. E.g. `color: hsl(30, 80%, 50%)`. #674 (thanks @AmaiKinono)
+
+### Input elements
+
+- Implement the ability to style the progress of a `range` input. #736 (thanks @viseztrance)
+  - A new [`sliderprogress` child element](https://mikke89.github.io/RmlUiDoc/pages/style_guide.html) is added for this purpose.\
+  ![Range input with styled progress bar](https://github.com/user-attachments/assets/aa1ecea7-6fc1-4bc5-99a0-5bbc969e190e)
+- Improve navigation of `<select>` elements when using controller/keyboard navigation. #565 #566 (thanks @Paril)
+  - Scroll to the selected options as one is moving up or down the list.
+  - Scroll to the selected option when opening up the selection box.
+  - Add the ability to programmatically [show or hide](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/element_packages/form.html#drop-down-select-box) the selection box.
+- Fix some layout and behavior issues of the `<select>` element. 
+  - Fix issues related to specifying the height of the select arrow element. 
+  - Fix an issue where the selection box would scroll to the top-left corner when the document layout is updated.
+- Fix an issue where wrapping a `<select>` element inside a `<label>` element would prevent mouse clicks from being able to select a new option. #494
+- Fix an issue where the contents of the `<input type="text">` and `<textarea>` elements could sometimes inadvertently scroll to a new place after a layout update.
+- Handle multi-byte characters in `<input type="password">` fields. #735
+
+### Elements
+
+- Add support for the [`:scope` pseudo selector](https://mikke89.github.io/RmlUiDoc/pages/rcss/selectors.html#pseudo-selectors) when calling into the `Element` DOM query methods, i.e. `Element::QuerySelector[All]`, `Element::Matches`, and `Element::Closest`. #578 (thanks @Paril)
+- Add [`Element::Contains` DOM method](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/elements.html#dom-interface).
+- Allow `Element::ScrollIntoView` to only scroll in the nearest scroll container, instead of all ancestor scroll containers, by using the new `ScrollParentage::Closest` scroll option.
+- Fix an issue where scrollbars could appear or disappear one frame after they should have changed visibility.
+
+### Documents
+
+- Expose `ElementDocument::FindNextTabElement` publicly.
+- Disallow focusing into an unloaded document to prevent a potential situation with dangling pointers. #730
+
+### Font engine
+
+- Add the ability to select a font face from a font collection, using its face index passed to `Rml::LoadFontFace`. #720 (thanks @leduyquang753)
+- Fix rare placement of glyphs appearing below the baseline in some fonts, by using the bitmap bearing instead of the glyph metrics.
+- The [HarfBuzz font engine](./Samples/basic/harfbuzz) now uses kerning from HarfBuzz instead of FreeType. #639 (thanks @TriangulumDesire)
+
+### RML Parsing and layouting
+
+- Fix RML parsing of extra hyphen in closing comment, i.e. `--->` instead of `-->`. #681
+- Fix a crash during layouting with word break enabled, when the first character of a token is multi-byte and does not fit on the line. #753 (thanks @and3md)
+
+### Rendering
+
+- Fix incorrect clipping when using multiple contexts of different dimensions. #677 #680 (thanks @s1sw)
+- Defer texture loading until the texture becomes visible.
+
+### Backends
+
+- Update the SFML backend to support SFML 3, in addition to the existing SFML 2 support.
+  - By default, SFML 3 is preferred before SFML 2 during CMake configuration. To override the automatic selection, set the CMake variable `RMLUI_SFML_VERSION_MAJOR` to the desired version (2 or 3).
+- Update all SDL backends to support SDL 3, in addition to the existing SDL 2 support.
+  - By default, SDL 3 is preferred before SDL 2 during CMake configuration. To override the automatic selection, set the CMake variable `RMLUI_SDL_VERSION_MAJOR` to the desired version (2 or 3).
+- SDL 3-specific improvements:
+  - Enable high DPI support.
+  - Enable positioning of the input method editor (IME) to the text cursor.
+- Improvements to both SDL 2 and SDL 3:
+  - Keyboard is activated and deactivated when focusing text input fields.
+  - Text input events are only submitted when text input fields are focused.
+- `SDL_GL2`-specific improvements:
+  - GLEW is no longer required, and no longer linked to.
+  - Use OpenGL directly instead of the SDL renderer, just like the `SDL_GL3` renderer.
+- OpenGL 3 renderer-specific improvements:
+  - Added the ability to set an offset with the call to `SetViewport()`. #724 (thanks @viseztrance)
+  - Added `RMLUI_NUM_MSAA_SAMPLES` as a customizable macro for the number of MSAA samples to use in RmlUi framebuffers.
+  - Added utility functions `GetTransform()` and `ResetProgram()` to more easily enable client projects to render with their own shaders.
+
+### Plugins
+
+- Log warnings when SVG or Lottie files cannot be rendered. #687
+- Support for LunaSVG 3.0 with the SVG plugin.
+
+### Unit testing
+
+- Enable shell renderer with environment variable `RMLUI_TESTS_USE_SHELL=1` instead of a compile definition.
+
+### Resource management
+
+- Avoid memory allocations during global initialization. #689
+  - Instead, explicitly start lifetime of globals during the call to `Rml::Initialise`.
+  - Thus, there should no longer be any memory allocations occurring before `main()` when linking to RmlUi.
+  - We now give a warning if there are objects in user space that refer to any RmlUi resources at the end of `Rml::Shutdown`, as this prevents the library from cleaning up memory pools.
+    - We make an exemption for `Rml::EventListener` as those are commonly kept around until after `Rml::Shutdown` which is considered reasonable.
+- Add manual release of render managers, `Rml::ReleaseRenderManagers`, to allow the render interface to be destroyed before `Rml::Shutdown`. #703
+
+### Building
+
+- Remove `OpenGL::GL` dependency for GL3 backends. #684 (thanks @std-microblock)
+- Fix dependency check signature in RmlUiConfig causing failure to find dependencies. #721 #722 (thanks @mpersano) 
+- Log to console by default when building on MinGW. #757 (thanks @trexxet)
+- Fix a missing header include in the GL3 renderer, causing a compilation error on Visual Studio 17.12.
+- Fix a build issue on certain Visual Studio 2017 setups by using `std::enable_if_t` consistently. #734
+- Fix a build issue on Android with C++ 23 enabled due to mismatching std-namespace usage and C vs. C++ math headers.
+- Fix unit tests and missing sample data when building with Emscripten.
+- Libraries and archives will now be placed in the top-level binary directory, unless overridden by users or parent projects. This matches the existing runtime output directory.
+
+### Readme
+
+- Improve readme code examples. #683 (thanks @std-microblock)
+
+### Breaking changes
+
+- Layouts may see 1px shifts in various places due to the improvements to prevent single pixel gaps.
+- The target of the `<handle>` element will no longer move outside its containing block by default, see above for how to override this behavior.
+- Changed the signature of `MeshUtilities::GenerateBackground` and  `MeshUtilities::GenerateBackgroundBorder`.
+  - They now take the new `RenderBox` class as input. The `Element::GetRenderBox` method can be used to construct it.
+- Changed `ComputedValues::border_radius` to return an array instead of `Vector4f`.
+- `Rml::ReleaseMemoryPools` is no longer exposed publicly. This function is automatically called during shutdown and should not be used manually.
+- SDL backends: The SDL platform's `InputEventHandler` function now takes an additional parameter `window`. 
+
+
+## RmlUi 6.0
+
+* [Advanced rendering features](#advanced-rendering-features)
+  * [New features](#new-features)
+  * [Screenshots](#screenshots)
+  * [Major overhaul of the render interface](#major-overhaul-of-the-render-interface)
+  * [Backward compatible render interface adapter](#backward-compatible-render-interface-adapter)
+  * [Render manager and resources](#render-manager-and-resources)
+  * [Limitations](#limitations)
+* [Major layout engine improvements](#major-layout-engine-improvements)
+  * [Detailed layout improvements](#detailed-layout-improvements)
+  * [Layout comparisons](#layout-comparisons)
+  * [General layout improvements](#general-layout-improvements)
+* [CMake modernization](#cmake-modernization)
+  * [New target names](#new-target-names)
+  * [New library filenames](#new-library-filenames)
+  * [New option names](#new-option-names)
+  * [New exported definitions](#new-exported-definitions)
+  * [CMake presets](#cmake-presets)
+* [Spatial navigation](#spatial-navigation)
+* [Text shaping and font engine](#text-shaping-and-font-engine)
+* [Elements](#elements)
+* [Text input widget](#text-input-widget)
+* [Utilities](#utilities)
+* [Data bindings](#data-bindings)
+* [Debugger plugin](#debugger-plugin)
+* [Lua plugin](#lua-plugin)
+* [System interface](#system-interface)
+* [General improvements](#general-improvements)
+* [General fixes](#general-fixes)
+* [Build improvements](#build-improvements)
+* [Backends](#backends)
+* [Breaking changes](#breaking-changes)
 
 ### Advanced rendering features
 
@@ -25,7 +233,7 @@ The original issue is found in #307 and the pull request is #594. Thanks to ever
 New properties:
 
 - `filter`:  Apply a rendering effect to the current element (including its children).
-  - Supported filters: `blur`, `drop-shadow`, `hue-rotate`, `brightness`, `contrast`, `grayscale`, `invert`, `opacity`, `sepia`. In other words, all filters supported in CSS.
+  - Supported filters: `blur`, `drop-shadow`, `hue-rotate`, `brightness`, `contrast`, `grayscale`, `invert`, `opacity`, `sepia`. That is, all filters supported in CSS.
 - `backdrop-filter`: Apply a filter to anything that is rendered below the current element.
 - `mask-image`: Can be combined with any decorator, including images and gradients, to mask out any part of the current element (and its children) by multiplying their alpha channels.
 - `box-shadow`: With full support for offset, blur, spread, and insets.
@@ -39,23 +247,60 @@ New decorators:
 
 The gradients support most of the CSS features and syntax, including angle and `to <direction>` syntax for direction, multiple color stops, locations in length or percentage units, and up to two locations per color. Please see the [decorators documentation](https://mikke89.github.io/RmlUiDoc/pages/rcss/decorators.html#rmlui-decorators) for details.
 
-- The new rendering interface include support for shaders, which enable the above decorators. Parsing is done in the library, but the backend renderer is the one implementing the actual shader code.
+- The new rendering interface includes support for shaders, which enable the above decorators. Parsing is done in the library, but the backend renderer is the one implementing the actual shader code.
 
-- All filters and gradient decorators have full support for interpolation, that is, they can be animated. This is not yet implemented for box-shadow.
+- All filters and gradient decorators have full support for interpolation, that is, they can be animated. This is not yet implemented for box shadows.
 
-- Decorators can now take an extra keyword `<paint-area>` which is one of `border-box | padding-box | content-box`, which indicates which area of the element the decorator should apply to. All built-in decorators are modified to support this property. For example: `decorator: linear-gradient(to top right, yellow, blue) border-box`.
+- Decorators can now take an extra keyword `<paint-area>` which is one of `border-box | padding-box | content-box`. The keyword indicates which area of the element the decorator should apply to. All built-in decorators are modified to support this property. For example: `decorator: linear-gradient(to top right, yellow, blue) border-box`.
 
-- Custom filters can be created by users by deriving from `Filter` and `FilterInstancer`, analogous to how custom decorators are created.
+- [Custom filters](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/filters.html#custom-filters) can be created by users by deriving from `Filter` and `FilterInstancer`, analogous to how custom decorators are created.
 
-- Improved element clipping behavior. Handles more complicated cases, including nested transforms with hidden overflow, and clips to the curved edge of elements with border-radius. This requires clip mask support in the renderer.
+- Improved element clipping behavior. Handles more complicated cases, including nested transforms with hidden overflow, and clipping to the curved edge of elements with border-radius. This requires clip mask support in the renderer.
 
-Feel free to take a look at the `effects` sample showcasing many of the new features.
+The [documentation](https://mikke89.github.io/RmlUiDoc/) has been updated to reflect the new features, including the new decorators and properties, with examples and screenshots. The new features are also demonstrated in the new `effects` sample, so please check that out.
 
-For now, only the OpenGL 3 renderer implements all new rendering features. All other backends have been updated to work with the updated render interface but with their old feature set.
+For now, only the OpenGL 3 renderer implements all new rendering features. All other backends have been updated to work with the updated render interface but with their old feature set. For users with custom backends, please see the updated [render interface documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/render.html) in particular. Here, you will also find a table detailing exactly which functions must be implemented to support particular RCSS features.
+
+Here are some quick RCSS examples taken from the documentation.
+
+```css
+decorator: linear-gradient(to bottom, #00f3, #0001, #00f3), linear-gradient(to top right, red, blue);
+decorator: radial-gradient(circle farthest-side at center, #ff6b6b, #fec84d, #4ecdc4);
+decorator: repeating-conic-gradient(from 90deg, #ffd700, #f06, #ffd700 180deg);
+decorator: shader("my_shader") border-box;
+
+filter: brightness(1.2) hue-rotate(90deg) drop-shadow(#f33f 30px 20px 5px);
+backdrop-filter: blur(10px);
+
+box-shadow: #f008 40px 30px 0px 0px, #00f8 -40px -30px 0px 0px;
+mask-image: conic-gradient(from 45deg, black, transparent, black), image("star.png" cover);
+```
+
+#### Screenshots
+
+Collage of advanced effects: 
+
+![Advanced effects demonstration](https://github.com/user-attachments/assets/71840d6f-903e-45fe-9e34-a02ed1ddae07)
+
+Masking principles and demonstration:
+
+![Mask imaging and demonstration](https://github.com/mikke89/RmlUiDoc/blob/3854487d65b94ddb6e932ae02f5cef85365003f6/assets/images/mask-image.png?raw=true)
+
+Improved clipping behavior of nested and transformed elements (also showing improved layouting of positioned boxes):
+
+![Clipping comparison of nested and transformed elements](https://github.com/user-attachments/assets/c0ce1123-8c9d-4fbf-8bab-41e63cc332c7)
+
+Improved clipping with border-radius:
+
+![Clipping comparison of elements with border-radius](https://github.com/user-attachments/assets/b944c69a-1b40-4932-9c62-2d4365154d5c)
+
+Demonstration of the `effects` sample: 
+
+[Effects sample video](https://github.com/mikke89/RmlUi/assets/5490330/bdc0422d-867d-4090-9d48-e7159e3adc18)
 
 #### Major overhaul of the render interface
 
-The render interface has been simplified to ease implementation of basic rendering functionality, while extended to enable the new advanced rendering effects. The new effects are fully opt-in, and can be enabled iteratively to support the features that are most desired for your project.
+The render interface has been simplified to ease implementation of basic rendering functionality, while extended to enable the new advanced rendering effects. The new effects are fully opt-in, and can be enabled iteratively to support the features that are most desired for your project. See the updated [render interface documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/render.html) for how to implement the new functionality. The documentation includes a table detailing which functions must be implemented to support specific RCSS features.
 
 Highlighted changes:
 
@@ -63,7 +308,7 @@ Highlighted changes:
 - A clear separation between required functions for basic functionality, and optional features for advanced rendering effects. The required functions are now pure virtual.
 - All colors are now submitted as 8-bit sRGBA (like before), but with premultiplied alpha (new). Existing renderers should modify their blending modes accordingly. This change is central to correct blending of partially transparent layers.
 - All geometry is now compiled before it can be rendered, which helps to simplify the interface.
-  - Now the pointers to the geometry data (vertices and indices) are guaranteed to be available and immutable until the same geometry is released. Thus, users can simply store the views to this data, and reuse that during rendering, which should help considerably with migrating from the immediate rendering function.
+  - Now the pointers to the geometry data (vertices and indices) are guaranteed to be available and immutable until the same geometry is released. Thus, users can simply store the views to this data, and reuse that during rendering, which should help considerably for users migrating from the immediate rendering function.
 - The scissor region should now be applied separately from any active transform. Previously, we would have to manually redirect the scissor to a stencil operation, that is no longer the case. Instead, the clipping with transform is now handled by the library, and directed to the clip mask functionality of the render interface as appropriate.
 - Expanded functionality to enable the new rendering effects, including layered rendering, rendering to texture, rendering with filters and shaders.
 - Textures are no longer part of the compiled geometry, compiled geometry can be rendered with different textures or shaders.
@@ -87,6 +332,8 @@ That's it, and your old renderer should now still work!
 
 It can also be useful to take a closer look at the adapter before migrating your own renderer to the new interface, to see which changes are necessary. Naturally, this adapter won't support any of the new rendering features.
 
+For demonstration purposes, there are two built-in backends implementing the adapter: [`BackwardCompatible_GLFW_GL2`](./Backends/RmlUi_BackwardCompatible/RmlUi_Renderer_BackwardCompatible_GL2.cpp) and [`BackwardCompatible_GLFW_GL3`](./Backends/RmlUi_BackwardCompatible/RmlUi_Renderer_BackwardCompatible_GL3.cpp). Each of the backends use a direct copy of their respective render interface from RmlUi 5.1, only with the above instructions applied. Please take a look if you want to see some examples on how to use this adapter.
+
 #### Render manager and resources
 
 A new RenderManager is introduced to manage resources and other rendering state. Users don't normally have to interact with this, but for contributors, and for more advanced usages, such as custom decorators, this implies several changes.
@@ -104,12 +351,12 @@ See [this commit message](https://github.com/mikke89/RmlUi/commit/a452f26951f945
 
 #### Limitations
 
-Filters will only render based on geometry that is visible on-screen. Thus, some filters may be cut-off. As an example, an element that is partly clipped with a drop-shadow may have its drop-shadow also clipped, even if it is fully visible. On the other hand, box shadows should always be rendered properly, as they are rendered off-screen and stored in a texture.
+Filters will only render based on geometry that is visible on-screen. Thus, some filters may be cut off. As an example, an element that is partly clipped with a drop-shadow may have its drop-shadow also clipped, even if it is fully visible. On the other hand, box shadows should always be rendered properly, as they are rendered off-screen and stored in a texture.
 
 ### Major layout engine improvements
 
 - Make layout more conformant to CSS specification.
-  - Rewritten inline layouting.
+  - Rewritten inline layout engine.
   - Fixed more than a hundred CSS tests, including ACID1.
 - Improve readability and maintainability:
   - Better separation of classes, reduce available state.
@@ -120,41 +367,196 @@ Filters will only render based on geometry that is visible on-screen. Thus, some
   - Allow nested flexboxes: Flex items can now be flex containers themselves. #320
   - Better handling of block-level boxes in inline formatting contexts. #392
 
-More details to be posted later. Expect some possible layout shifts in existing documents, usually due to better CSS conformance.
+#### Detailed layout improvements
 
-### General layout improvements
+Here is a more detailed change list resulting from the rewritten inline formatting engine, and some related changes.
+
+- Corrected the baseline of fonts, they should now line up better.
+- Inline layout now properly uses font metrics as appropriate, even without any text contents.
+  - In particular, vertical alignment now considers font ascent and descent.
+  - This might make some lines taller. In particular, inline-level boxes that are placed on the baseline will now make space for the font descent below the baseline.
+- Improved baselines for inline-block boxes.
+- Content height of inline boxes no longer depend on their `line-height` property, only font metrics.
+- Block formatting contexts (BFC) now work like in CSS: Floated boxes share space and interact within the same BFC, and never outside of it.
+  - Certain properties cause the element to establish a new BFC, such as overflow != visible, and the new `display: flow-root` value.
+  - Milestone: We now pass ACID1!
+- Relative positioning now works in other formatting contexts and situations. #471
+  - Including for inline, flex, table, and floated elements, in addition to block boxes like before.
+  - Also, nested relative elements are now correctly positioned.
+- Containing blocks are now determined more like in CSS, particularly for absolute elements.
+  - Only elements which are positioned, or with local transform or perspective, establishes an absolute containing block.
+- An overflowing element's scroll region no longer has its padding added to the region.
+  - Elements are checked for overflowing the padding box instead of the content box, before enabling scrollbars.
+  - The border box of floats will now be considered for overflow, instead of their margin box.
+- Fix some replaced elements (e.g. textarea) not rendering correctly in several situations, such as when set to block display, floated, or absolutely positioned.
+- Improve shrink-to-fit width, now includes floating children when determining width.
+- Margins of absolutely positioned elements now better account for inset (top/right/bottom/left) properties.
+- Support for new [`display`](https://mikke89.github.io/RmlUiDoc/pages/rcss/visual_formatting_model.html#display) values: `flow-root`, `inline-flex`, `inline-table`.
+- Support for the value [`vertical-align: center`](https://www.w3.org/TR/css-inline-3/#valdef-baseline-shift-center).
+- Stacking contexts are now established in a way that more closely aligns with CSS.
+- Improve the paint order of elements.
+  - Render all stacking context children after the current element's background and decoration. This change is consistent with the CSS paint order. Additionally, it leads to simpler code and less state change, particularly when combined with the advanced rendering effects.
+
+Please see the list of breaking changes and solutions at the end of the changelog. 
+
+#### Layout comparisons
+
+Here are some screenshots demonstrating the layout improvements.
+
+![inline-formatting-01-mix](https://github.com/user-attachments/assets/f27ce0ef-2150-4545-9af2-eca65f1fc02a)
+
+The above example demonstrates a variety of inline formatting details, with nested elements and borders ([fiddle](https://jsfiddle.net/kmouse/etpnu6rb/55/)). We now match nicely with web browsers in such situations. The old behavior has several issues, in particular the elements are not aligned correctly and the border is broken off too early. Note that Firefox in these examples uses a different font, so expect some differences for that reason.
+
+![inline-formatting-04-mix](https://github.com/user-attachments/assets/f547e44d-9a1b-4053-b2e2-4d2efaf9cd5b)
+
+The above shows tests for line splits and borders in particular ([fiddle](https://jsfiddle.net/kmouse/nvscbmoy/5/)). The old behavior is almost comically broken. The new behavior has for the most part been written from scratch following the CSS specifications, and turns out to nicely match up with Firefox.
+
+![inline-formatting-aligned-subtree](https://github.com/user-attachments/assets/c275519d-6e9d-4927-8965-b048ccc615f7)
+
+Finally, this example tests vertical alignment of inline boxes, and particularly the concept of aligned subtrees ([fiddle](https://jsfiddle.net/kmouse/h3c5muyL/7/)). Again, we now nicely align with Firefox. The old behavior looks like it just gave up in the middle. I included Chrome here too, since I find it interesting how different it behaves compared to Firefox. In fact, I found a lot of these differences while testing various nuances of inline formatting. In this case, I am quite convinced that Firefox (and we) are doing the right thing and Chrome is not following the specifications.
+
+#### General layout improvements
 
 - Scale pixels-per-inch (PPI) units based on the context's dp-ratio. #468 (thanks @Dakror)
 - Make flex containers and tables with fixed width work in shrink-to-fit contexts. #520
 - Compute shrink-to-fit width for flex boxes. #559 #577 (thanks @alml)
-- Add `space-evenly` value to flex box properties `justify-content` and `align-content`. #585 (thanks @LucidSigma)
+- Add the `space-evenly` value to flex box properties `justify-content` and `align-content`. #585 (thanks @LucidSigma)
+- Implement the [`gap` property](https://mikke89.github.io/RmlUiDoc/pages/rcss/flexboxes.html#gap) for flexboxes. #621 (thanks @ChrisFloofyKitsune)
+- Flexbox: Consider intrinsic sizes when determining flex base size, fixes an assertion error. #640
 
-### General decorator improvements
+### CMake modernization
 
-- Add repeat fit mode to image decorator, e.g. `decorator: image(alien.png repeat)`. #259 #493 (thanks @viseztrance)
+The CMake code has been fully rewritten with modern practices. Special thanks to @hobyst who laid the groundwork for this change, with a solid foundation and great guidelines. #198 #446 #551 #606 (thanks @hobyst)
 
-### RCSS Properties
+While modernizing our CMake code, it was clear that we also needed to change our naming conventions. This leads to quite significant breaking changes for building and linking, but the result should make the library a lot easier to work with and link to.
 
-In addition to the RCSS properties for the new advanced rendering listed above, the following properties or values have been added.
+We now try to support all setups including:
 
-- New `display` property values: `flow-root`, `inline-flex`, `inline-table`.
-- New `vertical-align` property value: `center`.
+1. Adding the library as a subdirectory directly from CMake.
+2. Building the library "in-source" without installing.
+3. Building and installing the library.
+4. Using pre-built Windows binaries.
 
-### Text shaping and font engine
+It should be a lot easier now to simply point to the built library or sources, and have everything link correctly.
 
-- Add `lang` and `dir` RML attributes, along with text shaping support in the font engine interface. #563 (thanks @LucidSigma) 
-- Create a sample for text shaping with Harfbuzz, including right-to-left text formatting. #568 #211 #588 (thanks @LucidSigma) 
-- Add support for the `letter-spacing` property. #429 (thanks @igorsegallafa)
-- Add initialize and shutdown procedures for better lifetime management. #583
+And naturally, we will continue to support package managers however we can, and that is still considered the default recommendation. However, for the most part we rely on contributors to keep supporting this. Please help out with your favorite package manager if you see missing versions, or room for improvements.
+
+Large parts of the CI workflows have also been rewritten to accommodate these changes. Most of the Windows building and packaging procedures have been moved from Appveyor to GitHub Actions, which streamlines our testing and also helps speed up the CI builds.
+
+The [build documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html) has been updated to reflect all the new changes.
+
+#### New target names
+
+We now export the following targets:
+
+| Target          | Old target  | Description                                                     |
+|-----------------|-------------|-----------------------------------------------------------------|
+| RmlUi::RmlUi    |             | Includes all sub-libraries of the project, as listed just below |
+| RmlUi::Core     | RmlCore     | The main library                                                |
+| RmlUi::Debugger | RmlDebugger | The debugger library                                            |
+| RmlUi::Lua      | RmlLua      | The Lua plugin (when enabled)                                   |
+
+When including RmlUi as a subdirectory, the targets are constructed as aliases. When using pre-built or installed binaries, they are constructed using imported targets, which are available through the exported build targets.
+
+The internal target names have also been changed, although they are typically only needed when exploring or developing the library. They are all lowercase and contain the prefix `rmlui_` to avoid colliding with names in any parent projects. Some examples are: `rmlui_core`, `rmlui_debugger`, `rmlui_sample_invaders`, `rmlui_tutorial_drag`, `rmlui_unit_tests`, and `rmlui_visual_tests`.
+
+#### New library filenames
+
+The library binaries have also changed names. These names would be suffixed by e.g. `.dll` on Windows, and so on.
+
+| Library          | Old library   | Description                   |
+|------------------|---------------|-------------------------------|
+| `rmlui`          | `RmlCore`     | The core (main) library       |
+| `rmlui_debugger` | `RmlDebugger` | The debugger library          |
+| `rmlui_lua`      | `RmlLua`      | The Lua plugin (when enabled) |
+
+#### New option names
+
+We have a new set of CMake naming conventions for the library:
+
+- Use `RMLUI_` prefix to make all options specific to this project easily identifiable, and avoid colliding with any parent project variables.
+- Do not include negations (such as "not" and "disable"), to avoid situations with double negation.
+- Do not include a verb prefix (such as "enable" and "build"), as these are often superfluous.
+
+The following table lists all the new option names.
+
+| Option                             | Default value | Old related option             | Comment                                                                                                                                 |
+|------------------------------------|---------------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| RMLUI_BACKEND                      | auto          | SAMPLES_BACKEND                |                                                                                                                                         |
+| RMLUI_COMPILER_OPTIONS             | ON            |                                | Automatically sets recommended compiler flags                                                                                           |
+| RMLUI_CUSTOM_CONFIGURATION         | OFF           | CUSTOM_CONFIGURATION           |                                                                                                                                         |
+| RMLUI_CUSTOM_CONFIGURATION_FILE    |               | CUSTOM_CONFIGURATION_FILE      |                                                                                                                                         |
+| RMLUI_CUSTOM_INCLUDE_DIRS          |               | CUSTOM_INCLUDE_DIRS            |                                                                                                                                         |
+| RMLUI_CUSTOM_LINK_LIBRARIES        |               | CUSTOM_LINK_LIBRARIES          |                                                                                                                                         |
+| RMLUI_CUSTOM_RTTI                  | OFF           | DISABLE_RTTI_AND_EXCEPTIONS    | No longer modifies compiler flags - only enables RmlUi's custom RTTI solution so that the user can disable language RTTI and exceptions |
+| RMLUI_FONT_ENGINE                  | freetype      | NO_FONT_INTERFACE_DEFAULT      | Now takes a string with one of the options: `none`, `freetype`                                                                          |
+| RMLUI_HARFBUZZ_SAMPLE              | OFF           |                                |                                                                                                                                         |
+| RMLUI_INSTALL_RUNTIME_DEPENDENCIES | ON            |                                | Automatically install runtime dependencies on supported platforms (e.g. DLLs)                                                           |
+| RMLUI_LOTTIE_PLUGIN                | OFF           | ENABLE_LOTTIE_PLUGIN           |                                                                                                                                         |
+| RMLUI_LUA_BINDINGS                 | OFF           | BUILD_LUA_BINDINGS             |                                                                                                                                         |
+| RMLUI_LUA_BINDINGS_LIBRARY         | lua           | BUILD_LUA_BINDINGS_FOR_LUAJIT  | Now takes a string with one of the options: `lua`, `lua_as_cxx`, `luajit`                                                               |
+| RMLUI_MATRIX_ROW_MAJOR             | OFF           | MATRIX_ROW_MAJOR               |                                                                                                                                         |
+| RMLUI_PRECOMPILED_HEADERS          | ON            | ENABLE_PRECOMPILED_HEADERS     |                                                                                                                                         |
+| RMLUI_SAMPLES                      | OFF           | BUILD_SAMPLES                  |                                                                                                                                         |
+| RMLUI_SVG_PLUGIN                   | OFF           | ENABLE_SVG_PLUGIN              |                                                                                                                                         |
+| RMLUI_THIRDPARTY_CONTAINERS        | ON            | NO_THIRDPARTY_CONTAINERS       |                                                                                                                                         |
+| RMLUI_TRACY_CONFIGURATION          | ON            |                                | New option for multi-config generators to add Tracy as a separate configuration.                                                        |
+| RMLUI_TRACY_MEMORY_PROFILING       | ON            |                                | New option to overload global operator new/delete for memory inspection with Tracy.                                                     |
+| RMLUI_TRACY_PROFILING              | OFF           | ENABLE_TRACY_PROFILING         |                                                                                                                                         |
+| -                                  |               | VISUAL_TESTS_CAPTURE_DIRECTORY | Replaced with environment variable `RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY`                                                               |
+| -                                  |               | VISUAL_TESTS_COMPARE_DIRECTORY | Replaced with environment variable `RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY`                                                               |
+| -                                  |               | VISUAL_TESTS_RML_DIRECTORIES   | Replaced with environment variable `RMLUI_VISUAL_TESTS_RML_DIRECTORIES`                                                                 |
+
+For reference, the following options have not changed names, as these are standard options used by CMake.
+
+| Unchanged options | Default value |
+|-------------------|---------------|
+| CMAKE_BUILD_TYPE  |               |
+| BUILD_SHARED_LIBS | ON            |
+| BUILD_TESTING     | OFF           |
+
+#### New exported definitions
+
+Certain CMake options, when changed from their default value, require clients to set definitions before including RmlUi. These are automatically set when using the exported CMake targets, otherwise users will need to define them manually.
+
+Some exported definition names have changed, as follows.
+
+| Definition                | Old definition         | Related CMake option  |
+|---------------------------|------------------------|-----------------------|
+| RMLUI_TRACY_PROFILING     | RMLUI_ENABLE_PROFILING | RMLUI_TRACY_PROFILING |
+| RMLUI_CUSTOM_RTTI         | RMLUI_USE_CUSTOM_RTTI  | RMLUI_CUSTOM_RTTI     |
+
+For reference, here follows all other possibly exported definitions.
+
+| Definition                      | Related CMake option            |
+|---------------------------------|---------------------------------|
+| RMLUI_STATIC_LIB                | BUILD_SHARED_LIBS               |
+| RMLUI_NO_THIRDPARTY_CONTAINERS  | RMLUI_THIRDPARTY_CONTAINERS     |
+| RMLUI_MATRIX_ROW_MAJOR          | RMLUI_MATRIX_ROW_MAJOR          |
+| RMLUI_CUSTOM_CONFIGURATION_FILE | RMLUI_CUSTOM_CONFIGURATION_FILE |
+
+#### CMake presets
+
+We now have CMake presets:
+
+- `samples` Enable samples but only those without extra dependencies.
+- `samples-all` Enable all samples, also those with extra dependencies.
+- `standalone` Build the library completely without any dependencies, the only sample available is `bitmap_font`.
+- `dev` Enable testing in addition to samples.
+- `dev-all` Enable testing in addition to samples, including those that require extra dependencies.
+
+The presets can be combined with other options, like `CMAKE_BUILD_TYPE` to select the desired build type when using single-configuration generators.
 
 ### Spatial navigation
 
 Introduce [spatial navigation](https://mikke89.github.io/RmlUiDoc/pages/rcss/user_interface.html#nav) for keyboards and other input devices. This determines how the focus is moved when pressing one of the navigation direction buttons. #142 #519 #524 (thanks @gleblebedev)
 
-- Add the new properties `nav-up`, `nav-right`, `nav-down`, `nav-left`, and shorthand `nav`. E.g. 
+- Add the new properties `nav-up`, `nav-right`, `nav-down`, `nav-left`, and shorthand `nav`.
 - Add [`:focus-visible` pseudo class](https://mikke89.github.io/RmlUiDoc/pages/rcss/selectors.html#pseudo-selectors) as a way to style elements that should be highlighted during navigation, like its equivalent CSS selector.
-- Makes the `invaders` sample fully work with keyboard navigation and `:focus-visible` to highlight the focus.
+- The `invaders` sample implements this feature for full keyboard navigation, and uses `:focus-visible` to highlight the focus.
 - Elements in focus are now clicked when pressing space bar.
+
+RCSS example usage:
 
 ```css
 input { nav: auto; nav-right: #ok_button; }
@@ -162,26 +564,59 @@ input { nav: auto; nav-right: #ok_button; }
 .menu_item:focus-visible { border-color: #ff3; }
 ```
 
+### Text shaping and font engine
+
+- Add `lang` and `dir` RML attributes, along with text shaping support in the font engine interface. #563 (thanks @LucidSigma)
+- Create a sample for text shaping with Harfbuzz, including right-to-left text formatting. #568 #211 #588 (thanks @LucidSigma)
+  - Implement fallback font support for the Harfbuzz sample. #635 (thanks @LucidSigma)
+- Add support for the [`letter-spacing` property](https://mikke89.github.io/RmlUiDoc/pages/rcss/text.html#letter-spacing). #429 (thanks @igorsegallafa)
+- Add initialize and shutdown procedures to font engine interface for improved lifetime management. #583
+
+Screenshots of the HarfBuzz sample showing Arabic text properly rendered with the HarfBuzz font engine, and compared to the default font engine:
+
+![HarfBuzz font engine vs default font engine comparison](https://github.com/user-attachments/assets/67b22875-e504-49c2-b449-3f3e4367d991)
+
+
 ### Elements
 
 - Enable removal of properties using shorthand names. #463 (thanks @aimoonchen)
-- Add `Element::Matches`, the last missing selector-related function. #573 (thanks @Paril)
-- Text input: Add support for `text-align`. #454 #455 (thanks @Dakror)
-- Text input: Fix clipboard being pasted when Ctrl + Alt + V key combination is used. #464 #465 (thanks @ShawnCZek)
-- Text input: Fix selection index possibly returning an invalid index. #539 (thanks @ShawnCZek)
-- Text input: Move the input cursor when the selection range changes. #542 (thanks @ShawnCZek)
-- Text input: Ignore selection range update when the element is not focused. #544 (thanks @ShawnCZek)
+- Add [`Element::Matches`](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/elements.html#dom-interface), the last missing selector-related function. #573 (thanks @Paril)
+- `Element::GetInnerRML` now includes the local style properties set on the element in the returned RML.
 - Tab set: Allow `ElementTabSet::RemoveTab` to work on tab sets with no panels. #546 (thanks @exjam)
 - Range input: Fix a bug where the bar position was initially placed wrong when using min and max attributes.
 
+### Text input widget
+
+The following improvements apply to both the textarea and text input elements.
+
+- Add [input method editor (IME)](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/ime.html) support. #541 #630 (thanks @ShawnCZek)
+  - The text input widget implements the new `TextInputContext` interface, backends can interact with this by implementing the [`TextInputHandler` interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/text_input_handler.html) for IME support. 
+  - Add native IME support to Win32 backends (`Win32_GL2` and `Win32_VK`).
+  - Add new sample `rmlui_sample_ime` to demonstrate IME support (only enabled on supported backends).
+- Add support for the `text-align` property in text inputs. #454 #455 (thanks @Dakror)
+- Fix clipboard being pasted when Ctrl + Alt + V key combination is used. #464 #465 (thanks @ShawnCZek)
+- Fix selection index possibly returning an invalid index. #539 (thanks @ShawnCZek)
+- Move the input cursor when the selection range changes. #542 (thanks @ShawnCZek)
+- Ignore selection range update when the element is not focused. #544 (thanks @ShawnCZek)
+- Text area elements now clip to their padding area instead of the content area, text input elements still clip to their content area (see [58581477](https://github.com/mikke89/RmlUi/commit/58581477a7c41cd2d163b306ae8c8fe0a04de9d2) for details).
+- Improve text widget navigation and selection (see [be9a497b](https://github.com/mikke89/RmlUi/commit/be9a497b508bc7598ea22198577e7fb1f0ddf357) for details).
+- The text cursor is no longer drawn when selecting text.
+- Consume key events with modifiers (ctrl, shift) to prevent event propagation and subsequently performing navigation.
+- Fix some cases where the scroll offset would alternate each time the text cursor was moved, causing rendering to flicker.
+- Use rounded line height to make render output more stable when scrolling vertically.
+
+IME sample screenshot:
+
+![IME sample screenshots](https://github.com/mikke89/RmlUiDoc/blob/3ec50d400babb58bf4c79f26ac2454a2833bd95d/assets/images/ime_sample.png)
+
 ### Utilities
 
-- Improved mesh utilities to construct background geometry for any given area of the element, including for elements with border-radius.
-- New Rectangle type to better represent many operations.
-- Debugger now displays the axis-aligned bounding box of selected elements, including any transforms and box shadows.
+- Improved mesh utilities to construct background geometry for any given box area of the element, including for elements with border-radius, see [`MeshUtilities.h`](./Include/RmlUi/Core/MeshUtilities.h).
+- New [`Rectangle`](./Include/RmlUi/Core/Rectangle.h) type to better represent many operations.
 - Visual tests:
   - Several new visual tests for the new features.
   - Highlight differences when comparing to previous capture by holding shift key.
+  - Replace CMake options with [environment variables](./Tests/readme.md).
 
 ### Data bindings
 
@@ -191,59 +626,111 @@ input { nav: auto; nav-right: #ok_button; }
 - Fix XML parse error if single curly brace encountered at the end of a data binding string literal. #459 (thanks @Dakror)
 - Fix usage of data variables in selected `option`s. #509 #510 (thanks @Dakror)
 
+### Debugger plugin
+
+- Display the axis-aligned bounding box of selected elements, including any transforms and box shadows (white box).
+- List [box model sizes](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/debugger.html#element-info) for the selected element.
+- Log an error message when externally closing documents owned by the debugger plugin.
+- Debugger now works with documents that have modal focus. #642
+
 ### Lua plugin
 
+- Add CMake option [`RMLUI_LUA_BINDINGS_LIBRARY`](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html#plugins-and-dependencies) to link to the Lua library compiled as C++, or to LuaJIT. #604 (thanks @LiquidFenrir)
 - Add `StopImmediatePropagation` to Rml::Event. #466 (thanks @ShawnCZek)
 - Return inserted element from `AppendChild` and `InsertBefore`. #478 (thanks @ShawnCZek)
 
+### System interface
+
+- The system interface is now optional. All functions now have a default implementation. Thus, it is no longer necessary to derive from and set this interface unless you want to customize its functionality.
+- The default log output is now used when there is no system interface installed. All print-like calls, including those in backends, are now submitted to the built-in logger.
+- Fix the `JoinPath` method so that it is passed through when using the debugger plugin. #462 #603 (thanks @Dakror)
+
 ### General improvements
 
-- Implement the ability to release specific textures from memory. #543 (thanks @viseztrance)
+- Add repeat fit modes to the [image decorator](https://mikke89.github.io/RmlUiDoc/pages/rcss/decorators/image.html), e.g. `decorator: image(alien.png repeat)`. #259 #493 (thanks @viseztrance)
+- Implement the ability to release specific textures from memory using `Rml::ReleaseTexture`. #543 (thanks @viseztrance)
 - Add support for the `not` prefix in media queries. #564 (thanks @Paril)
 - Use string parser to allow "quotes" in sprite sheet `src` property. #571 #574 (thanks @andreasschultes)
 - Format color types using RCSS hexadecimal notation.
-- Use the default log output when there is no system interface installed, and redirect all print-like calls to the built-in logger. This ensures that log messages are submitted to the same stream output before and after installing the default provided system interface. In particular, the output from MSVC is given in its debug output.
+- `CreateString` and `FormatString` methods no longer take a `max_size` argument, as this is now handled automatically.
+- Allow using `margin` to offset the `scrollbarcorner`.
+- Log a warning when a texture could not be loaded.
+- Improve text culling.
+  - Previously, the text could be culled (that is, not rendered) even if it was visible due to transforms bringing it into view. Now, text culling properly considers the transform of the element. 
+  - The text is now culled when the element is outside the viewport even if no scissor region is active.
 
 ### General fixes
 
 - Fix wrong logic for assertion of released textures. #589 (thanks @pgruenbacher)
-- Fix `JoinPath` system interface method being passed through when using the debugger. #462 #603 (thanks @Dakror)
-- Fix some situations where units were not shown in properties, ensure all invoked types define a string converter.
+- Fix in-source documentation in Factory. #646 (thanks @ben-metzger-z)
+- Fix some situations where the scroll offset of an element would reset or change after layout updates. #452
+- Fix some situations where units were not shown in properties, now all invoked types are ensured to define a string converter.
 - In `demo` sample, fix form submit animation not playing smoothly on power saving mode.
-- Fix crash on shutdown in `bitmapfont` sample.
+- Fix crash on shutdown in `bitmap_font` sample.
+- Fix being able to drag through the scroll track of a scrollbar.
+- Fix being able to scroll in a direction with hidden overflow.
 
 ### Build improvements
 
-- Fix compile issues on newer clang and gcc releases due to mixed use of std namespace on standard integer types. #470 #545 #555
-- Add CMake option to include Lua library compiled as C++. #604 (thanks @LiquidFenrir)
+- Fix compilation issues on newer Clang and GCC releases due to mixed use of std namespace on standard integer types. #470 #545 #555
 - Fix `UnitTests` compilation error on MSVC by updating doctest. #491 (thanks @mwl4)
 - Fix `Benchmarks` compilation error when using custom string type. #490 (thanks @mwl4)
 - Change `StringUtilities::DecodeRml` to improve compatibility with other string types, like `EASTL::string`. #472 #475 (thanks @gleblebedev)
 - Various CMake fixes for MacOS. #525 (thanks @NaLiJa)
-- Fix include path. #533 (thanks @gleblebedev)
+- Fix include paths. #533 #643 (thanks @gleblebedev and @Paril)
+- Improve integration of the Tracy library in CMake. #516 #518
+  - Added CMake options for enabling (1) a separate configuration in multi-config mode with `RMLUI_TRACY_CONFIGURATION`, and (2) the memory profiler by overriding global operators new/delete using `RMLUI_TRACY_MEMORY_PROFILING`.
+- Make test executables work with Emscripten.
 
 ### Backends
 
+- OpenGL 3: Restore all modified state after rendering a frame. #449 (thanks @reworks-org)
+- OpenGL 3: Add depth test to OpenGL state backup. #629 (thanks @ben-metzger-z)
+- OpenGL 3: Set forward compatibility flag to fix running on MacOS. #522 (thanks @NaLiJa)
+- Vulkan: Several fixes for validation errors and flickering behavior. #593 #601 (thanks @wh1t3lord)
+- Vulkan: Update deprecated debug utilities. #579 (thanks @skaarj1989)
 - GLFW: Use new GLFW 3.4 cursors when available.
 - GLFW: Fix mouse position conversion to pixel coordinates, particularly on MacOS retina displays. #521
 - SDL: Use performance counters for increased time precision. 
-- Vulkan: Several fixes for validation errors and flickering behavior. #593 #601 (thanks @wh1t3lord)
-- Vulkan: Update deprecated debug utilities. #579 (thanks @skaarj1989)
-- OpenGL 3: Restore all modified state after rendering a frame. #449 (thanks @reworks-org)
-- OpenGL 3: Set forward compatibility flag to fix running on MacOS. #522 (thanks @NaLiJa)
+- Win32: Center window in screen when opening it.
 
 ### Breaking changes
 
+#### CMake and linking
+
+- Most options, target names, library filenames, and certain exported definitions, have been changed. Please see the tables above.
+- CMake minimum version raised to 3.10.
+
 #### Layout
 
-- Possible layout changes, usually due to better CSS conformance. Please see notes above.
+Expect some possible layout shifts in existing documents, mainly due to better CSS conformance. Detailed notes are available above. Here are some particular situations where layout output may change, and ways to address them:
+
+- Some lines may become taller, with extra spacing added below its baseline.
+  - Possible solutions: Adjust the `vertical-align` property of any inline block elements on the line. For example, use top/center/bottom or manual vertical alignment. The line height itself can be adjusted with the `line-height` property.
+- Absolutely positioned elements may be placed relative to an element further up in the document tree.
+  - Add `position: relative` on the desired ancestor to establish its containing block.
+- The containing block size may change in some situations, which could affect percentages in (min-/max-) height properties.
+  - To establish a containing block size, make their parent have a definite (non-auto) height.
+- Some floated elements may have moved or now extend below parent boxes.
+  - Set the parent to use overflow != visible to establish a new block formatting context, or use the new `display: flow-root`.
+- Paint order on some elements may have changed.
+  - Change the tree order, or the `z-index` or `clip` properties as appropriate.
+- Size of shrink-to-fit boxes may have changed.
+- Position of documents with margins may have changed.
+- Documents that don't have their size set will now shrink to their contents, previously they would span the entire context.
+  - The size can be set either directly using the `width` and `height` properties, or implicitly by a combination of the
+    `top`/`right`/`bottom`/`left` properties.
+
+#### Elements
+
+- The text area element now clips to its padding area instead of the content area. You may want to adjust RCSS rules to account for this. If you use decorators to display borders for text areas, you can set the decorator paint area to `border-box` and add a transparent border, e.g. `decorator: image(my-textarea-background) border-box; border: 4px transparent;`.
 
 #### Core types
 
-- Changed `Box` enums and `Property` units as follows:
-  - `Box::Area` -> `BoxArea` (e.g. `Box::BORDER` -> `BoxArea::Border`, values now in titlecase).
-  - `Box::Edge` -> `BoxEdge` (e.g. `Box::TOP` -> `BoxEdge::Top`, values now in titlecase).
-  - `Box::Direction` -> `BoxDirection` (e.g. `Box::VERTICAL` -> `BoxDirection::Vertical`, values now in titlecase).
+- Changed `Box` enums and `Property` units as follows, now using strong types:
+  - `Box::Area` -> `BoxArea` (e.g. `Box::BORDER` -> `BoxArea::Border`, values now in pascal case).
+  - `Box::Edge` -> `BoxEdge` (e.g. `Box::TOP` -> `BoxEdge::Top`, values now in pascal case).
+  - `Box::Direction` -> `BoxDirection` (e.g. `Box::VERTICAL` -> `BoxDirection::Vertical`, values now in pascal case).
   - `Property::Unit` -> `Unit` (e.g. `Property::PX` -> `Unit::PX`).
 
 #### Core functions
@@ -251,6 +738,7 @@ input { nav: auto; nav-right: #ok_button; }
 - Changed the signature of `LoadFontFace` (from memory) to take a `Span` instead of a raw pointer. 
 - Replaced `Element::ResolveNumericProperty` with `Element::ResolveLength` and `Element::ResolveNumericValue`. Can be used together with `Property::GetNumericValue`.
 - Renamed and removed several `Math` functions.
+- Removed the `max_size` argument from `CreateString` and `FormatString` methods, this is no longer needed.
 
 #### RCSS
 
@@ -260,19 +748,21 @@ input { nav: auto; nav-right: #ok_button; }
 
 Affects all users with a custom backend renderer.
 
-- Signature changes to several functions, see notes above.
+- Signature changes to several functions, see notes above and the [updated documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/render.html).
 - See `RenderInterfaceCompatibility` notes above for an adapter from the old render interface.
 - Texture is no longer part of the CompileGeometry command, instead it is submitted with the Render... command(s).
+- The immediate rendering function has been removed in favor of the compiled geometry version.
+  - However, data pointers to the compile function are now stable, which should ease the transition.
 - Implementing the new clip mask API is required for handling clipping of transformed elements.
 - RmlUi now provides vertex colors and generated texture data in premultiplied alpha.
-  - Set the blend mode to handle them accordingly. Recommended to convert your own textures to use premultiplied alpha. This ensures correct compositing, especially with layers and effects.
+  - Set the blend mode to handle them accordingly. It is recommended to convert your own textures to use premultiplied alpha. This ensures correct compositing, especially with layers and effects.
 - Font effect color output now assumes premultiplied alpha. Color channels are initialized to black (previously white).
 
 #### Render manager
 
 Affects users with custom decorators and other more advanced usage with rendering commands.
 
-- RenderManager should now be used for all rendering instead of manually calling the render interface.
+- RenderManager should now be used for all rendering instead of directly calling into the render interface.
 - Redefine Geometry, introduce Mesh.
   - Mesh is used to define vertices and indices, before it is submitted to construct a Geometry through the render manager.
   - Geometry is now a wrapper around the underlying geometry (to be) submitted to a render interface.
@@ -295,17 +785,11 @@ The font engine interface has been reworked to encompass new features, to simpli
 - Font metrics are now collected into a single function.
 - Signature changes due to text shaping and letter-spacing support.
 - The active render manager is now passed into the appropriate functions to generate textures against this one.
-- Now using span types where appropriate.
+- Now using span and string view types where appropriate.
 
 #### Removed deprecated functionality
 
 - Removed the `<datagrid>` and `<dataselect>` elements, related utilities, and associated tutorials. Users are encouraged to replace this functionality by [tables](https://mikke89.github.io/RmlUiDoc/pages/rcss/tables.html), [select boxes](https://mikke89.github.io/RmlUiDoc/pages/rml/forms.html#select), and [data bindings](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html).
-
-#### Screenshots
-
-![Effects demonstration](https://github.com/mikke89/RmlUi/assets/5490330/ab79c71c-b4dd-4092-af8f-49abec611188)
-
-[Effect sample](https://github.com/mikke89/RmlUi/assets/5490330/bdc0422d-867d-4090-9d48-e7159e3adc18)
 
 
 ## RmlUi 5.1

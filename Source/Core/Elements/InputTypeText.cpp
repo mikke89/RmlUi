@@ -112,7 +112,7 @@ void InputTypeText::ProcessDefaultAction(Event& /*event*/) {}
 bool InputTypeText::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {
 	dimensions.x = (float)(size * ElementUtilities::GetStringWidth(element, "m"));
-	dimensions.y = element->GetLineHeight() + 2.0f;
+	dimensions.y = Math::Round(element->GetLineHeight());
 
 	return true;
 }
@@ -130,6 +130,11 @@ void InputTypeText::SetSelectionRange(int selection_start, int selection_end)
 void InputTypeText::GetSelection(int* selection_start, int* selection_end, String* selected_text) const
 {
 	widget->GetSelection(selection_start, selection_end, selected_text);
+}
+
+void InputTypeText::SetCompositionRange(int range_start, int range_end)
+{
+	widget->SetCompositionRange(range_start, range_end);
 }
 
 } // namespace Rml

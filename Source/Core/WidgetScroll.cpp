@@ -36,6 +36,7 @@
 #include "../../Include/RmlUi/Core/Property.h"
 #include "Clock.h"
 #include "Layout/LayoutDetails.h"
+#include <algorithm>
 
 namespace Rml {
 
@@ -144,20 +145,17 @@ bool WidgetScroll::Initialise(Orientation _orientation)
 
 void WidgetScroll::Update()
 {
+	if (!std::any_of(std::begin(arrow_timers), std::end(arrow_timers), [](float timer) { return timer > 0; }))
+		return;
+
+	const double current_time = Clock::GetElapsedTime();
+	const float delta_time = float(current_time - last_update_time);
+	last_update_time = current_time;
+
 	for (int i = 0; i < 2; i++)
 	{
-		bool updated_time = false;
-		float delta_time = 0;
-
 		if (arrow_timers[i] > 0)
 		{
-			if (!updated_time)
-			{
-				double current_time = Clock::GetElapsedTime();
-				delta_time = float(current_time - last_update_time);
-				last_update_time = current_time;
-			}
-
 			arrow_timers[i] -= delta_time;
 			while (arrow_timers[i] <= 0)
 			{
@@ -206,7 +204,7 @@ void WidgetScroll::GetDimensions(Vector2f& dimensions) const
 	}
 }
 
-void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_element, float slider_length, float bar_length)
+void WidgetScroll::FormatElements(const Vector2f containing_block, float slider_length)
 {
 	int length_axis = orientation == VERTICAL ? 1 : 0;
 
@@ -222,8 +220,7 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 	content[length_axis] = slider_length;
 	parent_box.SetContent(content);
 	// And set it on the slider element!
-	if (resize_element)
-		parent->SetBox(parent_box);
+	parent->SetBox(parent_box);
 
 	// Generate the initial dimensions for the track. It'll need to be cut down to fit the arrows.
 	Box track_box;
@@ -289,10 +286,10 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 		arrows[1]->SetOffset(offset, parent);
 	}
 
-	FormatBar(bar_length);
+	FormatBar();
 }
 
-void WidgetScroll::FormatBar(float bar_length)
+void WidgetScroll::FormatBar()
 {
 	Box bar_box;
 	LayoutDetails::BuildBox(bar_box, parent->GetBox().GetSize(), bar);
@@ -309,52 +306,55 @@ void WidgetScroll::FormatBar(float bar_length)
 			bar_box_content.y = parent->GetBox().GetSize().y;
 	}
 
-	if (bar_length >= 0)
+	float relative_bar_length;
+	if (track_length <= 0)
+		relative_bar_length = 1;
+	else if (bar_length <= 0)
+		relative_bar_length = 0;
+	else
+		relative_bar_length = bar_length / track_length;
+
+	Vector2f track_size = track->GetBox().GetSize();
+
+	if (orientation == VERTICAL)
 	{
-		Vector2f track_size = track->GetBox().GetSize();
+		float track_length = track_size.y - bar_box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Margin, BoxArea::Padding);
 
-		if (orientation == VERTICAL)
+		if (height.type == height.Auto)
 		{
-			float track_length = track_size.y -
-				(bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Top) + bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Bottom));
+			bar_box_content.y = track_length * relative_bar_length;
 
-			if (height.type == height.Auto)
-			{
-				bar_box_content.y = track_length * bar_length;
+			// Check for 'min-height' restrictions.
+			float min_track_length = ResolveValue(computed.min_height(), track_length);
+			bar_box_content.y = Math::Max(min_track_length, bar_box_content.y);
 
-				// Check for 'min-height' restrictions.
-				float min_track_length = ResolveValue(computed.min_height(), track_length);
-				bar_box_content.y = Math::Max(min_track_length, bar_box_content.y);
-
-				// Check for 'max-height' restrictions.
-				float max_track_length = ResolveValue(computed.max_height(), track_length);
-				bar_box_content.y = Math::Min(max_track_length, bar_box_content.y);
-			}
-
-			// Make sure we haven't gone further than we're allowed to (min-height may have made us too big).
-			bar_box_content.y = Math::Min(bar_box_content.y, track_length);
+			// Check for 'max-height' restrictions.
+			float max_track_length = ResolveValue(computed.max_height(), track_length);
+			bar_box_content.y = Math::Min(max_track_length, bar_box_content.y);
 		}
-		else
+
+		// Make sure we haven't gone further than we're allowed to (min-height may have made us too big).
+		bar_box_content.y = Math::Min(bar_box_content.y, track_length);
+	}
+	else
+	{
+		float track_length = track_size.x - bar_box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding);
+
+		if (width.type == width.Auto)
 		{
-			float track_length = track_size.x -
-				(bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Left) + bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Right));
+			bar_box_content.x = track_length * relative_bar_length;
 
-			if (width.type == width.Auto)
-			{
-				bar_box_content.x = track_length * bar_length;
+			// Check for 'min-width' restrictions.
+			float min_track_length = ResolveValue(computed.min_width(), track_length);
+			bar_box_content.x = Math::Max(min_track_length, bar_box_content.x);
 
-				// Check for 'min-width' restrictions.
-				float min_track_length = ResolveValue(computed.min_width(), track_length);
-				bar_box_content.x = Math::Max(min_track_length, bar_box_content.x);
-
-				// Check for 'max-width' restrictions.
-				float max_track_length = ResolveValue(computed.max_width(), track_length);
-				bar_box_content.x = Math::Min(max_track_length, bar_box_content.x);
-			}
-
-			// Make sure we haven't gone further than we're allowed to (min-width may have made us too big).
-			bar_box_content.x = Math::Min(bar_box_content.x, track_length);
+			// Check for 'max-width' restrictions.
+			float max_track_length = ResolveValue(computed.max_width(), track_length);
+			bar_box_content.x = Math::Min(max_track_length, bar_box_content.x);
 		}
+
+		// Make sure we haven't gone further than we're allowed to (min-width may have made us too big).
+		bar_box_content.x = Math::Min(bar_box_content.x, track_length);
 	}
 
 	// Set the new dimensions on the bar to re-decorate it.
@@ -456,17 +456,21 @@ void WidgetScroll::PositionBar()
 
 	if (orientation == VERTICAL)
 	{
-		float traversable_track_length = track_dimensions.y - bar_dimensions.y;
-		bar->SetOffset(
-			Vector2f(bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left), track->GetRelativeOffset().y + traversable_track_length * bar_position),
-			parent);
+		const float traversable_track_length = track_dimensions.y - bar_dimensions.y;
+		const Vector2f offset = {
+			bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left),
+			track->GetRelativeOffset().y + traversable_track_length * bar_position,
+		};
+		bar->SetOffset(offset.Round(), parent);
 	}
 	else
 	{
-		float traversable_track_length = track_dimensions.x - bar_dimensions.x;
-		bar->SetOffset(
-			Vector2f(track->GetRelativeOffset().x + traversable_track_length * bar_position, bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top)),
-			parent);
+		const float traversable_track_length = track_dimensions.x - bar_dimensions.x;
+		const Vector2f offset = {
+			track->GetRelativeOffset().x + traversable_track_length * bar_position,
+			bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top),
+		};
+		bar->SetOffset(offset.Round(), parent);
 	}
 }
 
@@ -478,20 +482,6 @@ void WidgetScroll::SetTrackLength(float _track_length)
 void WidgetScroll::SetBarLength(float _bar_length)
 {
 	bar_length = _bar_length;
-}
-
-void WidgetScroll::FormatElements(const Vector2f containing_block, float slider_length)
-{
-	float relative_bar_length;
-
-	if (track_length <= 0)
-		relative_bar_length = 1;
-	else if (bar_length <= 0)
-		relative_bar_length = 0;
-	else
-		relative_bar_length = bar_length / track_length;
-
-	WidgetScroll::FormatElements(containing_block, true, slider_length, relative_bar_length);
 }
 
 void WidgetScroll::ScrollLineDown()

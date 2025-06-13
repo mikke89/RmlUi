@@ -252,7 +252,13 @@ namespace Input {
 		KI_OEM_CLEAR = 174,
 
 		KI_LMETA = 175,
-		KI_RMETA = 176
+		KI_RMETA = 176,
+
+		/*
+		 * Custom keys that users can assign their own meaning to.
+		 */
+		KI_FIRST_CUSTOM_KEY,
+		KI_LAST_CUSTOM_KEY = 250,
 	};
 
 	enum KeyModifier : unsigned char {

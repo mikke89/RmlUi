@@ -212,7 +212,7 @@ void Game::SetScore(int score)
 
 	Rml::Element* score_element = context->GetDocument("game_window")->GetElementById("score");
 	if (score_element != nullptr)
-		score_element->SetInnerRML(Rml::CreateString(128, "%d", score).c_str());
+		score_element->SetInnerRML(Rml::CreateString("%d", score).c_str());
 
 	// Update the high score if we've beaten it.
 	if (score > HighScores::GetHighScore())
@@ -223,7 +223,7 @@ void Game::SetHighScore(int score)
 {
 	Rml::Element* high_score_element = context->GetDocument("game_window")->GetElementById("hiscore");
 	if (high_score_element != nullptr)
-		high_score_element->SetInnerRML(Rml::CreateString(128, "%d", score).c_str());
+		high_score_element->SetInnerRML(Rml::CreateString("%d", score).c_str());
 }
 
 void Game::SetLives(int lives)
@@ -232,7 +232,7 @@ void Game::SetLives(int lives)
 
 	Rml::Element* score_element = context->GetDocument("game_window")->GetElementById("lives");
 	if (score_element != nullptr)
-		score_element->SetInnerRML(Rml::CreateString(128, "%d", defender_lives).c_str());
+		score_element->SetInnerRML(Rml::CreateString("%d", defender_lives).c_str());
 }
 
 void Game::SetWave(int wave)
@@ -241,7 +241,7 @@ void Game::SetWave(int wave)
 
 	Rml::Element* waves_element = context->GetDocument("game_window")->GetElementById("waves");
 	if (waves_element != nullptr)
-		waves_element->SetInnerRML(Rml::CreateString(128, "%d", wave).c_str());
+		waves_element->SetInnerRML(Rml::CreateString("%d", wave).c_str());
 }
 
 void Game::RemoveLife()

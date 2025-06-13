@@ -37,47 +37,65 @@
 
 namespace Rml {
 
-static int FormatString(String& string, size_t max_size, const char* format, va_list argument_list)
+static int FormatString(String& string, const char* format, va_list argument_list)
 {
-	const int INTERNAL_BUFFER_SIZE = 1024;
-	static char buffer[INTERNAL_BUFFER_SIZE];
+	constexpr size_t InternalBufferSize = 256;
+	char buffer[InternalBufferSize];
 	char* buffer_ptr = buffer;
 
-	if (max_size + 1 > INTERNAL_BUFFER_SIZE)
-		buffer_ptr = new char[max_size + 1];
+	size_t max_size = InternalBufferSize;
+	int length = 0;
 
-	int length = vsnprintf(buffer_ptr, max_size, format, argument_list);
-	buffer_ptr[length >= 0 ? length : max_size] = '\0';
-#ifdef RMLUI_DEBUG
-	if (length == -1)
+	for (int i = 0; i < 2; i++)
 	{
-		Log::Message(Log::LT_WARNING, "FormatString: String truncated to %zu bytes when processing %s", max_size, format);
+		va_list argument_list_copy;
+		va_copy(argument_list_copy, argument_list);
+
+		length = vsnprintf(buffer_ptr, max_size, format, argument_list_copy);
+
+		va_end(argument_list_copy);
+
+		if (length < 0)
+		{
+			RMLUI_ERRORMSG("Error while formatting string");
+			return 0;
+		}
+
+		if (i > 0)
+		{
+			RMLUI_ASSERT(string.size() == (size_t)length);
+			break;
+		}
+
+		if ((size_t)length < max_size)
+		{
+			string = buffer_ptr;
+			break;
+		}
+
+		string.resize((size_t)length);
+		max_size = (size_t)length + 1;
+		buffer_ptr = &(*string.begin()); // C++17 Upgrade: Replace with string.data()
 	}
-#endif
-
-	string = buffer_ptr;
-
-	if (buffer_ptr != buffer)
-		delete[] buffer_ptr;
 
 	return length;
 }
 
-int FormatString(String& string, size_t max_size, const char* format, ...)
+int FormatString(String& string, const char* format, ...)
 {
 	va_list argument_list;
 	va_start(argument_list, format);
-	int result = FormatString(string, (int)max_size, format, argument_list);
+	int result = FormatString(string, format, argument_list);
 	va_end(argument_list);
 	return result;
 }
-String CreateString(size_t max_size, const char* format, ...)
+
+String CreateString(const char* format, ...)
 {
 	String result;
-	result.reserve(max_size);
 	va_list argument_list;
 	va_start(argument_list, format);
-	FormatString(result, max_size, format, argument_list);
+	FormatString(result, format, argument_list);
 	va_end(argument_list);
 	return result;
 }
@@ -164,7 +182,7 @@ String StringUtilities::DecodeRml(const String& s)
 					size_t j = 0;
 					for (; j < 8; j++)
 					{
-						auto const& c = s[start + j];
+						const auto& c = s[start + j];
 						if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')))
 							break;
 					}
@@ -188,7 +206,7 @@ String StringUtilities::DecodeRml(const String& s)
 					size_t j = 0;
 					for (; j < 8; j++)
 					{
-						auto const& c = s[start + j];
+						const auto& c = s[start + j];
 						if (!(c >= '0' && c <= '9'))
 							break;
 					}
@@ -418,8 +436,10 @@ bool StringUtilities::StringCompareCaseInsensitive(const StringView lhs, const S
 	return true;
 }
 
-Character StringUtilities::ToCharacter(const char* p)
+Character StringUtilities::ToCharacter(const char* p, const char* p_end)
 {
+	RMLUI_ASSERTMSG(p && p != p_end, "ToCharacter expects a valid, non-empty input string");
+
 	if ((*p & (1 << 7)) == 0)
 		return static_cast<Character>(*p);
 
@@ -446,6 +466,9 @@ Character StringUtilities::ToCharacter(const char* p)
 		// Invalid begin byte
 		return Character::Null;
 	}
+
+	if (p_end - p < num_bytes)
+		return Character::Null;
 
 	for (int i = 1; i < num_bytes; i++)
 	{
@@ -524,6 +547,33 @@ size_t StringUtilities::LengthUTF8(StringView string_view)
 	return string_view.size() - num_continuation_bytes;
 }
 
+int StringUtilities::ConvertCharacterOffsetToByteOffset(StringView string, int character_offset)
+{
+	if (character_offset >= (int)string.size())
+		return (int)string.size();
+
+	int character_count = 0;
+	for (auto it = StringIteratorU8(string.begin(), string.begin(), string.end()); it; ++it)
+	{
+		character_count += 1;
+		if (character_count > character_offset)
+			return (int)it.offset();
+	}
+	return (int)string.size();
+}
+
+int StringUtilities::ConvertByteOffsetToCharacterOffset(StringView string, int byte_offset)
+{
+	int character_count = 0;
+	for (auto it = StringIteratorU8(string.begin(), string.begin(), string.end()); it; ++it)
+	{
+		if (it.offset() >= byte_offset)
+			break;
+		character_count += 1;
+	}
+	return character_count;
+}
+
 StringView::StringView()
 {
 	const char* empty_string = "";
@@ -547,6 +597,7 @@ bool StringView::operator==(const StringView& other) const
 }
 
 StringIteratorU8::StringIteratorU8(const char* p_begin, const char* p, const char* p_end) : view(p_begin, p_end), p(p) {}
+StringIteratorU8::StringIteratorU8(StringView string) : view(string), p(view.begin()) {}
 StringIteratorU8::StringIteratorU8(const String& string) : view(string), p(string.data()) {}
 StringIteratorU8::StringIteratorU8(const String& string, size_t offset) : view(string), p(string.data() + offset) {}
 StringIteratorU8::StringIteratorU8(const String& string, size_t offset, size_t count) : view(string, 0, offset + count), p(string.data() + offset) {}

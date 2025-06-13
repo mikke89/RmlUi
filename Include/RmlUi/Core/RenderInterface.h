@@ -93,7 +93,7 @@ public:
 	virtual void ReleaseTexture(TextureHandle texture) = 0;
 
 	/// Called by RmlUi when it wants to enable or disable scissoring to clip content.
-	/// @param[in] enable True if scissoring is to enabled, false if it is to be disabled.
+	/// @param[in] enable True to enable scissoring, false to disable it.
 	virtual void EnableScissorRegion(bool enable) = 0;
 	/// Called by RmlUi when it wants to change the scissor region.
 	/// @param[in] region The region to be rendered. All pixels outside this region should be clipped.
@@ -105,7 +105,7 @@ public:
 	 */
 
 	/// Called by RmlUi when it wants to enable or disable the clip mask.
-	/// @param[in] enable True if the clip mask is to be enabled, false if it is to be disabled.
+	/// @param[in] enable True to enable the clip mask, false to disable it.
 	virtual void EnableClipMask(bool enable);
 	/// Called by RmlUi when it wants to set or modify the contents of the clip mask.
 	/// @param[in] operation Describes how the geometry should affect the clip mask.
@@ -113,7 +113,7 @@ public:
 	/// @param[in] translation The translation to apply to the geometry.
 	/// @note When enabled, the clip mask should hide any rendered contents outside the area of the mask.
 	/// @note The clip mask applies exclusively to all other functions that render with a geometry handle, in addition
-	/// to the layer compositing function while rendering to its destination.
+	/// to the `CompositeLayers` function while rendering to its destination.
 	virtual void RenderToClipMask(ClipMaskOperation operation, CompiledGeometryHandle geometry, Vector2f translation);
 
 	/// Called by RmlUi when it wants the renderer to use a new transform matrix.
@@ -138,9 +138,9 @@ public:
 	virtual void PopLayer();
 
 	/// Called by RmlUi when it wants to store the current layer as a new texture to be rendered later with geometry.
-	/// @param[in] dimensions The dimensions of the texture, to be copied from the top-left part of the viewport.
 	/// @return An application-specified handle to the new texture.
-	virtual TextureHandle SaveLayerAsTexture(Vector2i dimensions);
+	/// @note The texture should be extracted using the bounds defined by the active scissor region, thereby matching its size.
+	virtual TextureHandle SaveLayerAsTexture();
 
 	/// Called by RmlUi when it wants to store the current layer as a mask image, to be applied later as a filter.
 	/// @return An application-specified handle to a new filter representing the stored mask image.

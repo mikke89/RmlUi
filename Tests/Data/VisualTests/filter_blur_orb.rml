@@ -30,15 +30,15 @@
 			border-radius: 200dp;
 			margin: auto;
 			background: #fff0;
-			filter: drop-shadow(#ff7 0 0 30px) blur(40px);
-			backdrop-filter: blur(50px);
+			filter: drop-shadow(#ff7 0 0 30px) blur(20dp);
+			backdrop-filter: blur(25dp);
 			border: 2dp black;
 		}
 	</style>
 </head>
 
 <body>
-	<handle class="background" move_target="#self"/>
-	<handle class="blur" move_target="#self"/>
+	<handle class="background" move_target="#self" edge_margin="-50%"/>
+	<handle class="blur" move_target="#self" edge_margin="-50%"/>
 </body>
 </rml>

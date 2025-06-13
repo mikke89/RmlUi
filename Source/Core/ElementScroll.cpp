@@ -191,13 +191,24 @@ void ElementScroll::FormatScrollbars()
 		CreateCorner();
 
 		Box corner_box;
+		LayoutDetails::BuildBox(corner_box, Vector2f(containing_block.x), corner);
+
 		corner_box.SetContent(Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size));
 		corner->SetBox(corner_box);
 		corner->SetOffset(containing_block + element_box.GetPosition(BoxArea::Padding) -
-				Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size),
+				Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size) - corner_box.GetPosition(BoxArea::Margin),
 			element, true);
 
 		corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+	}
+}
+
+void ElementScroll::UpdateProperties()
+{
+	for (Element* scroll_element : {scrollbars[VERTICAL].element, scrollbars[HORIZONTAL].element, corner})
+	{
+		if (scroll_element)
+			UpdateScrollElementProperties(scroll_element);
 	}
 }
 
@@ -210,6 +221,7 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 		Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
 	scrollbars[orientation].element = scrollbar_element.get();
 	scrollbars[orientation].element->SetProperty(PropertyId::Clip, Property(1, Unit::NUMBER));
+	scrollbars[orientation].element->SetProperty(PropertyId::Drag, Property(Style::Drag::Block));
 
 	scrollbars[orientation].widget = MakeUnique<WidgetScroll>(scrollbars[orientation].element);
 	scrollbars[orientation].widget->Initialise(orientation == VERTICAL ? WidgetScroll::VERTICAL : WidgetScroll::HORIZONTAL);
@@ -229,6 +241,7 @@ bool ElementScroll::CreateCorner()
 	ElementPtr corner_element = Factory::InstanceElement(element, "*", "scrollbarcorner", XMLAttributes());
 	corner = corner_element.get();
 	corner->SetProperty(PropertyId::Clip, Property(1, Unit::NUMBER));
+	corner->SetProperty(PropertyId::Drag, Property(Style::Drag::Block));
 
 	Element* child = element->AppendChild(std::move(corner_element), false);
 	UpdateScrollElementProperties(child);

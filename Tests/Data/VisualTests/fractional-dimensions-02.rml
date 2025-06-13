@@ -1,0 +1,67 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>Fractional dimensions 02</title>
+	<link rel="author" title="Ian Hickson" href="mailto:ian@hixie.ch"/>
+	<link rel="source" href="https://test.csswg.org/suites/css21_dev/20110323/xhtml1/units-005.xht"/>
+	<link rel="alternate" href="http://www.hixie.ch/tests/adhoc/css/units/005.html"/>
+	<link rel="help" href="http://www.w3.org/TR/CSS21/syndata.html#length-units"/>
+	<link rel="help" href="https://www.w3.org/TR/css-values-3/#font-relative-lengths"/>
+	<link rel="match" href="reference/fractional-dimensions-02-ref.rml"/>
+	<meta name="Description" content="Layout with fractionally sized elements. Here, 100 fractionally sized span elements fill a single div element."/>
+	<meta name="Instructions" content="Try different font sizes, zooms, and resolutions, as well as slightly different sizes for the floats."/>
+	<meta name="Assert" content="It's hard to fill the box perfectly for all combinations of scaling and box dimensions. Even Firefox and Chromium struggles with this for some combinations. However, we should at least try to avoid gaps between the individual span elements."/>
+	<style>
+		handle {
+			width: 87dp;
+			height: 87dp;
+			background-color: red;
+			border: 3dp lime;
+			position: relative;
+			top: auto;
+			left: auto;
+			right: auto;
+			bottom: auto;
+			display: block;
+			cursor: move;
+		}
+
+		span {
+			float: left;
+			width: 8.7dp;
+			height: 8.7dp;
+			background-color: green;
+		}
+
+		input[type="text"] {
+			text-align: right;
+		}
+	</style>
+</head>
+<body>
+<p>You should see no red below, just a green square with a green border.</p>
+<handle move_target="#self">
+	<!-- 100 spans -->
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+	<span></span> <span></span> <span></span> <span></span> <span></span>
+</handle>
+</body>
+</rml>

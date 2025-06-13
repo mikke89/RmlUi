@@ -36,7 +36,7 @@
 
 #if !defined RMLUI_STATIC_LIB
 	#if defined RMLUI_PLATFORM_WIN32
-		#if defined RmlCore_EXPORTS
+		#if defined RMLUI_CORE_EXPORTS
 			#define RMLUICORE_API __declspec(dllexport)
 			// Note: Changing a RMLUICORE_API_INLINE method
 			// breaks ABI compatibility!!

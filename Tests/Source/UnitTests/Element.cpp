@@ -166,7 +166,12 @@ TEST_CASE("Element")
 	context->Update();
 	context->Render();
 
-	TestsShell::RenderLoop();
+	Element* div = document->GetFirstChild();
+	Element* span = div->GetChild(1);
+	REQUIRE(div);
+	REQUIRE(div->GetTagName() == "div");
+	REQUIRE(span);
+	REQUIRE(span->GetTagName() == "span");
 
 	SUBCASE("Attribute")
 	{
@@ -292,6 +297,46 @@ TEST_CASE("Element")
 		CHECK(element_ptr->GetInnerRML() == "text");
 	}
 
+	SUBCASE("GetInnerRML")
+	{
+		String inner_rml;
+
+		inner_rml = document->GetInnerRML();
+		CHECK(inner_rml == R"(<div style="background-color: #ff0000;">This is a <span>sample</span>.</div>)");
+
+		div->SetProperty("background-color", "white");
+		inner_rml = document->GetInnerRML();
+		CHECK(inner_rml == R"(<div style="background-color: #ffffff;">This is a <span>sample</span>.</div>)");
+
+		div->RemoveProperty("background-color");
+		inner_rml = document->GetInnerRML();
+		CHECK(inner_rml == R"(<div>This is a <span>sample</span>.</div>)");
+
+		div->SetProperty("cursor", "x<y");
+		inner_rml = document->GetInnerRML();
+		CHECK(inner_rml == R"(<div style="cursor: x&lt;y;">This is a <span>sample</span>.</div>)");
+
+		span->SetProperty("font-weight", "bold");
+		inner_rml = document->GetInnerRML();
+		CHECK(inner_rml == R"(<div style="cursor: x&lt;y;">This is a <span style="font-weight: bold;">sample</span>.</div>)");
+	}
+
+	SUBCASE("InsertBefore")
+	{
+		String inner_rml;
+
+		inner_rml = document->GetInnerRML();
+		CHECK(inner_rml == R"(<div style="background-color: #ff0000;">This is a <span>sample</span>.</div>)");
+
+		div->InsertBefore(document->CreateElement("img"), span);
+		inner_rml = document->GetInnerRML();
+		CHECK(inner_rml == R"(<div style="background-color: #ff0000;">This is a <img /><span>sample</span>.</div>)");
+
+		div->InsertBefore(document->CreateElement("button"), nullptr)->SetInnerRML("Click me");
+		inner_rml = document->GetInnerRML();
+		CHECK(inner_rml == R"(<div style="background-color: #ff0000;">This is a <img /><span>sample</span>.<button>Click me</button></div>)");
+	}
+
 	document->Close();
 	TestsShell::ShutdownShell();
 }
@@ -314,7 +359,7 @@ TEST_CASE("Element.ScrollIntoView")
 	{
 		for (int j = 0; j < 4; ++j)
 		{
-			cells[i][j] = document->GetElementById(CreateString(8, "cell%d%d", i, j));
+			cells[i][j] = document->GetElementById(CreateString("cell%d%d", i, j));
 			REQUIRE(cells[i][j]);
 		}
 	}

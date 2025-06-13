@@ -257,7 +257,7 @@ String EventDispatcher::ToString() const
 
 	auto add_to_result = [&result](EventId id, int count) {
 		const EventSpecification& specification = EventSpecificationInterface::Get(id);
-		result += CreateString(specification.type.size() + 32, "%s (%d), ", specification.type.c_str(), count);
+		result += CreateString("%s (%d), ", specification.type.c_str(), count);
 	};
 
 	EventId previous_id = listeners[0].id;

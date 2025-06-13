@@ -33,7 +33,7 @@
 #include <RmlUi/Core/Platform.h>
 #include <string.h>
 
-#if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
+#if defined RMLUI_PLATFORM_WIN32_NATIVE
 	// function call missing argument list
 	#pragma warning(disable : 4551)
 	// unreferenced local function has been removed
@@ -779,7 +779,7 @@ bool RmlGL3::Initialize(Rml::String* out_message)
 	}
 
 	if (out_message)
-		*out_message = Rml::CreateString(128, "Loaded OpenGL %d.%d.", GLAD_VERSION_MAJOR(gl_version), GLAD_VERSION_MINOR(gl_version));
+		*out_message = Rml::CreateString("Loaded OpenGL %d.%d.", GLAD_VERSION_MAJOR(gl_version), GLAD_VERSION_MINOR(gl_version));
 #endif
 
 	return true;

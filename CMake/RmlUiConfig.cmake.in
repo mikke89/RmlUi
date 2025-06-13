@@ -1,0 +1,36 @@
+set(RMLUI_IS_CONFIG_FILE TRUE)
+set(RMLUI_SVG_PLUGIN @RMLUI_SVG_PLUGIN@)
+set(RMLUI_LOTTIE_PLUGIN @RMLUI_LOTTIE_PLUGIN@)
+set(RMLUI_FONT_ENGINE "@RMLUI_FONT_ENGINE@")
+set(RMLUI_LUA_BINDINGS @RMLUI_LUA_BINDINGS@)
+set(RMLUI_LUA_BINDINGS_LIBRARY "@RMLUI_LUA_BINDINGS_LIBRARY@")
+set(RMLUI_TRACY_PROFILING "@RMLUI_TRACY_PROFILING@")
+
+macro(report_dependency_not_found friendly_name package_name target_name)
+	if(RmlUi_FIND_REQUIRED)
+		message(FATAL_ERROR
+				"${friendly_name} could not be found.\n"
+				"Please ensure that ${friendly_name} can be found by CMake, or linked to using \"${target_name}\" as its "
+				"target name. The location of the build directory of the dependency can be provided by setting the "
+				"\"${package_name}_ROOT\" CMake variable. If you are consuming RmlUi from another CMake project, you can "
+				"create an ALIAS target to offer an alternative name for a CMake target."
+			)
+	endif()
+	return()
+endmacro()
+macro(report_dependency_found_or_error friendly_name package_name target_name)
+	if(NOT TARGET ${target_name})
+		report_dependency_not_found(${friendly_name} ${package_name} ${target_name})
+	endif()
+	set(success_message "")
+	if(${ARGC} GREATER 3)
+		set(success_message " - ${ARGV3}")
+	endif()
+	message(STATUS "Found ${friendly_name} target ${target_name}${success_message}")
+endmacro()
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Modules")
+
+include("${CMAKE_CURRENT_LIST_DIR}/Dependencies.cmake")
+
+include("${CMAKE_CURRENT_LIST_DIR}/RmlUiTargets.cmake")

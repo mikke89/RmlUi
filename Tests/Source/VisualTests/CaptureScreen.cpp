@@ -110,7 +110,7 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 		ComparisonResult result;
 		result.success = false;
 		result.error_msg =
-			Rml::CreateString(1024, "Could not read the captured screenshot from %s: %s", input_path.c_str(), lodepng_error_text(lodepng_result));
+			Rml::CreateString("Could not read the captured screenshot from %s: %s", input_path.c_str(), lodepng_error_text(lodepng_result));
 		return result;
 	}
 	RMLUI_ASSERT(w_ref > 0 && h_ref > 0 && data_ref);
@@ -205,7 +205,7 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 		result.success = GenerateGeometry(*out_highlight, {diff.data.get(), image_ref_diff_byte_size}, {diff.width, diff.height});
 
 	if (!result.success)
-		result.error_msg = Rml::CreateString(1024, "Could not generate texture from file %s", input_path.c_str());
+		result.error_msg = Rml::CreateString("Could not generate texture from file %s", input_path.c_str());
 
 	return result;
 }
@@ -233,7 +233,7 @@ void ReleaseTextureGeometry(Rml::RenderInterface* render_interface, TextureGeome
 }
 
 // Suppress warnings emitted by lodepng
-#if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
+#if defined RMLUI_PLATFORM_WIN32_NATIVE
 	#pragma warning(disable : 4334)
 	#pragma warning(disable : 4267)
 #endif

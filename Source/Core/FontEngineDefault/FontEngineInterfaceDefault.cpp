@@ -27,6 +27,7 @@
  */
 
 #include "FontEngineInterfaceDefault.h"
+#include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include "FontFaceHandleDefault.h"
 #include "FontProvider.h"
 
@@ -42,15 +43,15 @@ void FontEngineInterfaceDefault::Shutdown()
 	FontProvider::Shutdown();
 }
 
-bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight)
+bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name, int face_index, bool fallback_face, Style::FontWeight weight)
 {
-	return FontProvider::LoadFontFace(file_name, fallback_face, weight);
+	return FontProvider::LoadFontFace(file_name, face_index, fallback_face, weight);
 }
 
-bool FontEngineInterfaceDefault::LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+bool FontEngineInterfaceDefault::LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
 	bool fallback_face)
 {
-	return FontProvider::LoadFontFace(data, font_family, style, weight, fallback_face);
+	return FontProvider::LoadFontFace(data, face_index, font_family, style, weight, fallback_face);
 }
 
 FontFaceHandle FontEngineInterfaceDefault::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
@@ -71,7 +72,7 @@ const FontMetrics& FontEngineInterfaceDefault::GetFontMetrics(FontFaceHandle han
 	return handle_default->GetFontMetrics();
 }
 
-int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const String& string, const TextShapingContext& text_shaping_context,
+int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, StringView string, const TextShapingContext& text_shaping_context,
 	Character prior_character)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
@@ -79,7 +80,7 @@ int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const Stri
 }
 
 int FontEngineInterfaceDefault::GenerateString(RenderManager& render_manager, FontFaceHandle handle, FontEffectsHandle font_effects_handle,
-	const String& string, const Vector2f& position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
+	StringView string, Vector2f position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
 	TexturedMeshList& mesh_list)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);

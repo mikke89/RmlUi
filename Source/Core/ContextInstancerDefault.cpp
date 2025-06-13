@@ -35,9 +35,9 @@ ContextInstancerDefault::ContextInstancerDefault() {}
 
 ContextInstancerDefault::~ContextInstancerDefault() {}
 
-ContextPtr ContextInstancerDefault::InstanceContext(const String& name, RenderManager* render_manager)
+ContextPtr ContextInstancerDefault::InstanceContext(const String& name, RenderManager* render_manager, TextInputHandler* text_input_handler)
 {
-	return ContextPtr(new Context(name, render_manager));
+	return ContextPtr(new Context(name, render_manager, text_input_handler));
 }
 
 void ContextInstancerDefault::ReleaseContext(Context* context)

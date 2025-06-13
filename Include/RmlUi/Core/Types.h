@@ -33,6 +33,7 @@
 #include "Traits.h"
 #include <cstdlib>
 #include <memory>
+#include <stddef.h>
 #include <stdint.h>
 
 namespace Rml {
@@ -40,7 +41,6 @@ namespace Rml {
 // Commonly used basic types
 using byte = unsigned char;
 using ScriptObject = void*;
-using std::size_t;
 
 enum class Character : char32_t { Null, Replacement = 0xfffd }; // Unicode code point
 enum class BoxArea { Margin, Border, Padding, Content, Auto };
@@ -89,6 +89,7 @@ class Transform;
 class PropertyIdSet;
 class Decorator;
 class FontEffect;
+class StringView;
 struct Animation;
 struct Transition;
 struct TransitionList;

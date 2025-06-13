@@ -37,6 +37,17 @@
 
 using namespace Rml;
 
+static void SimulateClick(Context* context, Vector2i position)
+{
+	context->Update();
+	context->ProcessMouseMove(position.x, position.y, 0);
+	context->Update();
+	context->ProcessMouseButtonDown(0, 0);
+	context->Update();
+	context->ProcessMouseButtonUp(0, 0);
+	context->Update();
+}
+
 static const String document_focus_rml = R"(
 <rml>
 <head>
@@ -271,6 +282,7 @@ TEST_CASE("Load")
 	REQUIRE(document);
 
 	document->Close();
+
 	TestsShell::ShutdownShell();
 }
 
@@ -281,6 +293,89 @@ TEST_CASE("ReloadStyleSheet")
 
 	// There should be no warnings when reloading style sheets.
 	document->ReloadStyleSheet();
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("Modal.MultipleDocuments")
+{
+	Context* context = TestsShell::GetContext();
+
+	constexpr float halfwidth = 150;
+
+	ElementDocument* document1 = context->LoadDocument("assets/demo.rml");
+	document1->Show(Rml::ModalFlag::Modal);
+	document1->GetElementById("title")->SetInnerRML("Modal 1");
+	constexpr float margin1 = 50;
+	document1->SetProperty(PropertyId::MarginLeft, Property{margin1, Unit::PX});
+
+	Rml::ElementDocument* document2 = context->LoadDocument("assets/demo.rml");
+	document2->Show(Rml::ModalFlag::Modal);
+	document2->GetElementById("title")->SetInnerRML("Modal 2");
+	constexpr float margin2 = 350;
+	document2->SetProperty(PropertyId::MarginLeft, Property{margin2, Unit::PX});
+
+	Rml::ElementDocument* document3 = context->LoadDocument("assets/demo.rml");
+	document3->Show(Rml::ModalFlag::None);
+	document3->GetElementById("title")->SetInnerRML("Non-modal");
+	constexpr float margin3 = 650;
+	document3->SetProperty(PropertyId::MarginLeft, Property{margin3, Unit::PX});
+
+	context->Update();
+
+	TestsShell::RenderLoop();
+
+	REQUIRE(context->GetFocusElement() == document2);
+
+	SUBCASE("FocusFromModal")
+	{
+		document1->Focus();
+		REQUIRE(context->GetFocusElement() == document1);
+
+		document3->Focus();
+		REQUIRE(context->GetFocusElement() == document1);
+	}
+
+	SUBCASE("ClickFromModal")
+	{
+		SimulateClick(context, Vector2i(int(margin1 + halfwidth), context->GetDimensions().y / 2));
+		REQUIRE(context->GetFocusElement() == document2);
+
+		SimulateClick(context, Vector2i(int(margin3 + halfwidth), context->GetDimensions().y / 2));
+		REQUIRE(context->GetFocusElement() == document2);
+	}
+
+	SUBCASE("ModalFlag")
+	{
+		document1->Show(ModalFlag::None, FocusFlag::Document);
+		REQUIRE(context->GetFocusElement() == document2);
+
+		document3->Show(ModalFlag::None, FocusFlag::Document);
+		REQUIRE(context->GetFocusElement() == document2);
+
+		document3->Show(ModalFlag::Modal, FocusFlag::Document);
+		REQUIRE(context->GetFocusElement() == document3);
+	}
+
+	document1->Close();
+	document2->Close();
+	document3->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("Modal.FocusWithin")
+{
+	Context* context = TestsShell::GetContext();
+
+	Rml::ElementDocument* document = context->LoadDocument("assets/demo.rml");
+	document->GetElementById("content")->SetInnerRML("<input type='text' id='input'/>");
+	document->Show(Rml::ModalFlag::Modal);
+
+	REQUIRE(context->GetFocusElement() == document);
+	Element* input = document->GetElementById("input");
+	input->Focus();
+	REQUIRE(context->GetFocusElement() == input);
 
 	document->Close();
 	TestsShell::ShutdownShell();

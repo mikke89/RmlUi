@@ -62,7 +62,7 @@ public:
 
 	/// Sets the context to be debugged.
 	/// @param[in] context The context to be debugged.
-	/// @return True if the debugger is initialised and the context was switched, false otherwise..
+	/// @return True if the debugger is initialised and the context was switched, false otherwise.
 	bool SetContext(Context* context);
 
 	/// Sets the visibility of the debugger.
@@ -119,7 +119,7 @@ private:
 	Rml::SystemInterface* application_interface;
 	UniquePtr<DebuggerSystemInterface> log_interface;
 
-	UniquePtr<ElementInstancer> hook_element_instancer, info_element_instancer, log_element_instancer;
+	UniquePtr<ElementInstancer> hook_element_instancer, debug_document_instancer, info_element_instancer, log_element_instancer;
 
 	bool render_outlines;
 

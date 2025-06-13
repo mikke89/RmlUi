@@ -1,0 +1,404 @@
+<rml>
+<head>
+<link type="text/template" href="../../../assets/window.rml"/>
+<title>Data Binding Sample</title>
+<style>
+body.window
+{
+	left: 80dp;
+	right: 80dp;
+	top: 50dp;
+	bottom: 50dp;
+	min-width: 1040dp;
+	min-height: 300dp;
+	max-width: none;
+	max-height: none;
+}
+div#title_bar div#icon
+{
+	display: none;
+}
+div#content
+{
+	position: relative;
+}
+tabset
+{
+	display: block;
+}
+tabs
+{
+	display: block;
+	position: fixed;
+	clip: none;
+	text-align: right;
+	top: -47dp;
+	left: 205dp;
+	right: 10dp;
+}
+tab
+{
+	display: inline-block;
+	width: 100dp;
+	padding: 0 20dp;
+	line-height: 40dp;
+
+	font-size: 16dp;
+	color: #ddd;
+	text-align: center;
+
+	decorator: tiled-horizontal( tableheader-l, tableheader-c, tableheader-r );
+	image-color: #cffc;
+}
+tab:hover
+{
+	image-color: #fffe;
+	color: #fff;
+}
+tab:active, tab:selected
+{
+	image-color: #fff;
+	color: #fff;
+}
+panels
+{
+	display: block;
+}
+panel
+{
+	display: block;
+	padding: 30dp;
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 500dp;
+}
+h1
+{
+	margin: 1.4em 0 0.7em;
+	font-size: 18dp;
+}
+p.title
+{
+	font-size: 35dp;
+	color: #b33;
+	font-effect: glow(2dp #ed5);
+}
+.center {
+	text-align: center;
+}
+.clickable
+{
+	cursor: pointer;
+}
+.red {
+	color: #e44;
+}
+.big {
+	font-size: 1.8em;
+}
+.mouse_detector {
+	width: 300dp;
+	min-height: 2em;
+	line-height: 30dp;
+	background-color: #909090;
+	border: 1dp #666;
+	margin: 2em auto;
+	cursor: pointer;
+}
+
+
+/***  Invaders  ***/
+
+panel#invaders {
+	max-width: 650dp;
+}
+
+.sidebox {
+	text-align: center;
+	position: fixed;
+	top: 50dp;
+	left: 50dp;
+	width: 150dp;
+	font-size: 20dp;
+	line-height: 1.5em;
+}
+.sidebox.right {
+	left: auto;
+	right: 50dp;
+}
+
+progress {
+	display: block;
+	background: #ccc3;
+	margin-top: 8dp;
+	height: 18dp;
+	width: 100%;
+	box-sizing: border-box;
+	border-width: 1dp;
+}
+
+.health {
+	color: #cfc;
+	font-effect: glow(1dp #060);
+}
+.health progress {
+	border-color: #0606;
+}
+.health progress fill {
+	background: #4d4a;
+}
+.charge {
+	top: 150dp;
+	color: #dde;
+	font-effect: glow(1dp #269);
+}
+.charge progress {
+	border-color: #1486;
+}
+.charge progress fill {
+	background: #49da;
+}
+
+.time, .score {
+	color: #eec;
+	font-effect: glow(1dp #663);
+}
+.score {
+	top: 150dp;
+}
+
+.messagebox {
+	position: absolute;
+	top: 150dp;
+	left: 25%;
+	right: 25%;
+	padding: 50dp 80dp;
+	border-radius: 15dp;
+	background-color: #888c;
+	font-effect: shadow(3px 3px #333);
+}
+.messagebox button {
+	margin-top: 2em;
+}
+.start_game {
+	font-size: 20dp;
+}
+@keyframes game_over {
+	from { transform: rotate(-8deg); }
+	to   { transform: rotate( 8deg); }
+}
+.game_over {
+	font-size: 40dp;
+	animation: 0.7s elastic-in-out infinite alternate game_over;
+}
+
+invader {
+	display: inline-block;
+	position: relative;
+	width: 150dp;
+	height: 100dp;
+	background-color: #ccc3;
+	margin: 10dp 20dp;
+	border: 1dp #5553;
+	transition: opacity visibility background-color cubic-out 0.5s;
+	opacity: 0;
+	visibility: hidden;
+}
+invader.alive {
+	visibility: visible;
+	opacity: 1;
+}
+invader.firing {
+	background-color: #ee3d;
+}
+invader img {
+	display: block;
+	margin: auto auto;
+	padding-bottom: 10dp;
+	cursor: cross;
+}
+.paused invader img  {
+	cursor: arrow;
+}
+invader progress {
+	position: absolute;
+	margin: 0;
+	border-width: 0;
+	width: 10dp;
+	top: 0;
+	bottom: 0;
+	height: 100%;
+}
+.invader-health {
+	left: 0;
+}
+.invader-health fill {
+	background: #252a;
+}
+.invader-charge {
+	right: 0;
+}
+.invader-charge fill {
+	background: #d43a;
+}
+invader name {
+	display: block;
+	position: absolute;
+	color: #333;
+	left: 12dp;
+	right: 12dp;
+	bottom: 0;
+}
+
+
+/***  Forms  ***/
+
+form {
+	display: block;
+	text-align: left;
+}
+form input, form select {
+	margin-left: 0;
+}
+form h2 {
+	display: block;
+	font-size: 16dp;
+	font-weight: bold;
+	margin-top: 1em;
+	margin-bottom: 0.3em;
+}
+a {
+	cursor: pointer;
+}
+a:hover {
+	text-decoration: underline;
+}
+input:disabled {
+	image-color: #aaac;
+}
+li {
+	display: block;
+	color: #eee;
+	margin-left: 1em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+}
+select selectbox option.disabled {
+	color: #666;
+	background-color: #ccc;
+}
+</style>
+</head>
+
+<body template="window">
+<tabset id="menu">
+<tab>Basics</tab>
+<panel data-model="basics">
+	<h1>{{title}}</h1>
+	<p data-if="show_text">The quick brown fox jumps over the lazy {{animal}}.</p>
+	<input type="text" data-value="animal"/>
+</panel>
+<tab>Events</tab>
+<panel id="welcome" data-model="events">
+	<p class="title" style="margin-top: 1.8em;">{{hello_world}}<span style="color: blue;"> Rated: {{rating}}</span></p>
+	<p>Data binding demo. We rate this a good old {{rating}}!</p>
+	<input type="range" name="rating" min="0" max="100" step="1" value="50" data-value="rating"/>
+	<div data-visible="rating > 50">Thanks for the <span data-if="rating < 80">good</span><span data-if="rating >= 80">awesome</span> rating!</div>
+	<div class="mouse_detector" style="height: 70dp;"
+		data-event-mousemove="mouse_detector = 'x: ' + ev.mouse_x + '<br/>y: ' + ev.mouse_y"
+		data-event-click="add_mouse_pos(); hello_world = 'Hello click!'"
+		data-rml="mouse_detector">
+	</div>
+	<div class="mouse_detector" data-if="positions.size > 0" data-event-click="clear_positions">
+		Recorded mouse positions.<br/>
+		<span data-for="pos : positions"> x: {{ pos.x }}, y: {{ pos.y }}<br/></span>
+	</div>
+	<img sprite="icon-invader" data-style-image-color="rating < 80 ? 'black' : 'green'"/>
+	<p>
+		For loop with data expressions:<br/>
+		<span style="padding-left: 1em;" data-for="i : list"> {{ i * 2 + (!(i < 10) ? ' wow!' | to_upper : '') }}</span>
+	</p>
+</panel>
+<tab>Invaders</tab>
+<panel id="invaders" data-model="invaders">
+	<div class="sidebox health">
+		Health
+		<progress data-attr-value="health" max="100"/>
+	</div>
+	<div class="sidebox charge">
+		Charge
+		<progress data-attr-value="charge" max="100"/>
+	</div>
+	<div class="sidebox right time">
+		Time<br/>{{ elapsed_time | format_time }}
+	</div>
+	<div class="sidebox right score">
+		Score<br/>{{ score }}
+	</div>
+	<div class="invaders" data-class-paused="health == 0">
+		<invader data-for="invader : invaders" data-class-alive="invader.health > 0" data-class-firing="invader.charge >= 100">
+			<progress class="invader-health" direction="top" data-attr-max="invader.max_health" data-attr-value="invader.health"/>
+			<progress class="invader-charge" direction="top" data-attr-value="invader.charge" max="100"/>
+			<img data-attr-sprite="invader.sprite" data-style-image-color="invader.color" data-event-click="fire(it_index)"/>
+			<name>{{ invader.name }}</name>
+		</invader>
+	</div>
+	<div class="messagebox start_game" data-if="health == 0 && num_games_played == 0">
+		Do you dare to take on the fight against the alien invaders?<br/>
+		<button data-event-click="start_game">Start game</button>
+	</div>
+	<div class="messagebox game_over" data-if="health == 0 && num_games_played > 0">
+		Game Over!<br/>
+		<button data-event-click="start_game">Restart game</button>
+	</div>
+</panel>
+<tab>Forms</tab>
+<panel id="controls" data-model="forms">
+	<form onsubmit="submit_form">
+		<h2>Rating</h2>
+		<div>
+			<input type="range" min="0" max="100" step="1" value="50" data-value="rating"/> {{rating}}
+		</div>
+		<h2>Favorite animal: {{ animal }}</h2>
+		<div>
+			<label><input type="radio" name="animal" value="dog" data-checked="animal"/> Dog </label>
+			<label><input type="radio" name="animal" value="cat" data-checked="animal"/> Cat </label>
+			<label><input type="radio" name="animal" value="narwhal" data-checked="animal"/> Narwhal </label>
+			<label><input type="radio" name="animal" value="no" data-checked="animal"/> I don't like animals </label>
+		</div>
+		<h2>Favorite meals</h2>
+		<div>
+			<label><input type="checkbox" name="meals" value="pizza" data-checked="pizza" data-attrif-disabled="rating < 70"/> Pizza </label>
+			<label><input type="checkbox" name="meals" value="pasta" data-checked="pasta"/> Pasta </label>
+			<label><input type="checkbox" name="meals" value="lasagne" data-checked="lasagne"/> Lasagne </label>
+			<li style="color: red;" data-if="pizza && rating < 70">• You can only have pizza if the rating is satisfactory.</li>
+			<li data-if="pizza && rating >= 70">• Pizza is life!</li>
+			<li data-if="pasta">• Pasta is squiggly good!</li>
+			<li data-if="lasagne">• Lasagne is delicious!</li>
+		</div>
+		<h2>Subject</h2>
+		<div>
+			<select id="select" name="subject" data-value="selected_subject">
+				<option data-for="s : subjects" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
+			</select>
+			<br/>
+			<p>
+				Select subject by index<br/>
+				<input type="range" name="rating" min="0" max="0" data-attr-max="subjects.size - 1" step="1" value="0" data-value="selected_subject"/> {{selected_subject + 1}}
+			</p>
+			<div class="picker">
+				<p data-for="s : subjects" data-style-color="it_index == selected_subject ? 'red' : 'black'">
+					{{it_index + 1}}: <a data-event-click="selected_subject = it_index">{{ s }}</a>&nbsp;
+					<a data-if="it_index > 0" data-event-click="erase_subject(it_index)">[-]</a>
+				</p>
+			</div>
+			<div>
+				<input type="text" name="name" data-value="new_subject"/><br/>
+				<button data-event-click="add_subject(new_subject)">Add subject</button>
+			</div>
+		</div>
+	</form>
+</panel>
+</tabset>
+</body>
+</rml>

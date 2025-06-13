@@ -37,6 +37,8 @@
 
 		.three_color > :nth-child(1) { decorator: linear-gradient(yellow, blue 20%, #0f0); }
 
+		.overlapping_gradients > :nth-child(1) { decorator: linear-gradient(to bottom, #00f3, #0001, #00f3), linear-gradient(to top right, red, blue); }
+
 		.corner_to_corner > :nth-child(1) { decorator: linear-gradient(to top right, red, white, blue); }
 		.corner_to_corner > :nth-child(2) { decorator: linear-gradient(to bottom right, red, white, blue); }
 		.corner_to_corner > :nth-child(3) { decorator: linear-gradient(to bottom left, red, white, blue); }
@@ -76,6 +78,11 @@ Yellow (top-left) to blue (bottom-right) [equivalent]
 
 Yellow (top), blue, green (bottom)
 <group class="three_color">
+	<div/>
+</group>
+
+Multiple overlapping gradients
+<group class="overlapping_gradients">
 	<div/>
 </group>
 

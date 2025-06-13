@@ -35,6 +35,7 @@
 #include "../../Include/RmlUi/Core/Types.h"
 #include "DebuggerSystemInterface.h"
 #include "ElementContextHook.h"
+#include "ElementDebugDocument.h"
 #include "ElementInfo.h"
 #include "ElementLog.h"
 #include "FontSource.h"
@@ -167,9 +168,8 @@ void DebuggerPlugin::Render()
 					ElementUtilities::ApplyTransform(*element);
 					for (int j = 0; j < element->GetNumBoxes(); ++j)
 					{
-						Vector2f box_offset;
-						const Box& box = element->GetBox(j, box_offset);
-						Geometry::RenderOutline(element->GetAbsoluteOffset(BoxArea::Border) + box_offset, box.GetSize(BoxArea::Border),
+						const RenderBox box = element->GetRenderBox(BoxArea::Border, j);
+						Geometry::RenderOutline(element->GetAbsoluteOffset(BoxArea::Border) + box.GetBorderOffset(), box.GetFillSize(),
 							Colourb(255, 0, 0, 128), 1);
 					}
 
@@ -220,6 +220,15 @@ void DebuggerPlugin::OnContextDestroy(Context* context)
 
 void DebuggerPlugin::OnElementDestroy(Element* element)
 {
+	// Detect external destruction of any of the debugger documents. This can happen for example if the user calls
+	// `Context::UnloadAllDocuments()` on the host context.
+	if (element == menu_element || element == info_element || element == log_element)
+	{
+		ReleaseElements();
+		Log::Message(Log::LT_ERROR,
+			"A document owned by the Debugger plugin was destroyed externally. This is not allowed. Consider shutting down the debugger instead.");
+	}
+
 	if (info_element)
 		info_element->OnElementDestroy(element);
 }
@@ -265,7 +274,9 @@ bool DebuggerPlugin::LoadFont()
 
 bool DebuggerPlugin::LoadMenuElement()
 {
-	menu_element = host_context->CreateDocument();
+	debug_document_instancer = MakeUnique<ElementInstancerGeneric<ElementDebugDocument>>();
+	Factory::RegisterElementInstancer("debug-document", debug_document_instancer.get());
+	menu_element = host_context->CreateDocument("debug-document");
 	if (!menu_element)
 		return false;
 

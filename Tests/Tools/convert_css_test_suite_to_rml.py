@@ -31,8 +31,19 @@ import argparse
 parser = argparse.ArgumentParser(description=\
 '''Convert the W3C CSS 2.1 test suite to RML documents for testing in RmlUi.
 
-Fetch the CSS tests archive from here: https://www.w3.org/Style/CSS/Test/CSS2.1/
-Extract the 'xhtml1' folder and point the 'in_dir' argument to this directory.''')
+Instructions:
+  1. Fetch the CSS tests archive from here: https://www.w3.org/Style/CSS/Test/CSS2.1/
+  2. Extract the 'xhtml1' folder, and point the 'in_dir' argument to this directory.
+  3. Call this script with the 'out_dir' argument pointing to a directory of your choosing.
+
+The resulting tests can be opened in the `Visual tests` application. Set the environment variable
+`RMLUI_VISUAL_TESTS_RML_DIRECTORIES` to the 'out_dir' used above. After opening the application, use
+the arrow keys Up/Down to change the test suite directory.
+
+This script can also be used with the CSS3 test suites, such as the one for flexbox:
+	https://test.csswg.org/suites/css-flexbox-1_dev/nightly-unstable/
+''',
+formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument('in_dir',
                     help="Input directory which contains the 'xhtml1' (.xht) files to be converted.")
@@ -87,8 +98,11 @@ html_color_mapping = {
 	"lightgrey": "#d3d3d3",
 	"lightgray": "#d3d3d3",
 	"lightgreen": "#90ee90",
+	"limegreen": "#32cd32",
+	"magenta": "#ff00ff",
 	"pink": "#ffc0cb",
 	"coral": "#ff7f50",
+	"salmon": "#fa8072",
 	"slateblue": "#6a5acd",
 	"steelblue": "#4682b4",
 	"tan": "#d2b48c",
@@ -225,7 +239,18 @@ def process_file(in_file):
 		line = re.sub(r'^(\s*)(.*<head[^>]*>)', r'\1\2\n\1\1<link type="text/rcss" href="/../Tests/Data/style.rcss" />', line, flags = re.IGNORECASE)
 		line = re.sub(r'<style[^>]*><!\[CDATA\[\s*', '<style>\n', line, flags = re.IGNORECASE)
 		line = re.sub(r'\]\]></style>', '</style>', line, flags = re.IGNORECASE)
+
 		line = re.sub(r'direction:\s*ltr\s*;?', r'', line, flags = re.IGNORECASE)
+		line = re.sub(r'writing-mode:\s*horizontal-tb\s*;?', r'', line, flags = re.IGNORECASE)
+		line = re.sub(r'inline-size:([^;}\"]*)', r'width:\1 /* inline-size */', line, flags = re.IGNORECASE)
+		line = re.sub(r'block-size:([^;}\"]*)', r'height:\1 /* block-size */', line, flags = re.IGNORECASE)
+		line = re.sub(r'(([a-z\-]+)-inline-start):([^;}\"]*)', r'\2-left:\3 /* \1 */', line, flags = re.IGNORECASE)
+		line = re.sub(r'(([a-z\-]+)-inline-end):([^;}\"]*)', r'\2-right:\3 /* \1 */', line, flags = re.IGNORECASE)
+		line = re.sub(r'(([a-z\-]+)-block-start):([^;}\"]*)', r'\2-top:\3 /* \1 */', line, flags = re.IGNORECASE)
+		line = re.sub(r'(([a-z\-]+)-block-end):([^;}\"]*)', r'\2-bottom:\3 /* \1 */', line, flags = re.IGNORECASE)
+		line = re.sub(r'(([a-z\-]+)-block):\s*([0-9a-z.]+)', r'\2-top: \3; \2-bottom: \3 /* \1 */', line, flags = re.IGNORECASE)
+		line = re.sub(r'(([a-z\-]+)-inline):\s*([0-9a-z.]+)', r'\2-left: \3; \2-right: \3 /* \1 */', line, flags = re.IGNORECASE)
+
 		line = re.sub(r'list-style(-type)?:\s*none\s*;?', r'', line, flags = re.IGNORECASE)
 		line = re.sub(r'(font(-size):[^;}\"]*)xxx-large', r'\1 2.0em', line, flags = re.IGNORECASE)
 		line = re.sub(r'(font(-size):[^;}\"]*)xx-large', r'\1 1.7em', line, flags = re.IGNORECASE)
@@ -240,12 +265,13 @@ def process_file(in_file):
 		line = re.sub(r'(line-height:)\s*normal', r'\1 1.2em', line, flags = re.IGNORECASE)
 		line = re.sub(r'-moz-box-sizing', r'box-sizing', line, flags = re.IGNORECASE)
 		line = re.sub(r'cyan', r'aqua', line, flags = re.IGNORECASE)
+		line = re.sub(r'clear:\s*all\b', r'clear: both', line, flags = re.IGNORECASE)
 
-		line = re.sub(r'flex: none;', r'flex: 0 0 auto;', line, flags = re.IGNORECASE)
-		line = re.sub(r'align-content:\s*(start|end)', r'align-content: flex-\1', line, flags = re.IGNORECASE)
-		line = re.sub(r'justify-content:\s*left', r'justify-content: flex-start', line, flags = re.IGNORECASE)
-		line = re.sub(r'justify-content:\s*right', r'justify-content: flex-end', line, flags = re.IGNORECASE)
+		line = re.sub(r'(align-content|justify-content):\s*(start|end)', r'\1: flex-\2 /* \2 */', line, flags = re.IGNORECASE)
+		line = re.sub(r'justify-content:\s*left', r'justify-content: flex-start /* left */', line, flags = re.IGNORECASE)
+		line = re.sub(r'justify-content:\s*right', r'justify-content: flex-end /* right */', line, flags = re.IGNORECASE)
 		line = re.sub(r'table-layout:[^;}]*[;}]', r'', line, flags = re.IGNORECASE)
+		line = re.sub(r'border-spacing:\s*0[a-z]*\s*([;"\'}]|$)', r'\1', line, flags=re.IGNORECASE)
 
 		if re.search(r'background:[^;}\"]*fixed', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses unsupported background.".format(in_file))
@@ -266,11 +292,16 @@ def process_file(in_file):
 
 		prev_end = 0
 		new_line = ""
-		for match in re.finditer(r'calc\(\s*(\d+)(\w{1,3})\s*/\s*(\d)\s*\)', line, flags = re.IGNORECASE):
-			num = match.group(1)
-			unit = match.group(2)
-			den = match.group(3)
-			calc_result = "{}{}".format(float(num) / float(den), unit)
+		for match in re.finditer(r'calc\((\s*(\d+)(\w{1,3})\s*\+)?\s*(\d+)(\w{1,3})\s*/\s*(\d)\s*\)', line, flags = re.IGNORECASE):
+			num = match.group(4)
+			unit = match.group(5)
+			den = match.group(6)
+			add_num = match.group(2) or 0
+			add_unit = match.group(3) or unit
+			if unit == add_unit:
+				calc_result = "{}{}".format(float(add_num) + float(num) / float(den), unit)
+			else:
+				calc_result = match.span()
 			new_line += line[prev_end:match.start()] + calc_result
 			prev_end = match.end()
 		new_line += line[prev_end:]
@@ -284,8 +315,8 @@ def process_file(in_file):
 		if flags_match and flags_match[1] != '' and flags_match[1] != 'interactive':
 			print("File '{}' skipped due to flags '{}'".format(in_file, flags_match[1]))
 			return False
-		if re.search(r'display:[^;]*(table-caption|table-header-group|table-footer-group|run-in|list-item)', line, flags = re.IGNORECASE):
-			print("File '{}' skipped since it uses unsupported display modes.".format(in_file))
+		if match := re.search(r'display:[^;]*(table-caption|table-header-group|table-footer-group|run-in|list-item|grid|inline-grid)', line, flags = re.IGNORECASE):
+			print("File '{}' skipped since it uses unsupported display mode '{}'.".format(in_file, match.group(1)))
 			return False
 		if re.search(r'visibility:[^;]*collapse|z-index:\s*[0-9\.]+%', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses unsupported visibility.".format(in_file))
@@ -296,6 +327,9 @@ def process_file(in_file):
 		if re.search(r'<script>', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses scripts.".format(in_file))
 			return False
+		if re.search(r'<caption', line, flags=re.IGNORECASE):
+			print("File '{}' skipped since it uses unsupported table caption.".format(in_file))
+			return False
 		if in_style and re.search(r':before|:after|@media|\s\+\s', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses unsupported CSS selectors.".format(in_file))
 			return False
@@ -305,11 +339,13 @@ def process_file(in_file):
 		if re.search(r'@font-face|font:|ahem', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses special fonts.".format(in_file))
 			return False
-		if re.search(r'\b((direction:[^;]*[;"])|(content:[^;]*[;"])|(outline:[^;]*[;"])|(quote:[^;]*[;"])|(border-spacing:[^;]*[;"])|(border-collapse:[^;]*[;"])|(background:[^;]*[;"]))', line, flags = re.IGNORECASE)\
+
+		if match := re.search(r'(^|[^a-z\-])((direction:[^;]*[;"])|(content:[^;]*[;"])|(outline:[^;]*[;"])|(quote:[^;]*[;"])|(border-spacing:[^;]*[;"])|(border-collapse:[^;]*[;"])|(background:[^;]*[;"]))', line, flags = re.IGNORECASE)\
 			or re.search(r'\b((font-variant:[^;]*[;"])|(font-kerning:[^;]*[;"])|(font-feature-settings:[^;]*[;"])|(background-image:[^;]*[;"])|(caption-side:[^;]*[;"])|(clip:[^;]*[;"])|(page-break-inside:[^;]*[;"])|(word-spacing:[^;]*[;"]))', line, flags = re.IGNORECASE)\
-			or re.search(r'\b((writing-mode:[^;]*[;"])|(text-orientation:[^;]*[;"])|(text-indent:[^;]*[;"])|(page-break-after:[^;]*[;"])|(page-break-before:[^;]*[;"])|(column[^:]*:[^;]*[;"])|(empty-cells:[^;]*[;"]))', line, flags = re.IGNORECASE)\
-			or re.search(r'\b((aspect-ratio:[^;]*[;"])|(flex-basis:[^;]*[;"])|(order:[^;]*[;"]))', line, flags = re.IGNORECASE):
-			print("File '{}' skipped since it uses unsupported CSS properties.".format(in_file))
+			or re.search(r'\b((writing-mode:[^;]*[;"])|(text-orientation:[^;]*[;"])|(text-indent:[^;]*[;"])|(page-break-after:[^;]*[;"])|(page-break-before:[^;]*[;"])|(column(?!-gap)[a-z\- ]*:[^;]*[;"])|(empty-cells:[^;]*[;"]))', line, flags = re.IGNORECASE)\
+			or re.search(r'\b((aspect-ratio:[^;]*[;"])|(place-items:[^;]*[;"])|(flex-flow:[^;]*[;"])|(order:[^;]*[;"])|([a-z\-]+:\s*calc\([^;]*[;"])|([a-z\-]+:\s*safe\b[^;]*[;"])|([a-z\-]+:\s*(min-|max-)?content\s*[;"]))', line, flags = re.IGNORECASE):
+			substring_max = lambda s, max_length: s[:max_length - 3] + '...' if len(s) > max_length else s
+			print("File '{}' skipped since it uses unsupported CSS properties: '{}'".format(in_file, substring_max(match.group().strip(), 50)))
 			return False
 		data += line
 
@@ -327,7 +363,7 @@ def process_file(in_file):
 
 file_block_filters = ['charset','font','list','text-decoration','text-indent','text-transform','bidi','cursor',
 					'uri','stylesheet','word-spacing','table-anonymous','outline','at-rule','at-import','attribute',
-					'style','quote','rtl','ltr','first-line','first-letter','first-page','import','border','toc',
+					'style','quote','rtl','first-line','first-letter','first-page','import','border','toc',
 					'chapter','character-encoding','escape','media','contain-','grid','case-insensitive',
 					'containing-block-initial','multicol','system-colors']
 

@@ -1,46 +1,47 @@
 <rml>
+<head>
+	<title>Text-alignment property</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Text-alignment property for inputs."/>
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+		}
 
-	<head>
-		<title>Text-alignment property</title>
-		<link type="text/rcss" href="../style.rcss" />
-		<meta name="Description" content="Text-alignment property for inputs." />
-		<style>
-			body {
-				background: #ddd;
-				color: #444;
-			}
+		input.text, textarea {
+			display: block;
+			margin: 10dp auto;
+			border: 2dp #999;
+			padding: 5dp 10dp;
+			box-sizing: border-box;
+			width: 250dp;
+			background-color: #fff;
+		}
+	</style>
+</head>
 
-			textarea {
-				background-color: #bbb;
-			}
+<body>
+<input style="text-align:left" value="left aligned"/>
+<input style="text-align:center" value="center aligned"/>
+<input style="text-align:right" value="right aligned"/>
 
-			h1 {
-				margin-top: 0.3em;
-				font-size: 1.1em;
-			}
-		</style>
-	</head>
-
-	<body>
-		<input style="text-align:left" value="left aligned" />
-		<br />
-		<input style="text-align:center" value="center aligned" />
-		<br />
-		<input style="text-align:right" value="right aligned" />
-		<br />
-		<textarea style="text-align:left" rows="3">left aligned overflow overflow overflow overflow
+<textarea style="text-align:left" rows="3">left aligned overflow overflow overflow overflow
 line-break</textarea>
-		<br />
-		<textarea style="text-align:center" rows="3">center aligned overflow overflow overflow overflow
+<textarea style="text-align:center" rows="3">center aligned overflow overflow overflow overflow
 line-break</textarea>
-		<br />
-		<textarea style="text-align:right" rows="3">right aligned overflow overflow overflow overflow
+<textarea style="text-align:right" rows="3">right aligned overflow overflow overflow overflow
 line-break</textarea>
-		<br />
-		<textarea style="text-align:left" rows="3" wrap="nowrap">left aligned nowrap nowrap nowrap nowrap nowrap</textarea>
-		<br />
-		<textarea style="text-align:center" rows="3" wrap="nowrap">center aligned nowrap nowrap nowrap nowrap nowrap</textarea>
-		<br />
-		<textarea style="text-align:right" rows="3" wrap="nowrap">right aligned nowrap nowrap nowrap nowrap nowrap</textarea>
-	</body>
+
+<textarea style="text-align:left" rows="3" wrap="nowrap">left aligned nowrap nowrap nowrap nowrap nowrap</textarea>
+<textarea style="text-align:center" rows="3" wrap="nowrap">center aligned nowrap nowrap nowrap nowrap nowrap</textarea>
+<textarea style="text-align:right" rows="3" wrap="nowrap">right aligned nowrap nowrap nowrap nowrap nowrap</textarea>
+
+<textarea style="text-align:left" rows="1" wrap="nowrap">left
+line-break</textarea>
+<textarea style="text-align:center" rows="1" wrap="nowrap">center
+line-break</textarea>
+<textarea style="text-align:right" rows="1" wrap="nowrap">right
+line-break</textarea>
+</body>
 </rml>

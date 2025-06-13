@@ -73,10 +73,10 @@ public:
 	/// Get all elements with the given class set on them.
 	/// @param[out] elements Resulting elements.
 	/// @param[in] root_element First element to check.
-	/// @param[in] tag Class name to search for.
+	/// @param[in] class_name Class name to search for.
 	static void GetElementsByClassName(ElementList& elements, Element* root_element, const String& class_name);
 
-	/// Returns an element's density-independent pixel ratio, defined by it's context
+	/// Returns an element's density-independent pixel ratio, defined by its context.
 	/// @param[in] element The element to determine the density-independent pixel ratio for.
 	/// @return The density-independent pixel ratio of the context, or 1.0 if no context assigned.
 	static float GetDensityIndependentPixelRatio(Element* element);
@@ -85,7 +85,7 @@ public:
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The character placed just before this string, used for kerning.
 	/// @return The string width, in pixels.
-	static int GetStringWidth(Element* element, const String& string, Character prior_character = Character::Null);
+	static int GetStringWidth(Element* element, StringView string, Character prior_character = Character::Null);
 
 	/// Generates the clipping region for an element.
 	/// @param[in] element The element to generate the clipping region for.
@@ -121,14 +121,14 @@ public:
 	/// @param[in] inline_element True if the element is placed in an inline context, false if not.
 	static void BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element = false);
 
-	/// Sizes an element, and positions it within its parent offset from the borders of its content area. Any relative
-	/// values will be evaluated against the size of the element parent's content area.
+	/// Sizes and sets the box of an element, and positions the element at the content area of its parent, plus any
+	/// specified offset. Any relative values will be evaluated against the size of the element parent's content area.
 	/// @param element[in] The element to size and position.
 	/// @param offset[in] The offset from the parent's borders.
 	/// @param anchor[in] Defines which corner or edge the border is to be positioned relative to.
 	static bool PositionElement(Element* element, Vector2f offset, PositionAnchor anchor);
 
-	/// Applies an element's accumulated transform matrix, determined from its and ancestor's `perspective' and `transform' properties.
+	/// Applies an element's accumulated transform matrix, determined from the `perspective` and `transform` properties of itself and ancestors.
 	/// @param[in] element The element whose transform to apply, or nullptr for identity transform.
 	/// @return True if the transform could be submitted to the render interface.
 	static bool ApplyTransform(Element& element);

@@ -113,7 +113,7 @@ static const Vector<QuerySelector> query_selectors =
 	{ "*span",                       "Y D0 D1 F0" },
 	{ "*.hello",                     "X Z H" },
 	{ "*:checked",                   "I" },
-	
+
 	{ "p[unit='m']",                 "B" },
 	{ "p[unit=\"m\"]",               "B" },
 	{ "[class]",                     "X Y Z P F0 G H" },
@@ -129,7 +129,7 @@ static const Vector<QuerySelector> query_selectors =
 	{ "[class$=hello]",              "X H" },
 	{ "[class*=hello]",              "X Z F0 H" },
 	{ "[class*=ello]",               "X Z F0 H" },
-	
+
 	{ "[class~=hello].world",         "Z H" },
 	{ "*[class~=hello].world",        "Z H" },
 	{ ".world[class~=hello]",         "Z H" },
@@ -142,10 +142,10 @@ static const Vector<QuerySelector> query_selectors =
 	{ "[invalid",                     "", 1, 4 },
 	{ "[]",                           "", 1, 4 },
 	{ "[x=Rule{What}]",               "", 2, 0 },
-	{ "[x=Hello,world]",              "", 1, 2 }, 
+	{ "[x=Hello,world]",              "", 1, 2 },
 	// The next ones are valid in CSS but we currently don't bother handling them, just make sure we don't crash.
 	{ "[x='Rule{What}']",             "", 2, 0 },
-	{ "[x='Hello,world']",            "", 1, 2 }, 
+	{ "[x='Hello,world']",            "", 1, 2 },
 
 	{ "#X[class=hello]",              "X" },
 	{ "[class=hello]#X",              "X" },
@@ -153,7 +153,7 @@ static const Vector<QuerySelector> query_selectors =
 	{ "div[class=hello]",             "X" },
 	{ "[class=hello]div",             "X" },
 	{ "span[class=hello]",            "" },
-	
+
 	{ ".parent :nth-child(odd)",     "A C D0 E F0 G" },
 	{ ".parent > :nth-child(even)",  "B D F H",         SelectorOp::RemoveClasses,        "parent", "" },
 	{ ":first-child",                "X A D0 F0",       SelectorOp::RemoveElementsByIds,  "A F0", "X B D0" },
@@ -176,11 +176,11 @@ static const Vector<QuerySelector> query_selectors =
 	{ ":only-child",                 "F0",              SelectorOp::RemoveElementsByIds,  "D0",    "D1 F0" },
 	{ ":only-of-type",               "Y A E F0 I" },
 	{ "span:empty",                  "Y D0 F0" },
-	
+
 	{ ".hello.world, #P span, #I",   "Z D0 D1 F0 H I",  SelectorOp::RemoveClasses,        "world", "D0 D1 F0 I" },
 	{ "body * span",                 "D0 D1 F0" },
 	{ "D1 *",                        "" },
-	
+
 	{ "#E + #F",                     "F",               SelectorOp::InsertElementBefore,  "F",     "" },
 	{ "#E+#F",                       "F" },
 	{ "#E +#F",                      "F" },
@@ -192,7 +192,7 @@ static const Vector<QuerySelector> query_selectors =
 	{ "#P + *",                      "I" },
 	{ "div.parent > #B + p",         "C" },
 	{ "div.parent > #B + div",       "" },
-	
+
 	{ "#B ~ #F",                     "F" },
 	{ "#B~#F",                       "F" },
 	{ "#B ~#F",                      "F" },
@@ -258,6 +258,39 @@ static const Vector<MatchesSelector> matches_selectors =
 	{ "G", "p#G[missing]",   false },
 	{ "B", "[unit='m']",     true }
 };
+
+struct ScopeSelector : public QuerySelector {
+	String scope_selector;
+
+	ScopeSelector(const String& scope_selector, const String& selector, const String& expected_ids) :
+		QuerySelector(selector, expected_ids), scope_selector(scope_selector)
+	{}
+};
+static const Vector<ScopeSelector> scope_selectors =
+{
+	{ "",       ":scope *",                  "X Y Z P A B C D D0 D1 E F F0 G H I" }, // should be equivalent to just "*"
+	{ "",       ":scope > *",                "X Y Z P I" },
+	{ "",       ":scope > *:not(:checked)",  "X Y Z P" },
+	{ "#P",     ":scope > p",                "B C D F G H" },
+	{ "#P",     ":scope span",               "D0 D1 F0" },
+};
+
+struct ContainsSelector {
+	String element_id;
+	String target_id;
+	bool expected_result;
+};
+static const Vector<ContainsSelector> contains_selectors =
+{
+	{ "A",  "A",  true },
+	{ "P",  "A",  true },
+	{ "A",  "P",  false },
+	{ "P",  "D0", true },
+	{ "D0", "P",  false },
+	{ "X",  "P",  false },
+	{ "P",  "X",  false },
+};
+
 // clang-format on
 
 // Recursively iterate through 'element' and all of its descendants to find all
@@ -452,6 +485,54 @@ TEST_CASE("Selectors")
 
 			bool matches = start->Matches(selector.selector);
 			CHECK_MESSAGE(matches == selector.expected_result, "Matches() selector '" << selector.selector << "' from " << selector.id);
+		}
+		context->UnloadDocument(document);
+	}
+
+	SUBCASE("Scope")
+	{
+		const String document_string = doc_begin + doc_end;
+		ElementDocument* document = context->LoadDocumentFromMemory(document_string);
+		REQUIRE(document);
+
+		for (const ScopeSelector& selector : scope_selectors)
+		{
+			Element* start = (selector.scope_selector.empty() ? document : document->QuerySelector(selector.scope_selector));
+			REQUIRE(start);
+
+			ElementList elements;
+			start->QuerySelectorAll(elements, selector.selector);
+			String matching_ids = ElementListToIds(elements);
+
+			Element* first_element = start->QuerySelector(selector.selector);
+			if (first_element)
+			{
+				CHECK_MESSAGE(first_element == elements[0], "QuerySelector does not return the first match of QuerySelectorAll.");
+			}
+			else
+			{
+				CHECK_MESSAGE(elements.empty(), "QuerySelector found nothing, while QuerySelectorAll found " << elements.size() << " element(s).");
+			}
+
+			CHECK_MESSAGE(matching_ids == selector.expected_ids, "QuerySelector: " << selector.selector);
+		}
+		context->UnloadDocument(document);
+	}
+
+	SUBCASE("Contains")
+	{
+		const String document_string = doc_begin + doc_end;
+		ElementDocument* document = context->LoadDocumentFromMemory(document_string);
+		REQUIRE(document);
+
+		for (const ContainsSelector& selector : contains_selectors)
+		{
+			Element* element = document->GetElementById(selector.element_id);
+			Element* target = document->GetElementById(selector.target_id);
+			REQUIRE(element);
+			REQUIRE(target);
+			CHECK_MESSAGE(element->Contains(target) == selector.expected_result,
+				"'" << selector.element_id << "' contains '" << selector.target_id << "'");
 		}
 		context->UnloadDocument(document);
 	}

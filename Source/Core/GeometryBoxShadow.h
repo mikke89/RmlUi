@@ -29,6 +29,7 @@
 #ifndef RMLUI_CORE_GEOMETRYBOXSHADOW_H
 #define RMLUI_CORE_GEOMETRYBOXSHADOW_H
 
+#include "../../Include/RmlUi/Core/RenderBox.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
@@ -50,7 +51,7 @@ public:
 	/// @param[in] border_radius The border radius of the element.
 	/// @param[in] opacity The opacity of the element.
 	static void Generate(Geometry& out_shadow_geometry, CallbackTexture& out_shadow_texture, RenderManager& render_manager, Element* element,
-		Geometry& background_border_geometry, BoxShadowList shadow_list, Vector4f border_radius, float opacity);
+		Geometry& background_border_geometry, BoxShadowList shadow_list, CornerSizes border_radius, float opacity);
 };
 
 } // namespace Rml

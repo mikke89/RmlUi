@@ -52,8 +52,9 @@ DecoratorDataHandle DecoratorTiledImage::GenerateElementData(Element* element, B
 
 	const ComputedValues& computed = element->GetComputedValues();
 
-	const Vector2f offset = element->GetBox().GetPosition(paint_area);
-	const Vector2f size = element->GetBox().GetSize(paint_area);
+	const RenderBox render_box = element->GetRenderBox(paint_area);
+	const Vector2f offset = render_box.GetFillOffset();
+	const Vector2f size = render_box.GetFillSize();
 
 	// Generate the geometry for the tile.
 	Mesh mesh;

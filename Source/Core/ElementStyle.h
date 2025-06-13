@@ -61,7 +61,7 @@ public:
 	/// @param[in] pseudo_class The pseudo class to activate or deactivate.
 	/// @param[in] activate True if the pseudo class is to be activated, false to be deactivated.
 	/// @param[in] override_class True to activate or deactivate the override state of the pseudo class, for advanced use cases.
-	/// @note An overriden pseudo class means that it will act as if activated even when it has been cleared the normal way.
+	/// @note An overridden pseudo class means that it will act as if activated even when it has been cleared the normal way.
 	/// @return True if the pseudo class was changed.
 	bool SetPseudoClass(const String& pseudo_class, bool activate, bool override_class = false);
 	/// Checks if a specific pseudo-class has been set on the element.
@@ -90,21 +90,21 @@ public:
 	const StringList& GetClassNameList() const;
 
 	/// Sets a local property override on the element to a pre-parsed value.
-	/// @param[in] name The name of the new property.
+	/// @param[in] id The ID  of the new property.
 	/// @param[in] property The parsed property to set.
 	bool SetProperty(PropertyId id, const Property& property);
 	/// Removes a local property override on the element; its value will revert to that defined in
 	/// the style sheet.
-	/// @param[in] name The name of the local property definition to remove.
+	/// @param[in] id The ID of the local property definition to remove.
 	void RemoveProperty(PropertyId id);
 	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
 	/// be found that we can inherit the property from, the default value will be returned.
-	/// @param[in] name The name of the property to fetch the value for.
+	/// @param[in] id The ID of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
 	const Property* GetProperty(PropertyId id) const;
 	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
 	/// returned.
-	/// @param[in] name The name of the property to fetch the value for.
+	/// @param[in] id The ID of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(PropertyId id) const;
 	/// Returns the local style properties, excluding any properties from local class.

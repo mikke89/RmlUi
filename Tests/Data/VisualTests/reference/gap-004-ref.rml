@@ -1,0 +1,34 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>CSS Flexbox Test: gap - intrinsic horizontal</title>
+	<link href="https://test.csswg.org/suites/css-align-3_dev/nightly-unstable/xhtml1/reference/gap-004-ltr-ref.xht"
+		  rel="source"/>
+	<link href="mailto:argyle@google.com" rel="author" title="Adam Argyle"/>
+	<style>
+		section {
+			background-color: green;
+			height: 100px;
+			display: inline-flex;
+		}
+
+		section > div {
+			background-color: grey;
+			color: white;
+		}
+
+		section > div:not(:last-of-type) {
+			margin-right: 20px;
+		}
+	</style>
+</head>
+<body>
+<p>Test passes if there are <strong> green lines between boxes</strong>.</p>
+<section>
+	<div>Black Panther</div>
+	<div>Wonder Woman</div>
+	<div>Storm</div>
+	<div>Flash</div>
+</section>
+</body>
+</rml>

@@ -25,6 +25,23 @@
 			margin-bottom: 1em;
 		}
 
+		button {
+			decorator: repeating-conic-gradient(from 90deg, #ffd700, #f06, #ffd700 180deg);
+			display: block;
+			width: 200dp;
+			box-sizing: border-box;
+			border-radius: 15dp;
+			border: 3dp #ffd700;
+			padding: 10dp 35dp;
+			margin-top: 5dp;
+			font-size: 30dp;
+			color: white;
+			font-effect: glow(3dp #ff6a), outline(2dp #0003);
+			font-weight: bold;
+			letter-spacing: 1dp;
+			text-align: center;
+		}
+
 		.basic > :nth-child(1) { decorator: conic-gradient(#f06, #ffd700); }
 		.basic > :nth-child(2) { decorator: conic-gradient(at 50% 50%, #f06, #ffd700); }
 		.basic > :nth-child(3) { decorator: conic-gradient(from 0deg, #f06, #ffd700); }
@@ -63,6 +80,11 @@
 </head>
 
 <body>
+Button with repeating conic gradient
+<group>
+	<button>Button</button>
+</group>
+
 Red to gold clockwise, from top [equivalent]
 <group class="basic">
 	<div/>

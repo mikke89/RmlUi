@@ -42,10 +42,10 @@ namespace Rml {
 class StringView;
 
 /// Construct a string using sprintf-style syntax.
-RMLUICORE_API String CreateString(size_t max_size, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(2, 3);
+RMLUICORE_API String CreateString(const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(1, 2);
 
 /// Format to a string using sprintf-style syntax.
-RMLUICORE_API int FormatString(String& string, size_t max_size, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(3, 4);
+RMLUICORE_API int FormatString(String& string, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(2, 3);
 
 namespace StringUtilities {
 	/// Expands character-delimited list of values in a single string to a whitespace-trimmed list
@@ -80,9 +80,9 @@ namespace StringUtilities {
 	/// Decode RML characters, eg. '&lt;' to '<'
 	RMLUICORE_API String DecodeRml(const String& string);
 
-	// Replaces all occurences of 'search' in 'subject' with 'replace'.
+	// Replaces all occurrences of 'search' in 'subject' with 'replace'.
 	RMLUICORE_API String Replace(String subject, const String& search, const String& replace);
-	// Replaces all occurences of 'search' in 'subject' with 'replace'.
+	// Replaces all occurrences of 'search' in 'subject' with 'replace'.
 	RMLUICORE_API String Replace(String subject, char search, char replace);
 
 	/// Checks if a given value is a whitespace character.
@@ -108,7 +108,7 @@ namespace StringUtilities {
 	RMLUICORE_API bool StringCompareCaseInsensitive(StringView lhs, StringView rhs);
 
 	// Decode the first code point in a zero-terminated UTF-8 string.
-	RMLUICORE_API Character ToCharacter(const char* p);
+	RMLUICORE_API Character ToCharacter(const char* p, const char* p_end);
 
 	// Encode a single code point as a UTF-8 string.
 	RMLUICORE_API String ToUTF8(Character character);
@@ -133,6 +133,12 @@ namespace StringUtilities {
 			--p;
 		return p;
 	}
+
+	/// Converts a character position in a UTF-8 string to a byte offset.
+	RMLUICORE_API int ConvertCharacterOffsetToByteOffset(StringView string, int character_offset);
+
+	/// Converts a byte offset of a UTF-8 string to a character position.
+	RMLUICORE_API int ConvertByteOffsetToCharacterOffset(StringView string, int byte_offset);
 } // namespace StringUtilities
 
 /*
@@ -163,6 +169,7 @@ public:
 	inline const char* begin() const { return p_begin; }
 	inline const char* end() const { return p_end; }
 
+	inline bool empty() const { return p_begin == p_end; }
 	inline size_t size() const { return size_t(p_end - p_begin); }
 
 	explicit inline operator String() const { return String(p_begin, p_end); }
@@ -183,6 +190,7 @@ private:
 class RMLUICORE_API StringIteratorU8 {
 public:
 	StringIteratorU8(const char* p_begin, const char* p, const char* p_end);
+	StringIteratorU8(StringView string);
 	StringIteratorU8(const String& string);
 	StringIteratorU8(const String& string, size_t offset);
 	StringIteratorU8(const String& string, size_t offset, size_t count);
@@ -193,7 +201,7 @@ public:
 	StringIteratorU8& operator--();
 
 	// Returns the codepoint at the current position. The iterator must be dereferencable.
-	inline Character operator*() const { return StringUtilities::ToCharacter(p); }
+	inline Character operator*() const { return StringUtilities::ToCharacter(p, view.end()); }
 
 	// Returns false when the iterator is located just outside the valid part of the string.
 	explicit inline operator bool() const { return (p != view.begin() - 1) && (p != view.end()); }

@@ -31,24 +31,38 @@
 
 namespace Rml {
 
-static const UnorderedMap<String, Unit> g_property_unit_string_map = {
-	{"", Unit::NUMBER},
-	{"%", Unit::PERCENT},
-	{"px", Unit::PX},
-	{"dp", Unit::DP},
-	{"x", Unit::X},
-	{"vw", Unit::VW},
-	{"vh", Unit::VH},
-	{"em", Unit::EM},
-	{"rem", Unit::REM},
-	{"in", Unit::INCH},
-	{"cm", Unit::CM},
-	{"mm", Unit::MM},
-	{"pt", Unit::PT},
-	{"pc", Unit::PC},
-	{"deg", Unit::DEG},
-	{"rad", Unit::RAD},
+struct PropertyParserNumberData {
+	const UnorderedMap<String, Unit> unit_string_map = {
+		{"", Unit::NUMBER},
+		{"%", Unit::PERCENT},
+		{"px", Unit::PX},
+		{"dp", Unit::DP},
+		{"x", Unit::X},
+		{"vw", Unit::VW},
+		{"vh", Unit::VH},
+		{"em", Unit::EM},
+		{"rem", Unit::REM},
+		{"in", Unit::INCH},
+		{"cm", Unit::CM},
+		{"mm", Unit::MM},
+		{"pt", Unit::PT},
+		{"pc", Unit::PC},
+		{"deg", Unit::DEG},
+		{"rad", Unit::RAD},
+	};
 };
+
+ControlledLifetimeResource<PropertyParserNumberData> PropertyParserNumber::parser_data;
+
+void PropertyParserNumber::Initialize()
+{
+	parser_data.Initialize();
+}
+
+void PropertyParserNumber::Shutdown()
+{
+	parser_data.Shutdown();
+}
 
 PropertyParserNumber::PropertyParserNumber(Units units, Unit zero_unit) : units(units), zero_unit(zero_unit) {}
 
@@ -79,8 +93,8 @@ bool PropertyParserNumber::ParseValue(Property& property, const String& value, c
 		return false;
 	}
 
-	const auto it = g_property_unit_string_map.find(str_unit);
-	if (it == g_property_unit_string_map.end())
+	const auto it = parser_data->unit_string_map.find(str_unit);
+	if (it == parser_data->unit_string_map.end())
 	{
 		// Invalid unit name
 		return false;

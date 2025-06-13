@@ -47,8 +47,7 @@ ElementLottie::~ElementLottie() {}
 
 bool ElementLottie::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
-	if (animation_dirty)
-		LoadAnimation();
+	EnsureSourceLoaded();
 
 	dimensions = intrinsic_dimensions;
 	if (dimensions.y > 0)
@@ -57,10 +56,15 @@ bool ElementLottie::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 	return true;
 }
 
-void ElementLottie::OnUpdate()
+void ElementLottie::EnsureSourceLoaded()
 {
 	if (animation_dirty)
 		LoadAnimation();
+}
+
+void ElementLottie::OnUpdate()
+{
+	EnsureSourceLoaded();
 
 	if (!animation)
 		return;
@@ -239,7 +243,10 @@ void ElementLottie::UpdateTexture()
 		}
 
 		if (!texture_interface.GenerateTexture({p_data, total_bytes}, render_dimensions))
+		{
+			Log::Message(Rml::Log::Type::LT_WARNING, "Could not generate texture for lottie animation: %s", GetAttribute<String>("src", "").c_str());
 			return false;
+		}
 		return true;
 	};
 

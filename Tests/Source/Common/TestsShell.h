@@ -39,7 +39,7 @@ class TestsSystemInterface;
 namespace TestsShell {
 
 // Will initialize the shell and create a context on first use.
-Rml::Context* GetContext(bool allow_debugger = true);
+Rml::Context* GetContext(bool allow_debugger = true, Rml::RenderInterface* override_render_interface = nullptr);
 
 void BeginFrame();
 void PresentFrame();
@@ -49,19 +49,18 @@ void PresentFrame();
 // Applies only when compiled with the shell backend.
 void RenderLoop();
 
-void ShutdownShell();
+void ShutdownShell(bool reset_tests_render_interface = true);
 
 // Set the number of expected warnings and errors logged by RmlUi until the next call to this function
 // or until 'ShutdownShell()'.
 void SetNumExpectedWarnings(int num_warnings);
-
-void SetTime(double t);
 
 // Stats only available for the dummy renderer.
 Rml::String GetRenderStats();
 
 // Returns nullptr if the dummy renderer is not being used.
 TestsRenderInterface* GetTestsRenderInterface();
+void ResetTestsRenderInterface();
 TestsSystemInterface* GetTestsSystemInterface();
 
 } // namespace TestsShell

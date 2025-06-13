@@ -72,7 +72,7 @@ public:
 	/// @param inner_size Size of the inner area.
 	/// @param outer_radii The radius of the outer edge at each corner.
 	/// @return The computed metrics.
-	static BorderMetrics ComputeBorderMetrics(Vector2f outer_position, EdgeSizes edge_sizes, Vector2f inner_size, Vector4f outer_radii);
+	static BorderMetrics ComputeBorderMetrics(Vector2f outer_position, EdgeSizes edge_sizes, Vector2f inner_size, CornerSizes outer_radii);
 
 	// Generate geometry for the background, defined by the inner area of the border metrics.
 	void DrawBackground(const BorderMetrics& metrics, ColourbPremultiplied color);

@@ -101,10 +101,10 @@ TEST_CASE("StringView")
 	CHECK(StringView() == "");
 }
 
-#include "../../../Source/Core/Elements/WidgetTextInput.cpp"
-
-TEST_CASE("ConvertByteOffsetToCharacterOffset")
+TEST_CASE("StringUtilities::ConvertByteOffsetToCharacterOffset")
 {
+	using namespace Rml::StringUtilities;
+
 	// clang-format off
 	CHECK(ConvertByteOffsetToCharacterOffset("", 0) == 0);
 	CHECK(ConvertByteOffsetToCharacterOffset("", 1) == 0);
@@ -125,8 +125,10 @@ TEST_CASE("ConvertByteOffsetToCharacterOffset")
 	// clang-format on
 }
 
-TEST_CASE("ConvertCharacterOffsetToByteOffset")
+TEST_CASE("StringUtilities::ConvertCharacterOffsetToByteOffset")
 {
+	using namespace Rml::StringUtilities;
+
 	// clang-format off
 	CHECK(ConvertCharacterOffsetToByteOffset("", 0) == 0);
 	CHECK(ConvertCharacterOffsetToByteOffset("", 1) == 0);
@@ -145,4 +147,37 @@ TEST_CASE("ConvertCharacterOffsetToByteOffset")
 	CHECK(ConvertCharacterOffsetToByteOffset("a\xE2\x82\xAC" "b", 3) == 5);
 	CHECK(ConvertCharacterOffsetToByteOffset("a\xE2\x82\xAC" "b", 4) == 5);
 	// clang-format on
+}
+
+TEST_CASE("CreateString")
+{
+	CHECK(Rml::CreateString("Hello %s!", "world") == "Hello world!");
+	CHECK(Rml::CreateString("%g, %d, %.2f", 0.5f, 5, 2.f) == "0.5, 5, 2.00");
+
+	constexpr int InternalBufferSize = 256;
+	for (int string_size : {InternalBufferSize - 1, InternalBufferSize, InternalBufferSize + 1})
+	{
+		Rml::String large_string(string_size, 'x');
+		CHECK(Rml::CreateString("%s", large_string.c_str()) == large_string);
+	}
+}
+
+TEST_CASE("FormatString")
+{
+	{
+		Rml::String result;
+		int length = Rml::FormatString(result, "Hello %s!", "world");
+		CHECK(result == "Hello world!");
+		CHECK(length == 12);
+	}
+
+	constexpr int InternalBufferSize = 256;
+	for (int string_size : {InternalBufferSize - 1, InternalBufferSize, InternalBufferSize + 1})
+	{
+		const Rml::String large_string(string_size, 'x');
+		Rml::String result;
+		int length = Rml::FormatString(result, "%s", large_string.c_str());
+		CHECK(result == large_string);
+		CHECK(length == string_size);
+	}
 }
