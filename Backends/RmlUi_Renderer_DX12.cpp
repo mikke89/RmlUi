@@ -302,6 +302,43 @@ static Rml::Rectanglei VerticallyFlipped(Rml::Rectanglei rect, int viewport_heig
 	return flipped_rect;
 }
 
+static void SetBlurWeights(Rml::Vector4f& p_weights, float sigma)
+{
+	float weights[BLUR_NUM_WEIGHTS];
+	float normalization = 0.0f;
+	for (int i = 0; i < BLUR_NUM_WEIGHTS; i++)
+	{
+		if (Rml::Math::Absolute(sigma) < 0.1f)
+			weights[i] = float(i == 0);
+		else
+			weights[i] = Rml::Math::Exp(-float(i * i) / (2.0f * sigma * sigma)) / (Rml::Math::SquareRoot(2.f * Rml::Math::RMLUI_PI) * sigma);
+
+		normalization += (i == 0 ? 1.f : 2.0f) * weights[i];
+	}
+	for (int i = 0; i < BLUR_NUM_WEIGHTS; i++)
+		weights[i] /= normalization;
+
+	p_weights.x = weights[0];
+	p_weights.y = weights[1];
+	p_weights.z = weights[2];
+	p_weights.w = weights[3];
+}
+
+static void SetTexCoordLimits(Rml::Vector2f& p_tex_coord_min, Rml::Vector2f& p_tex_coord_max, Rml::Rectanglei rectangle_flipped,
+	Rml::Vector2i framebuffer_size)
+{
+	// Offset by half-texel values so that texture lookups are clamped to fragment centers, thereby avoiding color
+	// bleeding from neighboring texels due to bilinear interpolation.
+	const Rml::Vector2f min = (Rml::Vector2f(rectangle_flipped.p0) + Rml::Vector2f(0.5f)) / Rml::Vector2f(framebuffer_size);
+	const Rml::Vector2f max = (Rml::Vector2f(rectangle_flipped.p1) - Rml::Vector2f(0.5f)) / Rml::Vector2f(framebuffer_size);
+
+	p_tex_coord_min.x = min.x;
+	p_tex_coord_min.y = min.y;
+	p_tex_coord_max.x = max.x;
+	p_tex_coord_max.y = max.y;
+}
+
+
 enum class ShaderGradientFunction { Linear, Radial, Conic, RepeatingLinear, RepeatingRadial, RepeatingConic }; // Must match shader definitions below.
 
 enum class FilterType { Invalid = 0, Passthrough, Blur, DropShadow, ColorMatrix, MaskImage };
@@ -2226,6 +2263,64 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 		DrawFullscreenQuad();
 	}
 
+	this->UseProgram(ProgramId::Blur);
+
+	ConstantBufferType* p_cb = this->Get_ConstantBuffer(this->m_current_back_buffer_index);
+
+	RMLUI_ASSERT(p_cb && "unable to allocate constant buffer for blur!");
+	std::uint8_t* p_cb_begin = reinterpret_cast<std::uint8_t*>(p_cb->Get_GPU_StartMemoryForBindingData());
+
+	RMLUI_ASSERT(p_cb_begin && "must be valid pointer of buffer where CB was allocated!");
+
+	std::uint8_t* p_cb_real_begin = p_cb_begin +
+		p_cb->Get_AllocInfo().Get_Offset();
+
+	struct {
+		Rml::Vector4f weights;
+		Rml::Vector2f texel_offset;
+		Rml::Vector2f texcoord_min;
+		Rml::Vector2f texcoord_max;	
+	} ShaderConstantBufferMapping_Blur;
+
+	SetBlurWeights(ShaderConstantBufferMapping_Blur.weights, sigma);
+	SetTexCoordLimits(ShaderConstantBufferMapping_Blur.texcoord_min, ShaderConstantBufferMapping_Blur.texcoord_max, scissor,
+		{source_destination.Get_Width(), source_destination.Get_Height()});
+
+	ShaderConstantBufferMapping_Blur.texel_offset = Rml::Vector2f(0.f, 1.f) *
+		(1.0f / (temp.Get_Height()));
+
+	std::memcpy(p_cb_real_begin, &ShaderConstantBufferMapping_Blur, sizeof(ShaderConstantBufferMapping_Blur));
+
+	if (p_cb)
+	{
+		auto* p_dx_constant_buffer = this->m_manager_buffer.Get_BufferByIndex(p_cb->Get_AllocInfo().Get_BufferIndex());
+		RMLUI_ASSERT(p_dx_constant_buffer && "must be valid!");
+
+		if (p_dx_constant_buffer)
+		{
+			auto* p_dx_resource = p_dx_constant_buffer->GetResource();
+
+			RMLUI_ASSERT(p_dx_resource && "must be valid!");
+
+			if (p_dx_resource)
+			{
+				this->m_p_command_graphics_list->SetGraphicsRootConstantBufferView(0,
+					p_dx_resource->GetGPUVirtualAddress() + p_cb->Get_AllocInfo().Get_Offset());
+			}
+		}
+	}
+
+	this->BindRenderTarget(temp);
+	this->BindTexture(source_destination.Get_Texture());
+
+	// Add a 1px transparent border around the blur region by first clearing with a padded scissor. This helps prevent
+	// artifacts when upscaling the blur result in the later step. On Intel and AMD, we have observed that during
+	// blitting with linear filtering, pixels outside the 'src' region can be blended into the output. On the other
+	// hand, it looks like Nvidia clamps the pixels to the source edge, which is what we really want. Regardless, we
+	// work around the issue with this extra step.
+//	scissor.Extend(1);
+//	SetScissor(scissor, true);
+
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
@@ -3655,7 +3750,7 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 
 	this->Create_Resource_For_Shaders();
 	this->Create_Resource_Pipeline_BlendMask();
-	//	this->Create_Resource_Pipeline_Blur();
+//	this->Create_Resource_Pipeline_Blur();
 	this->Create_Resource_Pipeline_Color();
 	this->Create_Resource_Pipeline_ColorMatrix();
 	this->Create_Resource_Pipeline_Count();
