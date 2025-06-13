@@ -49,13 +49,13 @@ namespace SVG {
 			RMLUI_ASSERT(parent);
 
 			// Try to get the existing text node, or create if its missing (it is inserted as a non DOM child so should be at the start)
-			Element* data_element;
+			Element* data_element = nullptr;
 			const int non_dom_children = parent->GetNumChildren(true) - parent->GetNumChildren(false);
 			for (int i = 0; i < non_dom_children; i++)
 				if (parent->GetChild(i)->GetTagName() == "#svgdata")
 					data_element = parent->GetChild(i);
 
-			if (!data_element || data_element->GetTagName() != "#svgdata")
+			if (data_element == nullptr || data_element->GetTagName() != "#svgdata")
 				data_element = parent->AppendChild(Factory::InstanceElement(parent, "#text", "#svgdata", XMLAttributes()), false);
 
 			// Set a unique id for the element, used as a cache key for SVGCache
