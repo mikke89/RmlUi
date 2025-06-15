@@ -3102,8 +3102,7 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 			// todo: useprogram and bind texture here!
 			this->DrawFullscreenQuad();
-			this->m_manager_render_layer.SwapPostprocessPrimarySecondary();
-
+			
 			{
 				D3D12_RESOURCE_BARRIER bars[1];
 
@@ -3116,6 +3115,8 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 				this->m_p_command_graphics_list->ResourceBarrier(1, bars);
 			}
+
+			this->m_manager_render_layer.SwapPostprocessPrimarySecondary();
 
 			break;
 		}
