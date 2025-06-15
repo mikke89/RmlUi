@@ -5980,7 +5980,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 		desc_blend_state.AlphaToCoverageEnable = FALSE;
 		desc_blend_state.IndependentBlendEnable = FALSE;
 		const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc = {
-			TRUE,
+			FALSE,
 			FALSE,
 	#ifdef RMLUI_PREMULTIPLIED_ALPHA
 			D3D12_BLEND_ONE,
