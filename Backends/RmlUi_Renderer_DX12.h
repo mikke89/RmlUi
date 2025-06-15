@@ -39,10 +39,15 @@
 	#error unable to compile platform specific renderer required Windows OS that support DirectX-12
 #endif
 
+// clang-format off
 #include "RmlUi_Include_Windows.h"
 #include "RmlUi_Include_DirectX_12.h"
+// clang-format on
 
 enum class ProgramId;
+
+constexpr uint32_t _kRenderBackend_InvalidConstantBuffer_RootParameterIndex = std::numeric_limits<uint32_t>::max();
+constexpr uint8_t _kRenderBackend_MaxConstantBuffersPerShader = 3;
 
 class RenderLayerStack;
 namespace Gfx {
@@ -218,7 +223,11 @@ public:
 
 	class GeometryHandleType {
 	public:
-		GeometryHandleType(void) : m_num_vertices{}, m_num_indecies{}, m_one_element_vertex_size{}, m_one_element_index_size{} {}
+		GeometryHandleType(void) :
+			m_num_vertices{}, m_num_indecies{}, m_p_constant_buffer_override{}, m_one_element_vertex_size{}, m_one_element_index_size{},
+			m_constant_buffer_root_parameter_indicies{_kRenderBackend_InvalidConstantBuffer_RootParameterIndex,
+				_kRenderBackend_InvalidConstantBuffer_RootParameterIndex, _kRenderBackend_InvalidConstantBuffer_RootParameterIndex}
+		{}
 
 		~GeometryHandleType(void) {}
 
@@ -250,11 +259,77 @@ public:
 			this->m_allocation_descriptor_heap = allocation;
 		}
 
+		void Set_ConstantBuffer(ConstantBufferType* p_constant_buffer)
+		{
+			RMLUI_ASSERT(p_constant_buffer && "must be valid constant buffer!");
+			this->m_p_constant_buffer_override = p_constant_buffer;
+		}
+
+		void Reset_ConstantBuffer(void)
+		{
+			this->m_p_constant_buffer_override = nullptr;
+			for (uint8_t i = 0; i < _kRenderBackend_MaxConstantBuffersPerShader; ++i)
+			{
+				this->m_constant_buffer_root_parameter_indicies[i] = _kRenderBackend_InvalidConstantBuffer_RootParameterIndex;
+			}
+		}
+
+		ConstantBufferType* Get_ConstantBuffer(void) const { return this->m_p_constant_buffer_override; }
+
+		// use this only for shared CBV that will be used among all shaders otherwise we need to provide a new array that will hold a GPU addresses to
+		// different cbv and their indicies but for now it is only for ONE CBV that can be used among vertex and pixel shaders
+		void Add_ConstantBufferRootParameterIndicies(uint32_t index)
+		{
+#ifdef RMLUI_DEBUG
+			bool found_empty_slot = false;
+#endif
+
+			for (unsigned char i = 0; i < _kRenderBackend_MaxConstantBuffersPerShader; ++i)
+			{
+				if (m_constant_buffer_root_parameter_indicies[i] == _kRenderBackend_InvalidConstantBuffer_RootParameterIndex)
+				{
+#ifdef RMLUI_DEBUG
+					found_empty_slot = true;
+#endif
+
+					m_constant_buffer_root_parameter_indicies[i] = index;
+
+					break;
+				}
+			}
+
+#ifdef RMLUI_DEBUG
+			RMLUI_ASSERT(found_empty_slot &&
+				"failed to obtain empty slot in such case you have to set another limits for engine using "
+				"_kRenderBackend_MaxConstantBuffersPerShader field");
+#endif
+		}
+
+		const uint32_t* Get_ConstantBufferRootParameterIndicies(uint8_t& amount_of_indicies) const
+		{
+			amount_of_indicies = 0;
+
+			// might be slow for big arrays otherwise provide a cache field for this class just like field that will show current size of
+			// m_constant_buffer_root_parameter_indicies member in terms of current entries that are filled the array for now just to reduce the
+			// memory footprint for this class and I don't use this cache field as size so we determine in runtime
+			for (uint8_t i = 0; i < _kRenderBackend_MaxConstantBuffersPerShader; ++i)
+			{
+				if (this->m_constant_buffer_root_parameter_indicies[i] != _kRenderBackend_InvalidConstantBuffer_RootParameterIndex)
+				{
+					amount_of_indicies = i+1;
+				}
+			}
+
+			return this->m_constant_buffer_root_parameter_indicies;
+		}
+
 	private:
 		int m_num_vertices;
 		int m_num_indecies;
+		ConstantBufferType* m_p_constant_buffer_override;
 		size_t m_one_element_vertex_size;
 		size_t m_one_element_index_size;
+		uint32_t m_constant_buffer_root_parameter_indicies[_kRenderBackend_MaxConstantBuffersPerShader];
 		GraphicsAllocationInfo m_info_vertex;
 		GraphicsAllocationInfo m_info_index;
 		OffsetAllocator::Allocation m_allocation_descriptor_heap;
@@ -656,7 +731,7 @@ private:
 	void RenderBlur(float sigma, const Gfx::FramebufferData& source_destination, const Gfx::FramebufferData& temp,
 		const Rml::Rectanglei window_flipped);
 
-	void DrawFullscreenQuad();
+	void DrawFullscreenQuad(ConstantBufferType* p_override_constant_buffer = nullptr);
 	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f));
 
 	void BindTexture(TextureHandleType* p_texture, UINT root_parameter_index = 0);
@@ -665,6 +740,14 @@ private:
 	// 1 means not supported
 	// otherwise return max value of supported multisample count
 	unsigned char GetMSAASupportedSampleCount(unsigned char max_samples);
+
+	void BlitFramebuffer(const Gfx::FramebufferData& source, const Gfx::FramebufferData& dest, int srcX0, int srcY0, int srcX1, int srcY1, int dstX0,
+		int dstY0, int dstX1, int dstY1);
+
+	// debug only
+	void ValidateTextureAllocationNotAsPlaced(const Gfx::FramebufferData& data);
+
+	ID3D12Resource* GetResourceFromFramebufferData(const Gfx::FramebufferData& data);
 
 private:
 	bool m_is_full_initialization;
@@ -709,8 +792,8 @@ private:
 	ID3D12Fence* m_p_backbuffer_fence;
 	IDXGIAdapter* m_p_adapter;
 
-	ID3D12PipelineState* m_pipelines[20];
-	ID3D12RootSignature* m_root_signatures[20];
+	ID3D12PipelineState* m_pipelines[21];
+	ID3D12RootSignature* m_root_signatures[21];
 
 	ID3D12CommandAllocator* m_p_copy_allocator;
 	ID3D12GraphicsCommandList* m_p_copy_command_list;

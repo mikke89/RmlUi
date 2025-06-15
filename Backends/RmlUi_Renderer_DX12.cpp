@@ -49,11 +49,12 @@
 #ifdef RMLUI_PLATFORM_WIN32
 	#include <RmlUi_Platform_Win32.h>
 	#ifdef RMLUI_DX_DEBUG
+		#include <d3d12sdklayers.h>
 		#include <dxgidebug.h>
 	#endif
 
-#include "RmlUi_DirectX\D3D12MemAlloc.cpp"
-#include "RmlUi_DirectX\offsetAllocator.cpp"
+	#include "RmlUi_DirectX\D3D12MemAlloc.cpp"
+	#include "RmlUi_DirectX\offsetAllocator.cpp"
 
 /// @brief in bytes see pShaderSourceText_Vertex - > cbuffer ConstantBuffer : register(b0)
 constexpr uint32_t kAllocationSize_ConstantBuffer_Vertex_Main = 72;
@@ -219,7 +220,7 @@ cbuffer SharedConstantBuffer : register(b0)
     float2 m_texCoordMax;
 };
 
-PS_INPUT VSMain(const VS_INPUT IN)
+PS_INPUT main(const VS_INPUT IN)
 {
     PS_INPUT result = (PS_INPUT)0;
 
@@ -252,7 +253,7 @@ struct PS_INPUT
     float2 uv[BLUR_SIZE] : TEXCOORD;
 };
 
-float4 PSMain(const PS_INPUT IN) : SV_TARGET
+float4 main(const PS_INPUT IN) : SV_TARGET
 {
     float4 color = float4(0.0, 0.0, 0.0, 0.0);
     for(int i = 0; i < BLUR_SIZE; i++)
@@ -506,7 +507,7 @@ struct CompiledFilter {
 
 	// Drop shadow
 	Rml::Vector2f offset;
-	Rml::Colourb color;
+	Rml::ColourbPremultiplied color;
 
 	// ColorMatrix
 	Rml::Matrix4f color_matrix;
@@ -549,7 +550,8 @@ enum class ProgramId : int {
 	Passthrough_MSAA,
 	// glBlendFunc(GL_CONSTANT_ALPHA, GL_ZERO);
 	Passthrough_ColorMask,
-	Passthrough_NoBlend,
+	Passthrough_NoBlend,          // for MSAA RT
+	Passthrough_NoBlendAndNoMSAA, // for RT that's not MSAA
 	ColorMatrix,
 	BlendMask,
 	Blur,
@@ -1055,6 +1057,11 @@ void RenderInterface_DX12::EndFrame()
 		RMLUI_ASSERT(p_postprocess_texture && "can't be, must be a valid texture!");
 		RMLUI_ASSERT(p_handle_postprocess_texture && "must be valid!");
 
+	#ifdef RMLUI_DEBUG
+		RMLUI_ASSERT(p_msaa_texture->GetDesc().Width == p_postprocess_texture->GetDesc().Width && "must be same otherwise use blitframebuffer!");
+		RMLUI_ASSERT(p_msaa_texture->GetDesc().Height == p_postprocess_texture->GetDesc().Height && "must be same otherwise use blitframebuffer!");
+	#endif
+
 		D3D12_RESOURCE_BARRIER barriers[2]{};
 		//	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(p_msaa_texture, D3D12_RESOURCE_STATE_RENDER_TARGET,
 		// D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
@@ -1232,8 +1239,19 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 	RMLUI_ASSERT(p_handle_geometry && "expected valid pointer!");
 
 	ConstantBufferType* p_constant_buffer{};
+	uint32_t default_index_for_one_cbv_that_will_be_used_in_vertex_shader{};
+	const uint32_t* p_constant_buffer_root_parameter_indicies{&default_index_for_one_cbv_that_will_be_used_in_vertex_shader};
+	uint8_t amount_of_constant_buffer_root_parameter_indicies{1};
+
 	if (texture == TexturePostprocess)
-	{}
+	{
+		if (p_handle_geometry->Get_ConstantBuffer())
+		{
+			p_constant_buffer = p_handle_geometry->Get_ConstantBuffer();
+			p_constant_buffer_root_parameter_indicies =
+				p_handle_geometry->Get_ConstantBufferRootParameterIndicies(amount_of_constant_buffer_root_parameter_indicies);
+		}
+	}
 	else if (texture)
 	{
 		p_handle_texture = reinterpret_cast<TextureHandleType*>(texture);
@@ -1257,7 +1275,16 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 
 		// this->SubmitTransformUniform(p_handle_geometry->Get_ConstantBuffer(), translation);
 
-		p_constant_buffer = this->Get_ConstantBuffer(this->m_current_back_buffer_index);
+		if (p_handle_geometry->Get_ConstantBuffer() == nullptr)
+		{
+			p_constant_buffer = this->Get_ConstantBuffer(this->m_current_back_buffer_index);
+		}
+		else
+		{
+			p_constant_buffer = p_handle_geometry->Get_ConstantBuffer();
+			p_constant_buffer_root_parameter_indicies =
+				p_handle_geometry->Get_ConstantBufferRootParameterIndicies(amount_of_constant_buffer_root_parameter_indicies);
+		}
 
 		this->SubmitTransformUniform(*p_constant_buffer, translation);
 
@@ -1317,7 +1344,16 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 		}
 
 		// this->SubmitTransformUniform(p_handle_geometry->Get_ConstantBuffer(), translation);
-		p_constant_buffer = this->Get_ConstantBuffer(this->m_current_back_buffer_index);
+		if (p_handle_geometry->Get_ConstantBuffer() == nullptr)
+		{
+			p_constant_buffer = this->Get_ConstantBuffer(this->m_current_back_buffer_index);
+		}
+		else
+		{
+			p_constant_buffer = p_handle_geometry->Get_ConstantBuffer();
+			p_constant_buffer_root_parameter_indicies =
+				p_handle_geometry->Get_ConstantBufferRootParameterIndicies(amount_of_constant_buffer_root_parameter_indicies);
+		}
 
 		this->SubmitTransformUniform(*p_constant_buffer, translation);
 	}
@@ -1345,10 +1381,26 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 
 			RMLUI_ASSERT(p_dx_resource && "must be valid!");
 
+			RMLUI_ASSERT(p_constant_buffer_root_parameter_indicies &&
+				"you forgot to update the RPI in CompiledGeometry do that only using active_program_id field!");
+
+			RMLUI_ASSERT(amount_of_constant_buffer_root_parameter_indicies <= _kRenderBackend_MaxConstantBuffersPerShader &&
+				amount_of_constant_buffer_root_parameter_indicies &&
+				"you use too big shaders for UI but honestly you have to change limits and change this field "
+				"_kRenderBackend_MaxConstantBuffersPerShader for desired amount otherwise value of amount is invalid aka equals to 0 that doesn't "
+				"make any sense if you have valid p_constant_buffer_root_parameter_indicies pointer");
+
 			if (p_dx_resource)
 			{
-				this->m_p_command_graphics_list->SetGraphicsRootConstantBufferView(0,
-					p_dx_resource->GetGPUVirtualAddress() + p_constant_buffer->Get_AllocInfo().Get_Offset());
+				D3D12_GPU_VIRTUAL_ADDRESS one_shared_cbv_for_different_shaders_address =
+					p_dx_resource->GetGPUVirtualAddress() + p_constant_buffer->Get_AllocInfo().Get_Offset();
+
+				for (uint8_t i = 0; i < amount_of_constant_buffer_root_parameter_indicies; ++i)
+				{
+					uint32_t index = p_constant_buffer_root_parameter_indicies[i];
+
+					this->m_p_command_graphics_list->SetGraphicsRootConstantBufferView(index, one_shared_cbv_for_different_shaders_address);
+				}
 			}
 		}
 	}
@@ -2240,6 +2292,11 @@ void RenderInterface_DX12::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_
 	if (!this->m_p_command_graphics_list)
 		return;
 
+	#ifdef RMLUI_DEBUG
+	RMLUI_ASSERT(p_src->GetDesc().Width == p_dst->GetDesc().Width && "must be same otherwise use blitframebuffer");
+	RMLUI_ASSERT(p_src->GetDesc().Height == p_dst->GetDesc().Height && "must be same otherwise use blitframebuffer");
+	#endif
+
 	//	D3D12_RESOURCE_BARRIER barriers[2] = {CD3DX12_RESOURCE_BARRIER::Transition(p_src, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
 	//											  D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_SOURCE),
 	//		CD3DX12_RESOURCE_BARRIER::Transition(p_dst, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
@@ -2281,28 +2338,48 @@ void RenderInterface_DX12::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
-static Rml::Pair<int, float> SigmaToParameters(const float desired_sigma)
+static void SigmaToParameters(const float desired_sigma, int& out_pass_level, float& out_sigma)
 {
-	RMLUI_ZoneScopedN("DirectX 12 - SigmaToParameters");
-
 	constexpr int max_num_passes = 10;
 	static_assert(max_num_passes < 31, "");
 	constexpr float max_single_pass_sigma = 3.0f;
-
-	Rml::Pair<int, float> result;
-
-	result.first = Rml::Math::Clamp(Rml::Math::Log2(int(desired_sigma * (2.f / max_single_pass_sigma))), 0, max_num_passes);
-	result.second = Rml::Math::Clamp(desired_sigma / float(1 << result.first), 0.0f, max_single_pass_sigma);
-
-	return result;
+	out_pass_level = Rml::Math::Clamp(Rml::Math::Log2(int(desired_sigma * (2.f / max_single_pass_sigma))), 0, max_num_passes);
+	out_sigma = Rml::Math::Clamp(desired_sigma / float(1 << out_pass_level), 0.0f, max_single_pass_sigma);
 }
 
-void RenderInterface_DX12::DrawFullscreenQuad()
+void RenderInterface_DX12::DrawFullscreenQuad(ConstantBufferType* p_override_constant_buffer)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - DrawFullscreenQuad()");
 	RMLUI_ASSERT(this->m_p_command_graphics_list && "must be valid!");
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "DrawFullscreenQuad");
+
+	// actually rml doesn't support anything for by passing custom data as additional argument for RenderGeometry method so
+	// some kind of variant for resolving a such situation
+	if (p_override_constant_buffer)
+	{
+		GeometryHandleType* p_geometry = reinterpret_cast<GeometryHandleType*>(this->m_precompiled_fullscreen_quad_geometry);
+		p_geometry->Set_ConstantBuffer(p_override_constant_buffer);
+
+		if (this->m_active_program_id == ProgramId::Blur)
+		{
+			// this for vertex shader
+			p_geometry->Add_ConstantBufferRootParameterIndicies(1);
+
+			// this for pixel shader
+			p_geometry->Add_ConstantBufferRootParameterIndicies(2);
+
+			// so we can't combine and use one root parameters for pixel and vertex shader even if we use same CBV so yeah...
+		}
+	}
+
 	RenderGeometry(this->m_precompiled_fullscreen_quad_geometry, {}, TexturePostprocess);
+
+	if (p_override_constant_buffer)
+	{
+		GeometryHandleType* p_geometry = reinterpret_cast<GeometryHandleType*>(this->m_precompiled_fullscreen_quad_geometry);
+		p_geometry->Reset_ConstantBuffer();
+	}
+
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
@@ -2310,6 +2387,21 @@ void RenderInterface_DX12::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vect
 {
 	RMLUI_ZoneScopedN("DirectX 12 - DrawfullscreenQuad(uv_offset,uv_scaling)");
 	RMLUI_ASSERT(this->m_p_command_graphics_list && "must be valid!");
+
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "DrawFullscreenQuad(uv_offset,uv_scaling)");
+
+	Rml::Mesh mesh;
+	Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
+	if (uv_offset != Rml::Vector2f() || uv_scaling != Rml::Vector2f(1.f))
+	{
+		for (Rml::Vertex& vertex : mesh.vertices)
+			vertex.tex_coord = (vertex.tex_coord * uv_scaling) + uv_offset;
+	}
+	const Rml::CompiledGeometryHandle geometry = CompileGeometry(mesh.vertices, mesh.indices);
+	RenderGeometry(geometry, {}, TexturePostprocess);
+	ReleaseGeometry(geometry);
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 void RenderInterface_DX12::BindTexture(TextureHandleType* p_texture, UINT root_parameter_index)
@@ -2406,6 +2498,185 @@ unsigned char RenderInterface_DX12::GetMSAASupportedSampleCount(unsigned char ma
 	return 1;
 }
 
+void RenderInterface_DX12::BlitFramebuffer(const Gfx::FramebufferData& source, const Gfx::FramebufferData& dest, int srcX0, int srcY0, int srcX1,
+	int srcY1, int dstX0, int dstY0, int dstX1, int dstY1)
+{
+	RMLUI_ZoneScopedN("DirectX 12 - BlitFramebuffer");
+	RMLUI_ASSERT(this->m_p_command_graphics_list && "must be initialized renderer before calling this method!");
+
+	if (!this->m_p_command_graphics_list)
+		return;
+
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "BlitFramebuffer");
+
+	int src_width = srcX1 - srcX0;
+	int src_height = srcY1 - srcY0;
+	int dest_width = dstX1 - dstX0;
+	int dest_height = dstY1 - dstY0;
+
+	bool is_flipped = src_width < 0 || src_height < 0 || dest_width < 0 || dest_height < 0;
+	bool is_stretched = src_width != dest_width || src_height != dest_height;
+	bool is_full_copy = src_width == dest_width && src_height == dest_height && srcX0 == 0 && srcY0 == 0 && dstX0 == 0 && dstY0 == 0;
+
+	if (is_flipped || is_stretched || !is_full_copy)
+	{
+		// Full draw call. Slow path because no equivalent in DX12
+
+	#ifdef RMLUI_DEBUG
+		TextureHandleType* p_texture_source = source.Get_Texture();
+		TextureHandleType* p_texture_destination = dest.Get_Texture();
+
+		RMLUI_ASSERT(p_texture_source && "must be valid pointer!");
+		RMLUI_ASSERT(p_texture_destination && "must be valid pointer!");
+
+		RMLUI_ASSERT(p_texture_source->Get_Info().Get_BufferIndex() == -1 &&
+			"expected that a such texture was allocated as committed (e.g. not placed resource), so in that case you can't cast to "
+			"D3D12MA::Allocation");
+		RMLUI_ASSERT(p_texture_destination->Get_Info().Get_BufferIndex() == -1 &&
+			"expected that a such texture was allocated as committed (e.g. not placed resource) so in that case you can't cast to "
+			"D3D12MA::Allocation");
+
+		RMLUI_ASSERT(p_texture_source->Get_Resource() && "must contain a valid resource");
+		RMLUI_ASSERT(p_texture_destination->Get_Resource() && "must contain a valid resource");
+
+		D3D12MA::Allocation* p_allocation_source = static_cast<D3D12MA::Allocation*>(p_texture_source->Get_Resource());
+		D3D12MA::Allocation* p_allocation_destination = static_cast<D3D12MA::Allocation*>(p_texture_destination->Get_Resource());
+
+		RMLUI_ASSERT(p_allocation_source->GetResource() && "allocation must contain a valid pointer to resource! something is broken");
+		RMLUI_ASSERT(p_allocation_destination->GetResource() && "allocation must contain a valid pointer to resource! something is broken");
+
+		ID3D12Resource* p_resource_src = p_allocation_source->GetResource();
+		ID3D12Resource* p_resource_dst = p_allocation_destination->GetResource();
+
+		const D3D12_RESOURCE_DESC& desc_source = p_resource_src->GetDesc();
+		const D3D12_RESOURCE_DESC& desc_dest = p_resource_dst->GetDesc();
+
+		RMLUI_ASSERT(desc_source.SampleDesc.Count <= 1 && "expected only NO MSAA texture (source)");
+		RMLUI_ASSERT(desc_dest.SampleDesc.Count <= 1 && "expected only NO MSAA texture (dest)");
+	#endif
+
+		D3D12_VIEWPORT vp{};
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		vp.Width = (float)dest.Get_Width();
+		vp.Height = (float)dest.Get_Height();
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+
+		this->m_p_command_graphics_list->RSSetViewports(1, &vp);
+
+		UseProgram(ProgramId::Passthrough_NoBlendAndNoMSAA);
+
+		this->BindRenderTarget(dest);
+		this->BindTexture(source.Get_Texture());
+
+		float uv_x_min = float(srcX0) / float(source.Get_Width());  // Map to 0
+		float uv_y_max = float(srcY0) / float(source.Get_Height()); // Map to 0
+		float uv_x_max = float(srcX1) / float(source.Get_Width());  // Map to +1
+		float uv_y_min = float(srcY1) / float(source.Get_Height()); // Map to +1
+
+		float pos_x_min = (dstX0 / float(dest.Get_Width())) * 2.0f - 1.0f;
+		float pos_y_min = ((dest.Get_Height() - dstY0 - dest_height) / float(dest.Get_Height())) * 2.0f - 1.0f;
+		float pos_x_max = ((dstX0 + dest_width) / float(dest.Get_Width())) * 2.0f - 1.0f;
+		float pos_y_max = ((dest.Get_Height() - dstY0) / float(dest.Get_Height())) * 2.0f - 1.0f;
+
+		Rml::Array<Rml::Vertex, 4> vertices;
+		constexpr int indices[6]{0, 3, 1, 1, 3, 2};
+
+		vertices[0].position.x = pos_x_min;
+		vertices[0].position.y = pos_y_min;
+		vertices[0].tex_coord.x = uv_x_min;
+		vertices[0].tex_coord.y = uv_y_min;
+
+		vertices[1].position.x = pos_x_max;
+		vertices[1].position.y = pos_y_min;
+		vertices[1].tex_coord.x = uv_x_max;
+		vertices[1].tex_coord.y = uv_y_min;
+
+		vertices[2].position.x = pos_x_max;
+		vertices[2].position.y = pos_y_max;
+		vertices[2].tex_coord.x = uv_x_max;
+		vertices[2].tex_coord.y = uv_y_max;
+
+		vertices[3].position.x = pos_x_min;
+		vertices[3].position.y = pos_y_max;
+		vertices[3].tex_coord.x = uv_x_min;
+		vertices[3].tex_coord.y = uv_y_max;
+
+		const Rml::CompiledGeometryHandle geometry =
+			CompileGeometry({&vertices[0], sizeof(vertices) / sizeof(vertices[0])}, {&indices[0], sizeof(indices) / sizeof(indices[0])});
+
+		RenderGeometry(geometry, {}, TexturePostprocess);
+		ReleaseGeometry(geometry);
+	}
+	else
+	{
+		RMLUI_ASSERT(false && "use resolvesubresource manually! don't call this method for handling resolvesubresource!!!");
+	}
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
+}
+
+void RenderInterface_DX12::ValidateTextureAllocationNotAsPlaced(const Gfx::FramebufferData& source)
+{
+	#ifdef RMLUI_DEBUG
+
+	TextureHandleType* p_texture_source = source.Get_Texture();
+
+	RMLUI_ASSERT(p_texture_source && "must be valid pointer!");
+
+	RMLUI_ASSERT(p_texture_source->Get_Info().Get_BufferIndex() == -1 &&
+		"expected that a such texture was allocated as committed (e.g. not placed resource), so in that case you can't cast to "
+		"D3D12MA::Allocation");
+
+	RMLUI_ASSERT(p_texture_source->Get_Resource() && "must contain a valid resource");
+
+	D3D12MA::Allocation* p_allocation_source = static_cast<D3D12MA::Allocation*>(p_texture_source->Get_Resource());
+
+	RMLUI_ASSERT(p_allocation_source->GetResource() && "allocation must contain a valid pointer to resource! something is broken");
+	#endif
+}
+
+ID3D12Resource* RenderInterface_DX12::GetResourceFromFramebufferData(const Gfx::FramebufferData& data)
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GetResourceFromFramebufferData");
+	ID3D12Resource* p_result{};
+
+	TextureHandleType* p_texture_source = data.Get_Texture();
+
+	if (p_texture_source == nullptr)
+		return p_result;
+
+	if (p_texture_source->Get_Info().Get_BufferIndex() == -1)
+	{
+		// committed
+
+		if (p_texture_source->Get_Resource() == nullptr)
+			return p_result;
+
+		D3D12MA::Allocation* p_allocation_source = static_cast<D3D12MA::Allocation*>(p_texture_source->Get_Resource());
+
+		if (p_allocation_source == nullptr)
+			return p_result;
+
+		if (p_allocation_source->GetResource() == nullptr)
+			return p_result;
+
+		p_result = p_allocation_source->GetResource();
+	}
+	else
+	{
+		// placed
+
+		if (p_texture_source->Get_Resource() == nullptr)
+			return p_result;
+
+		p_result = static_cast<ID3D12Resource*>(p_texture_source->Get_Resource());
+	}
+
+	return p_result;
+}
+
 void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& source_destination, const Gfx::FramebufferData& temp,
 	const Rml::Rectanglei window_flipped)
 {
@@ -2418,15 +2689,17 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "RenderBlur");
 
 	int pass_level = 0;
-	const Rml::Pair<int, float>& pass_level_and_sigma = SigmaToParameters(sigma);
+	SigmaToParameters(sigma, pass_level, sigma);
 
-	if (pass_level_and_sigma.second == 0.0f)
+	if (sigma == 0)
 		return;
 
 	const Rml::Rectanglei original_scissor = this->m_scissor;
 	Rml::Rectanglei scissor = window_flipped;
 
-	UseProgram(ProgramId::Passthrough_NoBlend);
+	// probably we expect only textures with sample count = 1 otherwise it is MSAA and we should dynamically determine which pipeline state we should
+	// use in UseProgram method
+	UseProgram(ProgramId::Passthrough_NoBlendAndNoMSAA);
 	SetScissor(scissor, true);
 
 	D3D12_VIEWPORT vp{};
@@ -2443,6 +2716,13 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	const Rml::Vector2f uv_scaling = {(source_destination.Get_Width() % 2 == 1) ? (1.f - 1.f / float(source_destination.Get_Width())) : 1.f,
 		(source_destination.Get_Height() % 2 == 1) ? (1.f - 1.f / float(source_destination.Get_Height())) : 1.f};
 
+	ID3D12Resource* p_resource{};
+
+	// be careful! runtime dx changes this thing BUT argument for ResourceBarrier is CONST IDK how they do in their API but def they change that by
+	// themselves or somehow corrupt the inner data and it is kinda sad SO what i want to say that you have to initialize all fields that are required
+	// for passing to resource barrier method calling!!!
+	// if you have a such long situation and you want to pass just using one variable on stack...
+	D3D12_RESOURCE_BARRIER bars[1];
 	for (int i = 0; i < pass_level; i++)
 	{
 		scissor.p0 = (scissor.p0 + Rml::Vector2i(1)) / 2;
@@ -2455,13 +2735,35 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 
 		if (from_source)
 		{
-			p_texture = temp.Get_Texture();
+	#ifdef RMLUI_DEBUG
+			// we expect only committed allocated resources
+			this->ValidateTextureAllocationNotAsPlaced(source_destination);
+	#endif
+			p_resource = this->GetResourceFromFramebufferData(source_destination);
+
+			RMLUI_ASSERT(p_resource && "failed to obtain resource from source_destination framebuffer!");
 		}
 		else
 		{
-			p_texture = source_destination.Get_Texture();
+	#ifdef RMLUI_DEBUG
+			// we expect only committed allocated resources
+			this->ValidateTextureAllocationNotAsPlaced(temp);
+	#endif
+			p_resource = this->GetResourceFromFramebufferData(temp);
+
+			RMLUI_ASSERT(p_resource && "failed to obtain resource from source_destination framebuffer!");
 		}
 
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = p_resource;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.Subresource = 0;
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+
+		p_texture = from_source ? source_destination.Get_Texture() : temp.Get_Texture();
 		RMLUI_ASSERT(p_texture && "must be valid!");
 
 		this->BindTexture(p_texture);
@@ -2469,6 +2771,36 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 		SetScissor(scissor, true);
 
 		DrawFullscreenQuad({}, uv_scaling);
+
+		if (from_source)
+		{
+	#ifdef RMLUI_DEBUG
+			// we expect only committed allocated resources
+			this->ValidateTextureAllocationNotAsPlaced(source_destination);
+	#endif
+			ID3D12Resource* p_resource = this->GetResourceFromFramebufferData(source_destination);
+
+			RMLUI_ASSERT(p_resource && "failed to obtain resource from source_destination framebuffer!");
+		}
+		else
+		{
+	#ifdef RMLUI_DEBUG
+			// we expect only committed allocated resources
+			this->ValidateTextureAllocationNotAsPlaced(temp);
+	#endif
+			ID3D12Resource* p_resource = this->GetResourceFromFramebufferData(temp);
+
+			RMLUI_ASSERT(p_resource && "failed to obtain resource from temp framebuffer!");
+		}
+
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = p_resource;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[0].Transition.Subresource = 0;
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
 	}
 
 	vp.TopLeftX = 0;
@@ -2485,9 +2817,19 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	{
 		this->BindRenderTarget(temp);
 
-		RenderInterface_DX12::TextureHandleType* p_texture = temp.Get_Texture();
-
+		RenderInterface_DX12::TextureHandleType* p_texture = source_destination.Get_Texture();
 		RMLUI_ASSERT(p_texture && "must be valid!");
+
+		p_resource = this->GetResourceFromFramebufferData(source_destination);
+		RMLUI_ASSERT(p_resource && "failed to obtain resource from framebuffer source_destination");
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.pResource = p_resource;
+		bars[0].Transition.Subresource = 0;
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
 
 		this->BindTexture(p_texture);
 
@@ -2503,11 +2845,12 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 
 	RMLUI_ASSERT(p_cb_begin && "must be valid pointer of buffer where CB was allocated!");
 
-	std::uint8_t* p_cb_real_begin = p_cb_begin + p_cb->Get_AllocInfo().Get_Offset();
+	std::uint8_t* p_cb_real_begin =
+		p_cb_begin + p_cb->Get_AllocInfo().Get_Offset() + sizeof(this->m_constant_buffer_data_transform) + sizeof(Rml::Vector2f);
 
 	struct {
-		Rml::Vector4f weights;
 		Rml::Vector2f texel_offset;
+		Rml::Vector4f weights;
 		Rml::Vector2f texcoord_min;
 		Rml::Vector2f texcoord_max;
 	} ShaderConstantBufferMapping_Blur;
@@ -2516,30 +2859,61 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	SetTexCoordLimits(ShaderConstantBufferMapping_Blur.texcoord_min, ShaderConstantBufferMapping_Blur.texcoord_max, scissor,
 		{source_destination.Get_Width(), source_destination.Get_Height()});
 
-	ShaderConstantBufferMapping_Blur.texel_offset = Rml::Vector2f(0.f, 1.f) * (1.0f / (temp.Get_Height()));
+	ShaderConstantBufferMapping_Blur.texel_offset = Rml::Vector2f(0.f, 1.f) * (1.0f / float(temp.Get_Height()));
 
 	std::memcpy(p_cb_real_begin, &ShaderConstantBufferMapping_Blur, sizeof(ShaderConstantBufferMapping_Blur));
 
-	if (p_cb)
+	if (transfer_to_temp_buffer)
 	{
-		auto* p_dx_constant_buffer = this->m_manager_buffer.Get_BufferByIndex(p_cb->Get_AllocInfo().Get_BufferIndex());
-		RMLUI_ASSERT(p_dx_constant_buffer && "must be valid!");
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = this->GetResourceFromFramebufferData(source_destination);
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[0].Transition.Subresource = 0;
 
-		if (p_dx_constant_buffer)
-		{
-			auto* p_dx_resource = p_dx_constant_buffer->GetResource();
-
-			RMLUI_ASSERT(p_dx_resource && "must be valid!");
-
-			if (p_dx_resource)
-			{
-				this->m_p_command_graphics_list->SetGraphicsRootConstantBufferView(0,
-					p_dx_resource->GetGPUVirtualAddress() + p_cb->Get_AllocInfo().Get_Offset());
-			}
-		}
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
 	}
 
+	this->BindRenderTarget(source_destination);
+
+	p_resource = this->GetResourceFromFramebufferData(temp);
+	RMLUI_ASSERT(p_resource && "failed to obtain resource from framebuffer temp!");
+
+	bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	bars[0].Transition.pResource = p_resource;
+	bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	bars[0].Transition.Subresource = 0;
+
+	this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+
+	this->BindTexture(temp.Get_Texture());
+	DrawFullscreenQuad(p_cb);
+
+	bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	bars[0].Transition.Subresource = 0;
+	bars[0].Transition.pResource = this->GetResourceFromFramebufferData(temp);
+	this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+
 	this->BindRenderTarget(temp);
+
+	p_resource = this->GetResourceFromFramebufferData(source_destination);
+	RMLUI_ASSERT(p_resource && "failed to obtain resource from framebuffer source_destination");
+
+	bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	bars[0].Transition.pResource = p_resource;
+	bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	bars[0].Transition.Subresource = 0;
+
+	this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+
 	this->BindTexture(source_destination.Get_Texture());
 
 	// Add a 1px transparent border around the blur region by first clearing with a padded scissor. This helps prevent
@@ -2547,8 +2921,103 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	// blitting with linear filtering, pixels outside the 'src' region can be blended into the output. On the other
 	// hand, it looks like Nvidia clamps the pixels to the source edge, which is what we really want. Regardless, we
 	// work around the issue with this extra step.
-	//	scissor.Extend(1);
-	//	SetScissor(scissor, true);
+	SetScissor(scissor.Extend(1), true);
+
+	Rml::Rectanglei scissor_ext = scissor.Extend(1);
+	scissor_ext = VerticallyFlipped(scissor_ext, this->m_height);
+
+	// Some render APIs don't like offscreen positions (WebGL in particular), so clamp them to the viewport.
+	const int x_min = Rml::Math::Clamp(scissor_ext.Left(), 0, this->m_width);
+	const int y_min = Rml::Math::Clamp(scissor_ext.Top(), 0, this->m_height);
+	const int x_max = Rml::Math::Clamp(scissor_ext.Right(), 0, this->m_width);
+	const int y_max = Rml::Math::Clamp(scissor_ext.Bottom(), 0, this->m_height);
+
+	D3D12_RECT rect_scissor{};
+	rect_scissor.left = x_min;
+	rect_scissor.top = y_min;
+	rect_scissor.right = x_max;
+	rect_scissor.bottom = y_max;
+
+	constexpr FLOAT clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+	this->m_p_command_graphics_list->ClearRenderTargetView(temp.Get_DescriptorResourceView(), clear_color, 1, &rect_scissor);
+	SetScissor(scissor, true);
+
+	ShaderConstantBufferMapping_Blur.texel_offset = Rml::Vector2f(1.0f, 0.0f) * (1.0f / float(source_destination.Get_Width()));
+
+	p_cb = this->Get_ConstantBuffer(this->m_current_back_buffer_index);
+
+	RMLUI_ASSERT(p_cb && "unable to allocate constant buffer for blur!");
+	p_cb_begin = reinterpret_cast<std::uint8_t*>(p_cb->Get_GPU_StartMemoryForBindingData());
+
+	RMLUI_ASSERT(p_cb_begin && "must be valid pointer of buffer where CB was allocated!");
+
+	p_cb_real_begin = p_cb_begin + p_cb->Get_AllocInfo().Get_Offset() + sizeof(this->m_constant_buffer_data_transform) + sizeof(Rml::Vector2f);
+	std::memcpy(p_cb_real_begin, &ShaderConstantBufferMapping_Blur, sizeof(ShaderConstantBufferMapping_Blur));
+	DrawFullscreenQuad(p_cb);
+
+	p_resource = this->GetResourceFromFramebufferData(temp);
+	RMLUI_ASSERT(p_resource && "failed to obtain resource from framebuffer temp");
+
+	bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	bars[0].Transition.pResource = p_resource;
+	bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	bars[0].Transition.Subresource = 0;
+
+	this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+
+	p_resource = this->GetResourceFromFramebufferData(source_destination);
+	RMLUI_ASSERT(p_resource && "failed to obtain resource from framebuffer source_destination");
+
+	bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	bars[0].Transition.pResource = p_resource;
+	bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	bars[0].Transition.Subresource = 0;
+
+	this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+
+	// Blit the blurred image to the scissor region with upscaling.
+	Rml::Rectanglei window_flipped_twice = VerticallyFlipped(window_flipped, this->m_height);
+	SetScissor(window_flipped_twice, false);
+
+	const Rml::Vector2i src_min = scissor.p0;
+	const Rml::Vector2i src_max = scissor.p1;
+	const Rml::Vector2i dst_min = window_flipped_twice.p0;
+	const Rml::Vector2i dst_max = window_flipped_twice.p1;
+
+	BlitFramebuffer(temp, source_destination, src_min.x, src_min.y, src_max.x, src_max.y, dst_min.x, dst_max.y, dst_max.x, dst_min.y);
+
+	// The above upscale blit might be jittery at low resolutions (large pass levels). This is especially noticeable when moving an element with
+	// backdrop blur around or when trying to click/hover an element within a blurred region since it may be rendered at an offset. For more stable
+	// and accurate rendering we next upscale the blur image by an exact power-of-two. However, this may not fill the edges completely so we need to
+	// do the above first. Note that this strategy may sometimes result in visible seams. Alternatively, we could try to enlarge the window to the
+	// next power-of-two size and then downsample and blur that.
+
+	// todo: mikke89 provide test case where we can use second time blitframebuffer because i didn't notice anything about commentary above so I don't
+	// do what you did in GL3 backend
+
+	p_resource = this->GetResourceFromFramebufferData(temp);
+	RMLUI_ASSERT(p_resource && "failed to obtain resource from framebuffer temp");
+	bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	bars[0].Transition.pResource = p_resource;
+	bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	bars[0].Transition.Subresource = 0;
+
+	this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+
+	// restore things
+	D3D12_VIEWPORT viewport{};
+	viewport.Height = static_cast<FLOAT>(this->m_height);
+	viewport.Width = static_cast<FLOAT>(this->m_width);
+	viewport.MaxDepth = 1.0f;
+	this->m_p_command_graphics_list->RSSetViewports(1, &viewport);
+	SetScissor(original_scissor);
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
@@ -2616,17 +3085,42 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 			this->UseProgram(ProgramId::Passthrough_ColorMask);
 
+			{
+				D3D12_RESOURCE_BARRIER bars[1];
+
+				bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+				bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+				bars[0].Transition.pResource = p_resource_as_srv;
+				bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				bars[0].Transition.Subresource = 0;
+
+				this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+			}
+
 			this->BindTexture(p_texture_source);
 
 			// todo: useprogram and bind texture here!
 			this->DrawFullscreenQuad();
 			this->m_manager_render_layer.SwapPostprocessPrimarySecondary();
 
+			{
+				D3D12_RESOURCE_BARRIER bars[1];
+
+				bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+				bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+				bars[0].Transition.pResource = p_resource_as_srv;
+				bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				bars[0].Transition.Subresource = 0;
+
+				this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+			}
+
 			break;
 		}
 		case FilterType::Blur:
 		{
-			break;
 			const Gfx::FramebufferData& source = this->m_manager_render_layer.GetPostprocessPrimary();
 			const Gfx::FramebufferData& temp = this->m_manager_render_layer.GetPostprocessSecondary();
 
@@ -2686,9 +3180,38 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 		this->UseProgram(ProgramId::Passthrough_MSAA);
 	}
 
+	{
+		ID3D12Resource* pResource = this->GetResourceFromFramebufferData(this->m_manager_render_layer.GetPostprocessPrimary());
+		RMLUI_ASSERT(pResource && "failed to obtain resource from m_manager_render_layer.GetPostprocessPrimary()");
+
+		D3D12_RESOURCE_BARRIER bars[1];
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = pResource;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.Subresource = 0;
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+	}
 	this->BindTexture(this->m_manager_render_layer.GetPostprocessPrimary().Get_Texture());
 
 	this->DrawFullscreenQuad();
+
+	{
+		ID3D12Resource* pResource = this->GetResourceFromFramebufferData(this->m_manager_render_layer.GetPostprocessPrimary());
+		RMLUI_ASSERT(pResource && "failed to obtain resource from m_manager_render_layer.GetPostprocessPrimary()");
+
+		D3D12_RESOURCE_BARRIER bars[1];
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = pResource;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[0].Transition.Subresource = 0;
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+	}
 
 	// should we set like return blend state as enabled?
 	if (blend_mode == Rml::BlendMode::Replace)
@@ -2750,13 +3273,13 @@ Rml::CompiledFilterHandle RenderInterface_DX12::CompileFilter(const Rml::String&
 	else if (name == "blur")
 	{
 		filter.type = FilterType::Blur;
-		filter.sigma = 0.5f * Rml::Get(parameters, "radius", 1.0f);
+		filter.sigma = Rml::Get(parameters, "sigma", 1.0f);
 	}
 	else if (name == "drop-shadow")
 	{
 		filter.type = FilterType::DropShadow;
 		filter.sigma = Rml::Get(parameters, "sigma", 0.f);
-		filter.color = Rml::Get(parameters, "color", Rml::Colourb());
+		filter.color = Rml::Get(parameters, "color", Rml::Colourb()).ToPremultiplied();
 		filter.offset = Rml::Get(parameters, "offset", Rml::Vector2f(0.f));
 	}
 	else if (name == "brightness")
@@ -3413,8 +3936,33 @@ void RenderInterface_DX12::Initialize_DebugLayer(void) noexcept
 	if (p_debug)
 	{
 		p_debug->EnableDebugLayer();
+
+		#ifdef RMLUI_DX_DEBUG
+		Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] Debug Layer = ENABLED!");
+		#endif
+
+		ID3D12Debug1* p_sdk_layers{};
+
+		auto status = p_debug->QueryInterface(IID_PPV_ARGS(&p_sdk_layers));
+
+		RMLUI_DX_ASSERTMSG(status,
+			"failed to enable GPU based validation :( your driver or windows NT sdk doesn't support a such feature report to developers DX12 SDK or "
+			"to GPU vendor developers");
+
+		if (SUCCEEDED(status))
+		{
+			p_sdk_layers->SetEnableGPUBasedValidation(TRUE);
+			p_sdk_layers->SetEnableSynchronizedCommandQueueValidation(TRUE);
+			p_sdk_layers->Release();
+
+		#ifdef RMLUI_DX_DEBUG
+			Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] GPU validation =  ENABLED!");
+		#endif
+		}
+
 		p_debug->Release();
 	}
+
 	#endif
 }
 
@@ -3979,7 +4527,7 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 
 	this->Create_Resource_For_Shaders();
 	this->Create_Resource_Pipeline_BlendMask();
-	//	this->Create_Resource_Pipeline_Blur();
+	this->Create_Resource_Pipeline_Blur();
 	this->Create_Resource_Pipeline_Color();
 	this->Create_Resource_Pipeline_ColorMatrix();
 	this->Create_Resource_Pipeline_Count();
@@ -5175,6 +5723,10 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_NoBlend()
 			IID_PPV_ARGS(&this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_NoBlend)]));
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateRootSignature");
 
+		status = this->m_p_device->CreateRootSignature(0, p_signature->GetBufferPointer(), p_signature->GetBufferSize(),
+			IID_PPV_ARGS(&this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_NoBlendAndNoMSAA)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateRootSignature");
+
 		if (p_signature)
 		{
 			p_signature->Release();
@@ -5325,9 +5877,20 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_NoBlend()
 			IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Passthrough_NoBlend)]));
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough_NoBlend)");
 
+		desc_pipeline.pRootSignature = this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_NoBlendAndNoMSAA)];
+		desc_pipeline.SampleDesc.Count = 1;
+		desc_pipeline.SampleDesc.Quality = 0;
+
+		status = this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline,
+			IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Passthrough_NoBlendAndNoMSAA)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough_NoBlendAndNoMSAA");
+
 	#ifdef RMLUI_DX_DEBUG
 		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_NoBlend)]->SetName(TEXT("rs of Passthrough_NoBlend"));
 		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_NoBlend)]->SetName(TEXT("pipeline Passthrough_NoBlend"));
+
+		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_NoBlendAndNoMSAA)]->SetName(TEXT("rs of Passthrough_NoBlendAndNoMSAA"));
+		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_NoBlendAndNoMSAA)]->SetName(TEXT("pipeline Passthrough_NoBlendAndNoMSAA"));
 	#endif
 	}
 }
@@ -5364,10 +5927,23 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 		table.NumDescriptorRanges = sizeof(ranges) / sizeof(decltype(ranges[0]));
 		table.pDescriptorRanges = ranges;
 
-		D3D12_ROOT_PARAMETER parameters[1];
+		D3D12_ROOT_DESCRIPTOR descriptor_cbv{};
+		descriptor_cbv.RegisterSpace = 0;
+		descriptor_cbv.ShaderRegister = 0;
+
+		D3D12_ROOT_PARAMETER parameters[3];
+
 		parameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		parameters[0].DescriptorTable = table;
 		parameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+		parameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+		parameters[1].Descriptor = descriptor_cbv;
+		parameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+		parameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+		parameters[2].Descriptor = descriptor_cbv;
+		parameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 		D3D12_STATIC_SAMPLER_DESC sampler = {};
 		sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -5547,14 +6123,16 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc_pipeline = {};
 
 		desc_pipeline.InputLayout = desc_input_layout;
-		desc_pipeline.pRootSignature = this->m_root_signatures[static_cast<int>(ProgramId::Passthrough)];
+		desc_pipeline.pRootSignature = this->m_root_signatures[static_cast<int>(ProgramId::Blur)];
 		desc_pipeline.VS = desc_bytecode_vertex_shader;
 		desc_pipeline.PS = desc_bytecode_pixel_shader;
 		desc_pipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		desc_pipeline.RTVFormats[0] = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
 		desc_pipeline.DSVFormat = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
 
-		desc_pipeline.SampleDesc = this->m_desc_sample;
+		//	desc_pipeline.SampleDesc = this->m_desc_sample;
+		desc_pipeline.SampleDesc.Count = 1;
+		desc_pipeline.SampleDesc.Quality = 0;
 
 		desc_pipeline.SampleMask = 0xffffffff;
 		desc_pipeline.RasterizerState = desc_rasterizer;
@@ -5820,13 +6398,15 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 		{
 			D3D12_RECT scissor;
 
-			const int x = Rml::Math::Clamp(region.Left(), 0, this->m_width);
-			const int y = Rml::Math::Clamp(this->m_height - region.Bottom(), 0, this->m_height);
+			const int x_min = Rml::Math::Clamp(region.Left(), 0, this->m_width);
+			const int y_min = Rml::Math::Clamp(region.Top(), 0, this->m_height);
+			const int x_max = Rml::Math::Clamp(region.Right(), 0, this->m_width);
+			const int y_max = Rml::Math::Clamp(region.Bottom(), 0, this->m_height);
 
-			scissor.left = x;
-			scissor.right = x + region.Width();
-			scissor.bottom = this->m_height - y;
-			scissor.top = this->m_height - (y + region.Height());
+			scissor.left = x_min;
+			scissor.right = x_max;
+			scissor.bottom = y_max;
+			scissor.top = y_min;
 
 #if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 			if (region.p0.y == region.p1.y || region.p0.x == region.p1.x)
@@ -5860,7 +6440,7 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
-	// this->m_scissor = region;
+	this->m_scissor = region;
 }
 
 void RenderInterface_DX12::SubmitTransformUniform(ConstantBufferType& constant_buffer, const Rml::Vector2f& translation)
@@ -7480,12 +8060,12 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 	buffer_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	buffer_desc.Alignment = 0;
 	buffer_desc.Width = upload_size;
-	buffer_desc.Height=1;
-	buffer_desc.DepthOrArraySize =1;
-	buffer_desc.MipLevels=1;
+	buffer_desc.Height = 1;
+	buffer_desc.DepthOrArraySize = 1;
+	buffer_desc.MipLevels = 1;
 	buffer_desc.Format = DXGI_FORMAT_UNKNOWN;
-	buffer_desc.SampleDesc.Count=1;
-	buffer_desc.SampleDesc.Quality=0;
+	buffer_desc.SampleDesc.Count = 1;
+	buffer_desc.SampleDesc.Quality = 0;
 	buffer_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	buffer_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
