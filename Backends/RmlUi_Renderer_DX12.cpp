@@ -585,7 +585,7 @@ static constexpr int NUM_MSAA_SAMPLES = 2;
 	    // example UTF8: RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, u8"::RenderGeometry");
 		#define RMLUI_DX_MARKER_BEGIN(list, name) \
 			if (list)                             \
-				list->BeginEvent(1, reinterpret_cast<const char*>(name), sizeof(name));
+				list->BeginEvent(1, reinterpret_cast<const char*>(name), strlen(name)+1);
 		#define RMLUI_DX_MARKER_END(list) \
 			if (list)                     \
 				list->EndEvent();
@@ -2322,16 +2322,20 @@ void RenderInterface_DX12::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_
 
 	//	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(p_dst, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_DEST,
 	//		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	barriers[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barriers[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	barriers[0].Transition.pResource = p_dst;
 	barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_DEST;
-
+	barriers[0].Transition.Subresource=0;
 	//	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(p_src, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
 	//		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	barriers[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barriers[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	barriers[1].Transition.pResource = p_src;
 	barriers[1].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barriers[1].Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
-
+	barriers[1].Transition.Subresource=0;
 	// todo: should we convert src to render target ? probably yes, but need to be sure later after debugging
 	this->m_p_command_graphics_list->ResourceBarrier(2, barriers);
 
@@ -3025,11 +3029,17 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - RenderFilters");
-	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "RenderFilters");
+
 
 	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
 	{
+		#ifdef RMLUI_DX_DEBUG
+		char marker_name[64];
+		std::sprintf(marker_name, "RenderFilters = Failed[Gfx::RenderState=%d]", (int)this->m_render_state);
+		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, marker_name);
+		#endif
+
 		#ifdef RMLUI_DEBUG
 		Rml::Log::Message(Rml::Log::LT_WARNING, "[RenderInterface_DX12::RenderFilters] you have invalid rendering state: %s",
 			Gfx::convert_render_state_to_str(this->m_render_state));
@@ -3045,6 +3055,14 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 	{
 		const CompiledFilter& filter = *reinterpret_cast<const CompiledFilter*>(filter_handle);
 		const FilterType type = filter.type;
+
+		
+	#ifdef RMLUI_DX_DEBUG
+		char marker_name[32];
+		std::sprintf(marker_name, "RenderFilters=%d", static_cast<int>(filter.type));
+
+		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, marker_name);
+	#endif
 
 		switch (type)
 		{
@@ -3153,9 +3171,10 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 			break;
 		}
 		}
+		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 	}
 
-	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
+
 }
 
 void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHandle destination, Rml::BlendMode blend_mode,
@@ -3898,7 +3917,13 @@ void RenderInterface_DX12::Initialize_Device(void) noexcept
 			// SetBreakOnSeverity in order to see full report from ReportLiveObjects calling)
 			p_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, 1);
 			p_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, 1);
-			p_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, 1);
+
+			// todo: @mikke89 the only warning i got is about scissors and Rml passing incorrect so 
+			// p0.x == p1.x or p0.y == p1.y IS INVALID state of Rects and their variations
+			// in dx12 is forced and scissor testing always enabled 
+			// it means you can't disable it at all 
+			// and we need to think about work arounds because other warnings we should treat as errors and thus SetBreakOnSeverity must be enabled 
+		//	p_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, 1);
 
 			// Suppress messages based on their severity level
 			D3D12_MESSAGE_SEVERITY p_sevs[] = {D3D12_MESSAGE_SEVERITY_INFO};
