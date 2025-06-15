@@ -1277,7 +1277,6 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 		scissor.bottom = this->m_height;
 
 		this->m_p_command_graphics_list->RSSetScissorRects(1, &scissor);
-		OutputDebugStringA("GraphicsQueue::RSSetScissorRects | !this->m_is_scissor_was_set\n");
 	}
 
 	if (p_constant_buffer)
@@ -1395,10 +1394,8 @@ void RenderInterface_DX12::EnableScissorRegion(bool enable)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - EnableScissorRegion");
 
-	OutputDebugStringA("::EnableScissorRegion\n");
 	if (!enable)
 	{
-		OutputDebugStringA("\t");
 		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "EnableScissorRegion");
 		SetScissor(Rml::Rectanglei::MakeInvalid(), false);
 		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
@@ -1409,12 +1406,6 @@ void RenderInterface_DX12::SetScissorRegion(Rml::Rectanglei region)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SetScissorRegion");
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "SetScissorRegion");
-
-	static int call_count = 0;
-	++call_count;
-	char msg[32];
-	std::sprintf(msg, "::SetScissorRegion=%d\n\t", call_count);
-	OutputDebugStringA(msg);
 
 	SetScissor(region);
 
@@ -2123,7 +2114,7 @@ void RenderInterface_DX12::RenderLayerStack::CreateFramebuffer(Gfx::FramebufferD
 	#endif
 
 		this->m_p_manager_texture->Alloc_Texture(desc_texture, p_result, flags, states
-	#ifdef RMLUI_DEBUG
+	#ifdef RMLUI_DX_DEBUG
 			,
 			pWhatTypeOfTextureForAllocationName
 	#endif
@@ -6271,12 +6262,6 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SetScissor");
 
-	static int call_count = 0;
-	++call_count;
-	char msg[32];
-	std::sprintf(msg, "::SetScissor=%d\n", call_count);
-	OutputDebugStringA(msg);
-
 	if (region.Valid() != m_scissor.Valid())
 	{
 		if (!region.Valid())
@@ -6310,10 +6295,6 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 			scissor.top = y_min;
 
 			this->m_p_command_graphics_list->RSSetScissorRects(1, &scissor);
-			char msg[256];
-			std::sprintf(msg, "GraphicsQueue::RSSetScissorRects(%d,%d,%d,%d) | region.Valid() && region != this->m_scissor\n", scissor.left,
-				scissor.right, scissor.bottom, scissor.top);
-			OutputDebugStringA(msg);
 			this->m_is_scissor_was_set = true;
 		}
 	}
@@ -7433,7 +7414,7 @@ ID3D12Resource* RenderInterface_DX12::TextureMemoryManager::Alloc_Texture(D3D12_
 
 ID3D12Resource* RenderInterface_DX12::TextureMemoryManager::Alloc_Texture(D3D12_RESOURCE_DESC& desc, Gfx::FramebufferData* p_impl,
 	D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initial_state
-#ifdef RMLUI_DEBUG
+#ifdef RMLUI_DX_DEBUG
 	,
 	const Rml::String& debug_name
 #endif
