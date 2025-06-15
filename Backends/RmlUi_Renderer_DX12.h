@@ -759,11 +759,6 @@ private:
 	bool m_is_stencil_equal;
 	bool m_is_use_msaa;
 	unsigned char m_msaa_sample_count;
-#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
-	// determines should we render or not due to different reasons for current frame execution
-	// see enum RenderState
-	unsigned char m_render_state;
-#endif
 
 	int m_width;
 	int m_height;
