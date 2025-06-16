@@ -75,10 +75,11 @@ auto CallbackTextureDatabase::EnsureLoaded(RenderManager* render_manager, Render
 	-> CallbackTextureEntry&
 {
 	CallbackTextureEntry& data = texture_list[callback_index];
-	if (!data.texture_handle)
+	if (!data.texture_handle && !data.load_failed)
 	{
 		if (!data.callback(CallbackTextureInterface(*render_manager, *render_interface, data.texture_handle, data.dimensions)))
 		{
+			data.load_failed = true;
 			data.texture_handle = {};
 			data.dimensions = {};
 		}
