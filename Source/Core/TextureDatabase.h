@@ -38,7 +38,6 @@ namespace Rml {
 class RenderInterface;
 
 class CallbackTextureDatabase : NonCopyMoveable {
-
 public:
 	CallbackTextureDatabase();
 	~CallbackTextureDatabase();
