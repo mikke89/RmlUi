@@ -47,9 +47,6 @@ public:
 	/// Formats a flex container element and its flex items according to flexbox layout rules.
 	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box);
 
-	/// Computes max-content size for a flex container.
-	static Vector2f GetMaxContentSize(Element* element, const FormattingMode& formatting_mode);
-
 private:
 	FlexFormattingContext() = default;
 

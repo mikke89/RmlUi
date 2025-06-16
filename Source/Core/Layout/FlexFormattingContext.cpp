@@ -49,12 +49,15 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 	const ComputedValues& computed = element->GetComputedValues();
 
 	const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
-	RMLUI_ASSERT(containing_block.x >= 0.f || parent_container->GetFormattingMode().constraint == FormattingMode::Constraint::MaxContent);
+	const FormattingMode::Constraint formatting_constraint = parent_container->GetFormattingMode().constraint;
+	RMLUI_ASSERT(containing_block.x >= 0.f || formatting_constraint == FormattingMode::Constraint::MaxContent);
 
 	// Build the initial box as specified by the flex's style, as if it was a normal block element.
 	Box& box = flex_container_box->GetBox();
 	if (override_initial_box)
 		box = *override_initial_box;
+	else if (formatting_constraint == FormattingMode::Constraint::MaxContent)
+		LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::UnalignedBlock);
 	else
 		LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
 
@@ -65,12 +68,19 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 	context.flex_container_box = flex_container_box.get();
 	context.element_flex = element;
 
-	LayoutDetails::GetMinMaxWidth(context.flex_min_size.x, context.flex_max_size.x, computed, box, containing_block.x);
-	LayoutDetails::GetMinMaxHeight(context.flex_min_size.y, context.flex_max_size.y, computed, box, containing_block.y);
+	if (formatting_constraint == FormattingMode::Constraint::MaxContent)
+	{
+		// Format max-content as if unconstrained, clamping is instead done later during normal formatting.
+		context.flex_min_size = Vector2f(0.f);
+		context.flex_max_size = Vector2f(FLT_MAX);
+	}
+	else
+	{
+		LayoutDetails::GetMinMaxWidth(context.flex_min_size.x, context.flex_max_size.x, computed, box, containing_block.x);
+		LayoutDetails::GetMinMaxHeight(context.flex_min_size.y, context.flex_max_size.y, computed, box, containing_block.y);
+	}
 
-	const Vector2f box_content_size = box.GetSize();
-	const bool auto_height = (box_content_size.y < 0.0f);
-
+	const Vector2f box_content_size = box.GetSize(); // Can be negative for auto size (infinite available space).
 	context.flex_content_offset = box.GetPosition();
 
 	for (int layout_iteration = 0; layout_iteration < 3; layout_iteration++)
@@ -81,24 +91,23 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 			element_scroll->GetScrollbarSize(ElementScroll::HORIZONTAL),
 		};
 
-		context.flex_available_content_size = Math::Max(box_content_size - scrollbar_size, Vector2f(0.f));
-		context.flex_content_containing_block = context.flex_available_content_size;
+		for (int i = 0; i < 2; i++)
+			context.flex_available_content_size[i] = (box_content_size[i] < 0.f ? -1.f : Math::Max(box_content_size[i] - scrollbar_size[i], 0.f));
 
-		if (auto_height)
-		{
-			context.flex_available_content_size.y = -1.f; // Negative means infinite space
-			context.flex_content_containing_block.y = containing_block.y;
-		}
+		context.flex_content_containing_block = context.flex_available_content_size;
 
 		// Format the flexbox and all its children.
 		Vector2f flex_resulting_content_size, content_overflow_size;
 		float flex_baseline = 0.f;
 		context.Format(flex_resulting_content_size, content_overflow_size, flex_baseline);
 
-		// Output the size of the formatted flexbox. The width is determined as a normal block box so we don't need to change that.
+		// Output the size of the formatted flexbox. Any auto size is replaced by the resulting content size.
 		Vector2f formatted_content_size = box_content_size;
-		if (auto_height)
-			formatted_content_size.y = flex_resulting_content_size.y + scrollbar_size.y;
+		for (int i = 0; i < 2; i++)
+		{
+			if (box_content_size[i] < 0.0f)
+				formatted_content_size[i] = flex_resulting_content_size[i] + scrollbar_size[i];
+		}
 
 		Box sized_box = box;
 		sized_box.SetContent(formatted_content_size);
@@ -109,34 +118,13 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 
 		// Close the box, and break out of the loop if it did not produce any new scrollbars, otherwise continue to format the flexbox again.
 		if (flex_container_box->Close(content_overflow_size, sized_box, element_baseline))
+		{
+			box.SetContent(formatted_content_size);
 			break;
+		}
 	}
 
 	return flex_container_box;
-}
-
-Vector2f FlexFormattingContext::GetMaxContentSize(Element* element, const FormattingMode& formatting_mode)
-{
-	RMLUI_ASSERT(formatting_mode.constraint == FormattingMode::Constraint::MaxContent);
-	RMLUI_ZoneScopedC(0xBFBF3F);
-
-	// A large but finite number is used here, since layouting doesn't always work well with infinities.
-	const Vector2f infinity(10000.0f, 10000.0f);
-	RootBox root(Box(infinity), formatting_mode);
-	auto flex_container_box = MakeUnique<FlexContainer>(element, &root);
-
-	FlexFormattingContext context;
-	context.flex_container_box = flex_container_box.get();
-	context.element_flex = element;
-	context.flex_available_content_size = Vector2f(-1, -1);
-	context.flex_content_containing_block = infinity;
-	context.flex_max_size = Vector2f(FLT_MAX, FLT_MAX);
-
-	// Format the flexbox and all its children.
-	Vector2f flex_resulting_content_size, content_overflow_size;
-	float flex_baseline = 0.f;
-	context.Format(flex_resulting_content_size, content_overflow_size, flex_baseline);
-	return flex_resulting_content_size;
 }
 
 struct FlexItem {
