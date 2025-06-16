@@ -323,12 +323,9 @@ bool FlexContainer::Close(const Vector2f content_overflow_size, const Box& box, 
 
 float FlexContainer::GetShrinkToFitWidth() const
 {
-	// For the trivial case of a fixed width, we simply return that.
-	if (element->GetComputedValues().width().type == Style::Width::Type::Length)
-		return box.GetSize().x;
-
-	// Infer shrink-to-fit width from the intrinsic width of the element.
-	return FlexFormattingContext::GetMaxContentSize(element, GetFormattingMode()).x;
+	RMLUI_ASSERT(GetFormattingMode().constraint == FormattingMode::Constraint::MaxContent);
+	// We already formatted it under the max-content constraint, now we can simply return the resulting size.
+	return box.GetSize().x;
 }
 
 String FlexContainer::DebugDumpTree(int depth) const
