@@ -36,6 +36,7 @@
 #include "ContainerBox.h"
 #include "FormattingContext.h"
 #include "LayoutEngine.h"
+#include "LayoutNode.h"
 #include <float.h>
 
 namespace Rml {
@@ -242,23 +243,36 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 		return 0.f;
 	}
 
-	FormattingMode formatting_mode = current_formatting_mode;
-	formatting_mode.constraint = FormattingMode::Constraint::MaxContent;
+	LayoutNode* layout_node = element->GetLayoutNode();
+	float shrink_to_fit_width;
 
-	// First, format the element under the above-generated box. Then we ask the resulting box for its shrink-to-fit
-	// width. For block containers, this is essentially its largest line or child box.
-	// @performance. Some formatting can be simplified, e.g. absolute elements do not contribute to the shrink-to-fit
-	// width. Also, children of elements with a fixed width and height don't need to be formatted further.
-	RootBox root(Box(Vector2f(-1.f)), formatting_mode);
-	UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(&root, element, &box, FormattingContextType::Block);
+	if (Optional<float> cached_width = layout_node->GetMaxContentWidthIfCached())
+	{
+		shrink_to_fit_width = *cached_width;
+	}
+	else
+	{
+		FormattingMode formatting_mode = current_formatting_mode;
+		formatting_mode.constraint = FormattingMode::Constraint::MaxContent;
 
-	float shrink_to_fit_width = layout_box->GetShrinkToFitWidth();
+		// First, format the element under the above-generated box. Then we ask the resulting box for its shrink-to-fit
+		// width. For block containers, this is essentially its largest line or child box.
+		// @performance. Some formatting can be simplified, e.g. absolute elements do not contribute to the shrink-to-fit
+		// width. Also, children of elements with a fixed width and height don't need to be formatted further.
+		RootBox root(Box(Vector2f(-1.f)), formatting_mode);
+		UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(&root, element, &box, FormattingContextType::Block);
+
+		shrink_to_fit_width = layout_box->GetShrinkToFitWidth();
+		layout_node->CommitMaxContentWidth(shrink_to_fit_width);
+	}
+
 	if (containing_block.x >= 0)
 	{
 		const float available_width =
 			Math::Max(0.f, containing_block.x - box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
 		shrink_to_fit_width = Math::Min(shrink_to_fit_width, available_width);
 	}
+
 	return shrink_to_fit_width;
 }
 
