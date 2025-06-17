@@ -79,6 +79,7 @@ void LayoutNode::SetDirty(DirtyLayoutType dirty_type)
 	// Log::Message(Log::LT_INFO, "SetDirty. Self %d  Child %d  Element: %s", (dirty_type & DirtyLayoutType::DOM) != DirtyLayoutType::None,
 	//	(dirty_type & DirtyLayoutType::Child) != DirtyLayoutType::None, element->GetAddress().c_str());
 	dirty_flag = dirty_flag | dirty_type;
+	committed_max_content_width.reset();
 }
 
 void LayoutNode::CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,

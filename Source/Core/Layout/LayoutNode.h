@@ -90,7 +90,11 @@ public:
 
 	// TODO: Currently, should only be used by `Context::SetDimensions`. Ideally, we would remove this and "commit" the
 	// containing block (without the layout result, see comment in `CommitLayout`).
-	void ClearCommittedLayout() { committed_layout.reset(); }
+	void ClearCommittedLayout()
+	{
+		committed_layout.reset();
+		committed_max_content_width.reset();
+	}
 
 	bool CommittedLayoutMatches(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box) const
 	{
@@ -122,6 +126,10 @@ public:
 		return override_box->GetSize() == compare_size;
 	}
 
+	Optional<float> GetMaxContentWidthIfCached() const { return committed_max_content_width; }
+	void CommitMaxContentWidth(float width) { committed_max_content_width = width; }
+
+	// TODO: Remove and replace with a better interface.
 	const Optional<CommittedLayout>& GetCommittedLayout() const { return committed_layout; }
 
 	// A.k.a. reflow root.
@@ -140,6 +148,7 @@ private:
 	Vector2f containing_block;
 
 	Optional<CommittedLayout> committed_layout;
+	Optional<float> committed_max_content_width;
 };
 
 } // namespace Rml
