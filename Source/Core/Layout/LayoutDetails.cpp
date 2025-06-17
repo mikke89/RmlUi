@@ -232,6 +232,9 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 		return box.GetSize().x;
 	}
 
+	// Max-content width should be calculated without any vertical constraint.
+	box.SetContent(Vector2f(box.GetSize().x, -1.f));
+
 	// Currently we don't support shrink-to-fit width for tables. Just return a zero-sized width.
 	const Style::Display display = element->GetDisplay();
 	if (display == Style::Display::Table || display == Style::Display::InlineTable)
@@ -252,7 +255,7 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	// width. For block containers, this is essentially its largest line or child box.
 	// @performance. Some formatting can be simplified, e.g. absolute elements do not contribute to the shrink-to-fit
 	// width. Also, children of elements with a fixed width and height don't need to be formatted further.
-	RootBox root(Box(Math::Max(containing_block, Vector2f(0.f))), formatting_mode);
+	RootBox root(Box(Vector2f(-1.f)), formatting_mode);
 	UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(&root, element, &box, FormattingContextType::Block);
 
 	float shrink_to_fit_width = layout_box->GetShrinkToFitWidth();
