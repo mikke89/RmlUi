@@ -104,7 +104,7 @@ void InputTypeRadio::PopRadioSet()
 	//If no containing form was found, use the containing document as the parent
 	if (parent == nullptr)
 	{
-		parent = static_cast<Element*>(element->GetOwnerDocument());
+		parent = rmlui_dynamic_cast<Element*>(element->GetOwnerDocument());
 		stop_tag = "form"; // Don't include any radios that are inside form elements
 	}
 
