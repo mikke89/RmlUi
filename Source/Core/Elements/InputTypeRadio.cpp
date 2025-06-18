@@ -94,6 +94,7 @@ bool InputTypeRadio::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 void InputTypeRadio::PopRadioSet()
 {
 	// Uncheck all other radio buttons with our name in the form.
+	String stop_tag;
 	Element* parent = element->GetParentNode();
 	Element* prevParent = element->GetParentNode();
 	while (parent != nullptr && rmlui_dynamic_cast<ElementForm*>(parent) == nullptr)
@@ -102,13 +103,17 @@ void InputTypeRadio::PopRadioSet()
 		parent = parent->GetParentNode();
 	}
 
+	//If no containing form was found, use top-most parent
 	if (parent == nullptr && prevParent != nullptr)
+	{
 		parent = prevParent;
+		stop_tag = "form"; // Don't include any radios that are inside form elements
+	}
 
 	if (parent != nullptr)
 	{
 		ElementList form_controls;
-		ElementUtilities::GetElementsByTagName(form_controls, parent, "input", "form");
+		ElementUtilities::GetElementsByTagName(form_controls, parent, "input", stop_tag);
 
 		for (size_t i = 0; i < form_controls.size(); ++i)
 		{
