@@ -108,7 +108,7 @@ void InputTypeRadio::PopRadioSet()
 	if (parent != nullptr)
 	{
 		ElementList form_controls;
-		ElementUtilities::GetElementsByTagName(form_controls, parent, "input");
+		ElementUtilities::GetElementsByTagName(form_controls, parent, "input", "form");
 
 		for (size_t i = 0; i < form_controls.size(); ++i)
 		{
