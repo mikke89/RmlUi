@@ -525,7 +525,7 @@ such as filters. They are used both as input and output during rendering, and do
 		const Gfx::FramebufferData& GetLayer(Rml::LayerHandle layer) const;
 		const Gfx::FramebufferData& GetTopLayer() const;
 		const Gfx::FramebufferData& Get_SharedDepthStencil_Layers();
-		const Gfx::FramebufferData& Get_SharedDepthStencil_Postprocess();
+	//	const Gfx::FramebufferData& Get_SharedDepthStencil_Postprocess();
 		Rml::LayerHandle GetTopLayerHandle() const;
 
 		const Gfx::FramebufferData& GetPostprocessPrimary() { return EnsureFramebufferPostprocess(0); }
@@ -555,7 +555,6 @@ such as filters. They are used both as input and output during rendering, and do
 		BufferMemoryManager* m_p_manager_buffer;
 		ID3D12Device* m_p_device;
 		Gfx::FramebufferData* m_p_depth_stencil_for_layers;
-		Gfx::FramebufferData* m_p_depth_stencil_for_postprocess;
 		Rml::Vector<Gfx::FramebufferData> m_fb_layers;
 		Rml::Vector<Gfx::FramebufferData> m_fb_postprocess;
 	};
@@ -732,10 +731,12 @@ private:
 		const Rml::Rectanglei window_flipped);
 
 	void DrawFullscreenQuad(ConstantBufferType* p_override_constant_buffer = nullptr);
-	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f));
+	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f), ConstantBufferType* p_override_constant_buffer = nullptr);
 
 	void BindTexture(TextureHandleType* p_texture, UINT root_parameter_index = 0);
 	void BindRenderTarget(const Gfx::FramebufferData& framebuffer, bool depth_included = true);
+
+	void OverrideConstantBufferOfGeometry(Rml::CompiledGeometryHandle geometry, ConstantBufferType* p_override_constant_buffer);
 
 	// 1 means not supported
 	// otherwise return max value of supported multisample count
@@ -760,7 +761,9 @@ private:
 	bool m_is_use_msaa;
 	unsigned char m_msaa_sample_count;
 
+	/// @brief current viewport's width
 	int m_width;
+	/// @brief current viewport's height
 	int m_height;
 	int m_current_clip_operation;
 	ProgramId m_active_program_id;
@@ -787,8 +790,8 @@ private:
 	ID3D12Fence* m_p_backbuffer_fence;
 	IDXGIAdapter* m_p_adapter;
 
-	ID3D12PipelineState* m_pipelines[21];
-	ID3D12RootSignature* m_root_signatures[21];
+	ID3D12PipelineState* m_pipelines[22];
+	ID3D12RootSignature* m_root_signatures[22];
 
 	ID3D12CommandAllocator* m_p_copy_allocator;
 	ID3D12GraphicsCommandList* m_p_copy_command_list;
