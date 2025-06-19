@@ -27,6 +27,7 @@
  */
 
 #include "InputTypeRadio.h"
+#include "../../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementForm.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControlInput.h"
@@ -94,15 +95,22 @@ bool InputTypeRadio::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 void InputTypeRadio::PopRadioSet()
 {
 	// Uncheck all other radio buttons with our name in the form.
-	ElementForm* form = nullptr;
+	String stop_tag;
 	Element* parent = element->GetParentNode();
-	while (parent != nullptr && (form = rmlui_dynamic_cast<ElementForm*>(parent)) == nullptr)
+	while (parent != nullptr && rmlui_dynamic_cast<ElementForm*>(parent) == nullptr)
 		parent = parent->GetParentNode();
 
-	if (form != nullptr)
+	//If no containing form was found, use the containing document as the parent
+	if (parent == nullptr)
+	{
+		parent = element->GetOwnerDocument();
+		stop_tag = "form"; // Don't include any radios that are inside form elements
+	}
+
+	if (parent != nullptr)
 	{
 		ElementList form_controls;
-		ElementUtilities::GetElementsByTagName(form_controls, form, "input");
+		ElementUtilities::GetElementsByTagName(form_controls, parent, "input", stop_tag);
 
 		for (size_t i = 0; i < form_controls.size(); ++i)
 		{
