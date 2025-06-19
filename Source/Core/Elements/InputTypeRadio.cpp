@@ -27,6 +27,7 @@
  */
 
 #include "InputTypeRadio.h"
+#include "../../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementForm.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControlInput.h"
@@ -104,7 +105,7 @@ void InputTypeRadio::PopRadioSet()
 	//If no containing form was found, use the containing document as the parent
 	if (parent == nullptr)
 	{
-		parent = rmlui_dynamic_cast<Element*>(element->GetOwnerDocument());
+		parent = element->GetOwnerDocument();
 		stop_tag = "form"; // Don't include any radios that are inside form elements
 	}
 
