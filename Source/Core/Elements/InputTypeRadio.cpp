@@ -98,9 +98,7 @@ void InputTypeRadio::PopRadioSet()
 	String stop_tag;
 	Element* parent = element->GetParentNode();
 	while (parent != nullptr && rmlui_dynamic_cast<ElementForm*>(parent) == nullptr)
-	{
 		parent = parent->GetParentNode();
-	}
 
 	//If no containing form was found, use the containing document as the parent
 	if (parent == nullptr)
