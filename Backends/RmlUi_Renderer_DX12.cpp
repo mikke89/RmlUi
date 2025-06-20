@@ -321,6 +321,28 @@ float4 main(const PS_Input IN) : SV_TARGET
 };
 )";
 
+constexpr const char pShaderSourceText_Pixel_BlendMask[] = RMLUI_SHADER_HEADER R"(
+Texture2D g_InputTexture : register(t0);
+
+Texture2D g_MaskTexture : register(t1);
+
+SamplerState g_SamplerLinear : register(s0);
+
+struct PS_INPUT
+{
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
+};
+
+float4 main(const PS_INPUT IN) : SV_TARGET
+{
+    float4 texColor = g_InputTexture.Sample(g_SamplerLinear, IN.uv);
+    float maskAlpha = g_MaskTexture.Sample(g_SamplerLinear, IN.uv).a;
+    return texColor * maskAlpha;
+};
+)";
+
 // AlignUp(314, 256) = 512
 template <typename T>
 static T AlignUp(T val, T alignment)
@@ -3297,15 +3319,83 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 				this->m_p_command_graphics_list->ResourceBarrier(1, bars);
 			}
 
+			this->m_manager_render_layer.SwapPostprocessPrimarySecondary();
+
 			break;
 		}
 		case FilterType::MaskImage:
 		{
+			UseProgram(ProgramId::BlendMask);
+
+			const Gfx::FramebufferData& source = m_manager_render_layer.GetPostprocessPrimary();
+			const Gfx::FramebufferData& blend_mask = m_manager_render_layer.GetBlendMask();
+			const Gfx::FramebufferData& destination = m_manager_render_layer.GetPostprocessSecondary();
+
+			{
+				ID3D12Resource* pBM = this->GetResourceFromFramebufferData(blend_mask);
+				ID3D12Resource* pDest = this->GetResourceFromFramebufferData(destination);
+
+				RMLUI_ASSERT(pBM && "failed to obtain resource from framebuffer blend_mask");
+				RMLUI_ASSERT(pDest && "failed to obtain resource from framebuffer destination");
+
+				D3D12_RESOURCE_BARRIER bars[2];
+
+				bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+				bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+				bars[0].Transition.pResource = pBM;
+				bars[0].Transition.Subresource = 0;
+				bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+				bars[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+				bars[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+				bars[1].Transition.pResource = pDest;
+				bars[1].Transition.Subresource = 0;
+				bars[1].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				bars[1].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+				this->m_p_command_graphics_list->ResourceBarrier(2, bars);
+			}
+
+			this->BindRenderTarget(destination);
+			this->BindTexture(source.Get_Texture(), 0);
+			this->BindTexture(blend_mask.Get_Texture(), 1);
+
+			DrawFullscreenQuad();
+
+			{
+				ID3D12Resource* pBM = this->GetResourceFromFramebufferData(blend_mask);
+				ID3D12Resource* pDest = this->GetResourceFromFramebufferData(destination);
+
+				RMLUI_ASSERT(pBM && "failed to obtain resource from framebuffer blend_mask");
+				RMLUI_ASSERT(pDest && "failed to obtain resource from framebuffer destination");
+
+				D3D12_RESOURCE_BARRIER bars[2];
+
+				bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+				bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+				bars[0].Transition.pResource = pBM;
+				bars[0].Transition.Subresource = 0;
+				bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+				bars[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+				bars[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+				bars[1].Transition.pResource = pDest;
+				bars[1].Transition.Subresource = 0;
+				bars[1].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				bars[1].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+				this->m_p_command_graphics_list->ResourceBarrier(2, bars);
+			}
+
+			this->m_manager_render_layer.SwapPostprocessPrimarySecondary();
+
 			break;
 		}
 		case FilterType::Invalid:
 		{
-			Rml::Log::Message(Rml::Log::LT_WARNING, "Unhandled render filter: %d", static_cast<int>(type));
+			Rml::Log::Message(Rml::Log::LT_WARNING, "Invalid (Unhandled) render filter: %d", static_cast<int>(type));
 			break;
 		}
 		default:
@@ -6306,6 +6396,230 @@ void RenderInterface_DX12::Create_Resource_Pipeline_ColorMatrix()
 void RenderInterface_DX12::Create_Resource_Pipeline_BlendMask()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Create_Resource_Pipeline_BlendMask");
+
+	RMLUI_ASSERT(this->m_p_device && "must be valid when we call this method!");
+	RMLUI_ASSERT(Rml::GetFileInterface() && "must be valid when we call this method!");
+
+	auto* p_filesystem = Rml::GetFileInterface();
+
+	if (this->m_p_device && p_filesystem)
+	{
+		D3D12_DESCRIPTOR_RANGE ranges[1];
+		ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		ranges[0].NumDescriptors = 2;
+		ranges[0].BaseShaderRegister = 0;
+		ranges[0].RegisterSpace = 0;
+		ranges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+		D3D12_ROOT_DESCRIPTOR_TABLE table{};
+		table.NumDescriptorRanges = sizeof(ranges) / sizeof(decltype(ranges[0]));
+		table.pDescriptorRanges = ranges;
+
+		D3D12_ROOT_PARAMETER parameters[1];
+
+		parameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		parameters[0].DescriptorTable = table;
+		parameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+		D3D12_STATIC_SAMPLER_DESC sampler = {};
+		sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+		sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		sampler.MipLODBias = 0;
+		sampler.MaxAnisotropy = 0;
+		sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+		sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+		sampler.MinLOD = 0.0f;
+		sampler.MaxLOD = D3D12_FLOAT32_MAX;
+		sampler.ShaderRegister = 0;
+		sampler.RegisterSpace = 0;
+		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+		desc_rootsignature.NumParameters = _countof(parameters);
+		desc_rootsignature.pParameters = parameters;
+		desc_rootsignature.NumStaticSamplers = 1;
+		desc_rootsignature.pStaticSamplers = &sampler;
+
+		ID3DBlob* p_signature{};
+		ID3DBlob* p_error{};
+		auto status = D3D12SerializeRootSignature(&desc_rootsignature, D3D_ROOT_SIGNATURE_VERSION_1, &p_signature, &p_error);
+	#ifdef RMLUI_DX_DEBUG
+		if (FAILED(status))
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12][ERROR] failed to D3D12SerializeRootSignature: %s",
+				(char*)p_error->GetBufferPointer());
+		}
+	#endif
+		RMLUI_DX_ASSERTMSG(status, "failed to D3D12SerializeRootSignature");
+
+		status = this->m_p_device->CreateRootSignature(0, p_signature->GetBufferPointer(), p_signature->GetBufferSize(),
+			IID_PPV_ARGS(&this->m_root_signatures[static_cast<int>(ProgramId::BlendMask)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateRootSignature");
+
+		if (p_signature)
+		{
+			p_signature->Release();
+			p_signature = nullptr;
+		}
+
+		if (p_error)
+		{
+			p_error->Release();
+			p_error = nullptr;
+		}
+
+		ID3DBlob* p_shader_vertex{};
+		ID3DBlob* p_shader_pixel{};
+		ID3DBlob* p_error_buff{};
+
+		const D3D_SHADER_MACRO macros[] = {NULL, NULL, NULL, NULL};
+
+		status = D3DCompile(pShaderSourceText_Vertex_PassThrough, sizeof(pShaderSourceText_Vertex_PassThrough), nullptr, macros, nullptr, "main",
+			"vs_5_0", this->m_default_shader_flags, 0, &p_shader_vertex, &p_error_buff);
+		RMLUI_DX_ASSERTMSG(status, "failed to D3DCompile");
+
+	#ifdef RMLUI_DX_DEBUG
+		if (FAILED(status))
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12][ERROR] failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
+		}
+	#endif
+
+		if (p_error_buff)
+		{
+			p_error_buff->Release();
+			p_error_buff = nullptr;
+		}
+
+		status = D3DCompile(pShaderSourceText_Pixel_BlendMask, sizeof(pShaderSourceText_Pixel_BlendMask), nullptr, nullptr, nullptr, "main",
+			"ps_5_0", this->m_default_shader_flags, 0, &p_shader_pixel, &p_error_buff);
+	#ifdef RMLUI_DX_DEBUG
+		if (FAILED(status))
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12][ERROR] failed to compile shader: %s",
+				(char*)(p_error_buff->GetBufferPointer()));
+		}
+	#endif
+		RMLUI_DX_ASSERTMSG(status, "failed to D3DCompile");
+
+		if (p_error_buff)
+		{
+			p_error_buff->Release();
+			p_error_buff = nullptr;
+		}
+
+		D3D12_SHADER_BYTECODE desc_bytecode_pixel_shader = {};
+		desc_bytecode_pixel_shader.BytecodeLength = p_shader_pixel->GetBufferSize();
+		desc_bytecode_pixel_shader.pShaderBytecode = p_shader_pixel->GetBufferPointer();
+
+		D3D12_SHADER_BYTECODE desc_bytecode_vertex_shader = {};
+		desc_bytecode_vertex_shader.BytecodeLength = p_shader_vertex->GetBufferSize();
+		desc_bytecode_vertex_shader.pShaderBytecode = p_shader_vertex->GetBufferPointer();
+
+		D3D12_INPUT_ELEMENT_DESC desc_input_layout_elements[] = {
+			{"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+			{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 8, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+			{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}};
+
+		D3D12_INPUT_LAYOUT_DESC desc_input_layout = {};
+
+		desc_input_layout.NumElements = sizeof(desc_input_layout_elements) / sizeof(D3D12_INPUT_ELEMENT_DESC);
+		desc_input_layout.pInputElementDescs = desc_input_layout_elements;
+
+		D3D12_RASTERIZER_DESC desc_rasterizer = {};
+
+		desc_rasterizer.AntialiasedLineEnable = FALSE;
+		desc_rasterizer.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+		desc_rasterizer.CullMode = D3D12_CULL_MODE_NONE;
+		desc_rasterizer.DepthBias = 0;
+		desc_rasterizer.DepthBiasClamp = 0;
+		desc_rasterizer.DepthClipEnable = FALSE;
+		desc_rasterizer.ForcedSampleCount = 0;
+		desc_rasterizer.FrontCounterClockwise = FALSE;
+		desc_rasterizer.MultisampleEnable = FALSE;
+		desc_rasterizer.FillMode = D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID;
+		desc_rasterizer.SlopeScaledDepthBias = 0;
+
+		D3D12_BLEND_DESC desc_blend_state = {};
+
+		desc_blend_state.AlphaToCoverageEnable = FALSE;
+		desc_blend_state.IndependentBlendEnable = FALSE;
+		const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc = {
+			FALSE,
+			FALSE,
+	#ifdef RMLUI_PREMULTIPLIED_ALPHA
+			D3D12_BLEND_ONE,
+	#else
+			D3D12_BLEND_SRC_ALPHA,
+	#endif
+			D3D12_BLEND_INV_SRC_ALPHA,
+			D3D12_BLEND_OP_ADD,
+	#ifdef RMLUI_PREMULTIPLIED_ALPHA
+			D3D12_BLEND_ONE,
+	#else
+			D3D12_BLEND_SRC_ALPHA,
+	#endif
+			D3D12_BLEND_INV_SRC_ALPHA,
+			D3D12_BLEND_OP_ADD,
+			D3D12_LOGIC_OP_NOOP,
+			D3D12_COLOR_WRITE_ENABLE_ALL,
+		};
+		for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+			desc_blend_state.RenderTarget[i] = defaultRenderTargetBlendDesc;
+
+		D3D12_DEPTH_STENCIL_DESC desc_depth_stencil = {};
+
+		desc_depth_stencil.DepthEnable = FALSE;
+		desc_depth_stencil.StencilEnable = TRUE;
+		desc_depth_stencil.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+		desc_depth_stencil.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		desc_depth_stencil.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+		desc_depth_stencil.StencilWriteMask = 0;
+
+		desc_depth_stencil.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_EQUAL;
+		desc_depth_stencil.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+
+		desc_depth_stencil.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_EQUAL;
+		desc_depth_stencil.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc_pipeline = {};
+
+		desc_pipeline.InputLayout = desc_input_layout;
+		desc_pipeline.pRootSignature = this->m_root_signatures[static_cast<int>(ProgramId::BlendMask)];
+		desc_pipeline.VS = desc_bytecode_vertex_shader;
+		desc_pipeline.PS = desc_bytecode_pixel_shader;
+		desc_pipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		desc_pipeline.RTVFormats[0] = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
+		desc_pipeline.DSVFormat = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+
+		//	desc_pipeline.SampleDesc = this->m_desc_sample;
+		desc_pipeline.SampleDesc.Count = 1;
+		desc_pipeline.SampleDesc.Quality = 0;
+
+		desc_pipeline.SampleMask = 0xffffffff;
+		desc_pipeline.RasterizerState = desc_rasterizer;
+		desc_pipeline.BlendState = desc_blend_state;
+		desc_pipeline.NumRenderTargets = 1;
+		desc_pipeline.DepthStencilState = desc_depth_stencil;
+
+		status =
+			this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline, IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::BlendMask)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (BlendMask)");
+
+	#ifdef RMLUI_DX_DEBUG
+		this->m_root_signatures[static_cast<int>(ProgramId::BlendMask)]->SetName(TEXT("rs of BlendMask"));
+		this->m_pipelines[static_cast<int>(ProgramId::BlendMask)]->SetName(TEXT("pipeline BlendMask"));
+	#endif
+	}
 }
 
 void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
