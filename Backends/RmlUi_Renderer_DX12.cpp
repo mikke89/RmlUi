@@ -89,6 +89,8 @@ float4 main(const VS_INPUT IN) : SV_TARGET
 	return IN.color; 
 }
 )";
+
+// main
 constexpr const char pShaderSourceText_Vertex[] = R"(
 struct VS_INPUT 
 {
@@ -340,6 +342,89 @@ float4 main(const PS_INPUT IN) : SV_TARGET
     float4 texColor = g_InputTexture.Sample(g_SamplerLinear, IN.uv);
     float maskAlpha = g_MaskTexture.Sample(g_SamplerLinear, IN.uv).a;
     return texColor * maskAlpha;
+};
+)";
+
+	// We need to round up at compile-time so that we can address each element of the float4s
+	#define CEILING(x, y) (((x) + (y) - 1) / (y))
+constexpr const char pShaderSourceText_Pixel_Gradient[] =
+	RMLUI_SHADER_HEADER "#define MAX_NUM_STOPS_PACKED (uint)" RMLUI_STRINGIFY(CEILING(MAX_NUM_STOPS, 4)) R"(
+#define LINEAR 0
+#define RADIAL 1
+#define CONIC 2
+#define REPEATING_LINEAR 3
+#define REPEATING_RADIAL 4
+#define REPEATING_CONIC 5
+#define PI 3.14159265
+
+cbuffer SharedConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_translate;
+
+    // One to one translation of the OpenGL uniforms results in a LOT of wasted space due to CBuffer alignment rules.
+    // Changes from GL3:
+    // - Moved m_num_stops below m_func (saved 4 bytes of padding).
+    // - Packed m_stop_positions into a float4[MAX_NUM_STOPS / 4] array, as each array element starts a new 16-byte row.
+    // The below layout has 0 bytes of padding.
+
+    int m_func;   // one of the above definitions
+    int m_num_stops;
+    float2 m_p;   // linear: starting point,         radial: center,                        conic: center
+    float2 m_v;   // linear: vector to ending point, radial: 2d curvature (inverse radius), conic: angled unit vector
+    float4 m_stop_colors[MAX_NUM_STOPS];
+    float4 m_stop_positions[MAX_NUM_STOPS_PACKED]; // normalized, 0 -> starting point, 1 -> ending point
+};
+
+// Hide the way the data is packed in the cbuffer through a macro
+// @NOTE: Hardcoded for MAX_NUM_STOPS 16.
+//        i >> 2 => i >> sqrt(MAX_NUM_STOPS)
+#define GET_STOP_POS(i) (m_stop_positions[i >> 2][i & 3])
+
+struct PS_INPUT
+{
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
+};
+
+#define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
+
+float4 lerp_stop_colors(float t) {
+    float4 color = m_stop_colors[0];
+
+    for (int i = 1; i < m_num_stops; i++)
+        color = lerp(color, m_stop_colors[i], smoothstep(GET_STOP_POS(i-1), GET_STOP_POS(i), t));
+
+    return color;
+};
+
+float4 main(const PS_INPUT IN) : SV_TARGET
+{
+    float t = 0.0;
+
+    if (m_func == LINEAR || m_func == REPEATING_LINEAR) {
+        float dist_square = dot(m_v, m_v);
+        float2 V = IN.uv.xy - m_p;
+        t = dot(m_v, V) / dist_square;
+    }
+    else if (m_func == RADIAL || m_func == REPEATING_RADIAL) {
+        float2 V = IN.uv.xy - m_p;
+        t = length(m_v * V);
+    }
+    else if (m_func == CONIC || m_func == REPEATING_CONIC) {
+        float2x2 R = float2x2(m_v.x, -m_v.y, m_v.y, m_v.x);
+        float2 V = mul((IN.uv.xy - m_p), R);
+        t = 0.5 + atan2(-V.x, V.y) / (2.0 * PI);
+    }
+
+    if (m_func == REPEATING_LINEAR || m_func == REPEATING_RADIAL || m_func == REPEATING_CONIC) {
+        float t0 = GET_STOP_POS(0);
+        float t1 = GET_STOP_POS(m_num_stops - 1);
+        t = t0 + glsl_mod(t - t0, t1 - t0);
+    }
+
+    return IN.color * lerp_stop_colors(t);
 };
 )";
 
@@ -3712,6 +3797,127 @@ void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle,
 	{
 	case CompiledShaderType::Gradient:
 	{
+		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "Gradient");
+
+		RMLUI_ASSERT(shader.stop_positions.size() == shader.stop_colors.size());
+		const int num_stops = (int)shader.stop_positions.size();
+
+		UseProgram(ProgramId::Gradient);
+		ConstantBufferType* p_cb = this->Get_ConstantBuffer(this->m_current_back_buffer_index);
+		RMLUI_ASSERT(p_cb && "failed to obtain constant buffer for gradient");
+
+		struct CBV_Gradient {
+			Rml::Matrix4f transform;
+			Rml::Vector2f translate;
+
+			int func;
+			int num_stops;
+			Rml::Vector2f starting_point;
+			Rml::Vector2f ending_point;
+			Rml::Vector4f stop_colors[MAX_NUM_STOPS];
+			float stop_positions[MAX_NUM_STOPS];
+		};
+
+		if (p_cb)
+		{
+			std::uint8_t* p_cb_begin = reinterpret_cast<std::uint8_t*>(p_cb->Get_GPU_StartMemoryForBindingData());
+			RMLUI_ASSERT(p_cb_begin && "ConstantBuffer must contain valid pointer to begin of gpu binding pointer for uploading data from CPU!");
+
+			if (p_cb_begin)
+			{
+				std::uint8_t* p_cb_begin_real = p_cb_begin + p_cb->Get_AllocInfo().Get_Offset();
+				RMLUI_ASSERT(p_cb_begin_real && "failed to offset gpu begin pointer for constant buffer!");
+
+				if (p_cb_begin_real)
+				{
+					CBV_Gradient* p_casted = reinterpret_cast<CBV_Gradient*>(p_cb_begin_real);
+
+					p_casted->transform = this->m_constant_buffer_data_transform;
+					p_casted->translate = translation;
+					p_casted->func = (int)(shader.gradient_function);
+					p_casted->starting_point = shader.p;
+					p_casted->ending_point = shader.v;
+					p_casted->num_stops = num_stops;
+					std::memset(p_casted->stop_positions, 0, sizeof(CBV_Gradient::stop_positions));
+					std::memset(p_casted->stop_colors, 0, sizeof(CBV_Gradient::stop_colors));
+
+					std::memcpy(&p_casted->stop_positions, shader.stop_positions.data(), num_stops * sizeof(float));
+					std::memcpy(&p_casted->stop_colors, shader.stop_colors.data(), num_stops * sizeof(Rml::Vector4f));
+				}
+			}
+		}
+
+		if (p_cb)
+		{
+			auto* p_dx_constant_buffer = this->m_manager_buffer.Get_BufferByIndex(p_cb->Get_AllocInfo().Get_BufferIndex());
+			RMLUI_ASSERT(p_dx_constant_buffer && "must be valid!");
+
+			if (p_dx_constant_buffer)
+			{
+				auto* p_dx_resource = p_dx_constant_buffer->GetResource();
+
+				RMLUI_ASSERT(p_dx_resource && "must be valid!");
+
+				if (p_dx_resource)
+				{
+					D3D12_GPU_VIRTUAL_ADDRESS one_shared_cbv_for_different_shaders_address =
+						p_dx_resource->GetGPUVirtualAddress() + p_cb->Get_AllocInfo().Get_Offset();
+
+					this->m_p_command_graphics_list->SetGraphicsRootConstantBufferView(0, one_shared_cbv_for_different_shaders_address);
+					this->m_p_command_graphics_list->SetGraphicsRootConstantBufferView(1, one_shared_cbv_for_different_shaders_address);
+				}
+			}
+		}
+
+		this->m_p_command_graphics_list->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		auto* p_dx_buffer_vertex = this->m_manager_buffer.Get_BufferByIndex(geometry->Get_InfoVertex().Get_BufferIndex());
+
+		RMLUI_ASSERT(p_dx_buffer_vertex && "must be valid!");
+		if (p_dx_buffer_vertex)
+		{
+			auto* p_dx_resource = p_dx_buffer_vertex->GetResource();
+
+			RMLUI_ASSERT(p_dx_resource && "must be valid!");
+
+			if (p_dx_resource)
+			{
+				D3D12_VERTEX_BUFFER_VIEW view_vertex_buffer = {};
+
+				view_vertex_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + geometry->Get_InfoVertex().Get_Offset();
+				view_vertex_buffer.StrideInBytes = sizeof(Rml::Vertex);
+				view_vertex_buffer.SizeInBytes = static_cast<UINT>(geometry->Get_InfoVertex().Get_Size());
+
+				this->m_p_command_graphics_list->IASetVertexBuffers(0, 1, &view_vertex_buffer);
+			}
+		}
+
+		auto* p_dx_buffer_index = this->m_manager_buffer.Get_BufferByIndex(geometry->Get_InfoIndex().Get_BufferIndex());
+
+		RMLUI_ASSERT(p_dx_buffer_index && "must be valid!");
+
+		if (p_dx_buffer_index)
+		{
+			auto* p_dx_resource = p_dx_buffer_index->GetResource();
+
+			RMLUI_ASSERT(p_dx_resource && "must be valid!");
+
+			if (p_dx_resource)
+			{
+				D3D12_INDEX_BUFFER_VIEW view_index_buffer = {};
+
+				view_index_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + geometry->Get_InfoIndex().Get_Offset();
+				view_index_buffer.Format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT;
+				view_index_buffer.SizeInBytes = geometry->Get_InfoIndex().Get_Size();
+
+				this->m_p_command_graphics_list->IASetIndexBuffer(&view_index_buffer);
+			}
+		}
+
+		this->m_p_command_graphics_list->DrawIndexedInstanced(geometry->Get_NumIndecies(), 1, 0, 0, 0);
+
+
+		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
+
 		break;
 	}
 	case CompiledShaderType::Creation:
@@ -5414,6 +5620,190 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Texture()
 void RenderInterface_DX12::Create_Resource_Pipeline_Gradient()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Create_Resource_Pipeline_Gradient");
+
+	RMLUI_ASSERT(this->m_p_device && "must be valid when we call this method!");
+	RMLUI_ASSERT(Rml::GetFileInterface() && "must be valid when we call this method!");
+
+	auto* p_filesystem = Rml::GetFileInterface();
+
+	if (this->m_p_device && p_filesystem)
+	{
+		D3D12_ROOT_DESCRIPTOR descriptor_cbv{};
+		descriptor_cbv.RegisterSpace = 0;
+		descriptor_cbv.ShaderRegister = 0;
+		D3D12_ROOT_PARAMETER parameters[2];
+
+		parameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+		parameters[0].Descriptor = descriptor_cbv;
+		parameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+		parameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+		parameters[1].Descriptor = descriptor_cbv;
+		parameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+		desc_rootsignature.NumStaticSamplers = 0;
+		desc_rootsignature.pParameters = parameters;
+		desc_rootsignature.NumParameters = _countof(parameters);
+		desc_rootsignature.pStaticSamplers = nullptr;
+
+		ID3DBlob* p_signature{};
+		ID3DBlob* p_error{};
+		auto status = D3D12SerializeRootSignature(&desc_rootsignature, D3D_ROOT_SIGNATURE_VERSION_1, &p_signature, &p_error);
+		RMLUI_DX_ASSERTMSG(status, "failed to D3D12SerializeRootSignature");
+
+		status = this->m_p_device->CreateRootSignature(0, p_signature->GetBufferPointer(), p_signature->GetBufferSize(),
+			IID_PPV_ARGS(&this->m_root_signatures[static_cast<int>(ProgramId::Gradient)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateRootSignature");
+
+		if (p_signature)
+		{
+			p_signature->Release();
+			p_signature = nullptr;
+		}
+
+		if (p_error)
+		{
+			p_error->Release();
+			p_error = nullptr;
+		}
+
+		ID3DBlob* p_shader_vertex{};
+		ID3DBlob* p_shader_pixel{};
+		ID3DBlob* p_error_buff{};
+
+		status = D3DCompile(pShaderSourceText_Vertex, sizeof(pShaderSourceText_Vertex), nullptr, nullptr, nullptr, "main", "vs_5_0",
+			this->m_default_shader_flags, 0, &p_shader_vertex, &p_error_buff);
+		RMLUI_DX_ASSERTMSG(status, "failed to D3DCompile");
+
+	#ifdef RMLUI_DX_DEBUG
+		if (FAILED(status))
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
+		}
+	#endif
+
+		if (p_error_buff)
+		{
+			p_error_buff->Release();
+			p_error_buff = nullptr;
+		}
+
+		status = D3DCompile(pShaderSourceText_Pixel_Gradient, sizeof(pShaderSourceText_Pixel_Gradient), nullptr, nullptr, nullptr, "main", "ps_5_0",
+			this->m_default_shader_flags, 0, &p_shader_pixel, &p_error_buff);
+		RMLUI_DX_ASSERTMSG(status, "failed to D3DCompile");
+
+	#ifdef RMLUI_DX_DEBUG
+		if (FAILED(status))
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)(p_error_buff->GetBufferPointer()));
+		}
+	#endif
+
+		if (p_error_buff)
+		{
+			p_error_buff->Release();
+			p_error_buff = nullptr;
+		}
+
+		D3D12_SHADER_BYTECODE desc_bytecode_pixel_shader = {};
+		desc_bytecode_pixel_shader.BytecodeLength = p_shader_pixel->GetBufferSize();
+		desc_bytecode_pixel_shader.pShaderBytecode = p_shader_pixel->GetBufferPointer();
+
+		D3D12_SHADER_BYTECODE desc_bytecode_vertex_shader = {};
+		desc_bytecode_vertex_shader.BytecodeLength = p_shader_vertex->GetBufferSize();
+		desc_bytecode_vertex_shader.pShaderBytecode = p_shader_vertex->GetBufferPointer();
+
+		D3D12_INPUT_ELEMENT_DESC desc_input_layout_elements[] = {
+			{"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+			{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 8, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+			{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}};
+
+		D3D12_INPUT_LAYOUT_DESC desc_input_layout = {};
+
+		desc_input_layout.NumElements = sizeof(desc_input_layout_elements) / sizeof(D3D12_INPUT_ELEMENT_DESC);
+		desc_input_layout.pInputElementDescs = desc_input_layout_elements;
+
+		D3D12_RASTERIZER_DESC desc_rasterizer = {};
+
+		desc_rasterizer.FillMode = D3D12_FILL_MODE_SOLID;
+		desc_rasterizer.CullMode = D3D12_CULL_MODE_NONE;
+		desc_rasterizer.FrontCounterClockwise = FALSE;
+		desc_rasterizer.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+		desc_rasterizer.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+		desc_rasterizer.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+		desc_rasterizer.DepthClipEnable = FALSE;
+		desc_rasterizer.MultisampleEnable = FALSE;
+		desc_rasterizer.AntialiasedLineEnable = FALSE;
+		desc_rasterizer.ForcedSampleCount = 0;
+		desc_rasterizer.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+		D3D12_BLEND_DESC desc_blend_state = {};
+
+		desc_blend_state.AlphaToCoverageEnable = FALSE;
+		desc_blend_state.IndependentBlendEnable = FALSE;
+		const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc = {
+			TRUE,
+			FALSE,
+			D3D12_BLEND_ONE,
+			D3D12_BLEND_INV_SRC_ALPHA,
+			D3D12_BLEND_OP_ADD,
+			D3D12_BLEND_ONE,
+			D3D12_BLEND_INV_SRC_ALPHA,
+			D3D12_BLEND_OP_ADD,
+			D3D12_LOGIC_OP_NOOP,
+			D3D12_COLOR_WRITE_ENABLE_ALL,
+		};
+		for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+			desc_blend_state.RenderTarget[i] = defaultRenderTargetBlendDesc;
+
+		D3D12_DEPTH_STENCIL_DESC desc_depth_stencil = {};
+
+		desc_depth_stencil.DepthEnable = FALSE;
+		desc_depth_stencil.StencilEnable = TRUE;
+		desc_depth_stencil.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+		desc_depth_stencil.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		desc_depth_stencil.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+		desc_depth_stencil.StencilWriteMask = 0x0;
+
+		desc_depth_stencil.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		desc_depth_stencil.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+
+		desc_depth_stencil.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		desc_depth_stencil.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc_pipeline = {};
+
+		desc_pipeline.InputLayout = desc_input_layout;
+		desc_pipeline.pRootSignature = this->m_root_signatures[static_cast<int>(ProgramId::Gradient)];
+		desc_pipeline.VS = desc_bytecode_vertex_shader;
+		desc_pipeline.PS = desc_bytecode_pixel_shader;
+		desc_pipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		desc_pipeline.RTVFormats[0] = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
+		desc_pipeline.DSVFormat = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
+		desc_pipeline.SampleDesc = this->m_desc_sample;
+		desc_pipeline.SampleMask = 0xffffffff;
+		desc_pipeline.RasterizerState = desc_rasterizer;
+		desc_pipeline.BlendState = desc_blend_state;
+		desc_pipeline.DepthStencilState = desc_depth_stencil;
+		desc_pipeline.NumRenderTargets = 1;
+
+		status =
+			this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline, IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Gradient)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Gradient)");
+
+	#ifdef RMLUI_DX_DEBUG
+		this->m_root_signatures[static_cast<int>(ProgramId::Gradient)]->SetName(TEXT("rs of Gradient"));
+		this->m_pipelines[static_cast<int>(ProgramId::Gradient)]->SetName(TEXT("pipeline Gradient"));
+	#endif
+	}
 }
 
 void RenderInterface_DX12::Create_Resource_Pipeline_Creation()
@@ -6496,8 +6886,8 @@ void RenderInterface_DX12::Create_Resource_Pipeline_BlendMask()
 			p_error_buff = nullptr;
 		}
 
-		status = D3DCompile(pShaderSourceText_Pixel_BlendMask, sizeof(pShaderSourceText_Pixel_BlendMask), nullptr, nullptr, nullptr, "main",
-			"ps_5_0", this->m_default_shader_flags, 0, &p_shader_pixel, &p_error_buff);
+		status = D3DCompile(pShaderSourceText_Pixel_BlendMask, sizeof(pShaderSourceText_Pixel_BlendMask), nullptr, nullptr, nullptr, "main", "ps_5_0",
+			this->m_default_shader_flags, 0, &p_shader_pixel, &p_error_buff);
 	#ifdef RMLUI_DX_DEBUG
 		if (FAILED(status))
 		{
