@@ -1062,48 +1062,16 @@ void RenderInterface_DX12::BeginFrame()
 
 		this->m_stencil_ref_value = 0;
 
-		// TODO: я не должен устанавливать здесь backbuffer который из свапчейна, а смотреть код GL3 реализации
-		//	this->m_p_command_graphics_list->OMSetRenderTargets(1, &handle_rtv, FALSE, &handle_dsv);
-
 		D3D12_RECT scissor;
-
-		/*
-		if (!this->m_is_scissor_was_set)
-		{
-		    scissor.left = 0;
-		    scissor.top = 0;
-		    scissor.right = this->m_width;
-		    scissor.bottom = this->m_height;
-		}
-		else
-		{
-		    RMLUI_ASSERT(this->m_scissor.Valid() &&
-		        "must be valid! it means that SetScissor was called and we apply these changes and scissor always set valid region, if it was called "
-		        "by makeinvalid we just use default (directx-12 forced for using scissor test always so we always have to set scissors)");
-
-		    scissor.left = this->m_scissor.Left();
-		    scissor.right = this->m_width;
-		    scissor.bottom = this->m_height;
-		    scissor.top = this->m_height - this->m_scissor.Bottom();
-		    this->m_is_scissor_was_set = false;
-		}
-		*/
 
 		if (this->m_is_scissor_was_set)
 		{
 			this->m_is_scissor_was_set = false;
 		}
 
-		//
-		//	this->m_is_scissor_was_set = false;
 		this->SetTransform(nullptr);
 
 		this->m_manager_render_layer.BeginFrame(this->m_width, this->m_height);
-
-		//		auto* p_handle_rtv = &this->m_manager_render_layer.GetTopLayer().Get_DescriptorResourceView();
-		//		auto* p_handle_dsv = &this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
-
-		//		this->m_p_command_graphics_list->OMSetRenderTargets(1, p_handle_rtv, FALSE, p_handle_dsv);
 
 		this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
 
@@ -1115,7 +1083,6 @@ void RenderInterface_DX12::BeginFrame()
 
 		this->UseProgram(ProgramId::None);
 		this->m_is_stencil_equal = false;
-		//	this->m_program_state_transform_dirty.set();
 
 		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 	}
@@ -1131,12 +1098,9 @@ void RenderInterface_DX12::EndFrame()
 	RMLUI_ASSERT(this->m_p_command_graphics_list && "Must be allocated and initialzied. Probably early calling!");
 	RMLUI_ASSERT(this->m_p_command_queue && "Must be allocated and initialzied. Probably early calling!");
 
-	// TODO: здесь я должен выставлять backbuffer из свапчейна и при этом делать резолв для последнего постпроцесса (см. код реализации GL3)
 	if (this->m_p_command_graphics_list)
 	{
 		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "EndFrame");
-		//		CD3DX12_RESOURCE_BARRIER backbuffer_barrier_from_rt_to_present =
-		//			CD3DX12_RESOURCE_BARRIER::Transition(p_resource_backbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		D3D12_RESOURCE_BARRIER backbuffer_barrier_from_rt_to_present;
 
 		backbuffer_barrier_from_rt_to_present.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -1145,11 +1109,6 @@ void RenderInterface_DX12::EndFrame()
 		backbuffer_barrier_from_rt_to_present.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		backbuffer_barrier_from_rt_to_present.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 		backbuffer_barrier_from_rt_to_present.Transition.Subresource = 0;
-
-		// делаем резовл из лейра для постпроцесса
-		// делаем OMSetRenderTargets на наш swapchain's backbuffer
-		// рендеринг квад и натягиваем результат постпроцесса (резолв)
-		// закрываем запись команд делаем презент
 
 		const Gfx::FramebufferData& fb_active = this->m_manager_render_layer.GetTopLayer();
 		const Gfx::FramebufferData& fb_postprocess = this->m_manager_render_layer.GetPostprocessPrimary();
@@ -1187,8 +1146,6 @@ void RenderInterface_DX12::EndFrame()
 	#endif
 
 		D3D12_RESOURCE_BARRIER barriers[2]{};
-		//	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(p_msaa_texture, D3D12_RESOURCE_STATE_RENDER_TARGET,
-		// D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
 
 		barriers[0].Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
 		barriers[0].Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -1197,9 +1154,6 @@ void RenderInterface_DX12::EndFrame()
 		barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
 		barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-		//		barriers[1] =
-		//			CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture, D3D12_RESOURCE_STATE_RENDER_TARGET,
-		// D3D12_RESOURCE_STATE_RESOLVE_DEST);
 		barriers[1].Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
 		barriers[1].Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		barriers[1].Transition.Subresource = 0;
@@ -1207,8 +1161,6 @@ void RenderInterface_DX12::EndFrame()
 		barriers[1].Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_DEST;
 		barriers[1].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-		//	CD3DX12_RESOURCE_BARRIER barrier_transition_from_msaa_resolve_source_to_rt =
-		//		CD3DX12_RESOURCE_BARRIER::Transition(p_msaa_texture, D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		D3D12_RESOURCE_BARRIER barrier_transition_from_msaa_resolve_source_to_rt;
 		barrier_transition_from_msaa_resolve_source_to_rt.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
 		barrier_transition_from_msaa_resolve_source_to_rt.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -1224,8 +1176,6 @@ void RenderInterface_DX12::EndFrame()
 
 		this->m_p_command_graphics_list->ResourceBarrier(1, &barrier_transition_from_msaa_resolve_source_to_rt);
 
-		// CD3DX12_RESOURCE_BARRIER offscreen_texture_barrier_for_shader = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture,
-		//	D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		D3D12_RESOURCE_BARRIER offscreen_texture_barrier_for_shader;
 		offscreen_texture_barrier_for_shader.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
 		offscreen_texture_barrier_for_shader.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -1234,8 +1184,6 @@ void RenderInterface_DX12::EndFrame()
 		offscreen_texture_barrier_for_shader.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 		offscreen_texture_barrier_for_shader.Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_DEST;
 
-		//	CD3DX12_RESOURCE_BARRIER restore_state_of_postprocess_texture_return_to_rt = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture,
-		//		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		D3D12_RESOURCE_BARRIER restore_state_of_postprocess_texture_return_to_rt;
 		restore_state_of_postprocess_texture_return_to_rt.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
 		restore_state_of_postprocess_texture_return_to_rt.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -1246,8 +1194,6 @@ void RenderInterface_DX12::EndFrame()
 
 		this->m_p_command_graphics_list->ResourceBarrier(1, &offscreen_texture_barrier_for_shader);
 
-		//	CD3DX12_CPU_DESCRIPTOR_HANDLE handle_rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
-		//		this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
 		D3D12_CPU_DESCRIPTOR_HANDLE handle_rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart());
 		handle_rtv.ptr += this->m_current_back_buffer_index * (this->m_size_descriptor_heap_render_target_view);
 		D3D12_CPU_DESCRIPTOR_HANDLE handle_dsv(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart());
@@ -1306,8 +1252,6 @@ void RenderInterface_DX12::Clear()
 
 	auto* p_backbuffer = this->m_backbuffers_resources.at(this->m_current_back_buffer_index);
 
-	//	CD3DX12_RESOURCE_BARRIER barrier =
-	//		CD3DX12_RESOURCE_BARRIER::Transition(p_backbuffer, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	D3D12_RESOURCE_BARRIER barrier;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -1319,8 +1263,7 @@ void RenderInterface_DX12::Clear()
 	this->m_p_command_graphics_list->ResourceBarrier(1, &barrier);
 
 	constexpr FLOAT clear_color[] = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
-	//	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
-	//		this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
+
 	D3D12_CPU_DESCRIPTOR_HANDLE rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart());
 	rtv.ptr += this->m_current_back_buffer_index * (this->m_size_descriptor_heap_render_target_view);
 
@@ -1334,7 +1277,6 @@ void RenderInterface_DX12::Clear()
 
 	constexpr FLOAT clear_color_framebuffer[] = {0.0f, 0.0f, 0.0f, 0.0f};
 	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color_framebuffer, 0, nullptr);
-	//	this->m_p_command_graphics_list->ClearDepthStencilView(p_current_dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
@@ -1383,8 +1325,6 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 		{
 			this->UseProgram(ProgramId::Texture_Stencil_Disabled);
 		}
-
-		// this->SubmitTransformUniform(p_handle_geometry->Get_ConstantBuffer(), translation);
 
 		if (p_handle_geometry->Get_ConstantBuffer() == nullptr)
 		{
@@ -1569,7 +1509,6 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 Rml::CompiledGeometryHandle RenderInterface_DX12::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - CompileGeometry");
-	//	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "CompileGeometry");
 
 	GeometryHandleType* p_handle = new GeometryHandleType();
 
@@ -1577,9 +1516,7 @@ Rml::CompiledGeometryHandle RenderInterface_DX12::CompileGeometry(Rml::Span<cons
 	{
 		this->m_manager_buffer.Alloc_Vertex(vertices.data(), static_cast<int>(vertices.size()), sizeof(Rml::Vertex), p_handle);
 		this->m_manager_buffer.Alloc_Index(indices.data(), static_cast<int>(indices.size()), sizeof(int), p_handle);
-		//	p_handle->Get_ConstantBuffer().Set_AllocInfo(this->m_manager_buffer.Alloc_ConstantBuffer(&p_handle->Get_ConstantBuffer(), 72));
 	}
-	//	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
 	return reinterpret_cast<Rml::CompiledGeometryHandle>(p_handle);
 }
@@ -1647,9 +1584,6 @@ void RenderInterface_DX12::RenderToClipMask(Rml::ClipMaskOperation mask_operatio
 
 	if (clear_stencil)
 	{
-		// todo: probably I need to remove DS for swapchain's RT
-		//	this->m_p_command_graphics_list->ClearDepthStencilView(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart(),
-		//	D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 		Rml::LayerHandle layer_handle = m_manager_render_layer.GetTopLayerHandle();
 		const Gfx::FramebufferData& framebuffer = m_manager_render_layer.GetLayer(layer_handle);
 
@@ -1662,14 +1596,12 @@ void RenderInterface_DX12::RenderToClipMask(Rml::ClipMaskOperation mask_operatio
 	case Rml::ClipMaskOperation::Set:
 	{
 		this->m_current_clip_operation = static_cast<int>(Rml::ClipMaskOperation::Set);
-		//	this->m_p_command_graphics_list->OMSetStencilRef(1);
 		m_stencil_ref_value = 1;
 		break;
 	}
 	case Rml::ClipMaskOperation::SetInverse:
 	{
 		this->m_current_clip_operation = static_cast<int>(Rml::ClipMaskOperation::SetInverse);
-		//	this->m_p_command_graphics_list->OMSetStencilRef(0);
 		m_stencil_ref_value = 0;
 		break;
 	}
@@ -1879,9 +1811,6 @@ RenderInterface_DX12::RenderLayerStack::RenderLayerStack() :
 	this->m_fb_layers.reserve(RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS);
 	this->m_p_depth_stencil_for_layers = new Gfx::FramebufferData();
 	this->m_p_depth_stencil_for_layers->Set_RenderTarget(false);
-
-	//	this->m_p_depth_stencil_for_postprocess = new Gfx::FramebufferData();
-	//	this->m_p_depth_stencil_for_postprocess->Set_RenderTarget(false);
 }
 
 RenderInterface_DX12::RenderLayerStack::~RenderLayerStack()
@@ -1897,14 +1826,6 @@ RenderInterface_DX12::RenderLayerStack::~RenderLayerStack()
 		delete this->m_p_depth_stencil_for_layers;
 		this->m_p_depth_stencil_for_layers = nullptr;
 	}
-
-	/*
-	if (this->m_p_depth_stencil_for_postprocess)
-	{
-	    delete this->m_p_depth_stencil_for_postprocess;
-	    this->m_p_depth_stencil_for_postprocess = nullptr;
-	}
-	*/
 }
 
 void RenderInterface_DX12::RenderLayerStack::Initialize(RenderInterface_DX12* p_owner)
@@ -1950,14 +1871,6 @@ Rml::LayerHandle RenderInterface_DX12::RenderLayerStack::PushLayer()
 
 	if (this->m_layers_size == static_cast<int>(this->m_fb_layers.size()))
 	{
-		/*
-		// All framebuffers should share a single stencil buffer.
-		GLuint shared_depth_stencil = (fb_layers.empty() ? 0 : fb_layers.front().depth_stencil_buffer);
-
-		fb_layers.push_back(Gfx::FramebufferData{});
-		Gfx::CreateFramebuffer(fb_layers.back(), width, height, NUM_MSAA_SAMPLES, Gfx::FramebufferAttachment::DepthStencil, shared_depth_stencil);
-		*/
-
 		if (this->m_p_depth_stencil_for_layers->Get_Texture() == nullptr)
 		{
 			this->CreateFramebuffer(this->m_p_depth_stencil_for_layers, m_width, m_height, this->m_msaa_sample_count, true);
@@ -2051,16 +1964,6 @@ const Gfx::FramebufferData& RenderInterface_DX12::RenderLayerStack::Get_SharedDe
 	return *this->m_p_depth_stencil_for_layers;
 }
 
-/*
-const Gfx::FramebufferData& RenderInterface_DX12::RenderLayerStack::Get_SharedDepthStencil_Postprocess()
-{
-    RMLUI_ZoneScopedN("DirectX 12 - RenderLayerStack::Get_SharedDepthStencil_Postprocess");
-
-    RMLUI_ASSERT(this->m_p_depth_stencil_for_postprocess && "early calling!");
-    return *this->m_p_depth_stencil_for_postprocess;
-}
-*/
-
 Rml::LayerHandle RenderInterface_DX12::RenderLayerStack::GetTopLayerHandle() const
 {
 	RMLUI_ZoneScopedN("DirectX 12 - RenderLayerStack::GetTopLayerHandle");
@@ -2116,11 +2019,6 @@ void RenderInterface_DX12::RenderLayerStack::DestroyFramebuffers()
 		{
 			this->m_p_manager_texture->Free_Texture(this->m_p_depth_stencil_for_layers);
 		}
-
-		//	if (this->m_p_depth_stencil_for_postprocess->Get_Texture())
-		//	{
-		//		this->m_p_manager_texture->Free_Texture(this->m_p_depth_stencil_for_postprocess);
-		//	}
 	}
 
 	for (auto& fb : this->m_fb_layers)
@@ -2155,51 +2053,6 @@ const Gfx::FramebufferData& RenderInterface_DX12::RenderLayerStack::EnsureFrameb
 		this->CreateFramebuffer(&fb, this->m_width, this->m_height, 1, false);
 		fb.Set_ID(index);
 
-		/*
-		RMLUI_ASSERT(this->m_p_depth_stencil_for_postprocess && "must be depth stencil initialized here!");
-
-		if (this->m_p_depth_stencil_for_postprocess)
-		{
-		    if (this->m_p_depth_stencil_for_postprocess->Get_Texture() == nullptr)
-		    {
-		        this->CreateFramebuffer(this->m_p_depth_stencil_for_postprocess, this->m_width, this->m_height, 1, true);
-
-	#ifdef RMLUI_DX_DEBUG
-		        if (this->m_p_depth_stencil_for_postprocess->Get_Texture())
-		        {
-		            wchar_t framebuffer_name[64];
-		            wsprintf(framebuffer_name, L"framebuffer (postprocess) shared depth-stencil");
-
-		            int buffer_index = this->m_p_depth_stencil_for_postprocess->Get_Texture()->Get_Info().Get_BufferIndex();
-		            RMLUI_ASSERT(buffer_index == -1 && "you can't allocate framebuffer as placed resource, no sense!");
-
-		            if (buffer_index == -1)
-		            {
-		                RMLUI_ASSERT(
-		                    this->m_p_depth_stencil_for_postprocess->Get_Texture()->Get_Resource() && "must be valid resource failed to allocate!");
-
-		                D3D12MA::Allocation* p_allocation =
-		                    static_cast<D3D12MA::Allocation*>(this->m_p_depth_stencil_for_postprocess->Get_Texture()->Get_Resource());
-
-		                if (p_allocation)
-		                {
-		                    ID3D12Resource* p_resource = p_allocation->GetResource();
-		                    RMLUI_ASSERT(p_resource && "failed to allocate for D3D12MA! (GetResource==nullptr)");
-
-		                    if (p_resource)
-		                    {
-		                        p_resource->SetName(framebuffer_name);
-		                    }
-		                }
-		            }
-		        }
-	#endif
-		    }
-		}
-
-		fb.Set_SharedDepthStencilTexture(this->m_p_depth_stencil_for_postprocess);
-		*/
-
 	#ifdef RMLUI_DX_DEBUG
 		fb.m_is_allocated_on_stack = false;
 		if (fb.Get_Texture())
@@ -2232,7 +2085,6 @@ const Gfx::FramebufferData& RenderInterface_DX12::RenderLayerStack::EnsureFrameb
 	return fb;
 }
 
-// TODO: add argument for depth stencil thing!!!!
 void RenderInterface_DX12::RenderLayerStack::CreateFramebuffer(Gfx::FramebufferData* p_result, int width, int height, int sample_count,
 	bool is_depth_stencil)
 {
@@ -2362,8 +2214,6 @@ Rml::LayerHandle RenderInterface_DX12::PushLayer()
 	constexpr FLOAT clear_color[] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	this->m_p_command_graphics_list->ClearRenderTargetView(framebuffer.Get_DescriptorResourceView(), clear_color, 0, nullptr);
-	//	this->m_p_command_graphics_list->ClearDepthStencilView(shared_depthstencil.Get_DescriptorResourceView(),
-	//		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
@@ -2405,10 +2255,6 @@ void RenderInterface_DX12::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_
 	RMLUI_ASSERT(p_src->GetDesc().Height == p_dst->GetDesc().Height && "must be same otherwise use blitframebuffer");
 	#endif
 
-	//	D3D12_RESOURCE_BARRIER barriers[2] = {CD3DX12_RESOURCE_BARRIER::Transition(p_src, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
-	//											  D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_SOURCE),
-	//		CD3DX12_RESOURCE_BARRIER::Transition(p_dst, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
-	//			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_DEST)};
 	D3D12_RESOURCE_BARRIER barriers[2];
 	barriers[0].Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	barriers[0].Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -2428,23 +2274,20 @@ void RenderInterface_DX12::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_
 
 	this->m_p_command_graphics_list->ResolveSubresource(p_dst, 0, p_src, 0, RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT);
 
-	//	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(p_dst, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_DEST,
-	//		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
 	barriers[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barriers[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	barriers[0].Transition.pResource = p_dst;
 	barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_DEST;
 	barriers[0].Transition.Subresource = 0;
-	//	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(p_src, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
-	//		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+
 	barriers[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barriers[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	barriers[1].Transition.pResource = p_src;
 	barriers[1].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barriers[1].Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
 	barriers[1].Transition.Subresource = 0;
-	// todo: should we convert src to render target ? probably yes, but need to be sure later after debugging
+
 	this->m_p_command_graphics_list->ResourceBarrier(2, barriers);
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
@@ -3609,7 +3452,6 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 void RenderInterface_DX12::PopLayer()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - PopLayer");
-	//	RMLUI_ASSERT(false && "todo");
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "PopLayer");
 	this->m_manager_render_layer.PopLayer();
 	this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
@@ -3619,7 +3461,6 @@ void RenderInterface_DX12::PopLayer()
 Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SaveLayerAsTexture");
-	//	RMLUI_ASSERT(false && "todo");
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "SaveLayerAsTexture");
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
@@ -3630,7 +3471,6 @@ Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 Rml::CompiledFilterHandle RenderInterface_DX12::SaveLayerAsMaskImage()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SaveLayerAsMaskImage");
-	//	RMLUI_ASSERT(false && "todo");
 
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "SaveLayerAsMaskImage");
 
@@ -5016,23 +4856,6 @@ void RenderInterface_DX12::Destroy_Resource_RenderTagetViews()
 void RenderInterface_DX12::Create_Resource_For_Shaders(void)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Create_Resource_For_Shaders");
-	this->Create_Resource_For_Shaders_ConstantBufferHeap();
-}
-
-void RenderInterface_DX12::Create_Resource_For_Shaders_ConstantBufferHeap(void)
-{
-	RMLUI_ZoneScopedN("DirectX 12 - Create_Resource_For_Shaders_ConstanceBufferHeap");
-	RMLUI_ASSERT(this->m_p_allocator && "must be valid when you call this method!");
-	RMLUI_ASSERT(RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT >= 1 && "must be non zero!");
-
-	// todo: delete
-	//	this->m_constantbuffer.Set_AllocInfo(this->m_manager_buffer.Alloc_ConstantBuffer(&this->m_constantbuffer, 72));
-}
-
-void RenderInterface_DX12::Destroy_Resource_For_Shaders_ConstantBufferHeap(void)
-{
-	// todo: delete
-	//	this->m_manager_buffer.Free_ConstantBuffer(&this->m_constantbuffer);
 }
 
 void RenderInterface_DX12::Destroy_Resource_For_Shaders(void)
@@ -5049,9 +4872,6 @@ void RenderInterface_DX12::Destroy_Resource_For_Shaders(void)
 	this->m_constantbuffers[0].clear();
 
 	this->Update_PendingForDeletion_Geometry();
-	//	this->Update_PendingForDeletion_Texture();
-
-	this->Destroy_Resource_For_Shaders_ConstantBufferHeap();
 }
 
 void RenderInterface_DX12::Free_Geometry(RenderInterface_DX12::GeometryHandleType* p_handle)
@@ -5149,34 +4969,15 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Color()
 
 	if (this->m_p_device && p_filesystem)
 	{
-		/*
-		D3D12_DESCRIPTOR_RANGE ranges[1];
-		ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-		ranges[0].NumDescriptors = 1;
-		ranges[0].BaseShaderRegister = 0;
-		ranges[0].RegisterSpace = 0;
-		ranges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-		D3D12_ROOT_DESCRIPTOR_TABLE table{};
-		table.NumDescriptorRanges = 1;
-		table.pDescriptorRanges = ranges;
-		*/
-
 		D3D12_ROOT_DESCRIPTOR descriptor_cbv;
 		descriptor_cbv.RegisterSpace = 0;
 		descriptor_cbv.ShaderRegister = 0;
 
 		D3D12_ROOT_PARAMETER parameters[1];
-		//	parameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		//	parameters[0].DescriptorTable = table;
+
 		parameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 		parameters[0].Descriptor = descriptor_cbv;
 		parameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
-
-		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		//	desc_rootsignature.Init(_countof(parameters), parameters, 0, nullptr,
-		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
 
 		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
 		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
@@ -5499,14 +5300,6 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Texture()
 		ranges[0].RegisterSpace = 0;
 		ranges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		/*
-		ranges[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-		ranges[1].NumDescriptors = 1;
-		ranges[1].BaseShaderRegister = 0;
-		ranges[1].RegisterSpace = 0;
-		ranges[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-		*/
-
 		D3D12_ROOT_DESCRIPTOR_TABLE table{};
 		table.NumDescriptorRanges = sizeof(ranges) / sizeof(decltype(ranges[0]));
 		table.pDescriptorRanges = ranges;
@@ -5539,10 +5332,6 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Texture()
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		//	desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
 		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
 		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
@@ -6186,11 +5975,6 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-		// CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		// desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-		//	D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		//		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
-
 		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
 		desc_rootsignature.NumParameters = _countof(parameters);
 		desc_rootsignature.pParameters = parameters;
@@ -6452,11 +6236,6 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_ColorMask()
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		//	desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
-
 		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
 		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
@@ -6677,11 +6456,6 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_NoBlend()
 		sampler.ShaderRegister = 0;
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
-		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		//	desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
 
 		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
 		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
@@ -7401,11 +7175,6 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		//	desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
-
 		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
 		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
@@ -7641,11 +7410,6 @@ void RenderInterface_DX12::Create_Resource_Pipeline_DropShadow()
 		sampler.ShaderRegister = 0;
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
-		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		//	desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
 
 		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
 		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
@@ -8099,7 +7863,6 @@ void RenderInterface_DX12::SubmitTransformUniform(ConstantBufferType& constant_b
 
 	std::uint8_t* p_gpu_binding_start = reinterpret_cast<std::uint8_t*>(constant_buffer.Get_GPU_StartMemoryForBindingData());
 
-	// if (this->m_program_state_transform_dirty.test(program_index))
 	{
 		RMLUI_ASSERT(p_gpu_binding_start &&
 			"your allocated constant buffer must contain a valid pointer of beginning mapping of its GPU buffer. Otherwise you destroyed it!");
@@ -8111,8 +7874,6 @@ void RenderInterface_DX12::SubmitTransformUniform(ConstantBufferType& constant_b
 			std::memcpy(p_gpu_binding_offset_to_transform, this->m_constant_buffer_data_transform.data(),
 				sizeof(this->m_constant_buffer_data_transform));
 		}
-
-		//	this->m_program_state_transform_dirty.set(program_index, false);
 	}
 
 	if (p_gpu_binding_start)
@@ -8458,29 +8219,6 @@ RenderInterface_DX12::GraphicsAllocationInfo RenderInterface_DX12::BufferMemoryM
 			RMLUI_ASSERT(p_dx_resource && "something is broken!");
 
 			p_resource->Set_GPU_StartMemoryForBindingData(this->m_buffers.at(result_index).second);
-
-			/* todo: delete
-			if (p_dx_resource)
-			{
-			    auto descriptor_allocation =
-			        this->m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav->allocate(this->m_descriptor_increment_size_srv_cbv_uav);
-
-			    // should we really here use microsoft-style's casting???
-			    auto offset_pointer =
-			        SIZE_T(INT64(this->m_p_start_pointer_of_descriptor_heap_srv_cbv_uav->ptr) + INT64(descriptor_allocation.offset));
-
-			    D3D12_CONSTANT_BUFFER_VIEW_DESC desc_cbv = {};
-			    desc_cbv.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + result.Get_Offset();
-			    desc_cbv.SizeInBytes = size;
-
-			    D3D12_CPU_DESCRIPTOR_HANDLE cast;
-			    cast.ptr = offset_pointer;
-
-			    this->m_p_device->CreateConstantBufferView(&desc_cbv, cast);
-
-			    p_resource->Set_Allocation_DescriptorHeap(descriptor_allocation);
-			}
-			*/
 		}
 	}
 
@@ -9651,8 +9389,6 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 		p_impl->Set_Resource(p_resource);
 	}
 
-	//	bar = CD3DX12_RESOURCE_BARRIER::Aliasing(nullptr, p_resource);
-
 	bar.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	bar.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
 	bar.Aliasing.pResourceBefore = nullptr;
@@ -9701,7 +9437,7 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 	D3D12MA::Allocation* p_allocation{};
 
 	ID3D12Resource* p_upload_buffer{};
-	//	auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_size);
+
 	D3D12_RESOURCE_DESC buffer_desc;
 
 	buffer_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -9931,7 +9667,11 @@ size_t RenderInterface_DX12::TextureMemoryManager::BitsPerPixel(DXGI_FORMAT form
 	case DXGI_FORMAT_BC7_UNORM:
 	case DXGI_FORMAT_BC7_UNORM_SRGB: return 8;
 
-	default: return 0;
+	default:
+	{
+		RMLUI_ASSERT(false && "failed to determine texture type that wasn't registered report to developers (https://github.com/mikke89/RmlUi/issues)");
+		return 0;
+	}
 	}
 }
 
@@ -9949,9 +9689,6 @@ Rml::Pair<ID3D12Heap*, D3D12MA::VirtualBlock*> RenderInterface_DX12::TextureMemo
 	RMLUI_DX_ASSERTMSG(status, "failed to D3D12MA::CreateVirtualBlock");
 
 	this->m_blocks.push_back(p_block);
-
-	//	CD3DX12_HEAP_DESC desc_heap(this->m_size_for_placed_heap, D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT, 0,
-	//		D3D12_HEAP_FLAG_DENY_BUFFERS | D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES);
 
 	D3D12_HEAP_DESC desc_heap;
 	desc_heap.Flags = D3D12_HEAP_FLAG_DENY_BUFFERS | D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES;

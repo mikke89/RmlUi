@@ -679,8 +679,6 @@ private:
 	// pipelines
 
 	void Create_Resource_For_Shaders(void);
-	void Create_Resource_For_Shaders_ConstantBufferHeap(void);
-	void Destroy_Resource_For_Shaders_ConstantBufferHeap(void);
 	void Destroy_Resource_For_Shaders(void);
 
 	void Create_Resource_Pipelines();
