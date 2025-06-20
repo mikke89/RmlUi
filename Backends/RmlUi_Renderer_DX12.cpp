@@ -3304,10 +3304,10 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 			{
 				ID3D12Resource* pBM = this->GetResourceFromFramebufferData(blend_mask);
-				ID3D12Resource* pDest = this->GetResourceFromFramebufferData(destination);
+				ID3D12Resource* pSrc = this->GetResourceFromFramebufferData(source);
 
 				RMLUI_ASSERT(pBM && "failed to obtain resource from framebuffer blend_mask");
-				RMLUI_ASSERT(pDest && "failed to obtain resource from framebuffer destination");
+				RMLUI_ASSERT(pSrc && "failed to obtain resource from framebuffer destination");
 
 				D3D12_RESOURCE_BARRIER bars[2];
 
@@ -3320,7 +3320,7 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 				bars[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 				bars[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-				bars[1].Transition.pResource = pDest;
+				bars[1].Transition.pResource = pSrc;
 				bars[1].Transition.Subresource = 0;
 				bars[1].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 				bars[1].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -3328,7 +3328,7 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 				this->m_p_command_graphics_list->ResourceBarrier(2, bars);
 			}
 
-			this->BindRenderTarget(destination);
+			this->BindRenderTarget(destination, false);
 			this->BindTexture(source.Get_Texture(), 0);
 			this->BindTexture(blend_mask.Get_Texture(), 1);
 
@@ -3336,10 +3336,10 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 			{
 				ID3D12Resource* pBM = this->GetResourceFromFramebufferData(blend_mask);
-				ID3D12Resource* pDest = this->GetResourceFromFramebufferData(destination);
+				ID3D12Resource* pSrc = this->GetResourceFromFramebufferData(source);
 
 				RMLUI_ASSERT(pBM && "failed to obtain resource from framebuffer blend_mask");
-				RMLUI_ASSERT(pDest && "failed to obtain resource from framebuffer destination");
+				RMLUI_ASSERT(pSrc && "failed to obtain resource from framebuffer destination");
 
 				D3D12_RESOURCE_BARRIER bars[2];
 
@@ -3352,7 +3352,7 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 				bars[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 				bars[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-				bars[1].Transition.pResource = pDest;
+				bars[1].Transition.pResource = pSrc;
 				bars[1].Transition.Subresource = 0;
 				bars[1].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 				bars[1].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
@@ -3474,9 +3474,58 @@ Rml::CompiledFilterHandle RenderInterface_DX12::SaveLayerAsMaskImage()
 
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "SaveLayerAsMaskImage");
 
+	BlitLayerToPostprocessPrimary(this->m_manager_render_layer.GetTopLayerHandle());
+	
+	const Gfx::FramebufferData& source = this->m_manager_render_layer.GetPostprocessPrimary();
+	const Gfx::FramebufferData& destination = this->m_manager_render_layer.GetBlendMask();
+
+
+	{
+		D3D12_RESOURCE_BARRIER bars[1];
+		
+		ID3D12Resource* pSource = this->GetResourceFromFramebufferData(source);
+		RMLUI_ASSERT(pSource && "failed to obtain resource from framebuffer source");
+
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = pSource;
+		bars[0].Transition.Subresource = 0;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+	}
+
+	UseProgram(ProgramId::Passthrough_NoBlendAndNoMSAA);
+	this->BindRenderTarget(destination, false);
+	this->BindTexture(source.Get_Texture());
+
+	DrawFullscreenQuad();
+
+	{
+		D3D12_RESOURCE_BARRIER bars[1];
+
+		ID3D12Resource* pSource = this->GetResourceFromFramebufferData(source);
+		RMLUI_ASSERT(pSource && "failed to obtain resource from framebuffer source");
+
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = pSource;
+		bars[0].Transition.Subresource = 0;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.StateBefore =D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+	}
+
+	this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
+
+	CompiledFilter filter = {};
+	filter.type = FilterType::MaskImage;
+
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
-	return Rml::CompiledFilterHandle();
+	return reinterpret_cast<Rml::CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
 }
 
 Rml::CompiledFilterHandle RenderInterface_DX12::CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters)
@@ -6904,7 +6953,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_BlendMask()
 	{
 		D3D12_DESCRIPTOR_RANGE ranges[1];
 		ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		ranges[0].NumDescriptors = 2;
+		ranges[0].NumDescriptors = 1;
 		ranges[0].BaseShaderRegister = 0;
 		ranges[0].RegisterSpace = 0;
 		ranges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -6913,11 +6962,27 @@ void RenderInterface_DX12::Create_Resource_Pipeline_BlendMask()
 		table.NumDescriptorRanges = sizeof(ranges) / sizeof(decltype(ranges[0]));
 		table.pDescriptorRanges = ranges;
 
-		D3D12_ROOT_PARAMETER parameters[1];
+		D3D12_ROOT_PARAMETER parameters[2];
 
 		parameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		parameters[0].DescriptorTable = table;
 		parameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+		D3D12_DESCRIPTOR_RANGE slot2_ranges[1];
+		slot2_ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		slot2_ranges[0].NumDescriptors = 1;
+		slot2_ranges[0].BaseShaderRegister = 1;
+		slot2_ranges[0].RegisterSpace = 0;
+		slot2_ranges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+		D3D12_ROOT_DESCRIPTOR_TABLE slot2_table{};
+		slot2_table.NumDescriptorRanges = sizeof(slot2_ranges) / sizeof(decltype(slot2_ranges[0]));
+		slot2_table.pDescriptorRanges = slot2_ranges;
+
+
+		parameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		parameters[1].DescriptorTable = slot2_table;
+		parameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 		D3D12_STATIC_SAMPLER_DESC sampler = {};
 		sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
