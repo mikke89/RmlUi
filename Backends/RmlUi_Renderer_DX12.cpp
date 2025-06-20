@@ -2961,6 +2961,8 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	std::uint8_t* p_cb_real_begin =
 		p_cb_begin + p_cb->Get_AllocInfo().Get_Offset() + sizeof(this->m_constant_buffer_data_transform) + sizeof(Rml::Vector2f);
 
+	// sadly but here we can't optimize and upload directly using pointer from GPU 
+	// keep allocating on stack still fastest way possible to handle a such small data for uploading :) 
 	struct {
 		Rml::Vector2f texel_offset;
 		Rml::Vector4f weights;
@@ -3268,23 +3270,13 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 			RMLUI_ASSERT(p_cb_dropshadow && "failed to obtain constant buffer for drop shadow");
 
-			struct {
+			struct CBV_DropShadow {
 				Rml::Vector2f uv_min;
 				Rml::Vector2f uv_max;
 				Rml::Vector4f color;
-			} ShaderConstantBufferMapping_DropShadow;
+			};
 
-			const Rml::Colourf& color = ConvertToColorf(filter.color);
-
-			ShaderConstantBufferMapping_DropShadow.color.x = color.red;
-			ShaderConstantBufferMapping_DropShadow.color.y = color.green;
-			ShaderConstantBufferMapping_DropShadow.color.z = color.blue;
-			ShaderConstantBufferMapping_DropShadow.color.w = color.alpha;
-
-			const Rml::Rectanglei& window_flipped = VerticallyFlipped(this->m_scissor, this->m_height);
-			SetTexCoordLimits(ShaderConstantBufferMapping_DropShadow.uv_min, ShaderConstantBufferMapping_DropShadow.uv_max, this->m_scissor,
-				{primary.Get_Width(), primary.Get_Height()});
-
+			CBV_DropShadow* pUploadingData = nullptr;
 			if (p_cb_dropshadow)
 			{
 				std::uint8_t* p_gpu_begin = reinterpret_cast<std::uint8_t*>(p_cb_dropshadow->Get_GPU_StartMemoryForBindingData());
@@ -3297,10 +3289,24 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 					if (p_gpu_real_begin)
 					{
-						std::memcpy(p_gpu_real_begin, &ShaderConstantBufferMapping_DropShadow, sizeof(ShaderConstantBufferMapping_DropShadow));
+						pUploadingData = reinterpret_cast<CBV_DropShadow*>(p_gpu_real_begin);
 					}
 				}
 			}
+
+
+			RMLUI_ASSERT(pUploadingData && "failed to obtain uploading pointer for constant buffer (FATAL)");
+
+			const Rml::Colourf& color = ConvertToColorf(filter.color);
+
+			pUploadingData->color.x = color.red;
+			pUploadingData->color.y = color.green;
+			pUploadingData->color.z = color.blue;
+			pUploadingData->color.w = color.alpha;
+
+			const Rml::Rectanglei& window_flipped = VerticallyFlipped(this->m_scissor, this->m_height);
+			SetTexCoordLimits(pUploadingData->uv_min, pUploadingData->uv_max, this->m_scissor,
+				{primary.Get_Width(), primary.Get_Height()});
 
 			const Rml::Vector2f& uv_offset = filter.offset / Rml::Vector2f(-(float)this->m_width, (float)this->m_height);
 			DrawFullscreenQuad(uv_offset, Rml::Vector2f(1.0f), p_cb_dropshadow);
