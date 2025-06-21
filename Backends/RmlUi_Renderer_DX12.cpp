@@ -573,6 +573,15 @@ inline UINT64 GetRequiredIntermediateSize(_In_ ID3D12Resource* pDestinationResou
 inline void MemcpySubresource(const _In_ D3D12_MEMCPY_DEST* pDest, const _In_ D3D12_SUBRESOURCE_DATA* pSrc, SIZE_T RowSizeInBytes, UINT NumRows,
 	UINT NumSlices)
 {
+	if (!pSrc)
+		return;
+	
+	if (!pSrc->pData)
+		return;
+	
+	if (!pDest)
+		return;
+
 	for (UINT z = 0; z < NumSlices; ++z)
 	{
 		BYTE* pDestSlice = reinterpret_cast<BYTE*>(pDest->pData) + pDest->SlicePitch * z;
@@ -1728,7 +1737,7 @@ Rml::TextureHandle RenderInterface_DX12::GenerateTexture(Rml::Span<const Rml::by
 {
 	RMLUI_ZoneScopedN("DirectX 12 - GenerateTexture");
 
-	RMLUI_ASSERTMSG(source_data.data(), "must be valid source");
+	// RMLUI_ASSERTMSG(source_data.data(), "must be valid source");
 	RMLUI_ASSERTMSG(this->m_p_allocator, "backend requires initialized allocator, but it is not initialized");
 
 	int width = source_dimensions.x;
@@ -2841,8 +2850,8 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	std::uint8_t* p_cb_real_begin =
 		p_cb_begin + p_cb->Get_AllocInfo().Get_Offset() + sizeof(this->m_constant_buffer_data_transform) + sizeof(Rml::Vector2f);
 
-	// sadly but here we can't optimize and upload directly using pointer from GPU 
-	// keep allocating on stack still fastest way possible to handle a such small data for uploading :) 
+	// sadly but here we can't optimize and upload directly using pointer from GPU
+	// keep allocating on stack still fastest way possible to handle a such small data for uploading :)
 	struct {
 		Rml::Vector2f texel_offset;
 		Rml::Vector4f weights;
@@ -3174,7 +3183,6 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 				}
 			}
 
-
 			RMLUI_ASSERT(pUploadingData && "failed to obtain uploading pointer for constant buffer (FATAL)");
 
 			const Rml::Colourf& color = ConvertToColorf(filter.color);
@@ -3185,8 +3193,7 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 			pUploadingData->color.w = color.alpha;
 
 			const Rml::Rectanglei& window_flipped = VerticallyFlipped(this->m_scissor, this->m_height);
-			SetTexCoordLimits(pUploadingData->uv_min, pUploadingData->uv_max, this->m_scissor,
-				{primary.Get_Width(), primary.Get_Height()});
+			SetTexCoordLimits(pUploadingData->uv_min, pUploadingData->uv_max, this->m_scissor, {primary.Get_Width(), primary.Get_Height()});
 
 			const Rml::Vector2f& uv_offset = filter.offset / Rml::Vector2f(-(float)this->m_width, (float)this->m_height);
 			DrawFullscreenQuad(uv_offset, Rml::Vector2f(1.0f), p_cb_dropshadow);
@@ -3461,11 +3468,138 @@ void RenderInterface_DX12::PopLayer()
 Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SaveLayerAsTexture");
+	RMLUI_ASSERT(this->m_scissor.Valid());
+
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "SaveLayerAsTexture");
+
+	const Rml::Rectanglei bounds = this->m_scissor;
+
+	Rml::TextureHandle render_texture = GenerateTexture({}, bounds.Size());
+	if (!render_texture)
+	{
+		return {};
+	}
+
+	this->BlitLayerToPostprocessPrimary(this->m_manager_render_layer.GetTopLayerHandle());
+	this->EnableScissorRegion(false);
+
+	const Gfx::FramebufferData& source = m_manager_render_layer.GetPostprocessPrimary();
+	const Gfx::FramebufferData& destination = m_manager_render_layer.GetPostprocessSecondary();
+
+	{
+		ID3D12Resource* pResource = this->GetResourceFromFramebufferData(source);
+		RMLUI_ASSERT(pResource && "failed to obtain resource from framebuffer source");
+
+		D3D12_RESOURCE_BARRIER bars[1];
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = pResource;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.Subresource=0;
+
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+	}
+
+	BlitFramebuffer(source, destination, bounds.Left(), source.Get_Height() - bounds.Bottom(), bounds.Right(), source.Get_Height() - bounds.Top(), 0,
+		bounds.Height(), bounds.Width(), 0);
+
+	{
+		ID3D12Resource* pResource = this->GetResourceFromFramebufferData(source);
+		RMLUI_ASSERT(pResource && "failed to obtain resource from framebuffer source");
+
+		D3D12_RESOURCE_BARRIER bars[1];
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = pResource;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[0].Transition.Subresource = 0;
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);	
+	}
+
+	D3D12_BOX copy_box{};
+	copy_box.left = bounds.Left();
+	copy_box.right = bounds.Right();
+	copy_box.top = bounds.Top();
+	copy_box.bottom = bounds.Bottom();
+	copy_box.front = 0;
+	copy_box.back = 1;
+
+	TextureHandleType* p_casted_rt = reinterpret_cast<TextureHandleType*>(render_texture);
+	ID3D12Resource* p_resource_render_texture = nullptr;
+
+	if (p_casted_rt->Get_Info().Get_BufferIndex() == -1)
+	{
+		// committed
+
+		D3D12MA::Allocation* p_allocation_source = static_cast<D3D12MA::Allocation*>(p_casted_rt->Get_Resource());
+		RMLUI_ASSERT(p_allocation_source && "must be valid!");
+		RMLUI_ASSERT(p_allocation_source->GetResource() && "must be valid!");
+
+		p_resource_render_texture = p_allocation_source->GetResource();
+	}
+	else
+	{
+		// placed
+
+		RMLUI_ASSERT(p_casted_rt->Get_Resource());
+
+		p_resource_render_texture = static_cast<ID3D12Resource*>(p_casted_rt->Get_Resource());
+	}
+
+	RMLUI_ASSERT(p_resource_render_texture && "failed to obtain resource from allocated texture!");
+
+	D3D12_TEXTURE_COPY_LOCATION dest_copy;
+	dest_copy.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	dest_copy.pResource = p_resource_render_texture;
+	dest_copy.SubresourceIndex = 0;
+
+	ID3D12Resource* p_resource_from_destination = this->GetResourceFromFramebufferData(destination);
+
+	RMLUI_ASSERT(p_resource_from_destination && "failed to obtain resource from framebuffer destination");
+
+	D3D12_TEXTURE_COPY_LOCATION src_copy;
+	src_copy.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	src_copy.SubresourceIndex = 0;
+	src_copy.pResource = p_resource_from_destination;
+
+	{
+		D3D12_RESOURCE_BARRIER bars[1];
+
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = p_resource_from_destination;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.Subresource = 0;
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+	}
+
+	this->m_p_command_graphics_list->CopyTextureRegion(&dest_copy, 0, 0, 0, &src_copy, &copy_box);
+
+	{
+		D3D12_RESOURCE_BARRIER bars[1];
+
+		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[0].Transition.pResource = p_resource_from_destination;
+		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
+		bars[0].Transition.Subresource = 0;
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+	}
+
+	SetScissor(bounds);
+	this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
-	return Rml::TextureHandle();
+	return render_texture;
 }
 
 Rml::CompiledFilterHandle RenderInterface_DX12::SaveLayerAsMaskImage()
@@ -3475,14 +3609,13 @@ Rml::CompiledFilterHandle RenderInterface_DX12::SaveLayerAsMaskImage()
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "SaveLayerAsMaskImage");
 
 	BlitLayerToPostprocessPrimary(this->m_manager_render_layer.GetTopLayerHandle());
-	
+
 	const Gfx::FramebufferData& source = this->m_manager_render_layer.GetPostprocessPrimary();
 	const Gfx::FramebufferData& destination = this->m_manager_render_layer.GetBlendMask();
 
-
 	{
 		D3D12_RESOURCE_BARRIER bars[1];
-		
+
 		ID3D12Resource* pSource = this->GetResourceFromFramebufferData(source);
 		RMLUI_ASSERT(pSource && "failed to obtain resource from framebuffer source");
 
@@ -3513,7 +3646,7 @@ Rml::CompiledFilterHandle RenderInterface_DX12::SaveLayerAsMaskImage()
 		bars[0].Transition.pResource = pSource;
 		bars[0].Transition.Subresource = 0;
 		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-		bars[0].Transition.StateBefore =D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
 		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
 	}
@@ -3846,7 +3979,6 @@ void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle,
 		}
 
 		this->m_p_command_graphics_list->DrawIndexedInstanced(geometry->Get_NumIndecies(), 1, 0, 0, 0);
-
 
 		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
@@ -5798,7 +5930,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Creation()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Create_Resource_Pipeline_Creation");
 
-		RMLUI_ASSERT(this->m_p_device && "must be valid when we call this method!");
+	RMLUI_ASSERT(this->m_p_device && "must be valid when we call this method!");
 	RMLUI_ASSERT(Rml::GetFileInterface() && "must be valid when we call this method!");
 
 	auto* p_filesystem = Rml::GetFileInterface();
@@ -6978,7 +7110,6 @@ void RenderInterface_DX12::Create_Resource_Pipeline_BlendMask()
 		D3D12_ROOT_DESCRIPTOR_TABLE slot2_table{};
 		slot2_table.NumDescriptorRanges = sizeof(slot2_ranges) / sizeof(decltype(slot2_ranges[0]));
 		slot2_table.pDescriptorRanges = slot2_ranges;
-
 
 		parameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		parameters[1].DescriptorTable = slot2_table;
@@ -8960,7 +9091,7 @@ ID3D12Resource* RenderInterface_DX12::TextureMemoryManager::Alloc_Texture(D3D12_
 	RMLUI_ASSERT(desc.Width && "must specify value for width field");
 	RMLUI_ASSERT(desc.Height && "must specify value for height field");
 	RMLUI_ASSERT(p_impl && "must be valid!");
-	RMLUI_ASSERT(p_data && "must be valid!");
+	// RMLUI_ASSERT(p_data && "must be valid!");
 
 	ID3D12Resource* p_result{};
 
@@ -9404,9 +9535,18 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 	{
 		desc.Alignment = D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT;
 		info_for_alloc = this->m_p_device->GetResourceAllocationInfo(0, 1, &desc);
-
+		
 		RMLUI_ASSERT(info_for_alloc.Alignment == D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT && "wrong calculation! check CanBeSmallResource method!");
-		RMLUI_ASSERT(total_memory == info_for_alloc.SizeInBytes, "must be equal! check calculate how you calculate total_memory variable!");
+
+#ifdef RMLUI_DX_DEBUG
+		if (total_memory != info_for_alloc.SizeInBytes)
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_DEBUG,
+				"[DirectX-12]: WARNING! Probably not aligned size of texture for creation w=[%zu] h=[%d] size=[%zu] align_size=[%zu] since gpu driver wants to have align data "
+			    "for allocating you should keep resources dimensions to be multiple of two!",
+				desc.Width, desc.Height, total_memory, info_for_alloc.SizeInBytes);
+		}
+#endif
 	}
 	else
 	{
@@ -9414,7 +9554,18 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 		info_for_alloc = this->m_p_device->GetResourceAllocationInfo(0, 1, &desc);
 
 		RMLUI_ASSERT(info_for_alloc.Alignment != D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT && "wrong calculation! check CanBeSmallResource method!");
-		RMLUI_ASSERT(total_memory == info_for_alloc.SizeInBytes, "must be equal! check calculation how you calculate total_memory variable!");
+
+#ifdef RMLUI_DX_DEBUG
+		if (total_memory != info_for_alloc.SizeInBytes)
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_DEBUG,
+				"[DirectX-12]: WARNING! Probably not aligned size of texture for creation w=[%zu] h=[%d] size=[%zu] align_size=[%zu] since gpu "
+			    "driver wants to have align data "
+				"for allocating you should keep resources dimensions to be multiple of two!",
+				desc.Width, desc.Height, total_memory, info_for_alloc.SizeInBytes);
+		}
+#endif
+
 	}
 
 	int heap_index{-1};
@@ -9481,7 +9632,7 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 {
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::Upload");
 	RMLUI_ASSERT(this->m_p_device && "must be valid!");
-	RMLUI_ASSERT(p_data && "must be valid!");
+//	RMLUI_ASSERT(p_data && "must be valid!");
 	RMLUI_ASSERT(p_resource && "must be valid!");
 	RMLUI_ASSERT(this->m_p_descriptor_heap_srv && "must be valid!");
 	RMLUI_ASSERT(this->m_p_allocator && "must be valid!");
@@ -9734,7 +9885,8 @@ size_t RenderInterface_DX12::TextureMemoryManager::BitsPerPixel(DXGI_FORMAT form
 
 	default:
 	{
-		RMLUI_ASSERT(false && "failed to determine texture type that wasn't registered report to developers (https://github.com/mikke89/RmlUi/issues)");
+		RMLUI_ASSERT(
+			false && "failed to determine texture type that wasn't registered report to developers (https://github.com/mikke89/RmlUi/issues)");
 		return 0;
 	}
 	}
