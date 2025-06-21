@@ -34,6 +34,17 @@ target_sources(rmlui_backend_Win32_VK INTERFACE
 )
 target_link_libraries(rmlui_backend_Win32_VK INTERFACE rmlui_backend_common_headers)
 
+add_library(rmlui_backend_Win32_DX12 INTERFACE)
+target_sources(rmlui_backend_Win32_DX12 INTERFACE
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Win32.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX12.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_Win32_DX12.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Win32.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX12.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_DirectX_12.h"
+)
+target_link_libraries(rmlui_backend_Win32_DX12 INTERFACE rmlui_backend_common_headers)
+
 add_library(rmlui_backend_X11_GL2 INTERFACE)
 target_sources(rmlui_backend_X11_GL2 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_X11.cpp"

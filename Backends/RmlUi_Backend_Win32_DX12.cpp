@@ -26,15 +26,14 @@
  *
  */
 
+#include "RmlUi/Config/Config.h"
 #include "RmlUi_Backend.h"
 #include "RmlUi_Include_Windows.h"
 #include "RmlUi_Platform_Win32.h"
-#include "RmlUi_Renderer_VK.h"
-#include <RmlUi/Config/Config.h>
+#include "RmlUi_Renderer_DX12.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Input.h>
-#include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Profiling.h>
 
 /**
@@ -93,10 +92,15 @@ static float GetDensityIndependentPixelRatio(HWND window_handle)
 	return float(GetWindowDpi(window_handle)) / float(USER_DEFAULT_SCREEN_DPI);
 }
 
+static void DisplayError(HWND window_handle, const Rml::String& msg)
+{
+	MessageBoxW(window_handle, RmlWin32::ConvertToUTF16(msg).c_str(), L"Backend Error", MB_OK);
+}
+
 // Create the window but don't show it yet. Returns the pixel size of the window, which may be different than the passed size due to DPI settings.
 static HWND InitializeWindow(HINSTANCE instance_handle, const std::wstring& name, int& inout_width, int& inout_height, bool allow_resize);
 // Create the Win32 Vulkan surface.
-static bool CreateVulkanSurface(VkInstance instance, VkSurfaceKHR* out_surface);
+// static bool CreateVulkanSurface(VkInstance instance, VkSurfaceKHR* out_surface);
 
 /**
     Global data used by this backend.
@@ -105,7 +109,8 @@ static bool CreateVulkanSurface(VkInstance instance, VkSurfaceKHR* out_surface);
  */
 struct BackendData {
 	SystemInterface_Win32 system_interface;
-	RenderInterface_VK render_interface;
+	// deferred initialization, because of Render
+	RenderInterface_DX12* render_interface{};
 	TextInputMethodEditor_Win32 text_input_method_editor;
 
 	HINSTANCE instance_handle = nullptr;
@@ -122,10 +127,13 @@ struct BackendData {
 };
 static Rml::UniquePtr<BackendData> data;
 
+// we need to deallocate manually
+Backend::RmlRenderInitInfo* p_legacy_instance{};
+
 bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize, RmlRenderInitInfo* p_info)
 {
 	RMLUI_ASSERT(!data);
-	if (p_info) { p_info = nullptr; }
+
 	const std::wstring name = RmlWin32::ConvertToUTF16(Rml::String(window_name));
 
 	data = Rml::MakeUnique<BackendData>();
@@ -142,27 +150,58 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	data->window_handle = window_handle;
 
+	/* 
+	TODO: [wl] delete
+	As a standard we need to use namespace RmlRendererName and call from it Initialize function where we pass p_info structure
 	Rml::Vector<const char*> extensions;
 	extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 	extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 	if (!data->render_interface.Initialize(std::move(extensions), CreateVulkanSurface))
 	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to initialize Vulkan render interface");
+	    DisplayError(window_handle, "Could not initialize Vulkan render interface.");
+	    ::CloseWindow(window_handle);
+	    data.reset();
+	    return false;
+	}
+	*/
+
+	if (!p_info)
+	{
+		// legacy calling, by default we think that user in that case wants to initialize renderer fully
+		p_info = new RmlRenderInitInfo(data->window_handle, true);
+
+		p_info->Get_Settings().vsync = false;
+
+		// remember pointer in order to delete it
+		p_legacy_instance = p_info;
+	}
+
+	data->render_interface = RmlDX12::Initialize(nullptr, p_info);
+
+	if (!data->render_interface)
+	{
+		DisplayError(window_handle, "Could not initialize DirectX 12 render interface.");
 		::CloseWindow(window_handle);
+
+		if (data->render_interface)
+		{
+			delete data->render_interface;
+			data->render_interface = nullptr;
+		}
+
 		data.reset();
 		return false;
 	}
 
+
+
 	data->system_interface.SetWindow(window_handle);
-	data->render_interface.SetViewport(width, height);
+	data->render_interface->SetViewport(width, height);
 
 	// Now we are ready to show the window.
 	::ShowWindow(window_handle, SW_SHOW);
 	::SetForegroundWindow(window_handle);
 	::SetFocus(window_handle);
-
-	// Provide a backend-specific text input handler to manage the IME.
-	Rml::SetTextInputHandler(&data->text_input_method_editor);
 
 	return true;
 }
@@ -170,12 +209,21 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 void Backend::Shutdown()
 {
 	RMLUI_ASSERT(data);
+	RMLUI_ASSERT(data->render_interface);
 
-	// As we forcefully override the global text input handler, we must reset it before the data is destroyed to avoid any potential use-after-free.
-	if (Rml::GetTextInputHandler() == &data->text_input_method_editor)
-		Rml::SetTextInputHandler(nullptr);
+	if (p_legacy_instance)
+	{
+		delete p_legacy_instance;
+		p_legacy_instance = nullptr;
+	}
 
-	data->render_interface.Shutdown();
+	RmlDX12::Shutdown(data->render_interface);
+
+	if (data->render_interface)
+	{
+		delete data->render_interface;
+		data->render_interface = nullptr;
+	}
 
 	::DestroyWindow(data->window_handle);
 	::UnregisterClassW((LPCWSTR)data->instance_name.data(), data->instance_handle);
@@ -192,14 +240,14 @@ Rml::SystemInterface* Backend::GetSystemInterface()
 Rml::RenderInterface* Backend::GetRenderInterface()
 {
 	RMLUI_ASSERT(data);
-	return &data->render_interface;
+	return data->render_interface;
 }
 
 static bool NextEvent(MSG& message, UINT timeout)
 {
 	if (timeout != 0)
 	{
-		UINT_PTR timer_id = SetTimer(NULL, 0, timeout, NULL);
+		UINT_PTR timer_id = SetTimer(NULL, NULL, timeout, NULL);
 		BOOL res = GetMessage(&message, NULL, 0, 0);
 		KillTimer(NULL, timer_id);
 		if (message.message != WM_TIMER || message.hwnd != nullptr || message.wParam != timer_id)
@@ -227,7 +275,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	MSG message;
 	// Process events.
 	bool has_message = NextEvent(message, power_save ? static_cast<int>(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0) * 1000.0) : 0);
-	while (has_message || !data->render_interface.IsSwapchainValid())
+	while (has_message || !data->render_interface->IsSwapchainValid())
 	{
 		if (has_message)
 		{
@@ -239,8 +287,8 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 		// In some situations the swapchain may become invalid, such as when the window is minimized. In this state the renderer cannot accept any
 		// render calls. Since we don't have full control over the main loop here we may risk calls to Context::Render if we were to return. Instead,
 		// we trap the application inside this loop until we are able to recreate the swapchain and render again.
-		if (!data->render_interface.IsSwapchainValid())
-			data->render_interface.RecreateSwapchain();
+		if (!data->render_interface->IsSwapchainValid())
+			data->render_interface->RecreateSwapchain();
 
 		has_message = NextEvent(message, 0);
 	}
@@ -260,13 +308,18 @@ void Backend::RequestExit()
 void Backend::BeginFrame()
 {
 	RMLUI_ASSERT(data);
-	data->render_interface.BeginFrame();
+	RMLUI_ASSERT(data->render_interface);
+
+	data->render_interface->BeginFrame();
+	data->render_interface->Clear();
 }
 
 void Backend::PresentFrame()
 {
 	RMLUI_ASSERT(data);
-	data->render_interface.EndFrame();
+	RMLUI_ASSERT(data->render_interface);
+
+	data->render_interface->EndFrame();
 
 	// Optional, used to mark frames during performance profiling.
 	RMLUI_FrameMark;
@@ -293,7 +346,7 @@ static LRESULT CALLBACK WindowProcedureHandler(HWND window_handle, UINT message,
 		data->window_dimensions.y = height;
 		if (data->context)
 		{
-			data->render_interface.SetViewport(width, height);
+			data->render_interface->SetViewport(width, height);
 			data->context->SetDimensions(data->window_dimensions);
 		}
 		return 0;
@@ -361,7 +414,7 @@ static HWND InitializeWindow(HINSTANCE instance_handle, const std::wstring& name
 
 	if (!RegisterClassW(&window_class))
 	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to register window class");
+		DisplayError(NULL, "Could not register window class.");
 		return nullptr;
 	}
 
@@ -373,7 +426,7 @@ static HWND InitializeWindow(HINSTANCE instance_handle, const std::wstring& name
 
 	if (!window_handle)
 	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to create window");
+		DisplayError(NULL, "Could not create window.");
 		return nullptr;
 	}
 
@@ -398,26 +451,24 @@ static HWND InitializeWindow(HINSTANCE instance_handle, const std::wstring& name
 	SetWindowLong(window_handle, GWL_EXSTYLE, extended_style);
 	SetWindowLong(window_handle, GWL_STYLE, style);
 
-	// Resize the window and center it on the screen.
-	Rml::Vector2i screen_size = {GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)};
-	Rml::Vector2i window_size = {int(window_rect.right - window_rect.left), int(window_rect.bottom - window_rect.top)};
-	Rml::Vector2i window_pos = Rml::Math::Max((screen_size - window_size) / 2, Rml::Vector2i(0));
-
-	SetWindowPos(window_handle, HWND_TOP, window_pos.x, window_pos.y, window_size.x, window_size.y, SWP_NOACTIVATE);
+	// Resize the window.
+	SetWindowPos(window_handle, HWND_TOP, 0, 0, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, SWP_NOACTIVATE);
 
 	return window_handle;
 }
 
+/*
 bool CreateVulkanSurface(VkInstance instance, VkSurfaceKHR* out_surface)
 {
-	VkWin32SurfaceCreateInfoKHR info = {};
-	info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	info.hinstance = GetModuleHandle(NULL);
-	info.hwnd = data->window_handle;
+    VkWin32SurfaceCreateInfoKHR info = {};
+    info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    info.hinstance = GetModuleHandle(NULL);
+    info.hwnd = data->window_handle;
 
-	VkResult status = vkCreateWin32SurfaceKHR(instance, &info, nullptr, out_surface);
+    VkResult status = vkCreateWin32SurfaceKHR(instance, &info, nullptr, out_surface);
 
-	bool result = (status == VK_SUCCESS);
-	RMLUI_VK_ASSERTMSG(result, "Failed to create Win32 Vulkan surface");
-	return result;
+    bool result = (status == VK_SUCCESS);
+    RMLUI_VK_ASSERTMSG(result, "Failed to create Win32 Vulkan surface");
+    return result;
 }
+*/
