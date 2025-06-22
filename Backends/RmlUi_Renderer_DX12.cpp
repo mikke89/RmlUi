@@ -8024,7 +8024,7 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 		region = VerticallyFlipped(region, this->m_height);
 	}
 
-	if (region.Valid() && region != this->m_scissor)
+	if (region.Valid())
 	{
 		if (this->m_p_command_graphics_list)
 		{
