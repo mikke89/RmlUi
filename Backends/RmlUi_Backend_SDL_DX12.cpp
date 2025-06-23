@@ -185,6 +185,12 @@ void Backend::Shutdown()
 
 	RmlDX12::Shutdown(data->render_interface);
 
+	if (data->render_interface)
+	{
+		delete data->render_interface;	
+		data->render_interface=nullptr;
+	}
+
 	SDL_DestroyWindow(data->window);
 
 	data.reset();
@@ -343,6 +349,7 @@ void Backend::BeginFrame()
 	RMLUI_ASSERT(data);
 	RMLUI_ASSERT(data->render_interface);
 	data->render_interface->BeginFrame();
+	data->render_interface->Clear();
 }
 
 void Backend::PresentFrame()

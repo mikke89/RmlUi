@@ -185,6 +185,17 @@ if(UNIX)
 	target_link_libraries(rmlui_backend_GLFW_VK INTERFACE ${CMAKE_DL_LIBS})
 endif()
 
+add_library(rmlui_backend_GLFW_DX12 INTERFACE)
+target_sources(rmlui_backend_GLFW_DX12 INTERFACE
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_GLFW.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX12.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_GLFW_DX12.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_GLFW.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX12.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_DirectX_12.h"
+)
+target_link_libraries(rmlui_backend_GLFW_DX12 INTERFACE rmlui_backend_common_headers glfw)
+
 add_library(rmlui_backend_BackwardCompatible_GLFW_GL2 INTERFACE)
 target_sources(rmlui_backend_BackwardCompatible_GLFW_GL2 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_GLFW.cpp"
