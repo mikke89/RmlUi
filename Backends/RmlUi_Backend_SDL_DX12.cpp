@@ -79,7 +79,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, int(width * window_size_scale));
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, int(height * window_size_scale));
-	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
+	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, false);
 	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, allow_resize);
 	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, true);
 	SDL_Window* window = SDL_CreateWindowWithProperties(props);
@@ -103,7 +103,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (!p_info)
 	{
 		HWND window_handle{};
-#ifdef SDL_MAJOR_VERSION == 2
+#if SDL_MAJOR_VERSION == 2
 		SDL_SysWMinfo wmInfo;
 		SDL_VERSION(&wmInfo.version);
 		if (!SDL_GetWindowWMInfo(window, &wmInfo))
@@ -115,9 +115,34 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 			return false;
 		}
 
-		RMLUI_ASSERT(wmInfo.info.win.window && "SDL2 must retrieve the valid handle of window!");
+		if (wnInfo.info.win.window == nullptr)
+		{
+			SDL_Log("invalid win32 handle! failed to initialize renderer dx12 on sdl!");
+			// Handle failure appropriately
+			return false;
+		}
 
 		window_handle = wmInfo.info.win.window;
+#elif SDL_MAJOR_VERSION == 3
+		SDL_PropertiesID props = SDL_GetWindowProperties(window);
+
+		if (props == 0)
+		{
+			const char* error = SDL_GetError();
+			SDL_Log("SDL_GetWindowProperties failed: [%s]. Failed to initialize renderer dx12 on sdl", error);
+			return false;
+		}
+
+		void* p_not_casted_hwnd = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+
+		if (p_not_casted_hwnd == nullptr)
+		{
+			const char* error = SDL_GetError();
+			SDL_Log("SDL_GetPointerProperty failed to obtained win32 hwnd: [%s]. Failed to initialize renderer dx12 on sdl", error);
+			return false;
+		}
+
+		window_handle = reinterpret_cast<HWND>(p_not_casted_hwnd);
 #endif
 
 		p_info = new RmlRenderInitInfo(window_handle, true);
@@ -159,7 +184,7 @@ void Backend::Shutdown()
 	}
 
 	RmlDX12::Shutdown(data->render_interface);
-	
+
 	SDL_DestroyWindow(data->window);
 
 	data.reset();
