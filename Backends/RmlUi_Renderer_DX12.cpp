@@ -8238,7 +8238,7 @@ void RenderInterface_DX12::BufferMemoryManager::Initialize(ID3D12Device* p_devic
 
 #ifdef RMLUI_DX_DEBUG
 		,
-		Rml::String("buffer[") + Rml::ToString(this->m_buffers.size()) + "]"
+		std::wstring(L"buffer[") + std::to_wstring(this->m_buffers.size()) + L"]"
 #endif
 	);
 }
@@ -8542,7 +8542,7 @@ D3D12MA::Allocation* RenderInterface_DX12::BufferMemoryManager::Get_BufferByInde
 void RenderInterface_DX12::BufferMemoryManager::Alloc_Buffer(size_t size
 #ifdef RMLUI_DX_DEBUG
 	,
-	const Rml::String& debug_name
+	const std::wstring& debug_name
 #endif
 )
 {
@@ -8583,7 +8583,7 @@ void RenderInterface_DX12::BufferMemoryManager::Alloc_Buffer(size_t size
 	RMLUI_DX_ASSERTMSG(result, "failed to ID3D12Resource::Map");
 
 #ifdef RMLUI_DX_DEBUG
-	p_allocation->SetName(RmlWin32::ConvertToUTF16(debug_name).c_str());
+	p_allocation->SetName(debug_name.c_str());
 #endif
 
 	this->m_buffers.push_back({p_allocation, p_begin_writable_data});
@@ -8713,7 +8713,7 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 						this->Alloc_Buffer(this->m_size_for_allocation_in_bytes
 #ifdef RMLUI_DX_DEBUG
 							,
-							Rml::String("buffer[") + Rml::ToString(this->m_buffers.size()) + "]"
+							std::wstring(L"buffer[") + std::to_wstring(this->m_buffers.size()) + L"]"
 #endif
 						);
 						result_index = this->m_buffers.size() - 1;
@@ -8770,7 +8770,7 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 						this->Alloc_Buffer(this->m_size_for_allocation_in_bytes
 #ifdef RMLUI_DX_DEBUG
 							,
-							Rml::String("buffer[") + Rml::ToString(this->m_buffers.size()) + "]"
+							std::wstring(L"buffer[") + std::to_wstring(this->m_buffers.size()) + L"]"
 #endif
 						);
 						result_index = this->m_buffers.size() - 1;
@@ -8829,7 +8829,7 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 			this->Alloc_Buffer(this->m_size_for_allocation_in_bytes
 #ifdef RMLUI_DX_DEBUG
 				,
-				Rml::String("buffer[") + Rml::ToString(this->m_buffers.size()) + "]"
+				std::wstring(L"buffer[") + std::to_wstring(this->m_buffers.size()) + L"]"
 #endif
 			);
 

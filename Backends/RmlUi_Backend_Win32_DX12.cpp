@@ -182,13 +182,6 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	{
 		DisplayError(window_handle, "Could not initialize DirectX 12 render interface.");
 		::CloseWindow(window_handle);
-
-		if (data->render_interface)
-		{
-			delete data->render_interface;
-			data->render_interface = nullptr;
-		}
-
 		data.reset();
 		return false;
 	}

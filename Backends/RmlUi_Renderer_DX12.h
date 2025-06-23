@@ -364,7 +364,7 @@ public:
 		void Alloc_Buffer(size_t size
 #ifdef RMLUI_DX_DEBUG
 			,
-			const Rml::String& debug_name
+			const std::wstring& debug_name
 #endif
 		);
 
