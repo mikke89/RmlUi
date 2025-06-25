@@ -659,8 +659,8 @@ private:
 	void Destroy_Allocator(void) noexcept;
 
 	void Flush() noexcept;
-	uint64_t Signal() noexcept;
-	void WaitForFenceValue(uint64_t fence_value, std::chrono::milliseconds time = std::chrono::milliseconds::max());
+	uint64_t Signal(uint32_t frame_index) noexcept;
+	void WaitForFenceValue(uint32_t frame_index);
 
 	void Create_Resources_DependentOnSize() noexcept;
 	void Destroy_Resources_DependentOnSize() noexcept;

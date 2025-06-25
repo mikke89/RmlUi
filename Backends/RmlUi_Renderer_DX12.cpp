@@ -575,10 +575,10 @@ inline void MemcpySubresource(const _In_ D3D12_MEMCPY_DEST* pDest, const _In_ D3
 {
 	if (!pSrc)
 		return;
-	
+
 	if (!pSrc->pData)
 		return;
-	
+
 	if (!pDest)
 		return;
 
@@ -1055,12 +1055,12 @@ void RenderInterface_DX12::BeginFrame()
 
 	if (p_command_allocator)
 	{
-		p_command_allocator->Reset();
+		RMLUI_DX_ASSERTMSG(p_command_allocator->Reset(), "failed to reset command allocator");
 	}
 
 	if (this->m_p_command_graphics_list)
 	{
-		this->m_p_command_graphics_list->Reset(p_command_allocator, nullptr);
+		RMLUI_DX_ASSERTMSG(this->m_p_command_graphics_list->Reset(p_command_allocator, nullptr), "failed to reset command graphics list");
 
 		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "BeginFrame");
 
@@ -1231,12 +1231,12 @@ void RenderInterface_DX12::EndFrame()
 			this->m_p_command_queue->ExecuteCommandLists(_countof(lists), lists);
 		}
 
-		auto fence_value = this->Signal();
-
 		UINT sync_interval = this->m_is_use_vsync ? 1 : 0;
 		UINT present_flags = (this->m_is_use_tearing && !this->m_is_use_vsync) ? DXGI_PRESENT_ALLOW_TEARING : 0;
 
 		RMLUI_DX_ASSERTMSG(this->m_p_swapchain->Present(sync_interval, present_flags), "failed to Present");
+
+		auto fence_value = this->Signal(this->m_current_back_buffer_index);
 
 	#ifdef RMLUI_DX_DEBUG
 		Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] current allocated constant buffers per draw (for frame[%d]): %zu",
@@ -1247,7 +1247,9 @@ void RenderInterface_DX12::EndFrame()
 
 		this->m_current_back_buffer_index = (uint32_t)this->m_p_swapchain->GetCurrentBackBufferIndex();
 
-		this->WaitForFenceValue(fence_value);
+		this->WaitForFenceValue(this->m_current_back_buffer_index);
+
+		this->m_backbuffers_fence_values[this->m_current_back_buffer_index] = fence_value + 1;
 	}
 }
 
@@ -3123,7 +3125,6 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 			const Rml::Rectanglei window_flipped = VerticallyFlipped(this->m_scissor, this->m_height);
 			RenderBlur(filter.sigma, source, temp, window_flipped);
-
 			break;
 		}
 		case FilterType::DropShadow:
@@ -3397,6 +3398,12 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 
 	RenderFilters(filters);
 
+	// todo: probably using separated command list and make wait for command queue is better?
+	// otherwise there's no way around for making stable frames due to async execution of dx12
+	// shouldn't be performance critical, but didn't test if make GPU only sync
+	// because no validation errors and still idk which barrier to even use here?
+	Flush();
+
 	this->BindRenderTarget(this->m_manager_render_layer.GetLayer(destination));
 
 	if (blend_mode == Rml::BlendMode::Replace)
@@ -3496,8 +3503,7 @@ Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 		bars[0].Transition.pResource = pResource;
 		bars[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-		bars[0].Transition.Subresource=0;
-
+		bars[0].Transition.Subresource = 0;
 
 		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
 	}
@@ -3517,7 +3523,7 @@ Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 		bars[0].Transition.Subresource = 0;
 
-		this->m_p_command_graphics_list->ResourceBarrier(1, bars);	
+		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
 	}
 
 	D3D12_BOX copy_box{};
@@ -4530,6 +4536,18 @@ void RenderInterface_DX12::Initialize_Device(void) noexcept
 
 			p_queue->Release();
 		}
+
+		ID3D12DebugDevice* p_sdk_device{};
+		auto status = p_device->QueryInterface(IID_PPV_ARGS(&p_sdk_device));
+		RMLUI_DX_ASSERTMSG(status, "failed to obtain debug device!");
+
+		if (p_sdk_device)
+		{
+			D3D12_DEBUG_FEATURE a = p_sdk_device->GetFeatureMask();
+			status = p_sdk_device->SetFeatureMask(D3D12_DEBUG_FEATURE_CONSERVATIVE_RESOURCE_STATE_TRACKING);
+			RMLUI_DX_ASSERTMSG(status, "failed to enable feature conservative resource state tracking");
+		}
+
 	}
 	#endif
 }
@@ -4793,11 +4811,25 @@ void RenderInterface_DX12::Destroy_Allocator(void) noexcept
 void RenderInterface_DX12::Flush() noexcept
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Flush");
-	auto value = this->Signal();
-	this->WaitForFenceValue(value);
+	auto value = this->Signal(this->m_current_back_buffer_index);
+	RMLUI_ASSERT(this->m_p_backbuffer_fence && "you must initialize ID3D12Fence first!");
+	RMLUI_ASSERT(this->m_p_fence_event && "you must initialize fence event (HANDLE)");
+
+	if (this->m_p_backbuffer_fence)
+	{
+		if (this->m_p_fence_event)
+		{
+			RMLUI_DX_ASSERTMSG(this->m_p_backbuffer_fence->SetEventOnCompletion(
+								   this->m_backbuffers_fence_values.at(this->m_current_back_buffer_index), this->m_p_fence_event),
+				"failed to SetEventOnCompletion");
+			WaitForSingleObjectEx(this->m_p_fence_event, INFINITE, FALSE);
+		}
+	}
+
+	this->m_backbuffers_fence_values[this->m_current_back_buffer_index]++;
 }
 
-uint64_t RenderInterface_DX12::Signal() noexcept
+uint64_t RenderInterface_DX12::Signal(uint32_t frame_index) noexcept
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Signal");
 	RMLUI_ASSERT(this->m_p_command_queue && "you must initialize it first before calling this method!");
@@ -4807,7 +4839,7 @@ uint64_t RenderInterface_DX12::Signal() noexcept
 	{
 		if (this->m_p_backbuffer_fence)
 		{
-			auto value = (this->m_backbuffers_fence_values.at(this->m_current_back_buffer_index)++);
+			auto value = (this->m_backbuffers_fence_values.at(frame_index));
 
 			RMLUI_DX_ASSERTMSG(this->m_p_command_queue->Signal(this->m_p_backbuffer_fence, value), "failed to command queue::Signal!");
 
@@ -4818,7 +4850,7 @@ uint64_t RenderInterface_DX12::Signal() noexcept
 	return 0;
 }
 
-void RenderInterface_DX12::WaitForFenceValue(uint64_t fence_value, std::chrono::milliseconds time)
+void RenderInterface_DX12::WaitForFenceValue(uint32_t frame_index)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - WaitForFenceValue");
 	RMLUI_ASSERT(this->m_p_backbuffer_fence && "you must initialize ID3D12Fence first!");
@@ -4828,11 +4860,12 @@ void RenderInterface_DX12::WaitForFenceValue(uint64_t fence_value, std::chrono::
 	{
 		if (this->m_p_fence_event)
 		{
-			if (this->m_p_backbuffer_fence->GetCompletedValue() < fence_value)
+			if (this->m_p_backbuffer_fence->GetCompletedValue() < this->m_backbuffers_fence_values.at(frame_index))
 			{
-				RMLUI_DX_ASSERTMSG(this->m_p_backbuffer_fence->SetEventOnCompletion(fence_value, this->m_p_fence_event),
+				RMLUI_DX_ASSERTMSG(
+					this->m_p_backbuffer_fence->SetEventOnCompletion(this->m_backbuffers_fence_values.at(frame_index), this->m_p_fence_event),
 					"failed to SetEventOnCompletion");
-				WaitForSingleObject(this->m_p_fence_event, static_cast<DWORD>(time.count()));
+				WaitForSingleObjectEx(this->m_p_fence_event, INFINITE, FALSE);
 			}
 		}
 	}
@@ -9535,15 +9568,16 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 	{
 		desc.Alignment = D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT;
 		info_for_alloc = this->m_p_device->GetResourceAllocationInfo(0, 1, &desc);
-		
+
 		RMLUI_ASSERT(info_for_alloc.Alignment == D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT && "wrong calculation! check CanBeSmallResource method!");
 
 #ifdef RMLUI_DX_DEBUG
 		if (total_memory != info_for_alloc.SizeInBytes)
 		{
 			Rml::Log::Message(Rml::Log::Type::LT_DEBUG,
-				"[DirectX-12]: WARNING! Probably not aligned size of texture for creation w=[%zu] h=[%d] size=[%zu] align_size=[%zu] since gpu driver wants to have align data "
-			    "for allocating you should keep resources dimensions to be multiple of two!",
+				"[DirectX-12]: WARNING! Probably not aligned size of texture for creation w=[%zu] h=[%d] size=[%zu] align_size=[%zu] since gpu "
+				"driver wants to have align data "
+				"for allocating you should keep resources dimensions to be multiple of two!",
 				desc.Width, desc.Height, total_memory, info_for_alloc.SizeInBytes);
 		}
 #endif
@@ -9560,12 +9594,11 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 		{
 			Rml::Log::Message(Rml::Log::Type::LT_DEBUG,
 				"[DirectX-12]: WARNING! Probably not aligned size of texture for creation w=[%zu] h=[%d] size=[%zu] align_size=[%zu] since gpu "
-			    "driver wants to have align data "
+				"driver wants to have align data "
 				"for allocating you should keep resources dimensions to be multiple of two!",
 				desc.Width, desc.Height, total_memory, info_for_alloc.SizeInBytes);
 		}
 #endif
-
 	}
 
 	int heap_index{-1};
@@ -9632,7 +9665,7 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 {
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::Upload");
 	RMLUI_ASSERT(this->m_p_device && "must be valid!");
-//	RMLUI_ASSERT(p_data && "must be valid!");
+	//	RMLUI_ASSERT(p_data && "must be valid!");
 	RMLUI_ASSERT(p_resource && "must be valid!");
 	RMLUI_ASSERT(this->m_p_descriptor_heap_srv && "must be valid!");
 	RMLUI_ASSERT(this->m_p_allocator && "must be valid!");
@@ -9729,7 +9762,7 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 		{
 			RMLUI_DX_ASSERTMSG(this->m_p_fence->SetEventOnCompletion(this->m_fence_value, this->m_p_fence_event), "failed to SetEventOnCompletion");
 
-			WaitForSingleObject(this->m_p_fence_event, INFINITE);
+			WaitForSingleObjectEx(this->m_p_fence_event, INFINITE, FALSE);
 		}
 	}
 
