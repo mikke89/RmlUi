@@ -3398,12 +3398,6 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 
 	RenderFilters(filters);
 
-	// todo: probably using separated command list and make wait for command queue is better?
-	// otherwise there's no way around for making stable frames due to async execution of dx12
-	// shouldn't be performance critical, but didn't test if make GPU only sync
-	// because no validation errors and still idk which barrier to even use here?
-	Flush();
-
 	this->BindRenderTarget(this->m_manager_render_layer.GetLayer(destination));
 
 	if (blend_mode == Rml::BlendMode::Replace)
@@ -3558,6 +3552,13 @@ Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 
 	RMLUI_ASSERT(p_resource_render_texture && "failed to obtain resource from allocated texture!");
 
+	#ifdef RMLUI_DX_DEBUG
+	if (p_resource_render_texture)
+	{
+		p_resource_render_texture->SetName(L"SaveLayerAsTexture = Texture dest copy");
+	}
+	#endif
+
 	D3D12_TEXTURE_COPY_LOCATION dest_copy;
 	dest_copy.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 	dest_copy.pResource = p_resource_render_texture;
@@ -3573,7 +3574,7 @@ Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 	src_copy.pResource = p_resource_from_destination;
 
 	{
-		D3D12_RESOURCE_BARRIER bars[1];
+		D3D12_RESOURCE_BARRIER bars[2];
 
 		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -3582,13 +3583,20 @@ Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		bars[0].Transition.Subresource = 0;
 
-		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+		bars[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[1].Transition.pResource = p_resource_render_texture;
+		bars[1].Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+		bars[1].Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
+		bars[1].Transition.Subresource = 0;
+
+		this->m_p_command_graphics_list->ResourceBarrier(2, bars);
 	}
 
 	this->m_p_command_graphics_list->CopyTextureRegion(&dest_copy, 0, 0, 0, &src_copy, &copy_box);
 
 	{
-		D3D12_RESOURCE_BARRIER bars[1];
+		D3D12_RESOURCE_BARRIER bars[2];
 
 		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		bars[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -3597,7 +3605,14 @@ Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 		bars[0].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
 		bars[0].Transition.Subresource = 0;
 
-		this->m_p_command_graphics_list->ResourceBarrier(1, bars);
+		bars[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		bars[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		bars[1].Transition.pResource = p_resource_render_texture;
+		bars[1].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		bars[1].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+		bars[1].Transition.Subresource = 0;
+
+		this->m_p_command_graphics_list->ResourceBarrier(2, bars);
 	}
 
 	SetScissor(bounds);
