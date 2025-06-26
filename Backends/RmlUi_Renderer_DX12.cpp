@@ -3398,6 +3398,12 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 
 	RenderFilters(filters);
 
+	// todo: probably using separated command list and make wait for command queue is better?
+	// otherwise there's no way around for making stable frames due to async execution of dx12
+	// shouldn't be performance critical, but didn't test if make GPU only sync
+	// because no validation errors and still idk which barrier to even use here?
+	Flush();
+
 	this->BindRenderTarget(this->m_manager_render_layer.GetLayer(destination));
 
 	if (blend_mode == Rml::BlendMode::Replace)
