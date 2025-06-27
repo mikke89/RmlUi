@@ -69,7 +69,8 @@ public:
 	/// @param[out] elements Resulting elements.
 	/// @param[in] root_element First element to check.
 	/// @param[in] tag Tag to search for.
-	static void GetElementsByTagName(ElementList& elements, Element* root_element, const String& tag);
+	/// @param[in] stop_tag Optional, tag to stop searching at i.e. won't look for other elements within this tag.
+	static void GetElementsByTagName(ElementList& elements, Element* root_element, const String& tag, const String& stop_tag = "");
 	/// Get all elements with the given class set on them.
 	/// @param[out] elements Resulting elements.
 	/// @param[in] root_element First element to check.

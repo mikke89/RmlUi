@@ -74,7 +74,7 @@ Element* ElementUtilities::GetElementById(Element* root_element, const String& i
 	return nullptr;
 }
 
-void ElementUtilities::GetElementsByTagName(ElementList& elements, Element* root_element, const String& tag)
+void ElementUtilities::GetElementsByTagName(ElementList& elements, Element* root_element, const String& tag, const String& stop_tag)
 {
 	// Breadth first search on elements for the corresponding id
 	typedef Queue<Element*> SearchQueue;
@@ -90,9 +90,12 @@ void ElementUtilities::GetElementsByTagName(ElementList& elements, Element* root
 		if (element->GetTagName() == tag)
 			elements.push_back(element);
 
-		// Add all children to search.
-		for (int i = 0; i < element->GetNumChildren(); i++)
-			search_queue.push(element->GetChild(i));
+		if (stop_tag.empty() || element->GetTagName() != stop_tag)
+		{
+			// Add all children to search.
+			for (int i = 0; i < element->GetNumChildren(); i++)
+				search_queue.push(element->GetChild(i));
+		}
 	}
 }
 
