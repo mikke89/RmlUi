@@ -26,6 +26,8 @@
  *
  */
 
+// author: @wh1t3lord (https://github.com/wh1t3lord)
+
 #include <DirectXMath.h>
 #include <Windows.h>
 #include <d3d12.h>
