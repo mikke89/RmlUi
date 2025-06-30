@@ -566,12 +566,6 @@ void TestNavigator::StopTestSuiteIteration()
 			suite.SetIndex(i);
 			log += Rml::CreateString("%5d   %s\n", i + 1, suite.GetFilename().c_str());
 		}
-		log += "\nEqual:\n";
-		for (int i : equal)
-		{
-			suite.SetIndex(i);
-			log += Rml::CreateString("%5d   %s\n", i + 1, suite.GetFilename().c_str());
-		}
 
 		const Rml::String log_path = GetCaptureOutputDirectory() + "/comparison.log";
 		bool save_result = SaveFile(log_path, log);
