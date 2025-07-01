@@ -51,7 +51,6 @@ struct Transition {
 	Tween tween;
 	float duration = 0.0f;
 	float delay = 0.0f;
-	float reverse_adjustment_factor = 0.0f;
 };
 
 struct TransitionList {
@@ -74,8 +73,7 @@ inline bool operator!=(const Animation& a, const Animation& b)
 }
 inline bool operator==(const Transition& a, const Transition& b)
 {
-	return a.id == b.id && a.tween == b.tween && a.duration == b.duration && a.delay == b.delay &&
-		a.reverse_adjustment_factor == b.reverse_adjustment_factor;
+	return a.id == b.id && a.tween == b.tween && a.duration == b.duration && a.delay == b.delay;
 }
 inline bool operator!=(const Transition& a, const Transition& b)
 {
