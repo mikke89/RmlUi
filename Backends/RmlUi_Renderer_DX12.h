@@ -569,7 +569,7 @@ public:
 	//	ID3D12GraphicsCommandList* p_user_graphics_command_list);
 
 	RenderInterface_DX12(ID3D12Device* p_user_device, ID3D12GraphicsCommandList* p_command_list, IDXGIAdapter* p_user_adapter,
-		bool is_execute_when_end_frame_issued, const Backend::RmlRendererSettings* settings);
+		bool is_execute_when_end_frame_issued, int initial_width, int initial_height, const Backend::RmlRendererSettings* settings);
 	RenderInterface_DX12(void* p_window_handle, const Backend::RmlRendererSettings* settings);
 	~RenderInterface_DX12();
 
@@ -656,6 +656,9 @@ private:
 
 	void EndFrame_Shell();
 	void EndFrame_Integration();
+
+	void Clear_Shell();
+	void Clear_Integration();
 
 	void SetViewport_Shell(int viewport_width, int viewport_height);
 	void SetViewport_Integration(int viewport_width, int viewport_height);

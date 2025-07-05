@@ -71,6 +71,18 @@ struct RmlRendererSettings {
 	unsigned char msaa_sample_count{};
 };
 
+// todo: mikke89 I really don't know how to name it correctly according by meaning it means that user passes to Backend::BeginFrame in integration situation but it is all necessary infromation for processing
+struct RmlRenderInput 
+{
+	/// @brief DX12 = ID3D12Resource*;
+	void* p_input_present_resource;
+	/// @brief DX12 = D3D12_CPU_DESCRIPTOR_HANDLE*;
+	void* p_input_present_resource_binding;
+};
+
+// forward declaration
+struct RmlProcessEventInfo;
+
 struct RmlRenderInitInfo {
 	bool is_full_initialization;
 	bool is_execute_when_end_frame_issued;
@@ -91,6 +103,7 @@ struct RmlRenderInitInfo {
 	/// @brief just name your context please
 	char context_name[32];
 	RmlRendererSettings settings;
+	KeyDownCallback p_key_callback;
 };
 
 // Initializes the backend, including the custom system and render interfaces, and opens a window for rendering the RmlUi context.
@@ -114,6 +127,13 @@ Rml::RenderInterface* GetRenderInterface();
 // Polls and processes events from the current platform, and applies any relevant events to the provided RmlUi context and the key down callback.
 // @return False to indicate that the application should be closed.
 bool ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback = nullptr, bool power_save = false);
+
+/// @brief Use this for integration situation
+/// @param context 
+/// @param power_save 
+/// @return 
+void ProcessEvents(Rml::Context* context, const RmlProcessEventInfo& info, bool power_save = false);
+
 // Request application closure during the next event processing call.
 void RequestExit();
 
@@ -134,12 +154,20 @@ void EndFrame();
 
 /// @brief not for user, internal usage
 extern Type ___renderer_type;
+extern KeyDownCallback ___renderer_key_down_callback;
+/// @brief simulating context_dimensions_dirty
+extern bool ___renderer_context_dpi_enable;
+extern void* ___renderer_context_hwnd;
+extern TypeSystemInterface ___renderer_copy_info_tsi;
+extern int ___renderer_initial_width;
+extern int ___renderer_initial_height;
 
 /* NOT FOR USER, maybe add prefix ___ like with renderer_type for defining that it is directly NOT FOR USER ??? */
 namespace DX12 {
 	Rml::Context* Initialize(RmlRenderInitInfo* p_info, Rml::SystemInterface* p_system_interface);
 	void Shutdown();
 	void BeginFrame(void* p_input_rtv, void* p_input_dsv, unsigned char current_framebuffer_index);
+	void ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, const RmlProcessEventInfo& info, bool power_save);
 	void Resize(Rml::Context* p_context, int width, int height);
 	void EndFrame();
 } // namespace DX12

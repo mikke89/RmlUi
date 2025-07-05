@@ -212,7 +212,10 @@ Rml::Context* Backend::DX12::Initialize(RmlRenderInitInfo* p_info, Rml::SystemIn
 	RMLUI_ASSERT(!p_integration_renderer && "don't call twice because you already initialized renderer");
 	RMLUI_ASSERT(!p_integration_system_interface && "don't call twice because you already initialized system interface");
 	RMLUI_ASSERT(!p_integration_context && "don't call twice because you already initialized Rml::Context");
+	RMLUI_ASSERT(!___renderer_context_dpi_enable &&
+		"we need to set true only in initialize otherwise it signals that logic of init/shutdown is broken and you got invalid state");
 
+	___renderer_context_dpi_enable = true;
 	___renderer_type = Backend::Type::DirectX_12;
 
 	if (p_integration_renderer)
@@ -269,7 +272,8 @@ Rml::Context* Backend::DX12::Initialize(RmlRenderInitInfo* p_info, Rml::SystemIn
 
 	if (!p_integration_context)
 	{
-		p_integration_context = Rml::CreateContext(p_info->context_name, {p_info->initial_width, p_info->initial_height});
+		// since we have to update root if we don't alternate dimensions we can't execute code under if statement and thus we can't update our root, todo: mikke89 think about it because in samples like load_document on ::Initialize we SetDimensions but after our window changes its dimensions and we now go again to SetDimensions but for that calling (dpi) we can update root
+		p_integration_context = Rml::CreateContext(p_info->context_name, {p_info->initial_width/2, p_info->initial_height/2});
 	}
 
 	return p_integration_context;
@@ -281,12 +285,12 @@ void Backend::DX12::Shutdown()
 
 	if (p_integration_renderer)
 	{
-		if (!data->render_interface)
+		if (!data || !data->render_interface)
 			only_one = true;
 	}
 	else
 	{
-		if (data->render_interface)
+		if (!data || data->render_interface)
 			only_one = true;
 	}
 
@@ -294,8 +298,8 @@ void Backend::DX12::Shutdown()
 
 	if (p_integration_renderer)
 	{
-		RmlDX12::Shutdown(p_integration_renderer);
 		Rml::Shutdown();
+		RmlDX12::Shutdown(p_integration_renderer);
 		delete p_integration_renderer;
 		p_integration_renderer = nullptr;
 
@@ -459,6 +463,67 @@ void Backend::DX12::BeginFrame(void* p_input_rtv, void* p_input_dsv, unsigned ch
 	}
 }
 
+void Backend::DX12::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, const RmlProcessEventInfo& info, bool power_save) 
+{
+	RMLUI_ASSERT(context);
+	RMLUI_ASSERT(static_cast<Backend::Type>(___renderer_type) == Backend::Type::DirectX_12);
+	RMLUI_ASSERT(p_integration_renderer);
+	
+	// The initial window size may have been affected by system DPI settings, apply the actual pixel size and dp-ratio to the context.
+	if (___renderer_context_dpi_enable)
+	{
+		RMLUI_ASSERT(___renderer_copy_info_tsi == Backend::TypeSystemInterface::Native_Win32 && "mismatch and failed init?");
+
+		___renderer_context_dpi_enable = false;
+		const float dp_ratio = GetDensityIndependentPixelRatio(static_cast<HWND>(___renderer_context_hwnd));
+		context->SetDimensions({___renderer_initial_width, ___renderer_initial_height});
+		context->SetDensityIndependentPixelRatio(dp_ratio);
+	}
+
+	switch (info.msg)
+	{
+	case WM_DPICHANGED:
+	{
+		RECT* new_pos = (RECT*)info.lParam;
+		SetWindowPos(info.hwnd, NULL, new_pos->left, new_pos->top, new_pos->right - new_pos->left, new_pos->bottom - new_pos->top,
+			SWP_NOZORDER | SWP_NOACTIVATE);
+		if (context && has_dpi_support)
+			context->SetDensityIndependentPixelRatio(GetDensityIndependentPixelRatio(info.hwnd));
+
+		break;
+	}
+	case WM_KEYDOWN:
+	{
+		break;
+		KeyDownCallback key_down_callback = ___renderer_key_down_callback;
+
+		const Rml::Input::KeyIdentifier rml_key = RmlWin32::ConvertKey((int)info.wParam);
+		const int rml_modifier = RmlWin32::GetKeyModifierState();
+		const float native_dp_ratio = GetDensityIndependentPixelRatio(info.hwnd);
+
+		// See if we have any global shortcuts that take priority over the context.
+		if (key_down_callback && !key_down_callback(context, rml_key, rml_modifier, native_dp_ratio, true))
+		{}
+		
+		// Otherwise, hand the event over to the context by calling the input handler as normal.
+		if (!RmlWin32::WindowProcedure(context, data->text_input_method_editor, info.hwnd, info.msg,
+				info.wParam, info.lParam))
+		{}
+
+		// The key was not consumed by the context either, try keyboard shortcuts of lower priority.
+		if (key_down_callback && !key_down_callback(context, rml_key, rml_modifier, native_dp_ratio, false))
+		{}
+
+		break;
+	}
+	default:
+	{
+		// nothing
+		break;
+	}
+	}
+}
+
 void Backend::DX12::Resize(Rml::Context* p_context, int width, int height)
 {
 	RMLUI_ASSERT(p_integration_renderer && "must be valid, early calling?");
@@ -510,7 +575,7 @@ void Backend::DX12::EndFrame()
 
 	// in order to indicate about some problem for user we don't render if user failed to call appropriate function, you can't mix callings that don't
 	// belong to specific renderer's initialization route
-	if (data->render_interface)
+	if (data && data->render_interface)
 	{
 		RMLUI_ASSERTMSG(false, "you initialize shell but call for integration!");
 		return;

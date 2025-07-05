@@ -9,6 +9,12 @@
 
 namespace Backend {
 Backend::Type ___renderer_type = Backend::Type::Unknown;
+KeyDownCallback ___renderer_key_down_callback = nullptr;
+bool ___renderer_context_dpi_enable = false;
+void* ___renderer_context_hwnd = nullptr;
+TypeSystemInterface ___renderer_copy_info_tsi = TypeSystemInterface::Native_Unknown;
+int ___renderer_initial_width=0;
+int ___renderer_initial_height=0;
 
 Rml::Context* Initialize(RmlRenderInitInfo* p_info)
 {
@@ -17,6 +23,12 @@ Rml::Context* Initialize(RmlRenderInitInfo* p_info)
 
 	if (p_info->backend_type == 0)
 		return nullptr;
+
+	___renderer_key_down_callback = p_info->p_key_callback;
+	___renderer_copy_info_tsi = static_cast<TypeSystemInterface>(p_info->system_interface_type);
+	___renderer_context_hwnd = p_info->p_native_window_handle;
+	___renderer_initial_width = p_info->initial_width;
+	___renderer_initial_height = p_info->initial_height;
 
 	switch (static_cast<Backend::Type>(p_info->backend_type))
 	{
@@ -353,6 +365,63 @@ void EndFrame()
 	default:
 	{
 		RMLUI_ASSERTMSG(false, "unknown and undefined backend type that rmlui doesn't support, report to developers please!");
+		break;
+	}
+	}
+}
+
+void Backend::ProcessEvents(Rml::Context* context, const RmlProcessEventInfo& info, bool power_save)
+{
+	switch (___renderer_type)
+	{
+	case Backend::Type::DirectX_12:
+	{
+		Backend::DX12::ProcessEvents(context, ___renderer_key_down_callback, info, power_save);
+
+		break;
+	}
+	case Backend::Type::DirectX_11:
+	{
+		RMLUI_ASSERTMSG(false, "todo: add directx-11 integration processevents route");
+		break;
+	}
+	case Backend::Type::DirectX_10:
+	{
+		RMLUI_ASSERTMSG(false, "todo: add directx-10 integration processevents route");
+		break;
+	}
+	case Backend::Type::DirectX_9:
+	{
+		RMLUI_ASSERTMSG(false, "todo: add directx-9 integration processevents route");
+		break;
+	}
+	case Backend::Type::Vulkan:
+	{
+		RMLUI_ASSERTMSG(false, "todo: add vulkan integration processevents route");
+		break;
+	}
+	case Backend::Type::OpenGL_3:
+	{
+		RMLUI_ASSERTMSG(false, "todo: add opengl 3 integration processevents route");
+		break;
+	}
+	case Backend::Type::OpenGL_2:
+	{
+		RMLUI_ASSERTMSG(false, "todo: add opengl 2 integration processevents route");
+		break;
+	}
+	case Backend::Type::EGL:
+	{
+		RMLUI_ASSERTMSG(false, "todo: add egl integration processevents route");
+		break;
+	}
+	case Backend::Type::Metal:
+	{
+		RMLUI_ASSERTMSG(false, "todo: add metal integration processevents route");
+		break;
+	}
+	default:
+	{
 		break;
 	}
 	}

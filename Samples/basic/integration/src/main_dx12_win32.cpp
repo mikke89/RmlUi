@@ -32,6 +32,7 @@
 #include <RmlUi/Debugger.h>
 #include <DirectXMath.h>
 #include <RmlUi_Backend.h>
+#include <RmlUi_Include_Windows.h>
 #include <Shell.h>
 #include <Windows.h>
 #include <d3d12.h>
@@ -82,7 +83,7 @@ public:
 	void Initialize();
 	void Destroy();
 	void Update(float deltaTime, Rml::Context* p_context);
-	void Render();
+	void Render(Rml::Context* p_context);
 	void Resize(UINT width, UINT height);
 
 	ID3D12Device* GetDevice(void) const { return m_device.Get(); }
@@ -90,6 +91,11 @@ public:
 	ID3D12GraphicsCommandList* GetCommandList(void) const { return m_commandList.Get(); }
 	unsigned char GetSwapchainFrameCount() const { return static_cast<unsigned char>(FrameCount); }
 	IDXGIAdapter* GetAdapter(void) const { return m_adapter.Get(); }
+	void SetContext(Rml::Context* p_context) { m_p_context = p_context; }
+	Rml::Context* GetContext(void) const { return m_p_context; }
+
+	int GetWidth(void) const { return static_cast<int>(m_width); }
+	int GetHeight(void) const { return static_cast<int>(m_height); }
 
 private:
 	void InitializeDevice();
@@ -146,6 +152,8 @@ private:
 	D3D12_VIEWPORT m_viewport;
 	D3D12_RECT m_scissorRect;
 
+	Rml::Context* m_p_context;
+
 	UINT m_rtvDescriptorSize = 0;
 	UINT m_dsvDescriptorSize = 0;
 	UINT m_frameIndex = 0;
@@ -161,6 +169,7 @@ D3D12Renderer::D3D12Renderer(HWND hwnd) : m_hwnd(hwnd)
 	m_viewport = {0.0f, 0.0f, static_cast<float>(m_width), static_cast<float>(m_height), 0.0f, 1.0f};
 	m_scissorRect = {0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height)};
 	m_fenceEvent = 0;
+	m_p_context = 0;
 }
 
 D3D12Renderer::~D3D12Renderer() {}
@@ -183,6 +192,8 @@ void D3D12Renderer::Destroy()
 {
 	WaitForGPU();
 	FlushCommandQueue();
+	// 5) Don't forget to destroy resources from RmlUi and RmlUi will do its job for you
+	Backend::Shutdown();
 	CloseHandle(m_fenceEvent);
 }
 
@@ -579,11 +590,11 @@ void D3D12Renderer::Update(float deltaTime, Rml::Context* p_context)
 
 	if (p_context)
 	{
-		Backend::ProcessEvents(p_context, &Shell::ProcessKeyDownShortcuts, true);
+		p_context->Update();
 	}
 }
 
-void D3D12Renderer::Render()
+void D3D12Renderer::Render(Rml::Context* p_context)
 {
 	if (m_width == 0 || m_height == 0)
 		return; // Skip rendering when minimized
@@ -635,8 +646,24 @@ void D3D12Renderer::Render()
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
 
+	Backend::RmlRenderInput rtv_arg;
+	Backend::RmlRenderInput dsv_arg;
+
+	rtv_arg.p_input_present_resource = m_renderTargets[m_frameIndex].Get();
+	rtv_arg.p_input_present_resource_binding = &rtvHandle;
+
+	dsv_arg.p_input_present_resource = m_depthStencil.Get();
+	dsv_arg.p_input_present_resource_binding = &dsvHandle;
+
 	// Draw RmlUi in your engine
-	Backend::BeginFrame(&rtvHandle, &dsvHandle, static_cast<unsigned char>(m_frameIndex));
+	// but keep in mind that we don't make barrier thing for your passed input arguments since it supposed that you have their state as render target and they are ready for clear operations too
+	Backend::BeginFrame(&rtv_arg, &dsv_arg, static_cast<unsigned char>(m_frameIndex));
+
+	if (p_context)
+	{
+		p_context->Render();
+	}
+
 	Backend::EndFrame();
 
 	// Transition back to present
@@ -672,6 +699,25 @@ void D3D12Renderer::Render()
 // Win32 Window Setup and Message Loop
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+
+	D3D12Renderer* renderer = reinterpret_cast<D3D12Renderer*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+	if (hwnd)
+	{
+		if (renderer)
+		{
+			// filling info about our window callback data for RmlUi processing its internal state
+			Backend::RmlProcessEventInfo info;
+
+			info.hwnd = hwnd;
+			info.lParam = lParam;
+			info.wParam = wParam;
+			info.msg = msg;
+
+			Backend::ProcessEvents(renderer->GetContext(), info, true);
+		}
+	}
+
 	switch (msg)
 	{
 	case WM_CREATE:
@@ -731,11 +777,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
 	// clang-format off
 	/*
-	 * How to integrate RmlUi backend under your user backend just in 4 steps?
+	 * How to integrate RmlUi backend under your user backend just in 5 steps?
 	 *
 	 * 1) Step one = initialize RmlUi backend
 	 * 2) Step two = Load your fonts for correct working of Rml
-	 * 3) Step three = Provide a place for rendering UI where you should put BeginFrame/EndFrame in your renderer engine & for updaing context using Backend::ProcessEvents
+	 * 3) Step three = Provide a place for rendering UI where you should put BeginFrame/EndFrame in your renderer engine & for updaing context using Backend::ProcessEvents (DONT FORGET about ProcessEvents)
 	 * 4) Step four = Don't forget to use Backend::Resize where your window handles it and you should be able to see rendered image in your swapchain render target images
 	 * targets) 
 	 * 5) Step five = After using don't forget to call Backend::Shutdown() where you wish to call depends on your needs
@@ -765,6 +811,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 	// you must have initialize ID3D12Device* on your side
 	info.p_user_device = renderer.GetDevice();
 
+	// rmlui's required adapter for modern GPU for succeeded allocator creation
 	info.p_user_adapter = renderer.GetAdapter();
 
 	// in this example we use existed command list but if you don't want to pass field to rmlui then pass nullptr and rmlui will create own command
@@ -776,23 +823,40 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 	// sample integration_as_postprocess if you're curious)
 	info.is_execute_when_end_frame_issued = false;
 
-	info.initial_height = initialHeight;
-	info.initial_width = initialWidth;
+	// registering key callback since we have to provide it for ProcessEvents calling, we use default implementation only for demonstration purposes
+	info.p_key_callback = &Shell::ProcessKeyDownShortcuts;
+
+	info.initial_height = renderer.GetHeight();
+	info.initial_width = renderer.GetWidth();
 	std::memcpy(info.context_name, "main_dx12_win32_swapchain", sizeof("main_dx12_win32_swapchain"));
 
 	// 1) probably we could put it under ::Initialize of renderer but it is for simplicity and for comfortable reading, so we initialize the rmlui's
 	// backend where you had to specify to which one to use in current case it is DirectX-12
 	Rml::Context* p_context = Backend::Initialize(&info);
 
+	// registering context for accessing in windowproc function for processing Backend::ProcessEvents
+	renderer.SetContext(p_context);
+
 	// failed to initialize context so yeah, critical error by different things, it is useful to first iterations of development run under Debug build
 	if (!p_context)
+	{
+		MessageBoxA(NULL, "failed to initialize context or Backend!", "ERROR", 0);
 		std::exit(-1);
+	}
 
 	// 2) For simplicity and better understanding of this sample, we used default way of loading fonts from Shell BUT you have to use font_interface
 	// and using your file system and your implementation/design of file system and load manually (AND AS YOU THINK IS RIGHT IN YOUR ENVIRONMENT)
 	Shell::LoadFonts();
 
-	if (Rml::ElementDocument* p_doc = p_context->LoadDocument("assets/demo.rml"))
+	Rml::ElementDocument* p_doc = p_context->LoadDocument("assets/demo.rml");
+
+	if (!p_doc)
+	{
+		MessageBoxA(NULL, "failed to load document!", "ERROR", 0);
+		std::exit(-1);
+	}
+
+	if (p_doc)
 		p_doc->Show();
 
 	// Main loop
@@ -822,17 +886,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
 			// 3) It contains Backend::ProcessEvents AND
 			// 4) It contains Resize too, but honestly some of you can call it in window's proc or where your resize handling exists
+			// don't forget to call p_context->Update it contains in D3D12Renderer::Update
 			renderer.Update(deltaTime, p_context);
 
 			// 3) Backend::BeginFrame and Backend::EndFrame are inside this method of D3D12Renderer::Render
-			renderer.Render();
+			// don't forget to call p_context->Render it contains in D3D12Renderer::Render
+			renderer.Render(p_context);
 
 			// 4) now you should see rendered UI and we congratulate you with successful integration!
 		}
 	}
 
-	// 5) Don't forget to destroy resources from RmlUi and RmlUi will do its job for you
-	Backend::Shutdown();
+	// 5) Backend::Shutdown inside of D3D12Renderer::Destroy but keep in mind that you have to call Backned::Shutdown after when you issued sync for GPU and safely deleting resources from Backend due to fact that you sync operations, RmlUi doesn't call Flush on its side when intergration works
 	renderer.Destroy();
 	return 0;
 }

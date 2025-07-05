@@ -916,7 +916,7 @@ private:
 } // namespace Gfx
 
 RenderInterface_DX12::RenderInterface_DX12(ID3D12Device* p_user_device, ID3D12GraphicsCommandList* p_command_list, IDXGIAdapter* p_user_adapter,
-	bool is_execute_when_end_frame_issued, const Backend::RmlRendererSettings* settings) :
+	bool is_execute_when_end_frame_issued, int initial_width, int initial_height, const Backend::RmlRendererSettings* settings) :
 	m_is_full_initialization{false}, m_is_shutdown_called{}, m_is_use_vsync{settings->vsync}, m_is_use_tearing{}, m_is_scissor_was_set{},
 	m_is_stencil_enabled{}, m_is_stencil_equal{}, m_is_use_msaa{true}, m_is_execute_when_end_frame_issued{is_execute_when_end_frame_issued},
 	m_is_command_list_user{!!(p_command_list)}, m_msaa_sample_count{settings->msaa_sample_count}, m_user_framebuffer_index{}, m_width{}, m_height{},
@@ -939,6 +939,9 @@ RenderInterface_DX12::RenderInterface_DX12(ID3D12Device* p_user_device, ID3D12Gr
 	std::memset(this->m_pipelines, 0, sizeof(this->m_pipelines));
 	std::memset(this->m_root_signatures, 0, sizeof(this->m_root_signatures));
 	std::memset(this->m_constant_buffer_count_per_frame.data(), 0, sizeof(this->m_constant_buffer_count_per_frame));
+
+	this->m_width = initial_width;
+	this->m_height = initial_height;
 
 	#ifdef RMLUI_DX_DEBUG
 	this->m_default_shader_flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -1043,41 +1046,14 @@ void RenderInterface_DX12::EndFrame()
 
 void RenderInterface_DX12::Clear()
 {
-	RMLUI_ZoneScopedN("DirectX 12 - Clear");
-
-	RMLUI_ASSERT(this->m_p_command_graphics_list && "early calling prob!");
-
-	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "Clear");
-
-	auto* p_backbuffer = this->m_backbuffers_resources.at(this->m_current_back_buffer_index);
-
-	D3D12_RESOURCE_BARRIER barrier;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Transition.pResource = p_backbuffer;
-	barrier.Transition.Subresource = 0;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-
-	this->m_p_command_graphics_list->ResourceBarrier(1, &barrier);
-
-	constexpr FLOAT clear_color[] = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
-
-	D3D12_CPU_DESCRIPTOR_HANDLE rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart());
-	rtv.ptr += this->m_current_back_buffer_index * (this->m_size_descriptor_heap_render_target_view);
-
-	this->m_p_command_graphics_list->ClearDepthStencilView(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart(),
-		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
-
-	this->m_p_command_graphics_list->ClearRenderTargetView(rtv, clear_color, 0, nullptr);
-
-	auto& p_current_rtv = this->m_manager_render_layer.GetTopLayer().Get_DescriptorResourceView();
-	auto& p_current_dsv = this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
-
-	constexpr FLOAT clear_color_framebuffer[] = {0.0f, 0.0f, 0.0f, 0.0f};
-	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color_framebuffer, 0, nullptr);
-
-	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
+	if (this->m_is_full_initialization)
+	{
+		this->Clear_Shell();
+	}
+	else
+	{
+		this->Clear_Integration();
+	}
 }
 
 void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture)
@@ -3936,7 +3912,8 @@ void RenderInterface_DX12::Shutdown() noexcept
 		this->m_is_shutdown_called = true;
 	}
 
-	this->Flush();
+	if (this->m_is_full_initialization)
+		this->Flush();
 
 	this->m_manager_render_layer.Shutdown();
 
@@ -4321,6 +4298,9 @@ void RenderInterface_DX12::Initialize(void) noexcept
 
 		this->m_precompiled_fullscreen_quad_geometry = this->CompileGeometry(mesh.vertices, mesh.indices);
 
+		this->m_projection =
+			Rml::Matrix4f::ProjectOrtho(0, static_cast<float>(m_width), static_cast<float>(m_height), 0, -10000, 10000);
+
 	#ifdef RMLUI_DX_DEBUG
 		Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "DirectX 12 Initialize type: user");
 	#endif
@@ -4330,7 +4310,7 @@ void RenderInterface_DX12::Initialize(void) noexcept
 bool RenderInterface_DX12::IsSwapchainValid() noexcept
 {
 	RMLUI_ZoneScopedN("DirectX 12 - IsSwapchainValid");
-	return this->m_p_swapchain != nullptr;
+	return (this->m_p_swapchain != nullptr) || !m_is_full_initialization;
 }
 
 void RenderInterface_DX12::RecreateSwapchain() noexcept
@@ -4771,7 +4751,19 @@ void RenderInterface_DX12::EndFrame_Integration()
 
 		this->m_p_command_graphics_list->ResourceBarrier(1, &offscreen_texture_barrier_for_shader);
 
-		this->m_p_command_graphics_list->OMSetRenderTargets(1, this->m_p_user_rtv_present, FALSE, this->m_p_user_dsv_present);
+		Backend::RmlRenderInput* p_input_rtv = reinterpret_cast<Backend::RmlRenderInput*>(this->m_p_user_rtv_present);
+
+		D3D12_CPU_DESCRIPTOR_HANDLE* p_handle_rtv =
+			reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(p_input_rtv->p_input_present_resource_binding);
+
+		Backend::RmlRenderInput* p_input_dsv = reinterpret_cast<Backend::RmlRenderInput*>(this->m_p_user_dsv_present);
+
+		D3D12_CPU_DESCRIPTOR_HANDLE* p_handle_dsv = reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(p_input_dsv->p_input_present_resource_binding);
+
+		RMLUI_ASSERT(p_handle_rtv && "you have invalid D3D12_CPU_DESCRIPTOR_HANDLE* for render target");
+		RMLUI_ASSERT(p_handle_dsv && "you have invalid D3D12_CPU_DESCRIPTOR_HANDLE* for depth stencil");
+
+		this->m_p_command_graphics_list->OMSetRenderTargets(1, p_handle_rtv, FALSE, p_handle_dsv);
 
 		this->UseProgram(ProgramId::Passthrough);
 
@@ -4822,7 +4814,109 @@ void RenderInterface_DX12::EndFrame_Integration()
 
 			this->m_backbuffers_fence_values[this->m_current_back_buffer_index] = fence_value + 1;
 		}
+		else
+		{
+	#ifdef RMLUI_DX_DEBUG
+			Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] current allocated constant buffers per draw (for frame[%d]): %zu",
+				this->m_current_back_buffer_index, this->m_constant_buffer_count_per_frame[m_current_back_buffer_index]);
+	#endif
+
+			this->m_constant_buffer_count_per_frame[this->m_current_back_buffer_index] = 0;
+		}
 	}
+}
+
+void RenderInterface_DX12::Clear_Shell()
+{
+	RMLUI_ZoneScopedN("DirectX 12 - Clear");
+
+	RMLUI_ASSERT(this->m_p_command_graphics_list && "early calling prob!");
+
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "Clear");
+
+	auto* p_backbuffer = this->m_backbuffers_resources.at(this->m_current_back_buffer_index);
+
+	D3D12_RESOURCE_BARRIER barrier;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Transition.pResource = p_backbuffer;
+	barrier.Transition.Subresource = 0;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+
+	this->m_p_command_graphics_list->ResourceBarrier(1, &barrier);
+
+	constexpr FLOAT clear_color[] = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart());
+	rtv.ptr += this->m_current_back_buffer_index * (this->m_size_descriptor_heap_render_target_view);
+
+	this->m_p_command_graphics_list->ClearDepthStencilView(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart(),
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
+	this->m_p_command_graphics_list->ClearRenderTargetView(rtv, clear_color, 0, nullptr);
+
+	auto& p_current_rtv = this->m_manager_render_layer.GetTopLayer().Get_DescriptorResourceView();
+	auto& p_current_dsv = this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
+
+	constexpr FLOAT clear_color_framebuffer[] = {0.0f, 0.0f, 0.0f, 0.0f};
+	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color_framebuffer, 0, nullptr);
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
+}
+
+void RenderInterface_DX12::Clear_Integration() 
+{
+	RMLUI_ZoneScopedN("DirectX 12 - Clear");
+
+	RMLUI_ASSERT(this->m_p_command_graphics_list && "early calling prob!");
+	RMLUI_ASSERT(this->m_p_user_rtv_present && "you have invalid user rtv handle");
+	RMLUI_ASSERT(this->m_p_user_dsv_present && "you have invalid user dsv handle");
+
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "Clear");
+	
+	Backend::RmlRenderInput* p_input_rtv = reinterpret_cast<Backend::RmlRenderInput*>(this->m_p_user_rtv_present);
+	
+	/* todo: hope user won't need to have handling this situations because we expect that user resolve their state on their side otherwise we need to provide resource tracking?
+	ID3D12Resource* p_backbuffer = reinterpret_cast<ID3D12Resource*>(p_input_rtv->p_input_present_resource);
+
+	D3D12_RESOURCE_BARRIER barrier;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Transition.pResource = p_backbuffer;
+	barrier.Transition.Subresource = 0;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+
+	this->m_p_command_graphics_list->ResourceBarrier(1, &barrier);
+	*/
+
+	constexpr FLOAT clear_color[] = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
+
+	constexpr FLOAT no_color[] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+	D3D12_CPU_DESCRIPTOR_HANDLE* rtv_handle =
+		reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(p_input_rtv->p_input_present_resource_binding);
+
+	Backend::RmlRenderInput* p_input_dsv = reinterpret_cast<Backend::RmlRenderInput*>(this->m_p_user_dsv_present);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE* dsv_handle = reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(p_input_dsv->p_input_present_resource_binding);
+
+	RMLUI_ASSERT(rtv_handle && "you passed empty D3D12_CPU_DESCRIPTOR_HANDLE for rtv");
+	RMLUI_ASSERT(dsv_handle && "you passed empty D3D12_CPU_DESCRIPTOR_HANDLE for dsv");
+
+	this->m_p_command_graphics_list->ClearDepthStencilView(*dsv_handle,
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
+//	this->m_p_command_graphics_list->ClearRenderTargetView(*rtv_handle, no_color, 0, nullptr);
+
+	auto& p_current_rtv = this->m_manager_render_layer.GetTopLayer().Get_DescriptorResourceView();
+	auto& p_current_dsv = this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
+
+	constexpr FLOAT clear_color_framebuffer[] = {0.0f, 0.0f, 0.0f, 0.0f};
+	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color_framebuffer, 0, nullptr);
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 void RenderInterface_DX12::SetViewport_Shell(int viewport_width, int viewport_height)
@@ -8626,7 +8720,7 @@ RenderInterface_DX12* RmlDX12::Initialize(Rml::String* out_message, Backend::Rml
 
 			p_result = new RenderInterface_DX12(static_cast<ID3D12Device*>(p_info->p_user_device),
 				static_cast<ID3D12GraphicsCommandList*>(p_info->p_command_list), static_cast<IDXGIAdapter*>(p_info->p_user_adapter),
-				p_info->is_execute_when_end_frame_issued, &settings);
+				p_info->is_execute_when_end_frame_issued, p_info->initial_width, p_info->initial_height, &settings);
 		}
 	}
 
