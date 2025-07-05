@@ -204,7 +204,10 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 RenderInterface_DX12* p_integration_renderer = nullptr;
 // todo: mikke89 provide GetType method based on TypeSystemInterface enum in order to validate the real instatiated instance of Rml::SystemInterface what we passed as argument and what we expect in requested RmlRenderInitInfo
 Rml::SystemInterface* p_integration_system_interface = nullptr;
+Rml::FileInterface* p_integration_file_interface = nullptr;
 
+#include "../include/PlatformExtensions.h"
+#include "../include/ShellFileInterface.h"
 Rml::Context* p_integration_context = nullptr;
 
 Rml::Context* Backend::DX12::Initialize(RmlRenderInitInfo* p_info, Rml::SystemInterface* p_system_interface)
@@ -266,6 +269,20 @@ Rml::Context* Backend::DX12::Initialize(RmlRenderInitInfo* p_info, Rml::SystemIn
 	if (p_integration_renderer && p_integration_system_interface)
 	{
 		Rml::SetSystemInterface(p_integration_system_interface);
+
+		// todo: mikke89 think about it maybe user can pass it is own file interface through RmlRenderInitInfo ?
+		if (!p_integration_file_interface)
+		{
+			Rml::String root = PlatformExtensions::FindSamplesRoot();
+
+			if (root.empty() == false)
+			{
+				p_integration_file_interface = new ShellFileInterface(root);
+				Rml::SetFileInterface(p_integration_file_interface);
+			}
+		}
+
+
 		Rml::SetRenderInterface(p_integration_renderer);
 		Rml::Initialise();
 	}
@@ -299,6 +316,11 @@ void Backend::DX12::Shutdown()
 	if (p_integration_renderer)
 	{
 		Rml::Shutdown();
+		if (p_integration_file_interface)
+		{
+			delete p_integration_file_interface;
+			p_integration_file_interface = nullptr;
+		}
 		RmlDX12::Shutdown(p_integration_renderer);
 		delete p_integration_renderer;
 		p_integration_renderer = nullptr;
