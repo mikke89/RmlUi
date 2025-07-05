@@ -37,6 +37,11 @@
 	#include <SDL3/SDL.h>
 #elif RMLUI_SDL_VERSION_MAJOR == 2
 	#include <SDL.h>
+
+	#ifdef _WIN32
+		#include <SDL_syswm.h>
+	#endif
+
 #else
 	#error "Unspecified RMLUI_SDL_VERSION_MAJOR. Please set this definition to the major version of the SDL library being linked to."
 #endif

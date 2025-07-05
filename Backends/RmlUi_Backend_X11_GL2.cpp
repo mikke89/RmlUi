@@ -100,10 +100,10 @@ struct BackendData {
 };
 static Rml::UniquePtr<BackendData> data;
 
-bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize)
+bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize, RmlRenderInitInfo* p_info)
 {
 	RMLUI_ASSERT(!data);
-
+	if (p_info) { p_info = nullptr; }
 	Display* display = XOpenDisplay(0);
 	if (!display)
 		return false;
