@@ -59,6 +59,11 @@ enum RenderState;
 #endif
 } // namespace Gfx
 
+namespace Backend {
+struct RmlRenderInitInfo;
+struct RmlRendererSettings;
+} // namespace Backend
+
 /**
  * DirectX 12 render interface implementation for RmlUi
  * @author wh1t3lord (https://github.com/wh1t3lord)
@@ -316,7 +321,7 @@ public:
 			{
 				if (this->m_constant_buffer_root_parameter_indicies[i] != _kRenderBackend_InvalidConstantBuffer_RootParameterIndex)
 				{
-					amount_of_indicies = i+1;
+					amount_of_indicies = i + 1;
 				}
 			}
 
@@ -525,7 +530,7 @@ such as filters. They are used both as input and output during rendering, and do
 		const Gfx::FramebufferData& GetLayer(Rml::LayerHandle layer) const;
 		const Gfx::FramebufferData& GetTopLayer() const;
 		const Gfx::FramebufferData& Get_SharedDepthStencil_Layers();
-	//	const Gfx::FramebufferData& Get_SharedDepthStencil_Postprocess();
+		//	const Gfx::FramebufferData& Get_SharedDepthStencil_Postprocess();
 		Rml::LayerHandle GetTopLayerHandle() const;
 
 		const Gfx::FramebufferData& GetPostprocessPrimary() { return EnsureFramebufferPostprocess(0); }
@@ -563,9 +568,9 @@ public:
 	// RenderInterface_DX12(ID3D12Device* p_user_device, ID3D12CommandQueue* p_user_command_queue,
 	//	ID3D12GraphicsCommandList* p_user_graphics_command_list);
 
-	RenderInterface_DX12(void* p_window_handle, ID3D12Device* p_user_device, IDXGISwapChain* p_user_swapchain, bool use_vsync,
-		unsigned char msaa_sample_count);
-	RenderInterface_DX12(void* p_window_handle, bool use_vsync, unsigned char msaa_sample_count);
+	RenderInterface_DX12(ID3D12Device* p_user_device, ID3D12GraphicsCommandList* p_command_list, IDXGIAdapter* p_user_adapter,
+		bool is_execute_when_end_frame_issued, const Backend::RmlRendererSettings* settings);
+	RenderInterface_DX12(void* p_window_handle, const Backend::RmlRendererSettings* settings);
 	~RenderInterface_DX12();
 
 	// using CreateSurfaceCallback = bool (*)(VkInstance instance, VkSurfaceKHR* out_surface);
@@ -641,7 +646,20 @@ public:
 
 	unsigned char Get_MSAASampleCount(void) const;
 
+	void Set_UserFramebufferIndex(unsigned char framebuffer_index);
+	void Set_UserRenderTarget(void* rtv_where_we_render_to);
+	void Set_UserDepthStencil(void* dsv_where_we_render_to);
+
 private:
+	void BeginFrame_Shell();
+	void BeginFrame_Integration();
+
+	void EndFrame_Shell();
+	void EndFrame_Integration();
+
+	void SetViewport_Shell(int viewport_width, int viewport_height);
+	void SetViewport_Integration(int viewport_width, int viewport_height);
+
 	void Initialize_Device(void) noexcept;
 	void Initialize_Adapter(void) noexcept;
 	void Initialize_DebugLayer(void) noexcept;
@@ -729,7 +747,8 @@ private:
 		const Rml::Rectanglei window_flipped);
 
 	void DrawFullscreenQuad(ConstantBufferType* p_override_constant_buffer = nullptr);
-	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f), ConstantBufferType* p_override_constant_buffer = nullptr);
+	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f),
+		ConstantBufferType* p_override_constant_buffer = nullptr);
 
 	void BindTexture(TextureHandleType* p_texture, UINT root_parameter_index = 0);
 	void BindRenderTarget(const Gfx::FramebufferData& framebuffer, bool depth_included = true);
@@ -757,8 +776,10 @@ private:
 	bool m_is_stencil_enabled;
 	bool m_is_stencil_equal;
 	bool m_is_use_msaa;
+	bool m_is_execute_when_end_frame_issued;
+	bool m_is_command_list_user;
 	unsigned char m_msaa_sample_count;
-
+	unsigned char m_user_framebuffer_index;
 	/// @brief current viewport's width
 	int m_width;
 	/// @brief current viewport's height
@@ -768,7 +789,7 @@ private:
 	Rml::Rectanglei m_scissor;
 	uint32_t m_size_descriptor_heap_render_target_view;
 	uint32_t m_size_descriptor_heap_shaders;
-	uint32_t m_current_back_buffer_index;
+	UINT m_current_back_buffer_index;
 	UINT m_stencil_ref_value;
 	/// @brief depends on compile build type if it is debug it means D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION otherwise it is 0
 	UINT m_default_shader_flags;
@@ -797,7 +818,10 @@ private:
 	D3D12MA::Allocator* m_p_allocator;
 	OffsetAllocator::Allocator* m_p_offset_allocator_for_descriptor_heap_shaders;
 	// D3D12MA::Allocation* m_p_constant_buffers[kSwapchainBackBufferCount];
-
+	// where user wants to render rmlui final image
+	D3D12_CPU_DESCRIPTOR_HANDLE* m_p_user_rtv_present;
+	// as well as rtv just dsv
+	D3D12_CPU_DESCRIPTOR_HANDLE* m_p_user_dsv_present;
 	HWND m_p_window_handle;
 	HANDLE m_p_fence_event;
 	uint64_t m_fence_value;

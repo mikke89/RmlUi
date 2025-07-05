@@ -81,7 +81,7 @@ public:
 
 	void Initialize();
 	void Destroy();
-	void Update(float deltaTime, Rml::Context* p_context);
+	void Update(float deltaTime);
 	void Render();
 	void Resize(UINT width, UINT height);
 
@@ -89,7 +89,6 @@ public:
 	IDXGISwapChain* GetSwapchain(void) const { return m_swapChain.Get(); }
 	ID3D12GraphicsCommandList* GetCommandList(void) const { return m_commandList.Get(); }
 	unsigned char GetSwapchainFrameCount() const { return static_cast<unsigned char>(FrameCount); }
-	IDXGIAdapter* GetAdapter(void) const { return m_adapter.Get(); }
 
 private:
 	void InitializeDevice();
@@ -139,7 +138,6 @@ private:
 	ComPtr<ID3D12Resource> m_indexBuffer;
 	ComPtr<ID3D12Resource> m_constantBuffer[FrameCount];
 	ComPtr<ID3D12Fence> m_fence;
-	ComPtr<IDXGIAdapter1> m_adapter;
 	HANDLE m_fenceEvent;
 	UINT64 m_fenceValue[FrameCount] = {};
 
@@ -216,10 +214,7 @@ void D3D12Renderer::InitializeDevice()
 		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
 			continue;
 		if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_device))))
-		{
-			m_adapter = adapter;
 			break;
-		}
 	}
 }
 
@@ -539,7 +534,7 @@ void D3D12Renderer::WaitForGPU()
 	}
 }
 
-void D3D12Renderer::Update(float deltaTime, Rml::Context* p_context)
+void D3D12Renderer::Update(float deltaTime)
 {
 	if (m_resizePending)
 	{
@@ -554,8 +549,6 @@ void D3D12Renderer::Update(float deltaTime, Rml::Context* p_context)
 		InitializeDepthBuffer();
 		m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 		m_resizePending = false;
-
-		Backend::Resize(p_context, m_width, m_height);
 	}
 
 	m_cameraAngle += 1.0f * deltaTime;
@@ -576,11 +569,6 @@ void D3D12Renderer::Update(float deltaTime, Rml::Context* p_context)
 	m_constantBuffer[m_frameIndex]->Map(0, &readRange, reinterpret_cast<void**>(&data));
 	memcpy(data, &cb, sizeof(cb));
 	m_constantBuffer[m_frameIndex]->Unmap(0, nullptr);
-
-	if (p_context)
-	{
-		Backend::ProcessEvents(p_context, &Shell::ProcessKeyDownShortcuts, true);
-	}
 }
 
 void D3D12Renderer::Render()
@@ -635,7 +623,7 @@ void D3D12Renderer::Render()
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
 
-	// Draw RmlUi in your engine
+	// Draw UI in your engine
 	Backend::BeginFrame(&rtvHandle, &dsvHandle, static_cast<unsigned char>(m_frameIndex));
 	Backend::EndFrame();
 
@@ -685,8 +673,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			UINT width = LOWORD(lParam);
 			UINT height = HIWORD(lParam);
-
-			// 4) contains Backend::Resize
 			renderer->Resize(width, height);
 		}
 		break;
@@ -696,13 +682,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-/// @brief Making a simulation of your engine and your complex architecture to this trivial sample, here we create window then create and initialize
-/// your renderer (user) and then initialize rmlui and its backend for integrating to your renderer
-/// @param hInstance
-/// @param
-/// @param
-/// @param nCmdShow
-/// @return
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
 	const UINT initialWidth = 800;
@@ -729,18 +708,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 	// Initialize renderer
 	renderer.Initialize();
 
-	// clang-format off
 	/*
-	 * How to integrate RmlUi backend under your user backend just in 4 steps?
+	 * How to integrate RmlUi backend under your user backend?
 	 *
-	 * 1) Step one = initialize RmlUi backend
-	 * 2) Step two = Load your fonts for correct working of Rml
-	 * 3) Step three = Provide a place for rendering UI where you should put BeginFrame/EndFrame in your renderer engine & for updaing context using Backend::ProcessEvents
-	 * 4) Step four = Don't forget to use Backend::Resize where your window handles it and you should be able to see rendered image in your swapchain render target images
-	 * targets) 
-	 * 5) Step five = After using don't forget to call Backend::Shutdown() where you wish to call depends on your needs
+	 * 1) Step one, initialize RmlUi backend
+	 * 2) Provide a place for rendering UI where you should put BeginFrame/EndFrame
+	 * 3) Seeing a renderered UI into your image where you supposed to write graphics info (in this case it is swapchain render targets)
 	 */
-	// clang-format on
 
 	// 1) Step one, initialize RmlUi backend using appropriate version of Backend::Initialize function that contain single argument of
 	// Backend::RmlRenderInitInfo*
@@ -765,35 +739,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 	// you must have initialize ID3D12Device* on your side
 	info.p_user_device = renderer.GetDevice();
 
-	info.p_user_adapter = renderer.GetAdapter();
-
-	// in this example we use existed command list but if you don't want to pass field to rmlui then pass nullptr and rmlui will create own command
-	// list but you have to set nullptr if you didn't initialize the whole instance of RmlRenderInitInfo to 0 all fields
+	// in this example we use existed command list but if you don't want to pass rmlui will create own command list but you have to set nullptr if you
+	// didn't initialize the whole instance of RmlRenderInitInfo to 0 all fields
 	info.p_command_list = renderer.GetCommandList();
 
 	// in this example we suppose that execution of command list comes on YOUR side it means we just record command into the exist list that we set
-	// earlier it might be used when you would like to render to texture and use it as postprocess effect like rendering on quad or something (there's
-	// sample integration_as_postprocess if you're curious)
+	// earlier
 	info.is_execute_when_end_frame_issued = false;
 
-	info.initial_height = initialHeight;
-	info.initial_width = initialWidth;
-	std::memcpy(info.context_name, "main_dx12_win32_swapchain", sizeof("main_dx12_win32_swapchain"));
+	std::memcpy(info.context_name, "main_dx12_win32_postprocess", sizeof("main_dx12_win32_postprocess"));
 
-	// 1) probably we could put it under ::Initialize of renderer but it is for simplicity and for comfortable reading, so we initialize the rmlui's
-	// backend where you had to specify to which one to use in current case it is DirectX-12
-	Rml::Context* p_context = Backend::Initialize(&info);
-
-	// failed to initialize context so yeah, critical error by different things, it is useful to first iterations of development run under Debug build
-	if (!p_context)
-		std::exit(-1);
-
-	// 2) For simplicity and better understanding of this sample, we used default way of loading fonts from Shell BUT you have to use font_interface
-	// and using your file system and your implementation/design of file system and load manually (AND AS YOU THINK IS RIGHT IN YOUR ENVIRONMENT)
-	Shell::LoadFonts();
-
-	if (Rml::ElementDocument* p_doc = p_context->LoadDocument("assets/demo.rml"))
-		p_doc->Show();
+	Backend::Initialize(&info);
 
 	// Main loop
 	MSG msg = {};
@@ -820,18 +776,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			float deltaTime = static_cast<float>(currentTime.QuadPart - lastTime) / frequency.QuadPart;
 			lastTime = (FLOAT)currentTime.QuadPart;
 
-			// 3) It contains Backend::ProcessEvents AND
-			// 4) It contains Resize too, but honestly some of you can call it in window's proc or where your resize handling exists
-			renderer.Update(deltaTime, p_context);
-
-			// 3) Backend::BeginFrame and Backend::EndFrame are inside this method of D3D12Renderer::Render
+			renderer.Update(deltaTime);
 			renderer.Render();
-
-			// 4) now you should see rendered UI and we congratulate you with successful integration!
 		}
 	}
 
-	// 5) Don't forget to destroy resources from RmlUi and RmlUi will do its job for you
 	Backend::Shutdown();
 	renderer.Destroy();
 	return 0;

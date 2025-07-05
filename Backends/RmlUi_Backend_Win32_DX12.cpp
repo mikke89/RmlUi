@@ -42,7 +42,7 @@
     Requires Windows 10, version 1703.
  */
 #ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
-	#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((HANDLE)-4)
+	#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((HANDLE) - 4)
 #endif
 #ifndef WM_DPICHANGED
 	#define WM_DPICHANGED 0x02E0
@@ -134,6 +134,8 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 {
 	RMLUI_ASSERT(!data);
 
+	___renderer_type = Backend::Type::DirectX_12;
+
 	const std::wstring name = RmlWin32::ConvertToUTF16(Rml::String(window_name));
 
 	data = Rml::MakeUnique<BackendData>();
@@ -150,7 +152,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	data->window_handle = window_handle;
 
-	/* 
+	/*
 	TODO: [wl] delete
 	As a standard we need to use namespace RmlRendererName and call from it Initialize function where we pass p_info structure
 	Rml::Vector<const char*> extensions;
@@ -168,9 +170,11 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (!p_info)
 	{
 		// legacy calling, by default we think that user in that case wants to initialize renderer fully
-		p_info = new RmlRenderInitInfo(data->window_handle, true);
+		p_info = new RmlRenderInitInfo;
 
-		p_info->Get_Settings().vsync = false;
+		p_info->p_native_window_handle = data->window_handle;
+		p_info->is_full_initialization = true;
+		p_info->settings.vsync = false;
 
 		// remember pointer in order to delete it
 		p_legacy_instance = p_info;
@@ -186,8 +190,6 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 		return false;
 	}
 
-
-
 	data->system_interface.SetWindow(window_handle);
 	data->render_interface->SetViewport(width, height);
 
@@ -199,29 +201,132 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	return true;
 }
 
-void Backend::Shutdown()
+RenderInterface_DX12* p_integration_renderer = nullptr;
+// todo: mikke89 provide GetType method based on TypeSystemInterface enum in order to validate the real instatiated instance of Rml::SystemInterface what we passed as argument and what we expect in requested RmlRenderInitInfo
+Rml::SystemInterface* p_integration_system_interface = nullptr;
+
+Rml::Context* p_integration_context = nullptr;
+
+Rml::Context* Backend::DX12::Initialize(RmlRenderInitInfo* p_info, Rml::SystemInterface* p_system_interface)
 {
-	RMLUI_ASSERT(data);
-	RMLUI_ASSERT(data->render_interface);
+	RMLUI_ASSERT(!p_integration_renderer && "don't call twice because you already initialized renderer");
+	RMLUI_ASSERT(!p_integration_system_interface && "don't call twice because you already initialized system interface");
+	RMLUI_ASSERT(!p_integration_context && "don't call twice because you already initialized Rml::Context");
 
-	if (p_legacy_instance)
+	___renderer_type = Backend::Type::DirectX_12;
+
+	if (p_integration_renderer)
+		return p_integration_context;
+
+	if (!p_info)
 	{
-		delete p_legacy_instance;
-		p_legacy_instance = nullptr;
+		RMLUI_ASSERT(false && "you can't pass empty data to this function!");
+		return p_integration_context;
 	}
 
-	RmlDX12::Shutdown(data->render_interface);
-
-	if (data->render_interface)
+	if (data && data->render_interface)
 	{
-		delete data->render_interface;
-		data->render_interface = nullptr;
+		RMLUI_ASSERT(
+			false && "you have initialized shell's renderer you need to destroy it first then call this method in order to use integration backend");
+		return p_integration_context;
 	}
 
-	::DestroyWindow(data->window_handle);
-	::UnregisterClassW((LPCWSTR)data->instance_name.data(), data->instance_handle);
+	if (p_info->backend_type != static_cast<unsigned char>(Backend::Type::DirectX_12))
+	{
+		RMLUI_ASSERT(false && "you passed wrong backend type! Expected only DirectX-12, see enum Backend::Type");
+		return p_integration_context;
+	}
 
-	data.reset();
+	if (!p_integration_renderer)
+	{
+		RMLUI_ASSERT(p_info->p_user_device && "you passed empty render device, failed to init render interface!");
+
+		p_integration_renderer = RmlDX12::Initialize(nullptr, p_info);
+	}
+
+	if (!p_integration_renderer)
+	{
+		RMLUI_ASSERTMSG(false, "FATAL: can't initialize dx12 backend! :(");
+		return p_integration_context;
+	}
+
+	if (!p_integration_system_interface)
+	{
+		RMLUI_ASSERT(static_cast<Backend::TypeSystemInterface>(p_info->system_interface_type) != Backend::TypeSystemInterface::Native_Unknown &&
+			static_cast<Backend::TypeSystemInterface>(p_info->system_interface_type) != Backend::TypeSystemInterface::Library_Unknown &&
+			"invalid system interface type");
+
+		p_integration_system_interface = p_system_interface;
+	}
+
+
+	if (p_integration_renderer && p_integration_system_interface)
+	{
+		Rml::SetSystemInterface(p_integration_system_interface);
+		Rml::SetRenderInterface(p_integration_renderer);
+		Rml::Initialise();
+	}
+
+	if (!p_integration_context)
+	{
+		p_integration_context = Rml::CreateContext(p_info->context_name, {p_info->initial_width, p_info->initial_height});
+	}
+
+	return p_integration_context;
+}
+
+void Backend::DX12::Shutdown()
+{
+	bool only_one{};
+
+	if (p_integration_renderer)
+	{
+		if (!data->render_interface)
+			only_one = true;
+	}
+	else
+	{
+		if (data->render_interface)
+			only_one = true;
+	}
+
+	RMLUI_ASSERTMSG(only_one, "you must have only one backend is for shell or integration you can use both!");
+
+	if (p_integration_renderer)
+	{
+		RmlDX12::Shutdown(p_integration_renderer);
+		Rml::Shutdown();
+		delete p_integration_renderer;
+		p_integration_renderer = nullptr;
+
+
+		delete p_integration_system_interface;
+		p_integration_system_interface = nullptr;
+	}
+	else
+	{
+		RMLUI_ASSERT(data);
+		RMLUI_ASSERT(data->render_interface);
+
+		if (p_legacy_instance)
+		{
+			delete p_legacy_instance;
+			p_legacy_instance = nullptr;
+		}
+
+		RmlDX12::Shutdown(data->render_interface);
+
+		if (data->render_interface)
+		{
+			delete data->render_interface;
+			data->render_interface = nullptr;
+			::DestroyWindow(data->window_handle);
+			::UnregisterClassW((LPCWSTR)data->instance_name.data(), data->instance_handle);
+			data.reset();
+		}
+	}
+
+	___renderer_type = Backend::Type::Unknown;
 }
 
 Rml::SystemInterface* Backend::GetSystemInterface()
@@ -233,7 +338,18 @@ Rml::SystemInterface* Backend::GetSystemInterface()
 Rml::RenderInterface* Backend::GetRenderInterface()
 {
 	RMLUI_ASSERT(data);
-	return data->render_interface;
+	RMLUI_ASSERT(!(data->render_interface && p_integration_renderer) && (data->render_interface || p_integration_renderer) &&
+		"you can't have both initialized things or no initialized things at all!");
+
+	Rml::RenderInterface* p_result = nullptr;
+
+	if (data->render_interface)
+		p_result = data->render_interface;
+
+	if (p_integration_renderer)
+		p_result = p_integration_renderer;
+
+	return p_result;
 }
 
 static bool NextEvent(MSG& message, UINT timeout)
@@ -303,8 +419,67 @@ void Backend::BeginFrame()
 	RMLUI_ASSERT(data);
 	RMLUI_ASSERT(data->render_interface);
 
-	data->render_interface->BeginFrame();
-	data->render_interface->Clear();
+	if (data->render_interface)
+	{
+		data->render_interface->BeginFrame();
+		data->render_interface->Clear();
+	}
+}
+
+void Backend::DX12::BeginFrame(void* p_input_rtv, void* p_input_dsv, unsigned char current_framebuffer_index)
+{
+	RMLUI_ASSERT(p_input_rtv &&
+		"you must pass a valid resource based on your backend, this function is for DirectX-12 and expected input argument type is "
+		"D3D12_CPU_DESCRIPTOR_HANDLE*");
+	RMLUI_ASSERT(p_input_dsv &&
+		"you must pass a valid resource based on your backend, this function is for DirectX-12 and expected input argument type is "
+		"D3D12_CPU_DESCRIPTOR_HANDLE*");
+
+	RMLUI_ASSERT(p_integration_renderer);
+
+	// in order to indicate about some problem for user we don't render if user failed to call appropriate function, you can't mix callings that don't
+	// belong to specific renderer's initialization route
+	if (data && data->render_interface)
+	{
+		RMLUI_ASSERTMSG(false, "you initialize shell but call for integration!");
+		return;
+	}
+
+	if (p_input_rtv && p_input_dsv)
+	{
+		if (p_integration_renderer)
+		{
+			p_integration_renderer->Set_UserFramebufferIndex(current_framebuffer_index);
+			p_integration_renderer->Set_UserRenderTarget(p_input_rtv);
+			p_integration_renderer->Set_UserDepthStencil(p_input_dsv);
+
+			p_integration_renderer->BeginFrame();
+			p_integration_renderer->Clear();
+		}
+	}
+}
+
+void Backend::DX12::Resize(Rml::Context* p_context, int width, int height)
+{
+	RMLUI_ASSERT(p_integration_renderer && "must be valid, early calling?");
+
+	if (data && data->render_interface)
+	{
+		RMLUI_ASSERTMSG(false,
+			"you can't have initailize shell backend renderer while you initialize integration renderer! Destroy some of them and use appropriate "
+			"functions for handling rendering");
+		return;
+	}
+
+	if (p_context)
+	{
+		p_context->SetDimensions({width, height});
+	}
+
+	if (p_integration_renderer)
+	{
+		p_integration_renderer->SetViewport(width, height);
+	}
 }
 
 void Backend::PresentFrame()
@@ -312,9 +487,40 @@ void Backend::PresentFrame()
 	RMLUI_ASSERT(data);
 	RMLUI_ASSERT(data->render_interface);
 
-	data->render_interface->EndFrame();
+	// in order to indicate about some problem for user we don't render if user failed to call appropriate function, you can't mix callings that don't
+	// belong to specific renderer's initialization route
+	if (p_integration_renderer)
+	{
+		RMLUI_ASSERTMSG(false, "you initialize integration but call for shell!");
+		return;
+	}
+
+	if (data->render_interface)
+	{
+		data->render_interface->EndFrame();
+	}
 
 	// Optional, used to mark frames during performance profiling.
+	RMLUI_FrameMark;
+}
+
+void Backend::DX12::EndFrame()
+{
+	RMLUI_ASSERT(p_integration_renderer);
+
+	// in order to indicate about some problem for user we don't render if user failed to call appropriate function, you can't mix callings that don't
+	// belong to specific renderer's initialization route
+	if (data->render_interface)
+	{
+		RMLUI_ASSERTMSG(false, "you initialize shell but call for integration!");
+		return;
+	}
+
+	if (p_integration_renderer)
+	{
+		p_integration_renderer->EndFrame();
+	}
+
 	RMLUI_FrameMark;
 }
 

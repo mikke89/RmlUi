@@ -4,7 +4,7 @@ if(NOT RMLUI_BACKEND MATCHES ".*(DX12).*")
 	return()
 endif()
 
-set(SAMPLE_NAME "integration_as_swapchain")
+set(SAMPLE_NAME "integration_as_postprocess")
 set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
 
 string(TOLOWER "${RMLUI_BACKEND}" BACKEND_NAMED_LOWERED)

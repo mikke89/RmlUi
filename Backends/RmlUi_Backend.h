@@ -46,67 +46,63 @@ using KeyDownCallback = bool (*)(Rml::Context* context, Rml::Input::KeyIdentifie
  */
 namespace Backend {
 
-/// @brief This class defines information for not initializating renderers fully. Fully initialization means that renderer on RmlUi side will
-/// initialize device, queues and other things by its own (in case of OpenGL it will load functions & will init OpenGL) so in case where you already
-/// have own renderer and that renderer is initialized you want to prevent a such initialization and thus RmlUi needs to know user data.
-class RmlRenderInitInfo {
+enum class Type : unsigned char { Unknown, DirectX_12, DirectX_11, DirectX_10, DirectX_9, Vulkan, OpenGL_3, OpenGL_2, EGL, Metal };
 
-	struct Settings
-	{
-		bool vsync{};
-		unsigned char msaa_sample_count{};
-	};
+enum class TypeSystemInterface : unsigned char {
+	Native_Unknown,
+	/// @brief RmlRenderInitInfo::p_native_window_handle requires as HWND
+	Native_Win32,
+	/// @brief todo mikke89: finish this please
+	Native_Linux,
+	/// @brief todo mikke89: finish this please
+	Native_MacOS,
+	/// @brief RmlRenderInitInfo::p_native_window_handle requires as SDL_Window*
+	Library_SDL2,
+	/// @brief RmlRenderInitInfo::p_native_window_handle requires as SDL_Window*
+	Library_SDL3,
+	/// @brief RmlRenderInitInfo::p_native_window_handle requires as GLFWWindow*
+	Library_GLFW,
+	/// @brief don't touch system
+	Library_Unknown,
+};
 
-public:
-	/// @brief This is constructor for initializing class
-	/// @param p_user_device ID3D12Device raw pointer (e.g. ID3D12Device* don't pass ComPtr instance!) or you pass VkDevice instance.
-	RmlRenderInitInfo(void* p_window_handle, void* p_user_device) :
-		m_is_full_initialization{true}, m_p_native_window_handle{p_window_handle}, m_p_user_device{p_user_device}, m_settings{}
-	{
-		RMLUI_ASSERT(p_user_device &&
-			"if you want to initialize renderer by system you don't need to pass this parameter as nullptr just use second constructor and set "
-			"is_full_initialization to true!");
-	}
+struct RmlRendererSettings {
+	bool vsync{};
+	unsigned char msaa_sample_count{};
+};
 
-	/// @brief This is constructor for older graphics API where don't require Devices, Queues etc...
-	/// @param p_window_handle HWND or similar types to OS's window handle
-	RmlRenderInitInfo(void* p_window_handle, bool is_full_initialization) :
-		m_is_full_initialization{is_full_initialization}, m_p_native_window_handle{p_window_handle}, m_p_user_device{}, m_settings{}
-	{}
-
-	~RmlRenderInitInfo() {}
-
-	/// @brief Returns hidden type of ID3D12Device* or VkDevice; It is user's responsibility to pass a valid type for it otherwise system will be
-	/// broken and renderer couldn't be initialized!
-	/// @return you need to use reinterpret_cast to ID3D12Device* type or VkDevice. Depends on what user wants to initialize.
-	void* Get_UserDevice() { return this->m_p_user_device; }
-
-	/// @brief Returns hidden type of native window handle (on Windows e.g. HWND)
-	/// @return window native type of handle  (HWND etc depends on OS)
-	void* Get_WindowHandle() { return this->m_p_native_window_handle; }
-
-	/// @brief returns flag of full initialization. It means that if user wants full initialization that system will create and initialize GAPI and
-	/// renderer by its own. In case of OpenGL system loads functions and initialize renderer, io case of DirectX 12 and Vulkan system initializes
-	/// Device, Queues and etc. Otherwise it is not full initialization and user passed own Device, Queues or set is_full_initialize to false in
-	/// the second constructor for older GAPIs like OpenGL
-	/// @param nothing, because it is getter
-	/// @return field of class m_is_full_initialization if it is true it means that user didn't passed Device, Queues from user's renderer or set
-	/// is_full_initialization to true
-	bool Is_FullInitialization(void) const { return this->m_is_full_initialization; }
-
-	Settings& Get_Settings() { return this->m_settings; }
-
-private:
-	bool m_is_full_initialization;
+struct RmlRenderInitInfo {
+	bool is_full_initialization;
+	bool is_execute_when_end_frame_issued;
+	unsigned char backend_type;
+	unsigned char system_interface_type;
+	/// @brief uses for initializing Rml::Context
+	int initial_width;
+	/// @brief uses for initializing Rml::Context
+	int initial_height;
 	/// @brief it is user's handle of OS's handle, so if it is Windows you pass HWND* here
-	void* m_p_native_window_handle;
+	void* p_native_window_handle;
 	/// @brief Type that hides ID3D12Device*, VkDevice or something else depends on context and which renderer user initializes
-	void* m_p_user_device;
-	Settings m_settings;
+	void* p_user_device;
+	/// @brief
+	void* p_user_adapter;
+	/// @brief DX12 = ID3D12GraphicsCommandList*;
+	void* p_command_list;
+	/// @brief just name your context please
+	char context_name[32];
+	RmlRendererSettings settings;
 };
 
 // Initializes the backend, including the custom system and render interfaces, and opens a window for rendering the RmlUi context.
 bool Initialize(const char* window_name, int width, int height, bool allow_resize, RmlRenderInitInfo* p_info = nullptr);
+
+/// @brief uses for initializing render backend from rmlui and integrate to your solution by passing the init info about your backend
+/// @param p_info init info where you have to specify some parameters for correct initialization of backend
+/// @return true means backend was initialized otherwise it is failed
+Rml::Context* Initialize(RmlRenderInitInfo* p_info);
+
+void Resize(Rml::Context* p_context, int width, int height);
+
 // Closes the window and release all resources owned by the backend, including the system and render interfaces.
 void Shutdown();
 
@@ -123,8 +119,79 @@ void RequestExit();
 
 // Prepares the render state to accept rendering commands from RmlUi, call before rendering the RmlUi context.
 void BeginFrame();
+
+/// @brief Each call begin frame you pass appropriate image where result will be renderer into that resource what you passed, this function for
+/// integration situation and you must not use when you use shell initialization route (BeginFrame without arguments version, you must not call it)
+/// @param p_input_image_resource DX12 = *; DX11 = *; VK =
+void BeginFrame(void* p_input_rtv, void* p_input_dsv, unsigned char current_framebuffer_index);
+
 // Presents the rendered frame to the screen, call after rendering the RmlUi context.
 void PresentFrame();
+
+/// @brief when you use integration you have to call this method instead of PresentFrame(void)
+/// @param user_next_backbuffer_image
+void EndFrame();
+
+/// @brief not for user, internal usage
+extern Type ___renderer_type;
+
+/* NOT FOR USER, maybe add prefix ___ like with renderer_type for defining that it is directly NOT FOR USER ??? */
+namespace DX12 {
+	Rml::Context* Initialize(RmlRenderInitInfo* p_info, Rml::SystemInterface* p_system_interface);
+	void Shutdown();
+	void BeginFrame(void* p_input_rtv, void* p_input_dsv, unsigned char current_framebuffer_index);
+	void Resize(Rml::Context* p_context, int width, int height);
+	void EndFrame();
+} // namespace DX12
+
+namespace DX11 {
+	bool Initialize(RmlRenderInitInfo* p_info);
+	void Shutdown();
+	void BeginFrame(void* p_input_image_resource);
+	void EndFrame();
+} // namespace DX11
+
+namespace DX10 {
+	bool Initialize(RmlRenderInitInfo* p_info);
+	void Shutdown();
+	void BeginFrame(void* p_input_image_resource);
+	void EndFrame();
+} // namespace DX10
+
+namespace DX9 {
+	bool Initialize(RmlRenderInitInfo* p_info);
+	void Shutdown();
+	void BeginFrame(void* p_input_image_resource);
+	void EndFrame();
+} // namespace DX9
+
+namespace VK {
+	bool Initialize(RmlRenderInitInfo* p_info);
+	void Shutdown();
+	void BeginFrame(void* p_input_image_resource);
+	void EndFrame();
+} // namespace VK
+
+namespace GL3 {
+	bool Initialize(RmlRenderInitInfo* p_info);
+	void Shutdown();
+	void BeginFrame(void* p_input_image_resource);
+	void EndFrame();
+} // namespace GL3
+
+namespace GL2 {
+	bool Initialize(RmlRenderInitInfo* p_info);
+	void Shutdown();
+	void BeginFrame(void* p_input_image_resource);
+	void EndFrame();
+} // namespace GL2
+
+namespace Metal {
+	bool Initialize(RmlRenderInitInfo* p_info);
+	void Shutdown();
+	void BeginFrame(void* p_input_image_resource);
+	void EndFrame();
+} // namespace Metal
 
 } // namespace Backend
 
