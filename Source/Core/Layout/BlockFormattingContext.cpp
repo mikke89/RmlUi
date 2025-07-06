@@ -112,7 +112,7 @@ static OuterDisplayType GetOuterDisplayType(Style::Display display)
 	return OuterDisplayType::Invalid;
 }
 
-UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box)
+UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_container, Element* element, Vector2f containing_block, const Box& box)
 {
 	RMLUI_ASSERT(parent_container && element);
 
@@ -121,14 +121,6 @@ UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_contain
 	auto name = CreateString("%s %x", element->GetAddress(false, false).c_str(), element);
 	RMLUI_ZoneName(name.c_str(), name.size());
 #endif
-
-	const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
-
-	Box box;
-	if (override_initial_box)
-		box = *override_initial_box;
-	else
-		LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
 
 	float min_height, max_height;
 	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
@@ -220,6 +212,9 @@ bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_co
 	auto name = CreateString(">%s %x", element->GetAddress(false, false).c_str(), element);
 	RMLUI_ZoneName(name.c_str(), name.size());
 #endif
+
+	if (element->GetId() == "outer")
+		int x = 0;
 
 	// Check for special formatting tags.
 	if (element->GetTagName() == "br")

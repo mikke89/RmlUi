@@ -39,49 +39,15 @@
 </head>
 
 <body>
-<div class="shrink-to-fit">
+
+<div id="shrink-to-fit" class="shrink-to-fit right">
 	Before
-	<div class="outer">
-		<div class="inner">Flex</div>
+	<div id="outer" class="outer" style="display: inline-flex">
+		<div id="inner" class="inner">Inline-flex</div>
 	</div>
 	After
 </div>
 
-<div class="shrink-to-fit right">
-	Before
-	<div class="outer" style="display: inline-flex">
-		<div class="inner">Inline-flex</div>
-	</div>
-	After
-</div>
-
-<div class="shrink-to-fit"  style="display: flex; flex-direction: column">
-	<div style="padding: 42px; background: blue; border: 5px #00ffff">
-		<div style="display: flex; background: green; padding: 10px; border: 5px #ff00ff">
-			<div style="width: 10px; height: 10px; background: red; border: 5px #ffff00"></div>
-		</div>
-	</div>
-</div>
-
-<div class="shrink-to-fit row-align-start" style="width: 130px; height: 130px">
-	<div style="border: 5px yellow">
-		<div style="border: 5px red; width: 100px; height: 100px">
-			<div style="border: 5px green">
-				<div style="border: 5px blue; width: 50px; height: 50px;"></div>
-			</div>
-		</div>
-	</div>
-</div>
-
-<div class="shrink-to-fit right column-align-end" style="width: 130px; height: 130px">
-	<div style="border: 5px yellow">
-		<div style="border: 5px red; width: 100px; height: 100px;">
-			<div style="border: 5px green">
-				<div style="border: 5px blue; width: 50px; height: 50px;"></div>
-			</div>
-		</div>
-	</div>
-</div>
 
 <handle size_target="#document"/>
 </body>

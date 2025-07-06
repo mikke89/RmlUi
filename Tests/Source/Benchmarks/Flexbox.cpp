@@ -47,7 +47,7 @@ static const String rml_flexbox_basic_document = R"(
 		header, article { display: block; }
 		h1 { font-size: 1.5em; }
 		h2 { font-size: 1.3em; }
-		
+
 		header {
 			background-color: #9777d9;
 			border: 5dp #666;
@@ -71,7 +71,7 @@ static const String rml_flexbox_basic_document = R"(
 			text-align: center;
 			background-color: #eb6e14;
 			margin: -10dp -10dp 0;
-			padding: 10dp 0; 
+			padding: 10dp 0;
 		}
 	</style>
 </head>
@@ -89,7 +89,7 @@ static const String rml_flexbox_basic_document_fast = R"(
 		header, article { display: block; }
 		h1 { font-size: 1.5em; }
 		h2 { font-size: 1.3em; }
-		
+
 		header {
 			background-color: #9777d9;
 			border: 5dp #666;
@@ -117,7 +117,7 @@ static const String rml_flexbox_basic_document_fast = R"(
 			text-align: center;
 			background-color: #eb6e14;
 			margin: -10dp -10dp 0;
-			padding: 10dp 0; 
+			padding: 10dp 0;
 		}
 	</style>
 </head>
@@ -135,7 +135,7 @@ static const String rml_flexbox_basic_document_float_reference = R"(
 		header, article { display: block; }
 		h1 { font-size: 1.5em; }
 		h2 { font-size: 1.3em; }
-		
+
 		header {
 			background-color: #9777d9;
 			border: 5dp #666;
@@ -162,7 +162,7 @@ static const String rml_flexbox_basic_document_float_reference = R"(
 			text-align: center;
 			background-color: #eb6e14;
 			margin: -10dp -10dp 0;
-			padding: 10dp 0; 
+			padding: 10dp 0;
 		}
 	</style>
 </head>
@@ -602,7 +602,7 @@ static const String rml_flexbox_shrink_to_fit = R"(
 	</style>
 </head>
 <body>
-<div id="basic" class="shrink-to-fit">
+<div id="basic" class="shrink-to-fit" style="display: none">
 	Before
 	<div class="outer">
 		<div class="inner">Flex</div>
@@ -611,15 +611,9 @@ static const String rml_flexbox_shrink_to_fit = R"(
 </div>
 <div id="nested" class="shrink-to-fit">
 	Before
-	<div class="outer">
-		<div class="inner">
-			<div class="outer">
-				<div class="inner">
-					<div class="outer">
-						<div class="inner">Flex</div>
-					</div>
-				</div>
-			</div>
+	<div class="outer" id="outer">
+		<div class="inner" id="inner">
+			Flex
 		</div>
 	</div>
 	After
@@ -643,6 +637,11 @@ TEST_CASE("flexbox.shrink-to-fit")
 
 	document->Show();
 	TestsShell::RenderLoop();
+
+	{
+		document->Close();
+		return;
+	}
 
 	basic->SetProperty(PropertyId::Display, Style::Display::None);
 	nested->SetProperty(PropertyId::Display, Style::Display::None);

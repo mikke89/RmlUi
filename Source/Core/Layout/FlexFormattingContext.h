@@ -45,7 +45,7 @@ struct FormattingMode;
 class FlexFormattingContext final : public FormattingContext {
 public:
 	/// Formats a flex container element and its flex items according to flexbox layout rules.
-	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box);
+	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, Vector2f containing_block, const Box& initial_box);
 
 private:
 	FlexFormattingContext() = default;

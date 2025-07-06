@@ -77,6 +77,9 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	if (type == FormattingContextType::None)
 		type = default_context;
 
+	if (element->GetId() == "outer")
+		int x = 0;
+
 #ifdef RMLUI_DEBUG
 	auto* debug_tracker = FormatIndependentDebugTracker::GetIf();
 	FormatIndependentDebugTracker::Entry* tracker_entry = nullptr;
@@ -123,14 +126,26 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 
 	if (!layout_box)
 	{
+		const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
+		Box box;
+		if (override_initial_box)
+			box = *override_initial_box;
+
+		else if (formatting_mode.constraint == FormattingMode::Constraint::MaxContent && type == FormattingContextType::Flex)
+			LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::UnalignedBlock);
+		else
+			LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
+
 		switch (type)
 		{
-		case FormattingContextType::Block: layout_box = BlockFormattingContext::Format(parent_container, element, override_initial_box); break;
-		case FormattingContextType::Table: layout_box = TableFormattingContext::Format(parent_container, element, override_initial_box); break;
-		case FormattingContextType::Flex: layout_box = FlexFormattingContext::Format(parent_container, element, override_initial_box); break;
-		case FormattingContextType::Replaced: layout_box = ReplacedFormattingContext::Format(parent_container, element, override_initial_box); break;
+		case FormattingContextType::Block: layout_box = BlockFormattingContext::Format(parent_container, element, containing_block, box); break;
+		case FormattingContextType::Table: layout_box = TableFormattingContext::Format(parent_container, element, containing_block, box); break;
+		case FormattingContextType::Flex: layout_box = FlexFormattingContext::Format(parent_container, element, containing_block, box); break;
+		case FormattingContextType::Replaced: layout_box = ReplacedFormattingContext::Format(parent_container, element, box); break;
 		case FormattingContextType::None: break;
 		}
+
+		// TODO: If MaxContent constraint, and containing block = -1, -1, store resulting size as max-content size.
 	}
 
 	if (layout_box && formatting_mode.constraint == FormattingMode::Constraint::None)

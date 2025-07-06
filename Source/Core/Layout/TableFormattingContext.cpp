@@ -39,9 +39,12 @@
 
 namespace Rml {
 
-UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_container, Element* element_table, const Box* override_initial_box)
+UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_container, Element* element_table, Vector2f containing_block,
+	const Box& initial_box)
 {
-	auto table_wrapper_box = MakeUnique<TableWrapper>(element_table, parent_container);
+	RMLUI_ASSERT(containing_block.x >= 0.f || parent_container->GetFormattingMode().constraint == FormattingMode::Constraint::MaxContent);
+
+	auto table_wrapper_box = MakeUnique<TableWrapper>(element_table, parent_container, initial_box);
 	if (table_wrapper_box->IsScrollContainer())
 	{
 		Log::Message(Log::LT_WARNING, "Table elements can only have 'overflow' property values of 'visible'. Table will not be formatted: %s.",
@@ -49,16 +52,8 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 		return table_wrapper_box;
 	}
 
-	const Vector2f containing_block = parent_container->GetContainingBlockSize(element_table->GetPosition());
-	RMLUI_ASSERT(containing_block.x >= 0.f || parent_container->GetFormattingMode().constraint == FormattingMode::Constraint::MaxContent);
 	const ComputedValues& computed_table = element_table->GetComputedValues();
-
-	// Build the initial box as specified by the table's style, as if it was a normal block element.
 	Box& box = table_wrapper_box->GetBox();
-	if (override_initial_box)
-		box = *override_initial_box;
-	else
-		LayoutDetails::BuildBox(box, containing_block, element_table, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
 
 	TableFormattingContext context;
 	context.element_table = element_table;

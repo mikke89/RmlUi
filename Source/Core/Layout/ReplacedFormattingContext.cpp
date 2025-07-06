@@ -35,20 +35,12 @@
 
 namespace Rml {
 
-UniquePtr<LayoutBox> ReplacedFormattingContext::Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box)
+UniquePtr<LayoutBox> ReplacedFormattingContext::Format(ContainerBox* parent_container, Element* element, const Box& box)
 {
 	RMLUI_ASSERT(element->IsReplaced());
 
-	// Replaced elements provide their own rendering, we just set their box here and notify them that the element has been sized.
-	auto replaced_box = MakeUnique<ReplacedBox>(element);
-	Box& box = replaced_box->GetBox();
-	if (override_initial_box)
-		box = *override_initial_box;
-	else
-	{
-		const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
-		LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
-	}
+	// Replaced elements provide their own rendering, we just notify them that the element has been sized.
+	auto replaced_box = MakeUnique<ReplacedBox>(element, box);
 
 	// Submit the box and notify the element.
 	replaced_box->Close();
@@ -59,7 +51,7 @@ UniquePtr<LayoutBox> ReplacedFormattingContext::Format(ContainerBox* parent_cont
 	if (element->HasChildNodes())
 	{
 		RootBox root(box, parent_container->GetFormattingMode());
-		BlockFormattingContext::Format(&root, element, &box);
+		BlockFormattingContext::Format(&root, element, box.GetSize(), box);
 	}
 
 	return replaced_box;
