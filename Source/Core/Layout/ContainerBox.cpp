@@ -304,8 +304,8 @@ String RootBox::DebugDumpTree(int depth) const
 	return String(depth * 2, ' ') + "RootBox";
 }
 
-FlexContainer::FlexContainer(Element* element, ContainerBox* parent_container) :
-	ContainerBox(Type::FlexContainer, element, parent_container, parent_container->GetFormattingMode())
+FlexContainer::FlexContainer(Element* element, ContainerBox* parent_container, const Box& box) :
+	ContainerBox(Type::FlexContainer, element, parent_container, parent_container->GetFormattingMode()), box(box)
 {
 	RMLUI_ASSERT(element);
 }
@@ -333,8 +333,8 @@ String FlexContainer::DebugDumpTree(int depth) const
 	return String(depth * 2, ' ') + "FlexContainer" + " | " + LayoutDetails::GetDebugElementName(element);
 }
 
-TableWrapper::TableWrapper(Element* element, ContainerBox* parent_container) :
-	ContainerBox(Type::TableWrapper, element, parent_container, parent_container->GetFormattingMode())
+TableWrapper::TableWrapper(Element* element, ContainerBox* parent_container, const Box& box) :
+	ContainerBox(Type::TableWrapper, element, parent_container, parent_container->GetFormattingMode()), box(box)
 {
 	RMLUI_ASSERT(element);
 }

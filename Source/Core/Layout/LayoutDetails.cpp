@@ -246,6 +246,13 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	LayoutNode* layout_node = element->GetLayoutNode();
 	float shrink_to_fit_width;
 
+	if (element->GetId() == "nested")
+		int x = 0;
+
+	// TODO: The shrink-to-fit width is only cached for every other nested flexbox during the initial
+	// GetShrinkToFitWidth. I.e. the first .outer flexbox below #nested is formatted outside of this function. Even
+	// though in principle I believe we should be able to store its formatted width. Maybe move this caching into
+	// FormatIndependent somehow?
 	if (Optional<float> cached_width = layout_node->GetMaxContentWidthIfCached())
 	{
 		shrink_to_fit_width = *cached_width;

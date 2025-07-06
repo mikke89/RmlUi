@@ -46,7 +46,7 @@ using TrackBoxList = Vector<TrackBox>;
 */
 class TableFormattingContext final : public FormattingContext {
 public:
-	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box);
+	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, Vector2f containing_block, const Box& box);
 
 private:
 	TableFormattingContext() = default;

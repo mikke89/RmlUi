@@ -38,20 +38,18 @@ namespace Rml {
 /*
     A formatting context that handles replaced elements.
 
-    Replaced elements normally take care of their own layouting, so this is only responsible for setting thei box
-    dimensions and notifying the element.
+    Replaced elements normally take care of their own layouting, so this is only responsible for notifying the element.
 */
 class ReplacedFormattingContext final : public FormattingContext {
 public:
-	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box);
+	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, const Box& box);
 };
 
 class ReplacedBox : public LayoutBox {
 public:
-	ReplacedBox(Element* element) : LayoutBox(Type::Replaced), element(element) {}
+	ReplacedBox(Element* element, const Box& box) : LayoutBox(Type::Replaced), element(element), box(box) {}
 
 	void Close();
-	Box& GetBox() { return box; }
 
 	const Box* GetIfBox() const override { return &box; }
 	String DebugDumpTree(int depth) const override;

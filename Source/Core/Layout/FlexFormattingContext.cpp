@@ -40,26 +40,21 @@
 
 namespace Rml {
 
-UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box)
+UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_container, Element* element, Vector2f containing_block,
+	const Box& initial_box)
 {
 	RMLUI_ZoneScopedC(0xAFAF4F);
-	auto flex_container_box = MakeUnique<FlexContainer>(element, parent_container);
+	auto flex_container_box = MakeUnique<FlexContainer>(element, parent_container, initial_box);
 
 	ElementScroll* element_scroll = element->GetElementScroll();
 	const ComputedValues& computed = element->GetComputedValues();
 
-	const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
 	const FormattingMode::Constraint formatting_constraint = parent_container->GetFormattingMode().constraint;
 	RMLUI_ASSERT(containing_block.x >= 0.f || formatting_constraint == FormattingMode::Constraint::MaxContent);
 
-	// Build the initial box as specified by the flex's style, as if it was a normal block element.
+	// if (formatting_constraint == FormattingMode::Constraint::MaxContent)
+	// 	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::UnalignedBlock);
 	Box& box = flex_container_box->GetBox();
-	if (override_initial_box)
-		box = *override_initial_box;
-	else if (formatting_constraint == FormattingMode::Constraint::MaxContent)
-		LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::UnalignedBlock);
-	else
-		LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
 
 	// Start with any auto-scrollbars off.
 	flex_container_box->ResetScrollbars(box);

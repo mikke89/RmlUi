@@ -158,7 +158,7 @@ private:
 */
 class FlexContainer final : public ContainerBox {
 public:
-	FlexContainer(Element* element, ContainerBox* parent_container);
+	FlexContainer(Element* element, ContainerBox* parent_container, const Box& box);
 
 	// Submits the formatted box to the flex container element, and propagates any uncaught overflow to this box.
 	// @returns True if it succeeds, otherwise false if it needs to be formatted again because scrollbars were enabled.
@@ -182,7 +182,7 @@ private:
 */
 class TableWrapper final : public ContainerBox {
 public:
-	TableWrapper(Element* element, ContainerBox* parent_container);
+	TableWrapper(Element* element, ContainerBox* parent_container, const Box& initial_box);
 
 	// Submits the formatted box to the table element, and propagates any uncaught overflow to this box.
 	void Close(const Vector2f content_overflow_size, const Box& box, float element_baseline);
