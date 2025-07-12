@@ -205,7 +205,7 @@ void TableFormattingContext::InitializeCellBoxes(BoxList& cells, const TrackBoxL
 		Box& box = cells[i];
 
 		// Determine the cell's box for formatting later, we may get an indefinite (-1) vertical content size.
-		LayoutDetails::BuildBox(box, table_initial_content_size, grid.cells[i].element_cell, BuildBoxMode::UnalignedBlock);
+		LayoutDetails::BuildBox(box, table_initial_content_size, grid.cells[i].element_cell, BuildBoxMode::Unaligned);
 
 		// Determine the cell's content width. Include any spanning columns in the cell width.
 		const float cell_border_width = GetSpanningCellBorderSize(columns, grid.cells[i].column_begin, grid.cells[i].column_last);

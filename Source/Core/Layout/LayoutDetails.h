@@ -53,12 +53,11 @@ struct ComputedAxisSize {
 };
 
 enum class BuildBoxMode {
-	Block, // Sets edges and size if available, auto width uses stretch-fit width (never shrink-to-fit), auto margins are used for alignment.
-	ShrinkableBlock, // Like block, but auto width returns -1 when shrink-to-fit width should be applied, auto margins should then be re-evaluated.
-	// TODO: Block and ShrinkableBlock is the same right now. Remove the latter - or - differentiate between fit-content
-	//       and stretch-fit size, placing the "can we shrink" question on the caller.
-	UnalignedBlock, // Like block, but auto width returns -1, and auto margins are always resolved to zero.
-	Inline,         // Sets edges, ignores width, height, and auto margins.
+	StretchFit, // Sets edges and size if available, auto width fills the available width, auto margins are used for alignment.
+	FitContent, // Sets edges and size if available, auto width returns -1 to indicate to the caller that fit-content should be applied, auto margins
+	            // should then be re-evaluated once sized.
+	Unaligned,  // Sets edges and size if available, auto width returns -1, auto margins are always resolved to zero.
+	Inline,     // Sets edges, ignores width, height, and auto margins.
 };
 
 /**
@@ -138,8 +137,9 @@ private:
 	/// @param[in] max_width The maximum content width of the element.
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] element The element the box is being generated for.
-	static void BuildBoxWidth(Box& box, const ComputedValues& computed, float min_width, float max_width, Vector2f containing_block,
-		Element* element);
+	/// @param[in] box_mode The mode which determines how the box is built.
+	static void BuildBoxWidth(Box& box, const ComputedValues& computed, float min_width, float max_width, Vector2f containing_block, Element* element,
+		BuildBoxMode box_mode);
 	/// Builds the block-specific height and vertical margins of a Box.
 	/// @param[in,out] box The box to generate. The padding and borders must be set on the box already. The content area is used instead of the height
 	/// property, and -1 means auto height.
