@@ -30,6 +30,7 @@
 #define RMLUI_CORE_LAYOUT_FORMATTINGCONTEXT_H
 
 #include "../../../Include/RmlUi/Core/Types.h"
+#include "ContainerBox.h"
 
 namespace Rml {
 
@@ -62,9 +63,21 @@ public:
 	static UniquePtr<LayoutBox> FormatIndependent(ContainerBox* parent_container, Element* element, const Box* override_initial_box,
 		FormattingContextType default_context);
 
+	/// Format the element under a max-content width constraint, and returning its fit-content width.
+	/// @param[in] parent_container The container box which should act as the new box's parent.
+	/// @param[in] element The element to be formatted.
+	/// @param[in] containing_block The element's containing block.
+	/// @return The fit-content width of the element.
+	/// @note The width is not clamped according to the element's min-/max-width properties.
+	static float FormatFitContentWidth(ContainerBox* parent_container, Element* element, Vector2f containing_block);
+
 protected:
 	FormattingContext() = default;
 	~FormattingContext() = default;
+
+private:
+	static void FormatFitContentWidth(Box& box, Element* element, FormattingContextType type, const FormattingMode& parent_formatting_mode,
+		Vector2f containing_block);
 };
 
 } // namespace Rml

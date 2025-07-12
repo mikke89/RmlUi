@@ -222,76 +222,6 @@ void LayoutDetails::ClampSizeAndBuildAutoMarginsForBlockWidth(Box& box, Vector2f
 	BuildBoxWidth(box, computed, min_width, max_width, containing_block, element);
 }
 
-float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_block, const FormattingMode& current_formatting_mode)
-{
-	RMLUI_ASSERT(element);
-#ifdef RMLUI_TRACY_PROFILING
-	RMLUI_ZoneScoped;
-	const String zone_text = CreateString("%s    %x    Containing block: %g x %g", element->GetAddress(false, false).c_str(), element,
-		containing_block.x, containing_block.y);
-	RMLUI_ZoneText(zone_text.c_str(), zone_text.size());
-#endif
-
-	// @performance Can we lay out the elements directly using a fit-content size mode, instead of fetching the
-	// shrink-to-fit width first? Use a non-definite placeholder for the box content width, and available width as a
-	// maximum constraint.
-	Box box;
-	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::UnalignedBlock);
-	if (box.GetSize().x >= 0.f)
-	{
-		return box.GetSize().x;
-	}
-
-	// Max-content width should be calculated without any vertical constraint.
-	box.SetContent(Vector2f(box.GetSize().x, -1.f));
-
-	// Currently we don't support shrink-to-fit width for tables. Just return a zero-sized width.
-	const Style::Display display = element->GetDisplay();
-	if (display == Style::Display::Table || display == Style::Display::InlineTable)
-	{
-		return 0.f;
-	}
-
-	LayoutNode* layout_node = element->GetLayoutNode();
-	float shrink_to_fit_width;
-
-	if (element->GetId() == "nested")
-		int x = 0;
-
-	// TODO: The shrink-to-fit width is only cached for every other nested flexbox during the initial
-	// GetShrinkToFitWidth. I.e. the first .outer flexbox below #nested is formatted outside of this function. Even
-	// though in principle I believe we should be able to store its formatted width. Maybe move this caching into
-	// FormatIndependent somehow?
-	if (Optional<float> cached_width = layout_node->GetMaxContentWidthIfCached())
-	{
-		shrink_to_fit_width = *cached_width;
-	}
-	else
-	{
-		FormattingMode formatting_mode = current_formatting_mode;
-		formatting_mode.constraint = FormattingMode::Constraint::MaxContent;
-
-		// First, format the element under the above-generated box. Then we ask the resulting box for its shrink-to-fit
-		// width. For block containers, this is essentially its largest line or child box.
-		// @performance. Some formatting can be simplified, e.g. absolute elements do not contribute to the shrink-to-fit
-		// width. Also, children of elements with a fixed width and height don't need to be formatted further.
-		RootBox root(Box(Vector2f(-1.f)), formatting_mode);
-		UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(&root, element, &box, FormattingContextType::Block);
-
-		shrink_to_fit_width = layout_box->GetShrinkToFitWidth();
-		layout_node->CommitMaxContentWidth(shrink_to_fit_width);
-	}
-
-	if (containing_block.x >= 0)
-	{
-		const float available_width =
-			Math::Max(0.f, containing_block.x - box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
-		shrink_to_fit_width = Math::Min(shrink_to_fit_width, available_width);
-	}
-
-	return shrink_to_fit_width;
-}
-
 ComputedAxisSize LayoutDetails::BuildComputedHorizontalSize(const ComputedValues& computed)
 {
 	return ComputedAxisSize{computed.width(), computed.min_width(), computed.max_width(), computed.padding_left(), computed.padding_right(),
@@ -462,9 +392,9 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 			// The width is set to fill the remaining space of the containing block, if the available space is definite.
 			if (containing_block.x >= 0.f)
 			{
-			const float accumulated_edges = GetInsetWidth() + box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding);
-			content_area.x = Math::Max(containing_block.x - accumulated_edges, 0.f);
-		}
+				const float accumulated_edges = GetInsetWidth() + box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding);
+				content_area.x = Math::Max(containing_block.x - accumulated_edges, 0.f);
+			}
 		}
 		else
 		{
