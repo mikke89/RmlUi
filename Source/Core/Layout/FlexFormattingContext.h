@@ -47,7 +47,13 @@ public:
 	/// Formats a flex container element and its flex items according to flexbox layout rules.
 	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, Vector2f containing_block, const Box& initial_box);
 
+	/// Formats a flex container to determine its max-content width.
+	static float DetermineMaxContentWidth(Element* element, const Box& initial_box, const FormattingMode& formatting_mode);
+
 private:
+	static UniquePtr<LayoutBox> FormatImpl(ContainerBox* parent_container, Element* element, const Box& initial_box, Vector2f flex_min_size,
+		Vector2f flex_max_size);
+
 	FlexFormattingContext() = default;
 
 	/// Format the flexbox and its children.

@@ -54,8 +54,8 @@ struct ComputedAxisSize {
 
 enum class BuildBoxMode {
 	Block, // Sets edges and size if available, auto width uses stretch-fit width (never shrink-to-fit), auto margins are used for alignment.
-	ShrinkableBlock, // Like block, but uses shrink-to-fit width when appropriate, determined by formatting the element.
-	UnalignedBlock,  // Like block, but auto width returns -1, and auto margins are resolved to zero.
+	ShrinkableBlock, // Like block, but auto width returns -1 when shrink-to-fit width should be applied, auto margins should then be re-evaluated.
+	UnalignedBlock,  // Like block, but auto width returns -1, and auto margins are always resolved to zero.
 	Inline,          // Sets edges, ignores width, height, and auto margins.
 };
 
@@ -71,9 +71,7 @@ public:
 	/// @param[in] containing_block The dimensions of the content area of the block containing the element.
 	/// @param[in] element The element to build the box for.
 	/// @param[in] box_mode The mode which determines how the box is built.
-	/// @param[in] formatting_mode Active formatting mode, must be set when using box mode ShrinkableBlock.
-	static void BuildBox(Box& box, Vector2f containing_block, Element* element, BuildBoxMode box_mode,
-		const FormattingMode* formatting_mode = nullptr);
+	static void BuildBox(Box& box, Vector2f containing_block, Element* element, BuildBoxMode box_mode);
 
 	// Retrieves the minimum and maximum width from an element's computed values.
 	static void GetMinMaxWidth(float& min_width, float& max_width, const ComputedValues& computed, const Box& box, float containing_block_width);
@@ -91,6 +89,12 @@ public:
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] element The element the box is being generated for.
 	static void BuildAutoMarginsForBlockBox(Box& box, Vector2f containing_block, Element* element);
+
+	/// Clamps the width and build box margins for a block box, the other edges are already set.
+	/// @param[in,out] box The box to generate.
+	/// @param[in] containing_block The size of the containing block.
+	/// @param[in] element The element the box is being generated for.
+	static void ClampSizeAndBuildAutoMarginsForBlockWidth(Box& box, Vector2f containing_block, Element* element);
 
 	/// Formats the element and returns the width of its contents.
 	static float GetShrinkToFitWidth(Element* element, Vector2f containing_block, const FormattingMode& current_formatting_mode);
@@ -120,10 +124,8 @@ private:
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] element The element the box is being generated for.
 	/// @param[in] box_mode The mode which determines how the box is built.
-	/// @param[in] replaced_element True when the element is a replaced element.
-	/// @param[in] formatting_mode Active formatting mode, must be set when using ShrinkableBlock box context.
 	static void BuildBoxSizeAndMargins(Box& box, Vector2f min_size, Vector2f max_size, Vector2f containing_block, Element* element,
-		BuildBoxMode box_mode, bool replaced_element, const FormattingMode* formatting_mode);
+		BuildBoxMode box_mode);
 
 	/// Calculates and returns the content size for replaced elements.
 	static Vector2f CalculateSizeForReplacedElement(Vector2f specified_content_size, Vector2f min_size, Vector2f max_size, Vector2f intrinsic_size,
@@ -137,12 +139,8 @@ private:
 	/// @param[in] max_width The maximum content width of the element.
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] element The element the box is being generated for.
-	/// @param[in] replaced_element True when the element is a replaced element.
-	/// @param[in] formatting_mode Active formatting mode, must be set when using ShrinkableBlock box context.
-	/// @param[in] override_shrink_to_fit_width Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow
-	/// shrinking.
-	static void BuildBoxWidth(Box& box, const ComputedValues& computed, float min_width, float max_width, Vector2f containing_block, Element* element,
-		bool replaced_element, const FormattingMode* formatting_mode, float override_shrink_to_fit_width = -1);
+	static void BuildBoxWidth(Box& box, const ComputedValues& computed, float min_width, float max_width, Vector2f containing_block,
+		Element* element);
 	/// Builds the block-specific height and vertical margins of a Box.
 	/// @param[in,out] box The box to generate. The padding and borders must be set on the box already. The content area is used instead of the height
 	/// property, and -1 means auto height.

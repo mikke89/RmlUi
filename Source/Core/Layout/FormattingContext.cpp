@@ -77,6 +77,9 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	if (type == FormattingContextType::None)
 		type = default_context;
 
+	if (type == FormattingContextType::None)
+		return nullptr;
+
 	if (element->GetId() == "outer")
 		int x = 0;
 
@@ -129,12 +132,62 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 		const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
 		Box box;
 		if (override_initial_box)
+		{
 			box = *override_initial_box;
-
+		}
 		else if (formatting_mode.constraint == FormattingMode::Constraint::MaxContent && type == FormattingContextType::Flex)
+		{
 			LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::UnalignedBlock);
+		}
 		else
-			LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
+		{
+			LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock);
+
+			// Check for shrink-to-fit width.
+			if (box.GetSize().x < 0.f)
+			{
+				const float box_height = box.GetSize().y;
+
+				// Max-content width should be calculated without any vertical constraint.
+				box.SetContent(Vector2f(-1.f));
+
+				FormattingMode shrink_formatting_mode = formatting_mode;
+				shrink_formatting_mode.constraint = FormattingMode::Constraint::MaxContent;
+
+				float max_content_width = -1.f;
+				switch (type)
+				{
+				case FormattingContextType::Block:
+					max_content_width = BlockFormattingContext::DetermineMaxContentWidth(element, box, shrink_formatting_mode);
+					break;
+				case FormattingContextType::Table:
+					// Currently we don't support shrink-to-fit width for tables, just use a zero-sized width.
+					max_content_width = 0.f;
+					break;
+				case FormattingContextType::Flex:
+					max_content_width = FlexFormattingContext::DetermineMaxContentWidth(element, box, shrink_formatting_mode);
+					break;
+				case FormattingContextType::Replaced: RMLUI_ERRORMSG("Replaced elements are expected to have a positive intrinsice size."); break;
+				case FormattingContextType::None: RMLUI_ERROR; break;
+				}
+
+				RMLUI_ASSERTMSG(max_content_width >= 0.f, "Max-content width should evaluate to a positive size.")
+
+				// TODO: Cache max_content width. Remove LayoutDetails::ShrinkToFit (or re-use this function here).
+				// Maybe split this out to a separate function that can be called also from e.g. FlexBoxFormatting.
+
+				float fit_content_width = max_content_width;
+				if (containing_block.x >= 0.f)
+				{
+					const float available_width =
+						Math::Max(0.f, containing_block.x - box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
+					fit_content_width = Math::Min(max_content_width, available_width);
+				}
+
+				box.SetContent(Vector2f(fit_content_width, box_height));
+				LayoutDetails::ClampSizeAndBuildAutoMarginsForBlockWidth(box, containing_block, element);
+			}
+		}
 
 		switch (type)
 		{
@@ -142,7 +195,7 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 		case FormattingContextType::Table: layout_box = TableFormattingContext::Format(parent_container, element, containing_block, box); break;
 		case FormattingContextType::Flex: layout_box = FlexFormattingContext::Format(parent_container, element, containing_block, box); break;
 		case FormattingContextType::Replaced: layout_box = ReplacedFormattingContext::Format(parent_container, element, box); break;
-		case FormattingContextType::None: break;
+		case FormattingContextType::None: RMLUI_ERROR; break;
 		}
 
 		// TODO: If MaxContent constraint, and containing block = -1, -1, store resulting size as max-content size.
