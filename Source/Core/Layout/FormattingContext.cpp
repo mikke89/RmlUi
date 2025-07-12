@@ -42,6 +42,18 @@
 
 namespace Rml {
 
+static bool UsesFitContentSizeForAutoWidth(Element* element)
+{
+	// Whether to apply the fit-content sizing (shrink-to-fit width) algorithm to find the width of the element.
+	// See CSS 2.1 section 10.3.7 for when this should be applied.
+	const auto& computed = element->GetComputedValues();
+	const bool inset_auto = (computed.left().type == Style::Left::Auto || computed.right().type == Style::Right::Auto);
+	const bool absolutely_positioned = (computed.position() == Style::Position::Absolute || computed.position() == Style::Position::Fixed);
+
+	return (computed.float_() != Style::Float::None) || (absolutely_positioned && inset_auto) ||
+		(computed.display() == Style::Display::InlineBlock || computed.display() == Style::Display::InlineFlex);
+}
+
 FormattingContextType FormattingContext::GetFormattingContextType(Element* element)
 {
 	if (element->IsReplaced())
@@ -137,7 +149,8 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 		}
 		else
 		{
-			LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock);
+			const BuildBoxMode build_box_mode = (UsesFitContentSizeForAutoWidth(element) ? BuildBoxMode::FitContent : BuildBoxMode::StretchFit);
+			LayoutDetails::BuildBox(box, containing_block, element, build_box_mode);
 
 			if (box.GetSize().x < 0.f)
 			{
@@ -193,7 +206,7 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 float FormattingContext::FormatFitContentWidth(ContainerBox* parent_container, Element* element, Vector2f containing_block)
 {
 	Box box;
-	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::UnalignedBlock);
+	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::Unaligned);
 
 	if (box.GetSize().x < 0.f)
 	{

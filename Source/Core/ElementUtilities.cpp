@@ -309,7 +309,7 @@ void ElementUtilities::FormatElement(Element* element, Vector2f containing_block
 
 void ElementUtilities::BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element)
 {
-	LayoutDetails::BuildBox(box, containing_block, element, inline_element ? BuildBoxMode::Inline : BuildBoxMode::Block);
+	LayoutDetails::BuildBox(box, containing_block, element, inline_element ? BuildBoxMode::Inline : BuildBoxMode::StretchFit);
 }
 
 bool ElementUtilities::PositionElement(Element* element, Vector2f offset, PositionAnchor anchor)
@@ -324,7 +324,7 @@ bool ElementUtilities::PositionElement(Element* element, Vector2f offset, Positi
 	containing_block.y -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
 
 	Box box;
-	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::Block);
+	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::StretchFit);
 	if (box.GetSize().y < 0.f)
 		box.SetContent(Vector2f(box.GetSize().x, containing_block.y));
 	element->SetBox(box);

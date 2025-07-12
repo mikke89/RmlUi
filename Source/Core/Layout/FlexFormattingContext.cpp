@@ -291,7 +291,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 
 		FlexItem item = {};
 		item.element = element;
-		LayoutDetails::BuildBox(item.box, flex_content_containing_block, element, BuildBoxMode::UnalignedBlock);
+		LayoutDetails::BuildBox(item.box, flex_content_containing_block, element, BuildBoxMode::Unaligned);
 
 		Style::LengthPercentageAuto item_main_size;
 
