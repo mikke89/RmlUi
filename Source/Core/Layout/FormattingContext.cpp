@@ -119,7 +119,7 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	UniquePtr<LayoutBox> layout_box;
 
 	const FormattingMode& formatting_mode = parent_container->GetFormattingMode();
-	if (type != FormattingContextType::None && formatting_mode.constraint == FormattingMode::Constraint::None)
+	if (formatting_mode.constraint == FormattingMode::Constraint::None)
 	{
 		LayoutNode* layout_node = element->GetLayoutNode();
 		if (layout_node->CommittedLayoutMatches(parent_container->GetContainingBlockSize(Style::Position::Static),
@@ -154,21 +154,33 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 
 			if (box.GetSize().x < 0.f)
 			{
-				FormatFitContentWidth(box, element, type, formatting_mode, containing_block);
-				LayoutDetails::ClampSizeAndBuildAutoMarginsForBlockWidth(box, containing_block, element);
+				layout_box = FormatFitContentWidth(box, element, type, formatting_mode, containing_block);
+				if (layout_box)
+				{
+					Box box_before = box;
+					LayoutDetails::ClampSizeAndBuildAutoMarginsForBlockWidth(box, containing_block, element);
+					// If the box is changed after clamping, we need to re-format the element with the new size, ignoring the returned layout box.
+					if (box != box_before)
+						layout_box.reset();
+				}
+				else
+				{
+					LayoutDetails::ClampSizeAndBuildAutoMarginsForBlockWidth(box, containing_block, element);
+				}
 			}
 		}
 
-		switch (type)
+		if (!layout_box)
 		{
-		case FormattingContextType::Block: layout_box = BlockFormattingContext::Format(parent_container, element, containing_block, box); break;
-		case FormattingContextType::Table: layout_box = TableFormattingContext::Format(parent_container, element, containing_block, box); break;
-		case FormattingContextType::Flex: layout_box = FlexFormattingContext::Format(parent_container, element, containing_block, box); break;
-		case FormattingContextType::Replaced: layout_box = ReplacedFormattingContext::Format(parent_container, element, box); break;
-		case FormattingContextType::None: RMLUI_ERROR; break;
+			switch (type)
+			{
+			case FormattingContextType::Block: layout_box = BlockFormattingContext::Format(parent_container, element, containing_block, box); break;
+			case FormattingContextType::Table: layout_box = TableFormattingContext::Format(parent_container, element, containing_block, box); break;
+			case FormattingContextType::Flex: layout_box = FlexFormattingContext::Format(parent_container, element, containing_block, box); break;
+			case FormattingContextType::Replaced: layout_box = ReplacedFormattingContext::Format(parent_container, element, box); break;
+			case FormattingContextType::None: RMLUI_ERROR; break;
+			}
 		}
-
-		// TODO: If MaxContent constraint, and containing block = -1, -1, store resulting size as max-content size.
 	}
 
 	if (layout_box && formatting_mode.constraint == FormattingMode::Constraint::None)
@@ -221,8 +233,8 @@ float FormattingContext::FormatFitContentWidth(ContainerBox* parent_container, E
 	return box.GetSize().x;
 }
 
-void FormattingContext::FormatFitContentWidth(Box& box, Element* element, FormattingContextType type, const FormattingMode& parent_formatting_mode,
-	const Vector2f containing_block)
+UniquePtr<LayoutBox> FormattingContext::FormatFitContentWidth(Box& box, Element* element, FormattingContextType type,
+	const FormattingMode& parent_formatting_mode, const Vector2f containing_block)
 {
 	RMLUI_ASSERT(element);
 #ifdef RMLUI_TRACY_PROFILING
@@ -232,15 +244,12 @@ void FormattingContext::FormatFitContentWidth(Box& box, Element* element, Format
 	RMLUI_ZoneText(zone_text.c_str(), zone_text.size());
 #endif
 
+	const float box_height = box.GetSize().y;
 	LayoutNode* layout_node = element->GetLayoutNode();
 
-	const float box_height = box.GetSize().y;
-
+	UniquePtr<LayoutBox> layout_box;
 	float max_content_width = -1.f;
-	// TODO: The shrink-to-fit width is only cached for every other nested flexbox during the initial
-	// GetShrinkToFitWidth. I.e. the first .outer flexbox below #nested is formatted outside of this function. Even
-	// though in principle I believe we should be able to store its formatted width. Maybe move this caching into
-	// FormatIndependent somehow?
+
 	if (Optional<float> cached_width = layout_node->GetMaxContentWidthIfCached())
 	{
 		max_content_width = *cached_width;
@@ -255,15 +264,28 @@ void FormattingContext::FormatFitContentWidth(Box& box, Element* element, Format
 
 		switch (type)
 		{
-		case FormattingContextType::Block: max_content_width = BlockFormattingContext::DetermineMaxContentWidth(element, box, formatting_mode); break;
+		case FormattingContextType::Block:
+		{
+			max_content_width = BlockFormattingContext::DetermineMaxContentWidth(element, box, formatting_mode);
+		}
+		break;
+		case FormattingContextType::Flex:
+		{
+			layout_box = FlexFormattingContext::DetermineMaxContentWidth(element, box, formatting_mode);
+			max_content_width = layout_box->GetShrinkToFitWidth();
+		}
+		break;
 		case FormattingContextType::Table:
+		{
 			// Currently we don't support shrink-to-fit width for tables, just use a zero-sized width.
 			max_content_width = 0.f;
-			break;
-		case FormattingContextType::Flex: max_content_width = FlexFormattingContext::DetermineMaxContentWidth(element, box, formatting_mode); break;
+		}
+		break;
 		case FormattingContextType::Replaced:
-			RMLUI_ERRORMSG("Replaced elements are expected to have a positive intrinsice size and do not perform shrink-to-fit layout.");
-			break;
+		{
+			RMLUI_ERRORMSG("Replaced elements are expected to have a positive intrinsice size and should not need max-content formatting.");
+		}
+		break;
 		case FormattingContextType::None: RMLUI_ERROR; break;
 		}
 
@@ -281,6 +303,8 @@ void FormattingContext::FormatFitContentWidth(Box& box, Element* element, Format
 	}
 
 	box.SetContent(Vector2f(fit_content_width, box_height));
+
+	return layout_box;
 }
 
 } // namespace Rml

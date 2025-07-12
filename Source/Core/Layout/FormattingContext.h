@@ -76,8 +76,11 @@ protected:
 	~FormattingContext() = default;
 
 private:
-	static void FormatFitContentWidth(Box& box, Element* element, FormattingContextType type, const FormattingMode& parent_formatting_mode,
-		Vector2f containing_block);
+	/// Formats the element under a max-content constraint and sets its (unclamped) fit-content width on the box.
+	/// @return Optionally, a layout box indicating that the formatted element can be used directly when under
+	/// max-content constraints.
+	static UniquePtr<LayoutBox> FormatFitContentWidth(Box& box, Element* element, FormattingContextType type,
+		const FormattingMode& parent_formatting_mode, Vector2f containing_block);
 };
 
 } // namespace Rml
