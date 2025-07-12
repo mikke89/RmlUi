@@ -459,9 +459,12 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 
 		if (!shrink_to_fit)
 		{
-			// The width is set to whatever remains of the containing block.
+			// The width is set to fill the remaining space of the containing block, if the available space is definite.
+			if (containing_block.x >= 0.f)
+			{
 			const float accumulated_edges = GetInsetWidth() + box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding);
 			content_area.x = Math::Max(containing_block.x - accumulated_edges, 0.f);
+		}
 		}
 		else
 		{
