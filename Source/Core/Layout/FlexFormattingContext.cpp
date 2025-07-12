@@ -343,8 +343,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		}
 		else if (main_axis_horizontal)
 		{
-			item.inner_flex_base_size =
-				LayoutDetails::GetShrinkToFitWidth(element, flex_content_containing_block, flex_container_box->GetFormattingMode());
+			item.inner_flex_base_size = FormattingContext::FormatFitContentWidth(flex_container_box, element, flex_content_containing_block);
 		}
 		else
 		{
@@ -711,9 +710,9 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				if (content_size.x < 0.0f)
 				{
 					item.box.SetContent(Vector2f(content_size.x, GetInnerUsedMainSize(item)));
-					item.hypothetical_cross_size =
-						LayoutDetails::GetShrinkToFitWidth(item.element, flex_content_containing_block, flex_container_box->GetFormattingMode()) +
-						item.cross.sum_edges;
+					const float fit_content_size =
+						FormattingContext::FormatFitContentWidth(flex_container_box, item.element, flex_content_containing_block);
+					item.hypothetical_cross_size = Math::Clamp(fit_content_size, item.cross.min_size, item.cross.max_size) + item.cross.sum_edges;
 				}
 				else
 				{

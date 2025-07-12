@@ -55,8 +55,10 @@ struct ComputedAxisSize {
 enum class BuildBoxMode {
 	Block, // Sets edges and size if available, auto width uses stretch-fit width (never shrink-to-fit), auto margins are used for alignment.
 	ShrinkableBlock, // Like block, but auto width returns -1 when shrink-to-fit width should be applied, auto margins should then be re-evaluated.
-	UnalignedBlock,  // Like block, but auto width returns -1, and auto margins are always resolved to zero.
-	Inline,          // Sets edges, ignores width, height, and auto margins.
+	// TODO: Block and ShrinkableBlock is the same right now. Remove the latter - or - differentiate between fit-content
+	//       and stretch-fit size, placing the "can we shrink" question on the caller.
+	UnalignedBlock, // Like block, but auto width returns -1, and auto margins are always resolved to zero.
+	Inline,         // Sets edges, ignores width, height, and auto margins.
 };
 
 /**
@@ -95,9 +97,6 @@ public:
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] element The element the box is being generated for.
 	static void ClampSizeAndBuildAutoMarginsForBlockWidth(Box& box, Vector2f containing_block, Element* element);
-
-	/// Formats the element and returns the width of its contents.
-	static float GetShrinkToFitWidth(Element* element, Vector2f containing_block, const FormattingMode& current_formatting_mode);
 
 	/// Build computed axis size along the horizontal direction (width and friends).
 	static ComputedAxisSize BuildComputedHorizontalSize(const ComputedValues& computed);
