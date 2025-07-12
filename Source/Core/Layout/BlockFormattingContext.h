@@ -38,6 +38,7 @@ class Box;
 class BlockContainer;
 class ContainerBox;
 class LayoutBox;
+struct FormattingMode;
 
 /*
     Places boxes according to normal flow, while handling floated boxes.
@@ -52,6 +53,8 @@ class LayoutBox;
 class BlockFormattingContext final : public FormattingContext {
 public:
 	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, Vector2f containing_block, const Box& box);
+
+	static float DetermineMaxContentWidth(Element* element, const Box& initial_box, const FormattingMode& formatting_mode);
 
 private:
 	// Format the element as a block box, including its children.

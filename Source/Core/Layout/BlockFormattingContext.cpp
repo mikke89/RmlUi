@@ -153,6 +153,17 @@ UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_contain
 	return container;
 }
 
+float BlockFormattingContext::DetermineMaxContentWidth(Element* element, const Box& initial_box, const FormattingMode& formatting_mode)
+{
+	RMLUI_ASSERT(formatting_mode.constraint == FormattingMode::Constraint::MaxContent);
+	const Vector2f containing_block(-1.f);
+	RootBox root(Box(containing_block), formatting_mode);
+
+	UniquePtr<LayoutBox> layout_box = BlockFormattingContext::Format(&root, element, containing_block, initial_box);
+
+	return layout_box->GetShrinkToFitWidth();
+}
+
 bool BlockFormattingContext::FormatBlockBox(BlockContainer* parent_container, Element* element)
 {
 	RMLUI_ZoneScopedC(0x2F4F4F);
