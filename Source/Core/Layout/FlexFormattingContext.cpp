@@ -71,7 +71,6 @@ UniquePtr<LayoutBox> FlexFormattingContext::DetermineMaxContentWidth(Element* el
 UniquePtr<LayoutBox> FlexFormattingContext::FormatImpl(ContainerBox* parent_container, Element* element, const Box& initial_box,
 	Vector2f flex_min_size, Vector2f flex_max_size)
 {
-	RMLUI_ZoneScopedC(0xAFAF4F);
 	auto flex_container_box = MakeUnique<FlexContainer>(element, parent_container, initial_box);
 
 	ElementScroll* element_scroll = element->GetElementScroll();
@@ -236,7 +235,7 @@ static float GetInnerUsedCrossSize(const FlexItem& item)
 
 void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector2f& flex_content_overflow_size, float& flex_baseline) const
 {
-	RMLUI_ZoneScopedC(0xAFAF7F);
+	RMLUI_ZoneScopedC(0xAFAF4F);
 	// The following procedure is based on the CSS flexible box layout algorithm.
 	// For details, see https://drafts.csswg.org/css-flexbox/#layout-algorithm
 
@@ -346,10 +345,12 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		}
 		else if (main_axis_horizontal)
 		{
+			RMLUI_ZoneScopedNC("FlexItemFormat Main Width", 0x6060A5);
 			item.inner_flex_base_size = FormattingContext::FormatFitContentWidth(flex_container_box, element, flex_content_containing_block);
 		}
 		else
 		{
+			RMLUI_ZoneScopedNC("FlexItemFormat Main Height", 0x6060A5);
 			const Vector2f initial_box_size = item.box.GetSize();
 			RMLUI_ASSERT(initial_box_size.y < 0.f);
 
@@ -699,6 +700,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			{
 				if (content_size.y < 0.0f)
 				{
+					RMLUI_ZoneScopedNC("FlexItemFormat Cross Height", 0x6060A5);
 					item.box.SetContent(Vector2f(GetInnerUsedMainSize(item), content_size.y));
 					FormattingContext::FormatIndependent(flex_container_box, item.element, &item.box, FormattingContextType::Block);
 					item.hypothetical_cross_size = item.element->GetBox().GetSize().y + item.cross.sum_edges;
@@ -712,6 +714,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			{
 				if (content_size.x < 0.0f)
 				{
+					RMLUI_ZoneScopedNC("FlexItemFormat Cross Width", 0x6060A5);
 					item.box.SetContent(Vector2f(content_size.x, GetInnerUsedMainSize(item)));
 					const float fit_content_size =
 						FormattingContext::FormatFitContentWidth(flex_container_box, item.element, flex_content_containing_block);
@@ -968,6 +971,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	{
 		for (FlexItem& item : line.items)
 		{
+			RMLUI_ZoneScopedNC("FlexItemFormat Final", 0x6060A5);
 			const Vector2f item_size = MainCrossToVec2(GetInnerUsedMainSize(item), GetInnerUsedCrossSize(item));
 			const Vector2f item_offset = MainCrossToVec2(item.main_offset, line.cross_offset + item.cross_offset);
 
