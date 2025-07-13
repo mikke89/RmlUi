@@ -52,7 +52,7 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 	return FlexFormattingContext::FormatImpl(parent_container, element, initial_box, flex_min_size, flex_max_size);
 }
 
-UniquePtr<LayoutBox> FlexFormattingContext::DetermineMaxContentWidth(Element* element, const Box& initial_box, const FormattingMode& formatting_mode)
+float FlexFormattingContext::DetermineMaxContentWidth(Element* element, const Box& initial_box, const FormattingMode& formatting_mode)
 {
 	RMLUI_ASSERT(formatting_mode.constraint == FormattingMode::Constraint::MaxContent);
 	const Vector2f containing_block(-1.f);
@@ -60,12 +60,9 @@ UniquePtr<LayoutBox> FlexFormattingContext::DetermineMaxContentWidth(Element* el
 
 	const Vector2f min_flex_size(0.f);
 	const Vector2f max_flex_size(FLT_MAX);
+	UniquePtr<LayoutBox> layout_box = FlexFormattingContext::FormatImpl(&root, element, initial_box, min_flex_size, max_flex_size);
 
-	// Return the layout box if (and only if) we can consider the layout complete, despite formatting under a
-	// max-content constraint. This allows us to skip a formatting step in some cases. Later we may want to make some
-	// formatting simplifications during max-content sizing, optimized just for retrieving its width. In this case, we
-	// should make sure that the full flex formatting is done at least once during layouting in the end.
-	return FlexFormattingContext::FormatImpl(&root, element, initial_box, min_flex_size, max_flex_size);
+	return layout_box->GetShrinkToFitWidth();
 }
 
 UniquePtr<LayoutBox> FlexFormattingContext::FormatImpl(ContainerBox* parent_container, Element* element, const Box& initial_box,
