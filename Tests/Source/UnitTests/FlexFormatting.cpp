@@ -258,7 +258,7 @@ static const String rml_flexbox_shrink_to_fit = R"(
 	<div class="outer" id="main">
 		<div class="inner">
 			<div class="outer">
-				<div class="inner">
+				<div class="inner" id="special">
 					<div class="outer">
 						<div class="inner">Flex</div>
 					</div>
