@@ -80,6 +80,7 @@ void LayoutNode::SetDirty(DirtyLayoutType dirty_type)
 	//	(dirty_type & DirtyLayoutType::Child) != DirtyLayoutType::None, element->GetAddress().c_str());
 	dirty_flag = dirty_flag | dirty_type;
 	committed_max_content_width.reset();
+	committed_max_content_height.reset();
 }
 
 void LayoutNode::CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
