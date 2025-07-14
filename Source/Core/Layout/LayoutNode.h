@@ -129,6 +129,9 @@ public:
 	Optional<float> GetMaxContentWidthIfCached() const { return committed_max_content_width; }
 	void CommitMaxContentWidth(float width) { committed_max_content_width = width; }
 
+	Optional<float> GetMaxContentHeightIfCached() const { return committed_max_content_height; }
+	void CommitMaxContentHeight(float height) { committed_max_content_height = height; }
+
 	// TODO: Remove and replace with a better interface.
 	const Optional<CommittedLayout>& GetCommittedLayout() const { return committed_layout; }
 
@@ -149,6 +152,7 @@ private:
 
 	Optional<CommittedLayout> committed_layout;
 	Optional<float> committed_max_content_width;
+	Optional<float> committed_max_content_height;
 };
 
 } // namespace Rml

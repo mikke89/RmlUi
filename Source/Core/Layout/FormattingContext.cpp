@@ -119,7 +119,7 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	UniquePtr<LayoutBox> layout_box;
 
 	const FormattingMode& formatting_mode = parent_container->GetFormattingMode();
-	if (type != FormattingContextType::None && formatting_mode.constraint == FormattingMode::Constraint::None)
+	if (formatting_mode.constraint == FormattingMode::Constraint::None)
 	{
 		LayoutNode* layout_node = element->GetLayoutNode();
 		if (layout_node->CommittedLayoutMatches(parent_container->GetContainingBlockSize(Style::Position::Static),
@@ -221,6 +221,47 @@ float FormattingContext::FormatFitContentWidth(ContainerBox* parent_container, E
 	return box.GetSize().x;
 }
 
+float FormattingContext::FormatFitContentHeight(ContainerBox* parent_container, Element* element, const Box& box)
+{
+	if (box.GetSize().y >= 0.f)
+		return box.GetSize().y;
+
+	LayoutNode* layout_node = element->GetLayoutNode();
+
+	float max_content_height = box.GetSize().y;
+	if (Optional<float> cached_height = layout_node->GetMaxContentHeightIfCached())
+	{
+		max_content_height = *cached_height;
+	}
+	else
+	{
+		FormattingContextType type = GetFormattingContextType(element);
+		if (type == FormattingContextType::None)
+			type = FormattingContextType::Block;
+
+		FormattingMode formatting_mode = parent_container->GetFormattingMode();
+		formatting_mode.constraint = FormattingMode::Constraint::MaxContent;
+		const Vector2f root_containing_block(-1.f);
+		RootBox root(Box(root_containing_block), formatting_mode);
+
+		auto layout_box = FormattingContext::FormatIndependent(&root, element, &box, FormattingContextType::Block);
+
+		const Box* formatted_box = layout_box->GetIfBox();
+		if (!formatted_box)
+		{
+			Log::Message(Log::LT_WARNING, "Could not retrieve fit-content height from formatted result in element %s", element->GetAddress().c_str());
+			return -1.f;
+		}
+
+		max_content_height = formatted_box->GetSize().y;
+		layout_node->CommitMaxContentHeight(max_content_height);
+	}
+
+	// In the block axis, min-content, max-content, and fit-content are all equivalent for container boxes. Thus, we
+	// should not clamp to the available height, like we do for the fit-content width.
+	return max_content_height;
+}
+
 void FormattingContext::FormatFitContentWidth(Box& box, Element* element, FormattingContextType type, const FormattingMode& parent_formatting_mode,
 	const Vector2f containing_block)
 {
@@ -232,15 +273,10 @@ void FormattingContext::FormatFitContentWidth(Box& box, Element* element, Format
 	RMLUI_ZoneText(zone_text.c_str(), zone_text.size());
 #endif
 
-	LayoutNode* layout_node = element->GetLayoutNode();
-
 	const float box_height = box.GetSize().y;
-
+	LayoutNode* layout_node = element->GetLayoutNode();
 	float max_content_width = -1.f;
-	// TODO: The shrink-to-fit width is only cached for every other nested flexbox during the initial
-	// GetShrinkToFitWidth. I.e. the first .outer flexbox below #nested is formatted outside of this function. Even
-	// though in principle I believe we should be able to store its formatted width. Maybe move this caching into
-	// FormatIndependent somehow?
+
 	if (Optional<float> cached_width = layout_node->GetMaxContentWidthIfCached())
 	{
 		max_content_width = *cached_width;
