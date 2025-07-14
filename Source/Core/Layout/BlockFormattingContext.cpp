@@ -169,11 +169,8 @@ bool BlockFormattingContext::FormatBlockBox(BlockContainer* parent_container, El
 	RMLUI_ZoneScopedC(0x2F4F4F);
 	const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
 
-	const BuildBoxMode build_box_mode =
-		(parent_container->GetFormattingMode().constraint == FormattingMode::Constraint::MaxContent ? BuildBoxMode::Unaligned
-																									: BuildBoxMode::StretchFit);
 	Box box;
-	LayoutDetails::BuildBox(box, containing_block, element, build_box_mode);
+	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::StretchFit);
 	float min_height, max_height;
 	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
 
