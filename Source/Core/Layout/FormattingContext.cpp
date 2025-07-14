@@ -92,7 +92,7 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	if (type == FormattingContextType::None)
 		return nullptr;
 
-	if (element->GetId() == "outer")
+	if (element->GetId() == "special")
 		int x = 0;
 
 #ifdef RMLUI_DEBUG
@@ -119,18 +119,16 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	UniquePtr<LayoutBox> layout_box;
 
 	const FormattingMode& formatting_mode = parent_container->GetFormattingMode();
-	if (formatting_mode.constraint == FormattingMode::Constraint::None)
+
 	{
 		LayoutNode* layout_node = element->GetLayoutNode();
 		if (layout_node->CommittedLayoutMatches(parent_container->GetContainingBlockSize(Style::Position::Static),
 				parent_container->GetContainingBlockSize(Style::Position::Static), override_initial_box))
 		{
+#ifdef RMLUI_DEBUG
 			Log::Message(Log::LT_INFO, "Layout cache match on element%s: %s",
 				(formatting_mode.allow_format_independent_cache ? "" : " (skipping cache due to formatting mode)"), element->GetAddress().c_str());
-			// TODO: How to deal with ShrinkToFitWidth, in particular for the returned box? Store it in the LayoutNode?
-			//   Maybe best not to use this committed layout at all during max-content layouting. Instead, skip this here,
-			//   return zero in the CacheContainerBox, and make a separate LayoutNode cache for shrink-to-fit width that
-			//   is fetched in LayoutDetails::ShrinkToFitWidth().
+#endif
 			if (formatting_mode.allow_format_independent_cache)
 			{
 				layout_box = MakeUnique<CachedContainer>(element, parent_container, element->GetBox(),
@@ -169,19 +167,19 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 		}
 
 		// TODO: If MaxContent constraint, and containing block = -1, -1, store resulting size as max-content size.
-	}
 
-	if (layout_box && formatting_mode.constraint == FormattingMode::Constraint::None)
-	{
-		Optional<float> baseline_of_last_line;
-		float baseline_of_last_line_value = 0.f;
-		if (layout_box->GetBaselineOfLastLine(baseline_of_last_line_value))
-			baseline_of_last_line = baseline_of_last_line_value;
+		if (layout_box)
+		{
+			Optional<float> baseline_of_last_line;
+			float baseline_of_last_line_value = 0.f;
+			if (layout_box->GetBaselineOfLastLine(baseline_of_last_line_value))
+				baseline_of_last_line = baseline_of_last_line_value;
 
-		LayoutNode* layout_node = element->GetLayoutNode();
-		layout_node->CommitLayout(parent_container->GetContainingBlockSize(Style::Position::Static),
-			parent_container->GetContainingBlockSize(Style::Position::Absolute), override_initial_box, layout_box->GetVisibleOverflowSize(),
-			baseline_of_last_line);
+			LayoutNode* layout_node = element->GetLayoutNode();
+			layout_node->CommitLayout(parent_container->GetContainingBlockSize(Style::Position::Static),
+				parent_container->GetContainingBlockSize(Style::Position::Absolute), override_initial_box, layout_box->GetVisibleOverflowSize(),
+				baseline_of_last_line);
+		}
 	}
 
 #ifdef RMLUI_DEBUG
