@@ -602,7 +602,7 @@ static const String rml_flexbox_shrink_to_fit = R"(
 	</style>
 </head>
 <body>
-<div id="basic" class="shrink-to-fit" style="display: none">
+<div id="basic" class="shrink-to-fit">
 	Before
 	<div class="outer">
 		<div class="inner">Flex</div>
@@ -611,9 +611,15 @@ static const String rml_flexbox_shrink_to_fit = R"(
 </div>
 <div id="nested" class="shrink-to-fit">
 	Before
-	<div class="outer" id="outer">
-		<div class="inner" id="inner">
-			Flex
+	<div class="outer">
+		<div class="inner">
+			<div class="outer">
+				<div class="inner">
+					<div class="outer">
+						<div class="inner">Flex</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 	After
@@ -637,11 +643,6 @@ TEST_CASE("flexbox.shrink-to-fit")
 
 	document->Show();
 	TestsShell::RenderLoop();
-
-	{
-		document->Close();
-		return;
-	}
 
 	basic->SetProperty(PropertyId::Display, Style::Display::None);
 	nested->SetProperty(PropertyId::Display, Style::Display::None);

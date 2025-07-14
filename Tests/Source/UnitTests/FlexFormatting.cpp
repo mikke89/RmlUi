@@ -203,3 +203,98 @@ TEST_CASE("FlexFormatting.dp_ratio")
 
 	TestsShell::ShutdownShell();
 }
+
+static const String rml_flexbox_shrink_to_fit = R"(
+<rml>
+<head>
+    <title>Flex - Shrink-to-fit 01</title>
+    <link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<style>
+		body { width: 1000px; }
+		.shrink-to-fit {
+			float: left;
+			clear: both;
+			margin: 10px 0;
+			border: 2px #e8e8e8;
+		}
+		.outer {
+			border: 1px red;
+			padding: 30px;
+		}
+		#basic .outer {
+			display: flex;
+		}
+		#nested .outer, #deep .outer {
+			display: inline-flex;
+		}
+		.inner {
+			border: 1px blue;
+			padding: 30px;
+		}
+		.hidden {
+			display: none;
+		}
+	</style>
+</head>
+<body>
+<div id="basic" class="shrink-to-fit hidden">
+	Before
+	<div class="outer">
+		<div class="inner">Flex</div>
+	</div>
+	After
+</div>
+<div id="nested" class="shrink-to-fit hidden">
+	Before
+	<div class="outer" id="outer">
+		<div class="inner" id="inner">
+			Flex
+		</div>
+	</div>
+	After
+</div>
+<div id="deep" class="shrink-to-fit hidden">
+	Before
+	<div class="outer" id="main">
+		<div class="inner">
+			<div class="outer">
+				<div class="inner">
+					<div class="outer">
+						<div class="inner">Flex</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	After
+</div>
+</body>
+</rml>
+)";
+
+TEST_CASE("FlexFormatting.shrink-to-fit")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(rml_flexbox_shrink_to_fit);
+
+	SUBCASE("basic")
+	{
+		document->GetElementById("basic")->SetClass("hidden", false);
+	}
+	SUBCASE("nested")
+	{
+		document->GetElementById("nested")->SetClass("hidden", false);
+	}
+	SUBCASE("deep")
+	{
+		document->GetElementById("deep")->SetClass("hidden", false);
+	}
+
+	document->Show();
+	TestsShell::RenderLoop();
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
