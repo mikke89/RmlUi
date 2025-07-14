@@ -28,6 +28,7 @@
 
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "LogDefault.h"
@@ -38,6 +39,7 @@ namespace Rml {
 
 void Log::Message(Log::Type type, const char* fmt, ...)
 {
+	RMLUI_ZoneScoped;
 	String string;
 	va_list argument_list;
 	va_start(argument_list, fmt);
