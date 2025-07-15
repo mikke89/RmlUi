@@ -121,9 +121,11 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	const FormattingMode& formatting_mode = parent_container->GetFormattingMode();
 
 	{
+		const Vector2f containing_block = parent_container->GetContainingBlockSize(Style::Position::Static);
+		const Vector2f absolute_containing_block = parent_container->GetContainingBlockSize(Style::Position::Absolute);
+
 		LayoutNode* layout_node = element->GetLayoutNode();
-		if (layout_node->CommittedLayoutMatches(parent_container->GetContainingBlockSize(Style::Position::Static),
-				parent_container->GetContainingBlockSize(Style::Position::Static), override_initial_box))
+		if (layout_node->CommittedLayoutMatches(containing_block, absolute_containing_block, override_initial_box))
 		{
 #ifdef RMLUI_DEBUG
 			Log::Message(Log::LT_INFO, "Layout cache match on element%s: %s",
