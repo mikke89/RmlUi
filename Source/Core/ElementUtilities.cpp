@@ -407,7 +407,7 @@ bool ElementUtilities::ApplyTransform(Element& element)
 	return true;
 }
 
-static bool ApplyDataViewsControllersInternal(Element* element, const bool construct_structural_view, const String& structural_view_inner_rml)
+static bool ApplyDataViewsControllersInternal(Element* element)
 {
 	RMLUI_ASSERT(element);
 	bool result = false;
@@ -417,7 +417,7 @@ static bool ApplyDataViewsControllersInternal(Element* element, const bool const
 	{
 		struct ViewControllerInitializer {
 			String type;
-			String modifier_or_inner_rml;
+			String modifier;
 			String expression;
 			DataViewPtr view;
 			DataControllerPtr controller;
@@ -442,46 +442,39 @@ static bool ApplyDataViewsControllersInternal(Element* element, const bool const
 			{
 				const size_t type_end = name.find('-', data_str_length);
 				const size_t type_size = (type_end == String::npos ? String::npos : type_end - data_str_length);
-				String type_name = name.substr(data_str_length, type_size);
+				const String type_name = name.substr(data_str_length, type_size);
 
 				ViewControllerInitializer initializer;
 
-				// Structural data views are applied in a separate step from the normal views and controllers.
-				if (construct_structural_view)
-				{
-					if (DataViewPtr view = Factory::InstanceDataView(type_name, element, true))
-					{
-						initializer.modifier_or_inner_rml = structural_view_inner_rml;
-						initializer.view = std::move(view);
-					}
-				}
-				else
-				{
-					if (Factory::IsStructuralDataView(type_name))
-					{
-						// Structural data views should cancel all other non-structural data views and controllers. Exit now.
-						// Eg. in elements with a 'data-for' attribute, the data views should be constructed on the generated
-						// children elements and not on the current element generating the 'for' view.
-						return false;
-					}
+				const size_t modifier_offset = data_str_length + type_name.size() + 1;
+				if (modifier_offset < name.size())
+					initializer.modifier = name.substr(modifier_offset);
 
-					const size_t modifier_offset = data_str_length + type_name.size() + 1;
-					if (modifier_offset < name.size())
-						initializer.modifier_or_inner_rml = name.substr(modifier_offset);
+				if (DataViewPtr view = Factory::InstanceDataView(type_name, element))
+					initializer.view = std::move(view);
 
-					if (DataViewPtr view = Factory::InstanceDataView(type_name, element, false))
-						initializer.view = std::move(view);
-
-					if (DataControllerPtr controller = Factory::InstanceDataController(type_name, element))
-						initializer.controller = std::move(controller);
-				}
+				if (DataControllerPtr controller = Factory::InstanceDataController(type_name, element))
+					initializer.controller = std::move(controller);
 
 				if (initializer)
 				{
-					initializer.type = std::move(type_name);
+					initializer.type = type_name;
 					initializer.expression = attribute.second.Get<String>();
 
-					initializer_list.push_back(std::move(initializer));
+					if (Factory::IsStructuralDataView(type_name))
+					{
+						// Structural data views should cancel all other non-structural data views and controllers.
+						// Clear all other views, and only initialize this one.
+						// E.g. in elements with a 'data-for' attribute, the data views should be constructed on the
+						// generated children elements and not on the current element generating the 'for' view.
+						initializer_list.clear();
+						initializer_list.push_back(std::move(initializer));
+						break;
+					}
+					else
+					{
+						initializer_list.push_back(std::move(initializer));
+					}
 				}
 			}
 		}
@@ -494,7 +487,7 @@ static bool ApplyDataViewsControllersInternal(Element* element, const bool const
 
 			if (view)
 			{
-				if (view->Initialize(*data_model, element, initializer.expression, initializer.modifier_or_inner_rml))
+				if (view->Initialize(*data_model, element, initializer.expression, initializer.modifier))
 				{
 					data_model->AddView(std::move(view));
 					result = true;
@@ -506,7 +499,7 @@ static bool ApplyDataViewsControllersInternal(Element* element, const bool const
 
 			if (controller)
 			{
-				if (controller->Initialize(*data_model, element, initializer.expression, initializer.modifier_or_inner_rml))
+				if (controller->Initialize(*data_model, element, initializer.expression, initializer.modifier))
 				{
 					data_model->AddController(std::move(controller));
 					result = true;
@@ -523,12 +516,7 @@ static bool ApplyDataViewsControllersInternal(Element* element, const bool const
 
 bool ElementUtilities::ApplyDataViewsControllers(Element* element)
 {
-	return ApplyDataViewsControllersInternal(element, false, String());
-}
-
-bool ElementUtilities::ApplyStructuralDataViews(Element* element, const String& inner_rml)
-{
-	return ApplyDataViewsControllersInternal(element, true, inner_rml);
+	return ApplyDataViewsControllersInternal(element);
 }
 
 } // namespace Rml
