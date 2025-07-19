@@ -35,7 +35,7 @@
 
 class RenderInterface_SDL_GPU : public Rml::RenderInterface {
 public:
-	RenderInterface_SDL_GPU(SDL_GPUDevice* device);
+	RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Window* window);
 
 	void BeginFrame();
 	void EndFrame();
@@ -54,7 +54,22 @@ public:
 	void SetScissorRegion(Rml::Rectanglei region) override;
 
 private:
+	// Owned by backend
+
 	SDL_GPUDevice* device;
+	SDL_Window* window;
+
+	// Owned by render interface
+
+	SDL_GPUGraphicsPipeline* texture_pipeline;
+	SDL_GPUGraphicsPipeline* color_pipeline;
+
+	// Owned by render interface (per-frame)
+
+	SDL_GPUCommandBuffer* command_buffer;
+	SDL_GPUTexture* swapchain_texture;
+	uint32_t swapchain_width;
+	uint32_t swapchain_height;
 };
 
 #endif
