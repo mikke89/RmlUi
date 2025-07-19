@@ -29,6 +29,7 @@
 #include "TableFormattingContext.h"
 #include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/Element.h"
+#include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/Types.h"
 #include "ContainerBox.h"
 #include "LayoutDetails.h"
@@ -43,6 +44,7 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 	const Box& initial_box)
 {
 	RMLUI_ASSERT(containing_block.x >= 0.f || parent_container->GetFormattingMode().constraint == FormattingMode::Constraint::MaxContent);
+	RMLUI_ZoneScopedC(0xAFAF4F);
 
 	auto table_wrapper_box = MakeUnique<TableWrapper>(element_table, parent_container, initial_box);
 	if (table_wrapper_box->IsScrollContainer())
