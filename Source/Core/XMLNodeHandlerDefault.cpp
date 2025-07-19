@@ -77,9 +77,9 @@ bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data, X
 
 	if (type == XMLDataType::InnerXML)
 	{
-		// Structural data views use the raw inner xml contents of the node, submit them now.
-		if (ElementUtilities::ApplyStructuralDataViews(parent, data))
-			return true;
+		// Structural data views use the raw inner xml contents of the node, store them as an attribute to be processed by the data view.
+		parent->SetAttribute("rmlui-inner-rml", data);
+		return true;
 	}
 
 	// Parse the text into the element
