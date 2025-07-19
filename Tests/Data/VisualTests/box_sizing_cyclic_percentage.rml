@@ -1,0 +1,41 @@
+<rml>
+<head>
+	<title>Box-sizing cyclic percentage</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-sizing/#cyclic-percentage-contribution" />
+	<meta name="Description" content="Percentage-sized boxes can result in cyclic dependencies with their containing block, when the containing block size itself depends on its content." />
+	<meta name="Containing block size" content="For the purpose of determining the containing block size: Cyclic percentage sizes are treated as 'auto'." />
+	<meta name="Resolving cyclic percentages" content="After determining the size of the containing block, cyclic percentages are resolved as follows.<br/>Block axis (height): Box percentage behaves as auto.<br/>Otherwise (width): Percentage is resolved against the containing block." />
+	<style>
+		hr { clear: both; margin: 50px 0; background: transparent; }
+		div {
+			border: 3px #ff5757;
+			padding: 3px;
+			margin: 5px;
+		}
+		div > div { border-color: #6873bbff; }
+		div > div > div { border-color: #dca900; }
+		.float { float: left; }
+		.w50pct { width: 50%; }
+		.h50pct { height: 50%; }
+		.h150px { height: 150px; }
+		.h30px { height: 30px; }
+	</style>
+</head>
+
+<body>
+<!-- Float ensures shrink-to-fit width -->
+<div class="float">
+	<div class="w50pct">LOOOOOOOOOOOOOOOOOOOONG</div>
+</div>
+
+<hr/>
+
+<div>
+	<div class="h50pct">
+		<div class="h150px"></div>
+	</div>
+	<div class="h30px"></div>
+</div>
+</body>
+</rml>
