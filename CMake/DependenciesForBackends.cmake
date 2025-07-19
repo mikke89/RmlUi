@@ -13,7 +13,7 @@ if(RMLUI_BACKEND MATCHES "^SDL")
 	mark_as_advanced(RMLUI_SDL_VERSION_MAJOR)
 
 	# List of SDL backends that require SDL_image to work with samples
-	set(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer")
+	set(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer" "SDL_GPU")
 
 	# Determine if the selected SDL backend requires SDL_image
 	if(RMLUI_BACKEND IN_LIST RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
