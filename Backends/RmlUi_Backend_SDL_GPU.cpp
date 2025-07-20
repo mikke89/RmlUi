@@ -78,13 +78,15 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 		return false;
 	}
 
-	SDL_GPUShaderFormat shaderFormats = SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_MSL | SDL_GPU_SHADERFORMAT_DXIL;
+	props = SDL_CreateProperties();
+	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_SPIRV_BOOLEAN, true);
+	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXIL_BOOLEAN, true);
+	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN, true);
 #ifdef RMLUI_DEBUG
-	bool debug = true;
-#else
-	bool debug = false;
+	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, true);
 #endif
-	SDL_GPUDevice* device = SDL_CreateGPUDevice(shaderFormats, debug, nullptr);
+	SDL_GPUDevice* device = SDL_CreateGPUDeviceWithProperties(props);
+	SDL_DestroyProperties(props);
 
 	if (!device)
 		return false;
@@ -108,8 +110,6 @@ void Backend::Shutdown()
 	RMLUI_ASSERT(data);
 
 	data->render_interface.Shutdown();
-
-	// SDL_WaitForGPUIdle(data->device);
 
 	SDL_ReleaseWindowFromGPUDevice(data->device, data->window);
 	SDL_DestroyGPUDevice(data->device);

@@ -35,6 +35,9 @@
 
 #include <SDL3_image/SDL_image.h>
 
+#include <chrono>
+#include <iostream>
+
 using namespace Rml;
 
 enum ShaderType
@@ -202,7 +205,8 @@ void RenderInterface_SDL_GPU::CreatePipelines()
     SDL_ReleaseGPUShader(device, vert_shader);
 }
 
-RenderInterface_SDL_GPU::RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Window* window) : device(device), window(window)
+RenderInterface_SDL_GPU::RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Window* window)
+    : device(device), window(window), copy_pass(nullptr), render_pass(nullptr)
 {
     CreatePipelines();
 
@@ -223,13 +227,21 @@ RenderInterface_SDL_GPU::RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Wind
 
 void RenderInterface_SDL_GPU::Shutdown()
 {
+    for (std::unique_ptr<Command>& command : commands)
+    {
+        command->Update(*this);
+    }
     SDL_ReleaseGPUGraphicsPipeline(device, color_pipeline);
     SDL_ReleaseGPUGraphicsPipeline(device, texture_pipeline);
 }
 
 void RenderInterface_SDL_GPU::BeginFrame()
 {
-    SDL_WaitForGPUSwapchain(device, window);
+    has_frame = false;
+    render_passes = 0;
+
+    // TODO:
+    count = 0;
 
     command_buffer = SDL_AcquireGPUCommandBuffer(device);
     if (!command_buffer)
@@ -238,12 +250,20 @@ void RenderInterface_SDL_GPU::BeginFrame()
         return;
     }
 
-    if (!SDL_AcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, &swapchain_width, &swapchain_height))
+    // using namespace std::chrono;
+    // auto start = high_resolution_clock::now();
+
+    // not sure what's going on here. it's switching between 0ms and 50ms each frame to wait for the image
+
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, &swapchain_width, &swapchain_height))
     {
         Log::Message(Log::LT_ERROR, "Failed to acquire swapchain texture: %s", SDL_GetError());
-        SDL_CancelGPUCommandBuffer(command_buffer);
         return;
     }
+
+    // auto end = high_resolution_clock::now();
+    // auto duration = duration_cast<milliseconds>(end - start);
+    // std::cout << "wait cost: " << duration.count() << " ms" << std::endl;
 
     if (!swapchain_texture || !swapchain_width || !swapchain_height)
     {
@@ -252,31 +272,91 @@ void RenderInterface_SDL_GPU::BeginFrame()
         return;
     }
 
-    SDL_GPUColorTargetInfo color_info{};
-    color_info.texture = swapchain_texture;
-    color_info.load_op = SDL_GPU_LOADOP_CLEAR;
-    color_info.store_op = SDL_GPU_STOREOP_STORE;
-    SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer, &color_info, 1, nullptr);
-    SDL_EndGPURenderPass(render_pass);
+    projection = Matrix4f::ProjectOrtho(0.0f, static_cast<float>(swapchain_width), static_cast<float>(swapchain_height), 0.0f, 0.0f, 1.0f);
+    SetTransform(nullptr);
+    EnableScissorRegion(false);
+
+    has_frame = true;
 }
 
 void RenderInterface_SDL_GPU::EndFrame()
 {
+    for (std::unique_ptr<Command>& command : commands)
+    {
+        command->Update(*this);
+    }
+    commands.clear();
+
+    if (copy_pass)
+    {
+        SDL_EndGPUCopyPass(copy_pass);
+        copy_pass = nullptr;
+    }
+    if (render_pass)
+    {
+        SDL_EndGPURenderPass(render_pass);
+        render_pass = nullptr;
+    }
     SDL_SubmitGPUCommandBuffer(command_buffer);
+    command_buffer = nullptr;
+}
+
+bool RenderInterface_SDL_GPU::BeginCopyPass()
+{
+    if (copy_pass)
+    {
+         return true;
+    }
+    if (render_pass)
+    {
+        SDL_EndGPURenderPass(render_pass);
+        render_pass = nullptr;
+    }
+    copy_pass = SDL_BeginGPUCopyPass(command_buffer);
+    if (!copy_pass)
+    {
+        Log::Message(Log::LT_ERROR, "Failed to begin copy pass: %s", SDL_GetError());
+        return false;
+    }
+    return true;
+}
+
+bool RenderInterface_SDL_GPU::BeginRenderPass()
+{
+    if (render_pass)
+    {
+        return true;
+    }
+    if (copy_pass)
+    {
+        SDL_EndGPUCopyPass(copy_pass);
+        copy_pass = nullptr;
+    }
+    SDL_GPUColorTargetInfo color_info{};
+    color_info.texture = swapchain_texture;
+    if (render_passes++ == 0)
+    {
+        color_info.load_op = SDL_GPU_LOADOP_CLEAR;
+    }
+    else
+    {
+        color_info.load_op = SDL_GPU_LOADOP_LOAD;
+    }
+    color_info.store_op = SDL_GPU_STOREOP_STORE;
+    render_pass = SDL_BeginGPURenderPass(command_buffer, &color_info, 1, nullptr);
+    if (!render_pass)
+    {
+        Log::Message(Log::LT_ERROR, "Failed to begin render pass: %s", SDL_GetError());
+        return false;
+    }
+    return true;
 }
 
 struct GeometryView
 {
-    GeometryView(SDL_GPUDevice* device, SDL_GPUCommandBuffer* command_buffer, Span<const Vertex> vertices, Span<const int> indices)
+    GeometryView(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, Span<const Vertex> vertices, Span<const int> indices)
     {
         // TODO: On error, there's a few leaks. Not sure it's a big deal though since it never should happen anyways
-
-        SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer);
-        if (!copy_pass)
-        {
-            Log::Message(Log::LT_ERROR, "Failed to begin copy pass: %s", SDL_GetError());
-            return;
-        }
 
         SDL_GPUTransferBuffer* vertex_transfer_buffer;
         SDL_GPUTransferBuffer* index_transfer_buffer;
@@ -339,8 +419,6 @@ struct GeometryView
         SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
         SDL_ReleaseGPUTransferBuffer(device, index_transfer_buffer);
 
-        SDL_EndGPUCopyPass(copy_pass);
-
         num_indices = static_cast<int>(indices.size());
     }
 
@@ -351,77 +429,104 @@ struct GeometryView
 
 CompiledGeometryHandle RenderInterface_SDL_GPU::CompileGeometry(Span<const Vertex> vertices, Span<const int> indices)
 {
-	GeometryView* data = new GeometryView{device, command_buffer, vertices, indices};
+    if (!BeginCopyPass())
+    {
+        return false;
+    }
+	GeometryView* data = new GeometryView{device, copy_pass, vertices, indices};
+    count++;
 	return reinterpret_cast<Rml::CompiledGeometryHandle>(data);
 }
 
-void RenderInterface_SDL_GPU::ReleaseGeometry(CompiledGeometryHandle handle)
+void RenderInterface_SDL_GPU::ReleaseGeometryCommand::Update(RenderInterface_SDL_GPU& interface)
 {
     GeometryView* data = reinterpret_cast<GeometryView*>(handle);
 
-    SDL_ReleaseGPUBuffer(device, data->vertex_buffer);
-    SDL_ReleaseGPUBuffer(device, data->index_buffer);
+    SDL_ReleaseGPUBuffer(interface.device, data->vertex_buffer);
+    SDL_ReleaseGPUBuffer(interface.device, data->index_buffer);
 
 	delete reinterpret_cast<GeometryView*>(handle);
 }
 
-void RenderInterface_SDL_GPU::RenderGeometry(CompiledGeometryHandle handle, Vector2f translation, TextureHandle texture)
+void RenderInterface_SDL_GPU::ReleaseGeometry(CompiledGeometryHandle handle)
 {
-    // TODO: Creating render passes is expensive. We can create only 1 each frame as long as we don't get geometry
-    // requests in between
+    commands.push_back(std::make_unique<ReleaseGeometryCommand>(handle));
+}
 
-    transform = Matrix4f::ProjectOrtho(0.0f, static_cast<float>(swapchain_width), static_cast<float>(swapchain_height), 0.0f, 0.0f, 1.0f);
-
-    GeometryView* data = reinterpret_cast<GeometryView*>(handle);
-
-    SDL_GPUColorTargetInfo color_info{};
-    color_info.texture = swapchain_texture;
-    color_info.load_op = SDL_GPU_LOADOP_LOAD;
-    color_info.store_op = SDL_GPU_STOREOP_STORE;
-
-    SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer, &color_info, 1, nullptr);
-    if (!render_pass)
+void RenderInterface_SDL_GPU::RenderGeometryCommand::Update(RenderInterface_SDL_GPU& interface)
+{
+    if (!interface.BeginRenderPass())
     {
-        Log::Message(Log::LT_ERROR, "Failed to begin render pass: %s", SDL_GetError());
         return;
     }
 
+    GeometryView* data = reinterpret_cast<GeometryView*>(handle);
+
     if (texture != 0)
     {
-        SDL_BindGPUGraphicsPipeline(render_pass, texture_pipeline);
+        SDL_BindGPUGraphicsPipeline(interface.render_pass, interface.texture_pipeline);
 
         SDL_GPUTextureSamplerBinding texture_binding{};
         texture_binding.texture = reinterpret_cast<SDL_GPUTexture*>(texture);
-        texture_binding.sampler = linear_sampler;
-        SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_binding, 1);
+        texture_binding.sampler = interface.linear_sampler;
+        SDL_BindGPUFragmentSamplers(interface.render_pass, 0, &texture_binding, 1);
     }
     else
     {
-        SDL_BindGPUGraphicsPipeline(render_pass, color_pipeline);
+        SDL_BindGPUGraphicsPipeline(interface.render_pass, interface.color_pipeline);
     }
 
     SDL_GPUBufferBinding vertex_buffer_binding{};
     SDL_GPUBufferBinding index_buffer_binding{};
     vertex_buffer_binding.buffer = data->vertex_buffer;
     index_buffer_binding.buffer = data->index_buffer;
-    SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_buffer_binding, 1);
-    SDL_BindGPUIndexBuffer(render_pass, &index_buffer_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+    SDL_BindGPUVertexBuffers(interface.render_pass, 0, &vertex_buffer_binding, 1);
+    SDL_BindGPUIndexBuffer(interface.render_pass, &index_buffer_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-    SDL_PushGPUVertexUniformData(command_buffer, 0, &transform, sizeof(transform));
-    SDL_PushGPUVertexUniformData(command_buffer, 1, &translation, sizeof(translation));
+    SDL_SetGPUScissor(interface.render_pass, &interface.scissor);
 
-    SDL_DrawGPUIndexedPrimitives(render_pass, data->num_indices, 1, 0, 0, 0);
-    SDL_EndGPURenderPass(render_pass);
+    SDL_PushGPUVertexUniformData(interface.command_buffer, 0, &interface.transform, sizeof(interface.transform));
+    SDL_PushGPUVertexUniformData(interface.command_buffer, 1, &translation, sizeof(translation));
+
+    SDL_DrawGPUIndexedPrimitives(interface.render_pass, data->num_indices, 1, 0, 0, 0);
+}
+
+void RenderInterface_SDL_GPU::RenderGeometry(CompiledGeometryHandle handle, Vector2f translation, TextureHandle texture)
+{
+    if (!has_frame)
+    {
+        return;
+    }
+    commands.push_back(std::make_unique<RenderGeometryCommand>(handle, translation, texture));
+}
+
+void RenderInterface_SDL_GPU::EnableScissorRegionCommand::Update(RenderInterface_SDL_GPU& interface)
+{
+    if (!enable)
+    {
+        interface.scissor.x = 0;
+        interface.scissor.y = 0;
+        interface.scissor.w = interface.swapchain_width;
+        interface.scissor.h = interface.swapchain_height;
+    }
 }
 
 void RenderInterface_SDL_GPU::EnableScissorRegion(bool enable)
 {
-    (void) enable;
+    commands.push_back(std::make_unique<EnableScissorRegionCommand>(enable));
+}
+
+void RenderInterface_SDL_GPU::SetScissorRegionCommand::Update(RenderInterface_SDL_GPU& interface)
+{
+    interface.scissor.x = region.Left();
+    interface.scissor.w = region.Width();
+    interface.scissor.y = region.Top();
+    interface.scissor.h = region.Height();
 }
 
 void RenderInterface_SDL_GPU::SetScissorRegion(Rectanglei region)
 {
-    (void) region;
+    commands.push_back(std::make_unique<SetScissorRegionCommand>(region));
 }
 
 TextureHandle RenderInterface_SDL_GPU::LoadTexture(Vector2i& texture_dimensions, const String& source)
@@ -510,8 +615,7 @@ TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, 
     region.h = source_dimensions.y;
     region.d = 1;
 
-
-    // TODO: I guess we need a different command buffer here? Generate can happen whenever?
+    // We can get calls out outside of Begin/End Frame so always acquire a command buffer here
     SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(device);
     if (!command_buffer)
     {
@@ -534,22 +638,43 @@ TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, 
     return reinterpret_cast<TextureHandle>(texture);
 }
 
-void RenderInterface_SDL_GPU::ReleaseTexture(TextureHandle texture_handle)
+void RenderInterface_SDL_GPU::ReleaseTextureCommand::Update(RenderInterface_SDL_GPU& interface)
 {
-    SDL_GPUTexture* texture = reinterpret_cast<SDL_GPUTexture*>(texture_handle);
-    SDL_ReleaseGPUTexture(device, texture);
+    SDL_GPUTexture* texture = reinterpret_cast<SDL_GPUTexture*>(handle);
+    SDL_ReleaseGPUTexture(interface.device, texture);
 }
 
-void RenderInterface_SDL_GPU::SetTransform(const Rml::Matrix4f* transform)
+void RenderInterface_SDL_GPU::ReleaseTexture(TextureHandle texture_handle)
 {
-    // if (transform)
-    // {
-    //     this->transform = *transform;
-    // }
-    // else
-    // {
-    //     this->transform = this->transform.Identity();
-    // }
+    commands.push_back(std::make_unique<ReleaseTextureCommand>(texture_handle));
+}
 
-    (void) transform;
+RenderInterface_SDL_GPU::SetTransformCommand::SetTransformCommand(const Rml::Matrix4f* new_transform)
+{
+    if (new_transform)
+    {
+        has_transform = true;
+        transform = *new_transform;
+    }
+    else
+    {
+        has_transform = false;
+    }
+}
+
+void RenderInterface_SDL_GPU::SetTransformCommand::Update(RenderInterface_SDL_GPU& interface)
+{
+    if (has_transform)
+    {
+        interface.transform = interface.projection * transform;
+    }
+    else
+    {
+        interface.transform = interface.projection;
+    }
+}
+
+void RenderInterface_SDL_GPU::SetTransform(const Rml::Matrix4f* new_transform)
+{
+    commands.push_back(std::make_unique<SetTransformCommand>(new_transform));
 }

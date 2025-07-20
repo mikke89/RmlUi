@@ -30,8 +30,11 @@
 #define RMLUI_BACKENDS_RENDERER_SDL_GPU_H
 
 #include <RmlUi/Core/RenderInterface.h>
+#include <RmlUi/Core/Types.h>
 
 #include <SDL3/SDL.h>
+
+#include <vector>
 
 class RenderInterface_SDL_GPU : public Rml::RenderInterface {
 public:
@@ -54,11 +57,12 @@ public:
 	void EnableScissorRegion(bool enable) override;
 	void SetScissorRegion(Rml::Rectanglei region) override;
 
-	void SetTransform(const Rml::Matrix4f* transform) override;
+	void SetTransform(const Rml::Matrix4f* new_transform) override;
 
 private:
 	void CreatePipelines();
-	void AcquireCommandBuffer();
+	bool BeginCopyPass();
+	bool BeginRenderPass();
 
 private:
 	// Owned by backend
@@ -78,7 +82,87 @@ private:
 	SDL_GPUTexture* swapchain_texture;
 	uint32_t swapchain_width;
 	uint32_t swapchain_height;
+	SDL_GPURenderPass* render_pass;
+	SDL_GPUCopyPass* copy_pass;
+	SDL_Rect scissor;
 	Rml::Matrix4f transform;
+	Rml::Matrix4f projection;
+	bool has_frame;
+	int render_passes;
+
+	struct Command
+	{
+		virtual void Update(RenderInterface_SDL_GPU& interface) = 0;
+	};
+
+	struct EnableScissorRegionCommand : Command
+	{
+		EnableScissorRegionCommand(bool enable) : enable(enable) {}
+
+		void Update(RenderInterface_SDL_GPU& interface) override;
+
+		bool enable;
+	};
+
+	struct SetScissorRegionCommand : Command
+	{
+		SetScissorRegionCommand(Rml::Rectanglei region) : region(region) {}
+
+		void Update(RenderInterface_SDL_GPU& interface) override;
+
+		Rml::Rectanglei region;
+	};
+
+	struct RenderGeometryCommand : Command
+	{
+		RenderGeometryCommand(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
+			: handle(handle), translation(translation), texture(texture) {}
+
+		void Update(RenderInterface_SDL_GPU& interface) override;
+
+		Rml::CompiledGeometryHandle handle;
+		Rml::Vector2f translation;
+		Rml::TextureHandle texture;
+	};
+
+	struct ReleaseGeometryCommand : Command
+	{
+		ReleaseGeometryCommand(Rml::CompiledGeometryHandle handle) : handle(handle) {}
+
+		void Update(RenderInterface_SDL_GPU& interface) override;
+
+		Rml::CompiledGeometryHandle handle;
+	};
+
+	struct ReleaseTextureCommand : Command
+	{
+		ReleaseTextureCommand(Rml::TextureHandle handle) : handle(handle) {}
+
+		void Update(RenderInterface_SDL_GPU& interface) override;
+
+		Rml::TextureHandle handle;
+	};
+
+	struct SetTransformCommand : Command
+	{
+		SetTransformCommand(const Rml::Matrix4f* new_transform);
+
+		void Update(RenderInterface_SDL_GPU& interface) override;
+
+		Rml::Matrix4f transform;
+		bool has_transform;
+	};
+
+	friend struct EnableScissorRegionCommand;
+	friend struct SetScissorRegionCommand;
+	friend struct RenderGeometryCommand;
+	friend struct ReleaseGeometryCommand;
+	friend struct ReleaseTextureCommand;
+	friend struct SetTransformCommand;
+
+	std::vector<std::unique_ptr<Command>> commands;
+
+	int count;
 };
 
 #endif
