@@ -78,7 +78,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 		return false;
 	}
 
-	SDL_GPUShaderFormat shaderFormats = SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL;
+	SDL_GPUShaderFormat shaderFormats = SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_MSL | SDL_GPU_SHADERFORMAT_DXIL;
 #ifdef RMLUI_DEBUG
 	bool debug = true;
 #else
@@ -107,6 +107,10 @@ void Backend::Shutdown()
 {
 	RMLUI_ASSERT(data);
 
+	data->render_interface.Shutdown();
+
+	// SDL_WaitForGPUIdle(data->device);
+
 	SDL_ReleaseWindowFromGPUDevice(data->device, data->window);
 	SDL_DestroyGPUDevice(data->device);
 	SDL_DestroyWindow(data->window);
@@ -132,19 +136,11 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 {
 	RMLUI_ASSERT(data && context);
 
-#if SDL_MAJOR_VERSION >= 3
 	auto GetKey = [](const SDL_Event& event) { return event.key.key; };
 	auto GetDisplayScale = []() { return SDL_GetWindowDisplayScale(data->window); };
 	constexpr auto event_quit = SDL_EVENT_QUIT;
 	constexpr auto event_key_down = SDL_EVENT_KEY_DOWN;
 	bool has_event = false;
-#else
-	auto GetKey = [](const SDL_Event& event) { return event.key.keysym.sym; };
-	auto GetDisplayScale = []() { return 1.f; };
-	constexpr auto event_quit = SDL_QUIT;
-	constexpr auto event_key_down = SDL_KEYDOWN;
-	int has_event = 0;
-#endif
 
 	bool result = data->running;
 	data->running = true;
