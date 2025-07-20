@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   Build:
-    runs-on: windows-2019
+    runs-on: windows-2025
 
     strategy:
       fail-fast: false
@@ -14,7 +14,7 @@ jobs:
         build_type: [Debug, Release]
 
     env:
-      GENERATOR: Visual Studio 16 2019
+      GENERATOR: Visual Studio 17 2022
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture == 'win32' && 'x86' || 'x64' }}-${{ matrix.library_linkage == 'Dynamic' && 'windows' || 'windows-static-md' }}
 
     steps:
@@ -62,7 +62,7 @@ jobs:
           if-no-files-found: error
 
   Samples:
-    runs-on: windows-2019
+    runs-on: windows-2025
 
     strategy:
       fail-fast: false
@@ -70,7 +70,7 @@ jobs:
         architecture: [win32, win64]
 
     env:
-      GENERATOR: Visual Studio 16 2019
+      GENERATOR: Visual Studio 17 2022
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture == 'win32' && 'x86' || 'x64' }}-windows${{ matrix.architecture == 'win64' && '-release' || '' }}
 
     steps:
@@ -148,7 +148,7 @@ jobs:
 
   Package:
     needs: [Build, Samples]
-    runs-on: windows-2019
+    runs-on: windows-2025
 
     strategy:
       fail-fast: true
@@ -179,19 +179,19 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: RmlUi-vs2019-${{ matrix.architecture }}
+          name: RmlUi-vs2022-${{ matrix.architecture }}
           path: ./
 
   Release:
     needs: [Package]
-    runs-on: windows-2019
+    runs-on: windows-2025
     if: ${{ github.ref_type == 'tag' }}
     permissions:
       contents: write
     steps:
       - name: Download release artifacts
         run: |
-          $release_artifacts = "RmlUi-vs2019-win64", "RmlUi-vs2019-win32", "samples-win64"
+          $release_artifacts = "RmlUi-vs2022-win64", "RmlUi-vs2022-win32", "samples-win64"
           $headers = @{ "Authorization" = "token ${{ secrets.GITHUB_TOKEN }}" }
           $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts" -Headers $headers
           foreach ($name in $release_artifacts) {
