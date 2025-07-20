@@ -367,6 +367,11 @@ void RenderInterface_SDL_GPU::ReleaseGeometry(CompiledGeometryHandle handle)
 
 void RenderInterface_SDL_GPU::RenderGeometry(CompiledGeometryHandle handle, Vector2f translation, TextureHandle texture)
 {
+    // TODO: Creating render passes is expensive. We can create only 1 each frame as long as we don't get geometry
+    // requests in between
+
+    transform = Matrix4f::ProjectOrtho(0.0f, static_cast<float>(swapchain_width), static_cast<float>(swapchain_height), 0.0f, 0.0f, 1.0f);
+
     GeometryView* data = reinterpret_cast<GeometryView*>(handle);
 
     SDL_GPUColorTargetInfo color_info{};
@@ -402,8 +407,7 @@ void RenderInterface_SDL_GPU::RenderGeometry(CompiledGeometryHandle handle, Vect
     SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_buffer_binding, 1);
     SDL_BindGPUIndexBuffer(render_pass, &index_buffer_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-    Matrix4f identity_matrix = Matrix4f::Identity();
-    SDL_PushGPUVertexUniformData(command_buffer, 0, &identity_matrix, sizeof(identity_matrix));
+    SDL_PushGPUVertexUniformData(command_buffer, 0, &transform, sizeof(transform));
     SDL_PushGPUVertexUniformData(command_buffer, 1, &translation, sizeof(translation));
 
     SDL_DrawGPUIndexedPrimitives(render_pass, data->num_indices, 1, 0, 0, 0);
@@ -506,6 +510,15 @@ TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, 
     region.h = source_dimensions.y;
     region.d = 1;
 
+
+    // TODO: I guess we need a different command buffer here? Generate can happen whenever?
+    SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(device);
+    if (!command_buffer)
+    {
+        Log::Message(Log::LT_ERROR, "Failed to acquire command buffer: %s", SDL_GetError());
+        return 0;
+    }
+
     SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer);
     if (!copy_pass)
     {
@@ -516,6 +529,7 @@ TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, 
     SDL_UploadToGPUTexture(copy_pass, &transfer_info, &region, false);
     SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
     SDL_EndGPUCopyPass(copy_pass);
+    SDL_SubmitGPUCommandBuffer(command_buffer);
 
     return reinterpret_cast<TextureHandle>(texture);
 }
@@ -524,4 +538,18 @@ void RenderInterface_SDL_GPU::ReleaseTexture(TextureHandle texture_handle)
 {
     SDL_GPUTexture* texture = reinterpret_cast<SDL_GPUTexture*>(texture_handle);
     SDL_ReleaseGPUTexture(device, texture);
+}
+
+void RenderInterface_SDL_GPU::SetTransform(const Rml::Matrix4f* transform)
+{
+    // if (transform)
+    // {
+    //     this->transform = *transform;
+    // }
+    // else
+    // {
+    //     this->transform = this->transform.Identity();
+    // }
+
+    (void) transform;
 }

@@ -54,8 +54,11 @@ public:
 	void EnableScissorRegion(bool enable) override;
 	void SetScissorRegion(Rml::Rectanglei region) override;
 
+	void SetTransform(const Rml::Matrix4f* transform) override;
+
 private:
 	void CreatePipelines();
+	void AcquireCommandBuffer();
 
 private:
 	// Owned by backend
@@ -75,6 +78,7 @@ private:
 	SDL_GPUTexture* swapchain_texture;
 	uint32_t swapchain_width;
 	uint32_t swapchain_height;
+	Rml::Matrix4f transform;
 };
 
 #endif

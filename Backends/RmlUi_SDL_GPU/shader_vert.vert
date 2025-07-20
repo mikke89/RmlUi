@@ -1,10 +1,8 @@
-cbuffer UniformBlockTransform : register(b0, space1)
-{
+cbuffer UniformBlockTransform : register(b0, space1) {
     float4x4 Transform : packoffset(c0);
 };
 
-cbuffer UniformBlockTranslate : register(b1, space1)
-{
+cbuffer UniformBlockTranslate : register(b1, space1) {
     float2 Translate : packoffset(c0);
 };
 
@@ -16,13 +14,13 @@ struct Input {
 
 struct Output {
     float4 Color : TEXCOORD0;
-    // float2 TexCoord : TEXCOORD0;
+    float2 TexCoord : TEXCOORD1;
     float4 Position : SV_Position;
 };
 
 Output main(Input input) {
     Output output;
-    // output.TexCoord = input.TexCoord;
+    output.TexCoord = input.TexCoord;
     output.Color = input.InColor;
     float4 position = float4(input.Position + Translate, 0.5, 1);
     output.Position = mul(Transform, position);
