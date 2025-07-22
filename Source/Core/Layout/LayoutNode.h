@@ -61,6 +61,7 @@ struct CommittedLayout {
 	Vector2f containing_block_size;
 	Vector2f absolutely_positioning_containing_block_size;
 	Optional<Box> override_box;
+	bool layout_constraint;
 
 	Vector2f visible_overflow_size;
 	Optional<float> baseline_of_last_line;
@@ -86,7 +87,7 @@ public:
 	bool IsSelfDirty() const { return !(dirty_flag == DirtyLayoutType::None || dirty_flag == DirtyLayoutType::Child); }
 
 	void CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
-		Vector2f visible_overflow_size, Optional<float> baseline_of_last_line);
+		bool layout_constraint, Vector2f visible_overflow_size, Optional<float> baseline_of_last_line);
 
 	// TODO: Currently, should only be used by `Context::SetDimensions`. Ideally, we would remove this and "commit" the
 	// containing block (without the layout result, see comment in `CommitLayout`).
@@ -96,7 +97,8 @@ public:
 		committed_max_content_width.reset();
 	}
 
-	bool CommittedLayoutMatches(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box) const
+	bool CommittedLayoutMatches(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
+		bool layout_constraint) const
 	{
 		if (IsDirty())
 			return false;
@@ -106,24 +108,25 @@ public:
 			committed_layout->absolutely_positioning_containing_block_size != absolutely_positioning_containing_block_size)
 			return false;
 
+		// Layout under a constraint may make some simplifications that requires re-evaluation under a normal formatting mode.
+		if (committed_layout->layout_constraint && !layout_constraint)
+			return false;
+
 		if (!override_box)
 			return !committed_layout->override_box.has_value();
 
 		const Box& compare_box = committed_layout->override_box.has_value() ? *committed_layout->override_box : element->GetBox();
-		if (!override_box->EqualAreaEdges(*committed_layout->override_box))
-			return false;
 
-		if (override_box->GetSize() == compare_box.GetSize())
-			return true;
+		// In some situations, if we have an indefinite size on the committed box, we could see if the layed-out size
+		// matches the input override box and use the cache here. However, because of cyclic-percentage rules with
+		// containing block sizes, this is only correct in certain situations, particularly when the vertical size of
+		// the containing block is indefinite. In this case the used containing block size should resolve to indefinite,
+		// even after it is sized. Although, we don't actually implement this behavior for now, but once we do, we could
+		// implement caching here in this case. For the horizontal axis, we are always required to re-evaluate any
+		// children for which this box acts as a containing block for, thus we cannot use a cache mechanism here. See:
+		// https://drafts.csswg.org/css-sizing/#cyclic-percentage-contribution
 
-		// Lastly, if we have an indefinite size on the committed box, see if the layed-out size matches the input override box.
-		Vector2f compare_size = compare_box.GetSize();
-		if (compare_size.x < 0.f)
-			compare_size.x = element->GetBox().GetSize().x;
-		if (compare_size.y < 0.f)
-			compare_size.y = element->GetBox().GetSize().y;
-
-		return override_box->GetSize() == compare_size;
+		return *override_box == compare_box;
 	}
 
 	Optional<float> GetMaxContentWidthIfCached() const { return committed_max_content_width; }
