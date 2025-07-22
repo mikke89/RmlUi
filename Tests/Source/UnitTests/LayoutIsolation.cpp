@@ -271,7 +271,7 @@ TEST_CASE("LayoutIsolation.FullLayoutFormatIndependentCount")
 
 	format_independent_tracker.LogMessage();
 
-	const auto count_level_1 = std::count_if(format_independent_tracker.entries.begin(), format_independent_tracker.entries.end(),
+	const auto count_level_1 = std::count_if(format_independent_tracker.GetEntries().begin(), format_independent_tracker.GetEntries().end(),
 		[](const auto& entry) { return entry.level == 1; });
 	CHECK_MESSAGE(count_level_1 == 3, "Expecting one entry for each of flex, overflow, and absolute");
 

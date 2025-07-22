@@ -42,33 +42,51 @@ public:
 	~FormatIndependentDebugTracker();
 	static FormatIndependentDebugTracker* GetIf();
 
+	enum class FormatType {
+		FormatIndependent,
+		FormatFitContentWidth,
+	};
+
 	struct Entry {
 		int level = 0;
+		FormatType format_type;
 		String parent_container_element;
 		String absolute_positioning_containing_block_element;
-		Vector2f containing_block;
-		Vector2f absolute_positioning_containing_block;
+		std::optional<Vector2f> containing_block;
+		std::optional<Vector2f> absolute_positioning_containing_block;
 		String element;
 		Optional<Box> override_box;
-		FormattingContextType type;
-		struct LayoutResults {
-			bool from_cache;
+		FormattingContextType context_type;
+
+		struct LayoutResult {
 			Vector2f visible_overflow_size;
 			Optional<Box> box;
 		};
-		Optional<LayoutResults> layout;
+		struct FitWidthResult {
+			float max_content_width;
+		};
+		bool from_cache = false;
+		Optional<LayoutResult> layout_result;
+		Optional<FitWidthResult> fit_width_result;
 	};
 
-	List<Entry> entries;
-	int current_stack_level = 0;
+	Entry& PushEntry(FormatType format_type, ContainerBox* parent_container, Element* element, const Box* override_initial_box,
+		FormattingContextType type);
+	void CloseEntry(Entry& entry, LayoutBox* layout_box);
+	void CloseEntry(Entry& entry, float max_content_width, bool from_cache);
 
-	void Reset();
-
+	const Deque<Entry>& GetEntries() const { return entries; }
 	String ToString() const;
 	void LogMessage() const;
 	int CountEntries() const;
 	int CountCachedEntries() const;
 	int CountFormattedEntries() const;
+
+	void Reset();
+
+private:
+	Deque<Entry> entries;
+	int current_stack_level = 0;
 };
 
 #endif // RMLUI_DEBUG

@@ -41,6 +41,7 @@
 	#include RMLUI_CUSTOM_CONFIGURATION_FILE
 #else
 	#include <array>
+	#include <deque>
 	#include <functional>
 	#include <list>
 	#include <map>
@@ -82,6 +83,8 @@ template <typename T, size_t N = 1>
 using Array = std::array<T, N>;
 template <typename T>
 using Stack = std::stack<T>;
+template <typename T>
+using Deque = std::deque<T>;
 template <typename T>
 using List = std::list<T>;
 template <typename T>
