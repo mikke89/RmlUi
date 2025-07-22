@@ -532,6 +532,8 @@ void ElementDocument::UpdateLayout()
 		RMLUI_ZoneScoped;
 		RMLUI_ZoneText(source_url.c_str(), source_url.size());
 
+		const bool allow_layout_cache = !HasAttribute("rmlui-disable-layout-cache");
+
 		constexpr bool debug_logging = false;
 		if (debug_logging)
 			Log::Message(Log::LT_INFO, "UpdateLayout start: %s", GetAddress().c_str());
@@ -578,7 +580,7 @@ void ElementDocument::UpdateLayout()
 
 			// TODO: In some cases, we need to check if size changed, such that we need to do a layout update in its parent.
 			LayoutEngine::FormatElement(element, committed_layout->containing_block_size,
-				committed_layout->absolutely_positioning_containing_block_size);
+				committed_layout->absolutely_positioning_containing_block_size, allow_layout_cache);
 
 			// TODO: A bit ugly
 			element->UpdateRelativeOffsetFromInsetConstraints();
@@ -592,7 +594,7 @@ void ElementDocument::UpdateLayout()
 			if (Element* parent = GetParentNode())
 				containing_block = parent->GetBox().GetSize();
 
-			LayoutEngine::FormatElement(this, containing_block, containing_block);
+			LayoutEngine::FormatElement(this, containing_block, containing_block, allow_layout_cache);
 			// TODO: A bit ugly
 			this->UpdateRelativeOffsetFromInsetConstraints();
 		}
