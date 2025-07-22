@@ -125,7 +125,8 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 		const Vector2f absolute_containing_block = parent_container->GetContainingBlockSize(Style::Position::Absolute);
 
 		LayoutNode* layout_node = element->GetLayoutNode();
-		if (layout_node->CommittedLayoutMatches(containing_block, absolute_containing_block, override_initial_box))
+		if (layout_node->CommittedLayoutMatches(containing_block, absolute_containing_block, override_initial_box,
+				formatting_mode.constraint != FormattingMode::Constraint::None))
 		{
 #ifdef RMLUI_DEBUG
 			Log::Message(Log::LT_INFO, "Layout cache match on element%s: %s",
@@ -179,8 +180,8 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 
 			LayoutNode* layout_node = element->GetLayoutNode();
 			layout_node->CommitLayout(parent_container->GetContainingBlockSize(Style::Position::Static),
-				parent_container->GetContainingBlockSize(Style::Position::Absolute), override_initial_box, layout_box->GetVisibleOverflowSize(),
-				baseline_of_last_line);
+				parent_container->GetContainingBlockSize(Style::Position::Absolute), override_initial_box,
+				formatting_mode.constraint != FormattingMode::Constraint::None, layout_box->GetVisibleOverflowSize(), baseline_of_last_line);
 		}
 	}
 

@@ -84,7 +84,7 @@ void LayoutNode::SetDirty(DirtyLayoutType dirty_type)
 }
 
 void LayoutNode::CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
-	Vector2f visible_overflow_size, Optional<float> baseline_of_last_line)
+	bool layout_constraint, Vector2f visible_overflow_size, Optional<float> baseline_of_last_line)
 {
 	// TODO: This is mixing slightly different concepts. Rather, it might be advantageous to separate what is the input
 	// to the layout of the current element, and what is the output. That way we can e.g. set the containing block size
@@ -99,6 +99,7 @@ void LayoutNode::CommitLayout(Vector2f containing_block_size, Vector2f absolutel
 		containing_block_size,
 		absolutely_positioning_containing_block_size,
 		override_box ? Optional<Box>(*override_box) : Optional<Box>(),
+		layout_constraint,
 		visible_overflow_size,
 		baseline_of_last_line,
 	});
