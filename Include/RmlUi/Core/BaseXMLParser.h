@@ -39,7 +39,7 @@ class Stream;
 class URL;
 using XMLAttributes = Dictionary;
 
-enum class XMLDataType { Text, CData, InnerXML };
+enum class XMLDataType { Text, CDATA, InnerXML };
 
 /**
     @author Peter Curry
@@ -54,6 +54,10 @@ public:
 	/// similarly to a CDATA tag (ie, no other markup will be recognised until the section's closing tag is found).
 	/// @param[in] tag The tag to register as containing generic character data.
 	void RegisterCDATATag(const String& tag);
+
+	/// Checks if the given tag is registered as a CDATA tag.
+	/// @param[in] tag The tag to check if it is registered as containing generic character data
+	bool IsCDATATag(const String& tag);
 
 	/// When an XML attribute with the given name is encountered during parsing, then all content below the current
 	/// node is treated as data.
