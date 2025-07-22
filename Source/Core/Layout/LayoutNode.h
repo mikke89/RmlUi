@@ -129,6 +129,8 @@ public:
 		return *override_box == compare_box;
 	}
 
+	bool HasCommittedLayout() const { return committed_layout.has_value(); }
+
 	Optional<float> GetMaxContentWidthIfCached() const { return committed_max_content_width; }
 	void CommitMaxContentWidth(float width) { committed_max_content_width = width; }
 

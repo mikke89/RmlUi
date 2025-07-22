@@ -39,6 +39,7 @@
 #include "LayoutNode.h"
 #include "ReplacedFormattingContext.h"
 #include "TableFormattingContext.h"
+#include <limits>
 
 namespace Rml {
 
@@ -92,28 +93,12 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	if (type == FormattingContextType::None)
 		return nullptr;
 
-	if (element->GetId() == "special")
-		int x = 0;
-
 #ifdef RMLUI_DEBUG
 	auto* debug_tracker = FormatIndependentDebugTracker::GetIf();
 	FormatIndependentDebugTracker::Entry* tracker_entry = nullptr;
-	if (debug_tracker && type != FormattingContextType::None)
-	{
-		tracker_entry = &debug_tracker->entries.emplace_back(FormatIndependentDebugTracker::Entry{
-			debug_tracker->current_stack_level,
-			parent_container->GetElement() ? parent_container->GetElement()->GetAddress() : "",
-			parent_container->GetAbsolutePositioningContainingBlockElementForDebug()
-				? parent_container->GetAbsolutePositioningContainingBlockElementForDebug()->GetAddress()
-				: "",
-			parent_container->GetContainingBlockSize(Style::Position::Static),
-			parent_container->GetContainingBlockSize(Style::Position::Absolute),
-			element->GetAddress(),
-			override_initial_box ? Optional<Box>{*override_initial_box} : std::nullopt,
-			type,
-		});
-		debug_tracker->current_stack_level += 1;
-	}
+	if (debug_tracker)
+		tracker_entry = &debug_tracker->PushEntry(FormatIndependentDebugTracker::FormatType::FormatIndependent, parent_container, element,
+			override_initial_box, type);
 #endif
 
 	UniquePtr<LayoutBox> layout_box;
@@ -124,19 +109,33 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 		const Vector2f containing_block = parent_container->GetContainingBlockSize(Style::Position::Static);
 		const Vector2f absolute_containing_block = parent_container->GetContainingBlockSize(Style::Position::Absolute);
 
+#ifdef RMLUI_TRACY_PROFILING
+		auto DebugCacheTracyMessage = [&](const char* cache_info) {
+			const String message = CreateString("%s on %x. Containing block: %g, %g. Absolute containing block: %g, %g. Box (size): %g, %g",
+				cache_info, element, containing_block.x, containing_block.y, absolute_containing_block.x, absolute_containing_block.y,
+				override_initial_box ? override_initial_box->GetSize().x : std::numeric_limits<float>::quiet_NaN(),
+				override_initial_box ? override_initial_box->GetSize().y : std::numeric_limits<float>::quiet_NaN());
+			RMLUI_ZoneText(message.c_str(), message.size());
+		};
+#else
+	#define DebugCacheTracyMessage(message)
+#endif
+
 		LayoutNode* layout_node = element->GetLayoutNode();
 		if (layout_node->CommittedLayoutMatches(containing_block, absolute_containing_block, override_initial_box,
 				formatting_mode.constraint != FormattingMode::Constraint::None))
 		{
-#ifdef RMLUI_DEBUG
-			Log::Message(Log::LT_INFO, "Layout cache match on element%s: %s",
-				(formatting_mode.allow_format_independent_cache ? "" : " (skipping cache due to formatting mode)"), element->GetAddress().c_str());
-#endif
+			DebugCacheTracyMessage("Cache match");
+
 			if (formatting_mode.allow_format_independent_cache)
 			{
 				layout_box = MakeUnique<CachedContainer>(element, parent_container, element->GetBox(),
 					layout_node->GetCommittedLayout()->visible_overflow_size, layout_node->GetCommittedLayout()->baseline_of_last_line);
 			}
+		}
+		else
+		{
+			DebugCacheTracyMessage(layout_node->HasCommittedLayout() ? "Cache miss" : "No cache");
 		}
 	}
 
@@ -169,8 +168,6 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 		case FormattingContextType::None: RMLUI_ERROR; break;
 		}
 
-		// TODO: If MaxContent constraint, and containing block = -1, -1, store resulting size as max-content size.
-
 		if (layout_box)
 		{
 			Optional<float> baseline_of_last_line;
@@ -187,18 +184,7 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 
 #ifdef RMLUI_DEBUG
 	if (tracker_entry)
-	{
-		debug_tracker->current_stack_level -= 1;
-		if (layout_box)
-		{
-			const bool from_cache = (layout_box->GetType() == LayoutBox::Type::CachedContainer);
-			tracker_entry->layout = Optional<FormatIndependentDebugTracker::Entry::LayoutResults>({
-				from_cache,
-				layout_box->GetVisibleOverflowSize(),
-				layout_box->GetIfBox() ? Optional<Box>{*layout_box->GetIfBox()} : std::nullopt,
-			});
-		}
-	}
+		debug_tracker->CloseEntry(*tracker_entry, layout_box.get());
 #endif
 
 	return layout_box;
@@ -274,13 +260,22 @@ void FormattingContext::FormatFitContentWidth(Box& box, Element* element, Format
 	RMLUI_ZoneText(zone_text.c_str(), zone_text.size());
 #endif
 
+#ifdef RMLUI_DEBUG
+	auto* debug_tracker = FormatIndependentDebugTracker::GetIf();
+	FormatIndependentDebugTracker::Entry* tracker_entry = nullptr;
+	if (debug_tracker)
+		tracker_entry = &debug_tracker->PushEntry(FormatIndependentDebugTracker::FormatType::FormatFitContentWidth, nullptr, element, &box, type);
+#endif
+
 	const float box_height = box.GetSize().y;
 	LayoutNode* layout_node = element->GetLayoutNode();
 	float max_content_width = -1.f;
+	bool from_cache = false;
 
 	if (Optional<float> cached_width = layout_node->GetMaxContentWidthIfCached())
 	{
 		max_content_width = *cached_width;
+		from_cache = true;
 	}
 	else
 	{
@@ -299,7 +294,7 @@ void FormattingContext::FormatFitContentWidth(Box& box, Element* element, Format
 			break;
 		case FormattingContextType::Flex: max_content_width = FlexFormattingContext::DetermineMaxContentWidth(element, box, formatting_mode); break;
 		case FormattingContextType::Replaced:
-			RMLUI_ERRORMSG("Replaced elements are expected to have a positive intrinsice size and do not perform shrink-to-fit layout.");
+			RMLUI_ERRORMSG("Replaced elements are expected to have a positive intrinsic size and do not perform shrink-to-fit layout.");
 			break;
 		case FormattingContextType::None: RMLUI_ERROR; break;
 		}
@@ -308,6 +303,13 @@ void FormattingContext::FormatFitContentWidth(Box& box, Element* element, Format
 	}
 
 	RMLUI_ASSERTMSG(max_content_width >= 0.f, "Max-content width should evaluate to a positive size.")
+
+#ifdef RMLUI_DEBUG
+	if (tracker_entry)
+		debug_tracker->CloseEntry(*tracker_entry, max_content_width, from_cache);
+#else
+	(void)from_cache;
+#endif
 
 	float fit_content_width = max_content_width;
 	if (containing_block.x >= 0.f)
