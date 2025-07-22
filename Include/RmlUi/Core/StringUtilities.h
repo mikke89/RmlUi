@@ -70,6 +70,9 @@ namespace StringUtilities {
 	/// @param[in] delimiter Delimiter to insert between the individual values.
 	RMLUICORE_API void JoinString(String& string, const StringList& string_list, const char delimiter = ',');
 
+	/// Create a string by repeating another string a given number of times.
+	RMLUICORE_API String RepeatString(const String& string, int count);
+
 	/// Converts upper-case characters in string to lower-case.
 	RMLUICORE_API String ToLower(String string);
 	/// Converts lower-case characters in string to upper-case.

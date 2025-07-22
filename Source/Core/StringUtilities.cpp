@@ -367,6 +367,16 @@ void StringUtilities::JoinString(String& string, const StringList& string_list, 
 	}
 }
 
+String StringUtilities::RepeatString(const String& string, int n)
+{
+	RMLUI_ASSERT(n >= 0);
+	Rml::String result;
+	result.reserve(string.size() * size_t(n));
+	for (int i = 0; i < n; ++i)
+		result += string;
+	return result;
+}
+
 String StringUtilities::StripWhitespace(const String& string)
 {
 	return StripWhitespace(StringView(string));
