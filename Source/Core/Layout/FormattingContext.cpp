@@ -214,9 +214,10 @@ float FormattingContext::FormatFitContentHeight(ContainerBox* parent_container, 
 		return box.GetSize().y;
 
 	LayoutNode* layout_node = element->GetLayoutNode();
+	const FormattingMode& parent_formatting_mode = parent_container->GetFormattingMode();
 
 	float max_content_height = box.GetSize().y;
-	if (Optional<float> cached_height = layout_node->GetMaxContentHeightIfCached())
+	if (Optional<float> cached_height = (parent_formatting_mode.allow_max_content_cache ? layout_node->GetMaxContentHeightIfCached() : std::nullopt))
 	{
 		max_content_height = *cached_height;
 	}
@@ -226,7 +227,7 @@ float FormattingContext::FormatFitContentHeight(ContainerBox* parent_container, 
 		if (type == FormattingContextType::None)
 			type = FormattingContextType::Block;
 
-		FormattingMode formatting_mode = parent_container->GetFormattingMode();
+		FormattingMode formatting_mode = parent_formatting_mode;
 		formatting_mode.constraint = FormattingMode::Constraint::MaxContent;
 		const Vector2f root_containing_block(-1.f);
 		RootBox root(Box(root_containing_block), formatting_mode);
@@ -272,7 +273,7 @@ void FormattingContext::FormatFitContentWidth(Box& box, Element* element, Format
 	float max_content_width = -1.f;
 	bool from_cache = false;
 
-	if (Optional<float> cached_width = layout_node->GetMaxContentWidthIfCached())
+	if (Optional<float> cached_width = (parent_formatting_mode.allow_max_content_cache ? layout_node->GetMaxContentWidthIfCached() : std::nullopt))
 	{
 		max_content_width = *cached_width;
 		from_cache = true;

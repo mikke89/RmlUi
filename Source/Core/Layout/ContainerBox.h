@@ -44,6 +44,7 @@ struct FormattingMode {
 
 	Constraint constraint = Constraint::None;
 	bool allow_format_independent_cache = true;
+	bool allow_max_content_cache = true;
 };
 
 /**
