@@ -629,4 +629,89 @@ TEST_CASE("LayoutIsolation.Document")
 	TestsShell::ShutdownShell();
 }
 
+static const String rml_flexbox_shrink_to_fit_nested = R"(
+<rml>
+<head>
+    <title>Flex - Shrink-to-fit 01</title>
+    <link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<style>
+		body { width: 10000px; height: 2000px; }
+		.shrink-to-fit {
+			float: left;
+			clear: both;
+			margin: 10px 0;
+			border: 2px #e8e8e8;
+		}
+		.outer {
+			display: inline-flex;
+			border: 1px red;
+			padding: 30px;
+		}
+		.inner {
+			border: 1px blue;
+			padding: 30px;
+		}
+	</style>
+</head>
+<body>
+<div class="shrink-to-fit">
+	Before
+	<div class="outer">
+		%s
+		<div class="inner">Flex</div>
+		%s
+	</div>
+	After
+</div>
+</body>
+</rml>
+)";
+
+TEST_CASE("LayoutIsolation.FlexFormat.shrink-to-fit")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	// The number of flex format count listed in this mapping is not an end-all be-all, but we should be made aware if
+	// it changes, especially for the worse.
+	const UnorderedMap<int, int> expected_num_nest_levels_versus_num_flex_formats = {
+		{1, 3},
+		{2, 8},
+		{3, 13},
+		{4, 18},
+		{5, 23},
+		{6, 28},
+		{7, 33},
+		{8, 38},
+		{9, 43},
+		{10, 48},
+	};
+
+	for (int num_nest_levels = 1; num_nest_levels <= 10; num_nest_levels++)
+	{
+		const Rml::String document_rml = Rml::CreateString(rml_flexbox_shrink_to_fit_nested.c_str(),
+			StringUtilities::RepeatString(R"(<div class="inner"><div class="outer">)", num_nest_levels - 1).c_str(),
+			StringUtilities::RepeatString(R"(</div></div>)", num_nest_levels - 1).c_str());
+
+		FormatIndependentDebugTracker format_independent_tracker;
+		ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+
+		document->Show();
+		TestsShell::RenderLoop();
+
+		int num_flex_formats = 0;
+		for (const auto& entry : format_independent_tracker.GetEntries())
+		{
+			if (entry.context_type == FormattingContextType::Flex && !entry.from_cache)
+				num_flex_formats += 1;
+		}
+		INFO(format_independent_tracker.ToString());
+		CHECK(num_flex_formats == expected_num_nest_levels_versus_num_flex_formats.at(num_nest_levels));
+
+		document->Close();
+	}
+
+	TestsShell::ShutdownShell();
+}
+
 #endif // RMLUI_DEBUG
