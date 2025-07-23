@@ -4298,8 +4298,7 @@ void RenderInterface_DX12::Initialize(void) noexcept
 
 		this->m_precompiled_fullscreen_quad_geometry = this->CompileGeometry(mesh.vertices, mesh.indices);
 
-		this->m_projection =
-			Rml::Matrix4f::ProjectOrtho(0, static_cast<float>(m_width), static_cast<float>(m_height), 0, -10000, 10000);
+		this->m_projection = Rml::Matrix4f::ProjectOrtho(0, static_cast<float>(m_width), static_cast<float>(m_height), 0, -10000, 10000);
 
 	#ifdef RMLUI_DX_DEBUG
 		Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "DirectX 12 Initialize type: user");
@@ -4753,8 +4752,7 @@ void RenderInterface_DX12::EndFrame_Integration()
 
 		Backend::RmlRenderInput* p_input_rtv = reinterpret_cast<Backend::RmlRenderInput*>(this->m_p_user_rtv_present);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE* p_handle_rtv =
-			reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(p_input_rtv->p_input_present_resource_binding);
+		D3D12_CPU_DESCRIPTOR_HANDLE* p_handle_rtv = reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(p_input_rtv->p_input_present_resource_binding);
 
 		Backend::RmlRenderInput* p_input_dsv = reinterpret_cast<Backend::RmlRenderInput*>(this->m_p_user_dsv_present);
 
@@ -4865,7 +4863,7 @@ void RenderInterface_DX12::Clear_Shell()
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
-void RenderInterface_DX12::Clear_Integration() 
+void RenderInterface_DX12::Clear_Integration()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Clear");
 
@@ -4874,11 +4872,11 @@ void RenderInterface_DX12::Clear_Integration()
 	RMLUI_ASSERT(this->m_p_user_dsv_present && "you have invalid user dsv handle");
 
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "Clear");
-	
+
 	Backend::RmlRenderInput* p_input_rtv = reinterpret_cast<Backend::RmlRenderInput*>(this->m_p_user_rtv_present);
-	
-	/* todo: hope user won't need to have handling this situations because we expect that user resolve their state on their side otherwise we need to provide resource tracking?
-	ID3D12Resource* p_backbuffer = reinterpret_cast<ID3D12Resource*>(p_input_rtv->p_input_present_resource);
+
+	/* todo: hope user won't need to have handling this situations because we expect that user resolve their state on their side otherwise we need to
+	provide resource tracking? ID3D12Resource* p_backbuffer = reinterpret_cast<ID3D12Resource*>(p_input_rtv->p_input_present_resource);
 
 	D3D12_RESOURCE_BARRIER barrier;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -4895,8 +4893,7 @@ void RenderInterface_DX12::Clear_Integration()
 
 	constexpr FLOAT no_color[] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-	D3D12_CPU_DESCRIPTOR_HANDLE* rtv_handle =
-		reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(p_input_rtv->p_input_present_resource_binding);
+	D3D12_CPU_DESCRIPTOR_HANDLE* rtv_handle = reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(p_input_rtv->p_input_present_resource_binding);
 
 	Backend::RmlRenderInput* p_input_dsv = reinterpret_cast<Backend::RmlRenderInput*>(this->m_p_user_dsv_present);
 
@@ -4905,10 +4902,9 @@ void RenderInterface_DX12::Clear_Integration()
 	RMLUI_ASSERT(rtv_handle && "you passed empty D3D12_CPU_DESCRIPTOR_HANDLE for rtv");
 	RMLUI_ASSERT(dsv_handle && "you passed empty D3D12_CPU_DESCRIPTOR_HANDLE for dsv");
 
-	this->m_p_command_graphics_list->ClearDepthStencilView(*dsv_handle,
-		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+	this->m_p_command_graphics_list->ClearDepthStencilView(*dsv_handle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
-//	this->m_p_command_graphics_list->ClearRenderTargetView(*rtv_handle, no_color, 0, nullptr);
+	//	this->m_p_command_graphics_list->ClearRenderTargetView(*rtv_handle, no_color, 0, nullptr);
 
 	auto& p_current_rtv = this->m_manager_render_layer.GetTopLayer().Get_DescriptorResourceView();
 	auto& p_current_dsv = this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
@@ -9607,6 +9603,10 @@ void RenderInterface_DX12::TextureMemoryManager::Shutdown()
 		RMLUI_ASSERT(ref_count == 0 && "leak");
 	}
 
+#ifdef RMLUI_DX_DEBUG
+	Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12]: total blocks in session were allocated = %zu", this->m_blocks.size());
+#endif
+
 	this->m_blocks.clear();
 	this->m_heaps_placed.clear();
 
@@ -10132,7 +10132,70 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 	desc_alloc.Alignment = info_for_alloc.Alignment;
 	D3D12MA::VirtualAllocation alloc_virtual;
 	UINT64 offset{};
+
+	// wh1t3lord: yeah, we can get a situation of fast allocating things that like visual test sample where we can hold left button and just
+	// switch across all samples fast but we could defragment our block that formally the unused space is ENOUGH for allocation but for real there's
+	// no free block and D3D12MA doesn't provide a good way for resolving accurately using stats or something else, so if we receive from block that
+	// was found in Get_AvailableBlock still can return from ->Allocate E_OUTOFMEMORY and it means we need try to find another one until we tried all
+	// and if all failed we have to allocate new block sadly
 	auto status = p_block->Allocate(&desc_alloc, &alloc_virtual, &offset);
+
+	// found a block but need to resolve it
+	if (status == E_OUTOFMEMORY)
+	{
+		// let's find another block if it is available
+
+		D3D12MA::VirtualBlock* p_valid_block_obtained{};
+		heap_index = -1;
+		p_heap = nullptr;
+		for (int i = 0; i < this->m_blocks.size(); ++i)
+		{
+			D3D12MA::VirtualBlock* p_candidate_block = this->m_blocks[i];
+
+			RMLUI_ASSERT(p_candidate_block && "probably we can't keep nullptr in valid container");
+
+			if (p_candidate_block != p_block)
+			{
+				if (this->CanAllocate(info_for_alloc.SizeInBytes, p_candidate_block))
+				{
+					status = p_candidate_block->Allocate(&desc_alloc, &alloc_virtual, &offset);
+
+					if (SUCCEEDED(status))
+					{
+						p_valid_block_obtained = p_candidate_block;
+						p_heap = this->m_heaps_placed[i];
+						heap_index = i;
+						break;
+					}
+				}
+			}
+		}
+
+		if (!p_valid_block_obtained)
+		{
+			const auto& new_heap_and_block = this->Create_HeapPlaced(this->m_size_for_placed_heap);
+			RMLUI_ASSERT(new_heap_and_block.second && "must be valid!");
+			RMLUI_ASSERT(new_heap_and_block.first && "must be valid!");
+
+			if (new_heap_and_block.second)
+			{
+				status = new_heap_and_block.second->Allocate(&desc_alloc, &alloc_virtual, &offset);
+				RMLUI_DX_ASSERTMSG(SUCCEEDED(status), "can't resolve allocation for resource, report to developers!");
+
+				p_heap = new_heap_and_block.first;
+
+				for (int i = 0; i < this->m_heaps_placed.size(); ++i)
+				{
+					if (this->m_heaps_placed[i] == p_heap)
+					{
+						heap_index = i;
+						break;
+					}
+				}
+			}
+		}
+	}
+
 	RMLUI_DX_ASSERTMSG(status, "can't allocate virtual alloc!");
 
 	ID3D12Resource* p_resource{};
