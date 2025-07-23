@@ -9604,7 +9604,8 @@ void RenderInterface_DX12::TextureMemoryManager::Shutdown()
 	}
 
 #ifdef RMLUI_DX_DEBUG
-	Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12]: total blocks in session were allocated = %zu", this->m_blocks.size());
+	Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12]: TextureMemoryManager -> total blocks in session were allocated = %zu",
+		this->m_blocks.size());
 #endif
 
 	this->m_blocks.clear();
