@@ -38,16 +38,26 @@ TEST_CASE("font_texture_atlas")
 	LoadFontFace("assets/NotoSansJP-Regular.ttf");
 
 	nanobench::Bench bench;
-	bench.title("Font texture atlas");
+	bool incremental = false;
+	SUBCASE("all at once")
+	{
+		incremental = false;
+		bench.title("Font texture atlas (all at once)");
+	}
+	SUBCASE("incremental")
+	{
+		incremental = true;
+		bench.title("Font texture atlas (incremental)");
+	}
 	bench.relative(true);
 
 	for (const int font_size : {12, 16, 24, 48, 96})
 	{
 		const String rml_document = CreateString(rml_font_texture_atlas_document.c_str(), font_size);
 
-		ElementDocument *const document = context->LoadDocumentFromMemory(rml_document);
+		ElementDocument* const document = context->LoadDocumentFromMemory(rml_document);
 		REQUIRE(document);
-		Element *const body = document->GetElementById("body");
+		Element* const body = document->GetElementById("body");
 		REQUIRE(body);
 		document->Show();
 		context->Update();
@@ -55,19 +65,34 @@ TEST_CASE("font_texture_atlas")
 
 		for (const int glyph_count : {10, 100, 1000})
 		{
-			String benchmark_name;
-			FormatString(benchmark_name, "Size %d with %d glyphs", font_size, glyph_count);
-			bench.run(benchmark_name.c_str(), [&]() {
-				ReleaseFontResources();
-				for (int i = 0; i < glyph_count; ++i)
-				{
-					body->SetInnerRML(StringUtilities::ToUTF8(static_cast<Character>(
-						rml_font_texture_atlas_start_codepoint + i
-					)));
+			const String benchmark_name = CreateString("Size %d with %d glyphs", font_size, glyph_count);
+
+			if (incremental)
+			{
+				bench.run(benchmark_name, [&]() {
+					ReleaseFontResources();
+					std::string inner_rml;
+					for (int i = 0; i < glyph_count; ++i)
+					{
+						inner_rml += StringUtilities::ToUTF8(static_cast<Character>(rml_font_texture_atlas_start_codepoint + i));
+						body->SetInnerRML(inner_rml);
+					}
 					context->Update();
 					context->Render();
-				}
-			});
+				});
+			}
+			else
+			{
+				bench.run(benchmark_name, [&]() {
+					ReleaseFontResources();
+					for (int i = 0; i < glyph_count; ++i)
+					{
+						body->SetInnerRML(StringUtilities::ToUTF8(static_cast<Character>(rml_font_texture_atlas_start_codepoint + i)));
+						context->Update();
+						context->Render();
+					}
+				});
+			}
 		}
 
 		document->Close();
