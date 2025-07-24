@@ -1,8 +1,7 @@
-#include <algorithm>
-
-#include "../../../Include/RmlUi/Core/Types.h"
-
 #include "SpriteSet.h"
+#include "../../../Include/RmlUi/Core/Profiling.h"
+#include "../../../Include/RmlUi/Core/Types.h"
+#include <algorithm>
 
 namespace Rml {
 
@@ -11,8 +10,8 @@ namespace {
 	constexpr unsigned int max_changed_pixels = 256 * 256;
 	constexpr unsigned int split_threshold = 8;
 
-	template<typename T>
-	void InitializePool(Vector<T> &pool)
+	template <typename T>
+	void InitializePool(Vector<T>& pool)
 	{
 		const unsigned int pool_size = static_cast<unsigned int>(pool.size());
 		const unsigned int last_pool_index = pool_size - 1;
@@ -21,7 +20,7 @@ namespace {
 		pool[last_pool_index].next_index = null_index;
 	}
 
-	template<typename T>
+	template <typename T>
 	unsigned int AllocateEntry(Vector<T>& pool, unsigned int& next_free_index)
 	{
 		if (next_free_index == null_index)
@@ -40,17 +39,16 @@ namespace {
 		return index;
 	}
 
-	template<typename T>
+	template <typename T>
 	void FreeEntry(Vector<T>& pool, unsigned int& next_free_index, const unsigned int index)
 	{
 		pool[index].next_index = next_free_index;
 		next_free_index = index;
 	}
-}
+} // namespace
 
-SpriteSet::SpriteSet(
-	const unsigned int bytes_per_pixel, const unsigned int page_size, const unsigned int sprite_padding
-) : bytes_per_pixel(bytes_per_pixel), page_size(page_size), sprite_padding(sprite_padding)
+SpriteSet::SpriteSet(const unsigned int bytes_per_pixel, const unsigned int page_size, const unsigned int sprite_padding) :
+	bytes_per_pixel(bytes_per_pixel), page_size(page_size), sprite_padding(sprite_padding)
 {
 	InitializePool(page_pool);
 	InitializePool(shelf_pool);
@@ -72,9 +70,7 @@ void SpriteSet::Tick()
 		while (!slot_pool[source_slot_index].allocated)
 			source_slot_index = slot_pool[source_slot_index].next_index;
 		const Slot& source_slot = slot_pool[source_slot_index];
-		const unsigned int destination_slot_index = TryAllocateInPage(
-			first_page_index, source_slot.width, source_slot.height
-		);
+		const unsigned int destination_slot_index = TryAllocateInPage(first_page_index, source_slot.width, source_slot.height);
 		if (destination_slot_index == null_index)
 			break;
 		const Slot& destination_slot = slot_pool[destination_slot_index];
@@ -88,11 +84,8 @@ void SpriteSet::Tick()
 		const unsigned int height = source_slot.height;
 		for (unsigned int local_y = 0; local_y != height; ++local_y)
 		{
-			const auto data_start = source_page.texture_data->begin() + ((source_y + local_y) * page_size + source_x);
-			std::copy(
-				data_start, data_start + width,
-				destination_page.texture_data->begin() + ((destination_y + local_y) * page_size + destination_x)
-			);
+			const auto data_start = source_page.texture_data.get() + ((source_y + local_y) * page_size + source_x);
+			std::copy(data_start, data_start + width, destination_page.texture_data.get() + ((destination_y + local_y) * page_size + destination_x));
 		}
 		destination_page.first_dirty_y = std::min(destination_page.first_dirty_y, destination_y);
 		destination_page.past_last_dirty_y = std::max(destination_page.past_last_dirty_y, destination_y + height);
@@ -104,9 +97,7 @@ void SpriteSet::Tick()
 	}
 }
 
-SpriteSet::Handle SpriteSet::Add(
-	const unsigned int width, const unsigned int height, const unsigned char* const data, const unsigned int row_stride
-)
+SpriteSet::Handle SpriteSet::Add(const unsigned int width, const unsigned int height, const unsigned char* const data, const unsigned int row_stride)
 {
 	const unsigned int padded_width = width + sprite_padding * 2;
 	const unsigned int padded_height = height + sprite_padding * 2;
@@ -114,27 +105,22 @@ SpriteSet::Handle SpriteSet::Add(
 	const Slot& slot = slot_pool[slot_index];
 	const Shelf& shelf = shelf_pool[slot.shelf_index];
 	Page& page = page_pool[shelf.page_index];
-	for (
-		unsigned int i = 0, top_padding_y = shelf.y, bottom_padding_y = shelf.y + padded_height - 1;
-		i < sprite_padding; ++i, ++top_padding_y, --bottom_padding_y
-	)
+	for (unsigned int i = 0, top_padding_y = shelf.y, bottom_padding_y = shelf.y + padded_height - 1; i < sprite_padding;
+		++i, ++top_padding_y, --bottom_padding_y)
 	{
-		auto texture_start = page.texture_data->begin() + (top_padding_y * page_size + slot.x) * bytes_per_pixel;
+		auto texture_start = page.texture_data.get() + (top_padding_y * page_size + slot.x) * bytes_per_pixel;
 		std::fill(texture_start, texture_start + padded_width * bytes_per_pixel, static_cast<unsigned char>(0));
-		texture_start = page.texture_data->begin() + (bottom_padding_y * page_size + slot.x) * bytes_per_pixel;
+		texture_start = page.texture_data.get() + (bottom_padding_y * page_size + slot.x) * bytes_per_pixel;
 		std::fill(texture_start, texture_start + padded_width * bytes_per_pixel, static_cast<unsigned char>(0));
 	}
 	const unsigned int texture_y = shelf.y + sprite_padding;
 	for (unsigned int local_y = 0; local_y != height; ++local_y)
 	{
 		const unsigned char* const data_start = data + local_y * row_stride * bytes_per_pixel;
-		const auto texture_start = page.texture_data->begin()
-			+ ((texture_y + local_y) * page_size + slot.x) * bytes_per_pixel;
+		const auto texture_start = page.texture_data.get() + ((texture_y + local_y) * page_size + slot.x) * bytes_per_pixel;
 		std::fill(texture_start, texture_start + sprite_padding * bytes_per_pixel, static_cast<unsigned char>(0));
-		std::fill(
-			texture_start + (sprite_padding + width) * bytes_per_pixel, texture_start + padded_width * bytes_per_pixel,
-			static_cast<unsigned char>(0)
-		);
+		std::fill(texture_start + (sprite_padding + width) * bytes_per_pixel, texture_start + padded_width * bytes_per_pixel,
+			static_cast<unsigned char>(0));
 		std::copy(data_start, data_start + width * bytes_per_pixel, texture_start + sprite_padding * bytes_per_pixel);
 	}
 	page.first_dirty_y = std::min(page.first_dirty_y, shelf.y);
@@ -146,6 +132,8 @@ SpriteSet::Handle SpriteSet::Add(
 
 unsigned int SpriteSet::Allocate(const unsigned int width, const unsigned int height)
 {
+	ZoneScoped;
+
 	// Try to allocate in an existing page.
 	if (first_page_index != null_index)
 	{
@@ -189,7 +177,9 @@ unsigned int SpriteSet::Allocate(const unsigned int width, const unsigned int he
 
 	Page& page = page_pool[last_page_index];
 	page.texture_id = page_count;
-	page.texture_data = MakeUnique<Vector<unsigned char>>(page_size * page_size * bytes_per_pixel);
+	page.texture_data = UniquePtr<unsigned char[]>(new unsigned char[page_size * page_size * bytes_per_pixel]);
+	Log::Message(Log::LT_INFO, "SpriteSet - Allocating new page %u with size %u x %u", page_count, page_size, page_size);
+	memset(page.texture_data.get(), 0, page_size * page_size * bytes_per_pixel);
 	page.first_dirty_y = page_size;
 	page.past_last_dirty_y = 0;
 	page.first_dirty_x = page_size;
@@ -210,22 +200,13 @@ unsigned int SpriteSet::TryAllocateInPage(const unsigned int page_index, const u
 	unsigned int selected_shelf_index = null_index;
 	unsigned int selected_slot_index = null_index;
 	unsigned int selected_shelf_height = static_cast<unsigned int>(-1);
-	for (
-		unsigned int shelf_index = page.first_shelf_index;
-		shelf_index != null_index; shelf_index = shelf_pool[shelf_index].next_index
-	)
+	for (unsigned int shelf_index = page.first_shelf_index; shelf_index != null_index; shelf_index = shelf_pool[shelf_index].next_index)
 	{
 		const Shelf& shelf = shelf_pool[shelf_index];
-		if (
-			shelf.height < height || shelf.height >= selected_shelf_height
-			|| (shelf.allocated && shelf.height > height * 3 / 2)
-		)
+		if (shelf.height < height || shelf.height >= selected_shelf_height || (shelf.allocated && shelf.height > height * 3 / 2))
 			continue;
 		bool found = false;
-		for (
-			unsigned int slot_index = shelf.first_free_slot_index;
-			slot_index != null_index; slot_index = slot_pool[slot_index].next_free_index
-		)
+		for (unsigned int slot_index = shelf.first_free_slot_index; slot_index != null_index; slot_index = slot_pool[slot_index].next_free_index)
 		{
 			const Slot& slot = slot_pool[slot_index];
 			if (slot.width < width)
@@ -250,13 +231,10 @@ unsigned int SpriteSet::TryAllocateInPage(const unsigned int page_index, const u
 			const unsigned int new_shelf_index = AllocateEntry<Shelf>(shelf_pool, next_free_shelf_index);
 			const unsigned int new_slot_index = AllocateEntry<Slot>(slot_pool, next_free_slot_index);
 			shelf = &shelf_pool[selected_shelf_index];
-			slot_pool[new_slot_index] = {
-				new_shelf_index, page.texture_id, 0, shelf->y + height, page_size, 0, 0, null_index, null_index, null_index, null_index, 0, false
-			};
-			shelf_pool[new_shelf_index] = {
-				page_index, shelf->y + height, shelf->height - height,
-				selected_shelf_index, shelf->next_index,  new_slot_index, new_slot_index, false
-			};
+			slot_pool[new_slot_index] = {new_shelf_index, page.texture_id, 0, shelf->y + height, page_size, 0, 0, null_index, null_index, null_index,
+				null_index, 0, false};
+			shelf_pool[new_shelf_index] = {page_index, shelf->y + height, shelf->height - height, selected_shelf_index, shelf->next_index,
+				new_slot_index, new_slot_index, false};
 			if (shelf->next_index != null_index)
 				shelf_pool[shelf->next_index].previous_index = new_shelf_index;
 			shelf->next_index = new_shelf_index;
@@ -268,10 +246,8 @@ unsigned int SpriteSet::TryAllocateInPage(const unsigned int page_index, const u
 	{
 		const unsigned int new_slot_index = AllocateEntry<Slot>(slot_pool, next_free_slot_index);
 		slot = &slot_pool[selected_slot_index];
-		slot_pool[new_slot_index] = {
-			selected_shelf_index, page.texture_id, slot->x + width, shelf->y, slot->width - width, 0, 0,
-			selected_slot_index, slot->next_index, slot->previous_free_index, slot->next_free_index, 0, false
-		};
+		slot_pool[new_slot_index] = {selected_shelf_index, page.texture_id, slot->x + width, shelf->y, slot->width - width, 0, 0, selected_slot_index,
+			slot->next_index, slot->previous_free_index, slot->next_free_index, 0, false};
 		if (slot->next_index != null_index)
 			slot_pool[slot->next_index].previous_index = new_slot_index;
 		slot->next_index = new_slot_index;
@@ -311,14 +287,14 @@ unsigned int SpriteSet::Remove(const unsigned int slot_index)
 	/* DEBUG: Fill the removed area with blue.
 	for (unsigned int offset_y = 0; offset_y < slot.height; ++offset_y)
 	{
-		for (unsigned int offset_x = 0; offset_x < slot.width; ++offset_x)
-		{
-			const auto pixel = page.texture_data->begin() + ((slot.y + offset_y) * page_size + slot.x + offset_x) * 4;
-			pixel[0] = 0;
-			pixel[1] = 0;
-			pixel[2] = 255;
-			pixel[3] = 255;
-		}
+	    for (unsigned int offset_x = 0; offset_x < slot.width; ++offset_x)
+	    {
+	        const auto pixel = page.texture_data->begin() + ((slot.y + offset_y) * page_size + slot.x + offset_x) * 4;
+	        pixel[0] = 0;
+	        pixel[1] = 0;
+	        pixel[2] = 255;
+	        pixel[3] = 255;
+	    }
 	}
 	*/
 
@@ -369,7 +345,8 @@ unsigned int SpriteSet::Remove(const unsigned int slot_index)
 			if (previous_slot.next_free_index != null_index)
 				slot_pool[previous_slot.next_free_index].previous_free_index = previous_slot.previous_free_index;
 			FreeEntry<Slot>(slot_pool, next_free_slot_index, previous_index);
-			if (slot.previous_index == null_index) {
+			if (slot.previous_index == null_index)
+			{
 				shelf.first_slot_index = slot_index;
 				if (slot.next_index == null_index)
 					shelf.allocated = false;
@@ -447,8 +424,11 @@ SpriteSet::SpriteData SpriteSet::Get(const Handle handle) const
 {
 	const Slot& slot = slot_pool[handle.slot_index];
 	return {
-		slot.texture_id, slot.x + sprite_padding, slot.y + sprite_padding,
-		slot.actual_width - sprite_padding * 2, slot.height - sprite_padding * 2
+		slot.texture_id,
+		slot.x + sprite_padding,
+		slot.y + sprite_padding,
+		slot.actual_width - sprite_padding * 2,
+		slot.height - sprite_padding * 2,
 	};
 }
 
@@ -461,7 +441,7 @@ Vector<const unsigned char*> SpriteSet::GetTextures() const
 	while (true)
 	{
 		const Page& page = page_pool[page_index];
-		textures.push_back(page.texture_data->data());
+		textures.push_back(page.texture_data.get());
 		if (page_index == last_page_index)
 			break;
 		page_index = page.next_index;

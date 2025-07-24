@@ -1,9 +1,8 @@
 #ifndef GRAPHICS_SPRITESET_H // TODO for PR: Change the header guard when the name and location are finalised.
 #define GRAPHICS_SPRITESET_H
 
-#include <cstdlib>
-
 #include "../../../Include/RmlUi/Core/Types.h"
+#include <cstdlib>
 
 namespace Rml {
 
@@ -44,9 +43,7 @@ public:
 	/// @param[in] height The height of the image.
 	/// @param[in] data The image data.
 	/// @return The handle to the image.
-	Handle Add(const unsigned int width, const unsigned int height, const unsigned char* data) {
-		return Add(width, height, data, width);
-	}
+	Handle Add(const unsigned int width, const unsigned int height, const unsigned char* data) { return Add(width, height, data, width); }
 
 	/// Adds a subimage to the texture atlas.
 	/// @param[in] width The width of the subimage.
@@ -78,7 +75,7 @@ private:
 		unsigned int past_last_dirty_y;
 		unsigned int first_dirty_x;
 		unsigned int past_last_dirty_x;
-		UniquePtr<std::vector<unsigned char>> texture_data;
+		UniquePtr<unsigned char[]> texture_data;
 	};
 	struct Shelf {
 		unsigned int page_index;
