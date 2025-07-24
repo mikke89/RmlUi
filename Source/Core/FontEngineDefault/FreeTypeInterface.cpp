@@ -30,6 +30,7 @@
 #include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/FontMetrics.h"
 #include "../../../Include/RmlUi/Core/Log.h"
+#include "../../../Include/RmlUi/Core/Profiling.h"
 #include <algorithm>
 #include <ft2build.h>
 #include <limits.h>
@@ -138,8 +139,8 @@ FontFaceHandleFreetype FreeType::LoadFace(Span<const byte> data, const String& s
 	RMLUI_ASSERT(ft_library);
 
 	FT_Face face = nullptr;
-	FT_Error error =
-		FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()), (named_style_index << 16) | face_index, &face);
+	FT_Error error = FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()),
+		(named_style_index << 16) | face_index, &face);
 
 	if (error)
 	{
@@ -191,6 +192,7 @@ void FreeType::GetFaceStyle(FontFaceHandleFreetype in_face, String* font_family,
 
 bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics, bool load_default_glyphs)
 {
+	RMLUI_ZoneScoped;
 	FT_Face ft_face = (FT_Face)face;
 
 	metrics.size = font_size;
