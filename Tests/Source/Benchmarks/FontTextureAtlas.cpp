@@ -3,6 +3,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/Profiling.h>
 #include <RmlUi/Core/Types.h>
 #include <doctest.h>
 #include <nanobench.h>
@@ -50,6 +51,7 @@ TEST_CASE("font_texture_atlas")
 	bench.title("Font texture atlas (incremental)");
 	//}
 	bench.relative(true);
+	bench.epochIterations(50);
 
 	for (const int font_size : {12})
 	{
@@ -70,15 +72,23 @@ TEST_CASE("font_texture_atlas")
 			if (incremental)
 			{
 				bench.run(benchmark_name, [&]() {
-					ReleaseFontResources();
-					std::string inner_rml;
-					for (int i = 0; i < glyph_count; ++i)
+					RMLUI_ZoneScopedN("Font texture atlas incremental");
 					{
-						inner_rml += StringUtilities::ToUTF8(static_cast<Character>(rml_font_texture_atlas_start_codepoint + i));
-						body->SetInnerRML(inner_rml);
+						RMLUI_ZoneScopedN("ReleaseFontResources");
+						ReleaseFontResources();
 					}
-					context->Update();
-					context->Render();
+
+					{
+						RMLUI_ZoneScopedN("Change RML");
+						std::string inner_rml;
+						for (int i = 0; i < glyph_count; ++i)
+						{
+							inner_rml += StringUtilities::ToUTF8(static_cast<Character>(rml_font_texture_atlas_start_codepoint + i));
+							body->SetInnerRML(inner_rml);
+						}
+						context->Update();
+						context->Render();
+					}
 				});
 			}
 			else

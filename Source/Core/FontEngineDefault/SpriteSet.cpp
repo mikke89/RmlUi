@@ -1,4 +1,5 @@
 #include "SpriteSet.h"
+#include "../../../Include/RmlUi/Core/Log.h"
 #include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/Types.h"
 #include <algorithm>
@@ -132,7 +133,7 @@ SpriteSet::Handle SpriteSet::Add(const unsigned int width, const unsigned int he
 
 unsigned int SpriteSet::Allocate(const unsigned int width, const unsigned int height)
 {
-	ZoneScoped;
+	RMLUI_ZoneScoped;
 
 	// Try to allocate in an existing page.
 	if (first_page_index != null_index)
@@ -178,7 +179,7 @@ unsigned int SpriteSet::Allocate(const unsigned int width, const unsigned int he
 	Page& page = page_pool[last_page_index];
 	page.texture_id = page_count;
 	page.texture_data = UniquePtr<unsigned char[]>(new unsigned char[page_size * page_size * bytes_per_pixel]);
-	Log::Message(Log::LT_INFO, "SpriteSet - Allocating new page %u with size %u x %u", page_count, page_size, page_size);
+	Log::Message(Log::LT_INFO, "SpriteSet - Allocating new page %u with size %u x %u", last_page_index, page_size, page_size);
 	memset(page.texture_data.get(), 0, page_size * page_size * bytes_per_pixel);
 	page.first_dirty_y = page_size;
 	page.past_last_dirty_y = 0;
@@ -404,6 +405,8 @@ unsigned int SpriteSet::Remove(const unsigned int slot_index)
 		return slot_pixels;
 	FreeEntry<Slot>(slot_pool, next_free_slot_index, slot_index);
 	FreeEntry<Shelf>(shelf_pool, next_free_shelf_index, page.first_shelf_index);
+	if (page.texture_data)
+		Log::Message(Log::LT_INFO, "SpriteSet - Deallocating page %u with size %u x %u", page_index, page_size, page_size);
 	page.texture_data.reset();
 	page_pool[page.previous_index].next_index = page.next_index;
 	if (page_index != last_page_index)
