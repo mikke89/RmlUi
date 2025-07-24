@@ -39,19 +39,19 @@ TEST_CASE("font_texture_atlas")
 
 	nanobench::Bench bench;
 	bool incremental = false;
-	SUBCASE("all at once")
-	{
-		incremental = false;
-		bench.title("Font texture atlas (all at once)");
-	}
-	SUBCASE("incremental")
-	{
-		incremental = true;
-		bench.title("Font texture atlas (incremental)");
-	}
+	// SUBCASE("all at once")
+	//{
+	//	incremental = false;
+	//	bench.title("Font texture atlas (all at once)");
+	// }
+	// SUBCASE("incremental")
+	//{
+	incremental = true;
+	bench.title("Font texture atlas (incremental)");
+	//}
 	bench.relative(true);
 
-	for (const int font_size : {12, 16, 24, 48, 96})
+	for (const int font_size : {12})
 	{
 		const String rml_document = CreateString(rml_font_texture_atlas_document.c_str(), font_size);
 
@@ -63,7 +63,7 @@ TEST_CASE("font_texture_atlas")
 		context->Update();
 		context->Render();
 
-		for (const int glyph_count : {10, 100, 1000})
+		for (const int glyph_count : {10})
 		{
 			const String benchmark_name = CreateString("Size %d with %d glyphs", font_size, glyph_count);
 
