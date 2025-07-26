@@ -855,7 +855,7 @@ private:
 
 // forward declaration
 namespace Backend {
-class RmlRenderInitInfo;
+struct RmlRenderInitInfo;
 }
 
 namespace RmlDX12 {
