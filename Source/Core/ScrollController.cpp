@@ -143,7 +143,7 @@ void ScrollController::InstantScrollOnTarget(Element* in_target, Vector2f delta_
 void ScrollController::ApplyScrollInertia(Element* in_target, const Vector2f& velocity)
 {
 	Reset();
-	if (!in_target || velocity.x == 0 && velocity.y == 0)
+	if (!in_target || (velocity.x == 0 && velocity.y == 0))
 		return;
 
 	target = in_target;
