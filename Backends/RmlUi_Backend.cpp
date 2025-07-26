@@ -39,6 +39,11 @@ Rml::Context* Initialize(RmlRenderInitInfo* p_info)
 		Rml::SystemInterface* p_system_interface = nullptr;
 		switch (type_sys)
 		{
+		case Backend::TypeSystemInterface::Native_Unknown:
+		{
+			RMLUI_ASSERTMSG(false, "unknown typesysteminterface!");
+			break;
+		}
 		case Backend::TypeSystemInterface::Native_Win32:
 		{
 			SystemInterface_Win32* p_instance = new SystemInterface_Win32();
@@ -76,6 +81,11 @@ Rml::Context* Initialize(RmlRenderInitInfo* p_info)
 		case Backend::TypeSystemInterface::Library_GLFW:
 		{
 			RMLUI_ASSERT(false, "mikke89 should resolve and provide implementation");
+			break;
+		}
+		case Backend::TypeSystemInterface::Library_Unknown:
+		{
+			RMLUI_ASSERTMSG(false, "unknown library typesysteminterface type!");
 			break;
 		}
 		}
