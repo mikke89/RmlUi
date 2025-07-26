@@ -364,7 +364,7 @@ private:
 	bool mouse_active;
 
 	// Maximum simultaneous touch points supported.
-	static const unsigned int MAX_TOUCH_POINTS = 10;
+	static const int MAX_TOUCH_POINTS = 10;
 	struct TouchState
 	{
 		bool is_pressed = false;
