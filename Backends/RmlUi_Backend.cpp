@@ -2,7 +2,10 @@
 
 // todo: mikke89 think about how to resolve headers because they must be in one place like this because user request for which backend platform we
 // want to create Rml::SystemInterface and then provide to initialize of backend it is important
-#include "RmlUi_Platform_Win32.h"
+
+#ifdef RMLUI_PLATFORM_WIN32
+	#include "RmlUi_Platform_Win32.h"
+#endif
 // #include "RmlUi_Platform_SDL.h"
 // #include "RmlUi_Platform_GLFW.h"
 // #include "RmlUi_Platform_X11.h"
@@ -13,8 +16,8 @@ KeyDownCallback ___renderer_key_down_callback = nullptr;
 bool ___renderer_context_dpi_enable = false;
 void* ___renderer_context_hwnd = nullptr;
 TypeSystemInterface ___renderer_copy_info_tsi = TypeSystemInterface::Native_Unknown;
-int ___renderer_initial_width=0;
-int ___renderer_initial_height=0;
+int ___renderer_initial_width = 0;
+int ___renderer_initial_height = 0;
 
 Rml::Context* Initialize(RmlRenderInitInfo* p_info)
 {
