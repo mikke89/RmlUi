@@ -70,17 +70,17 @@ Rml::Context* Initialize(RmlRenderInitInfo* p_info)
 		}
 		case Backend::TypeSystemInterface::Library_SDL2:
 		{
-			RMLUI_ASSERT(false, "mikke89 should resolve and provide implementation");
+			RMLUI_ASSERTMSG(false, "mikke89 should resolve and provide implementation");
 			break;
 		}
 		case Backend::TypeSystemInterface::Library_SDL3:
 		{
-			RMLUI_ASSERT(false, "mikke89 should resolve and provide implementation");
+			RMLUI_ASSERTMSG(false, "mikke89 should resolve and provide implementation");
 			break;
 		}
 		case Backend::TypeSystemInterface::Library_GLFW:
 		{
-			RMLUI_ASSERT(false, "mikke89 should resolve and provide implementation");
+			RMLUI_ASSERTMSG(false, "mikke89 should resolve and provide implementation");
 			break;
 		}
 		case Backend::TypeSystemInterface::Library_Unknown:
