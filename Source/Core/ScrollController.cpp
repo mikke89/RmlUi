@@ -149,6 +149,7 @@ void ScrollController::ApplyScrollInertia(Element* in_target, const Vector2f& ve
 	target = in_target;
 	inertia_scroll_velocity = velocity;
 	mode = Mode::Inertia;
+	UpdateTime();
 }
 
 bool ScrollController::Update(Vector2i mouse_position, float dp_ratio)
