@@ -55,6 +55,9 @@ static constexpr float DOUBLE_CLICK_TIME = 0.5f;    // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f; // [dp]
 static constexpr float UNIT_SCROLL_LENGTH = 80.f;   // [dp]
 
+// If the user stops scrolling for this amount of time in seconds before touch/click release, don't apply inertia.
+static constexpr float SCROLL_INERTIA_DELAY = 0.1f;
+
 static void DebugVerifyLocaleSetting()
 {
 #ifdef RMLUI_DEBUG
@@ -875,6 +878,112 @@ bool Context::IsMouseInteracting() const
 	return (hover && hover != root.get()) || (active && active != root.get()) || scroll_controller->GetMode() == ScrollController::Mode::Autoscroll;
 }
 
+bool Context::ProcessTouchPress(int contact_index, int x, int y)
+{
+	RMLUI_ASSERT(contact_index >= 0 && contact_index < MAX_TOUCH_POINTS);
+
+	TouchState& state = touch_states[contact_index];
+	state.is_pressed = true;
+	state.start_position = state.last_position = Vector2i(x, y);
+	state.scrolling_start_time_x = state.scrolling_start_time_y = 0;
+	state.scrolling_last_time = GetSystemInterface()->GetElapsedTime();
+
+	Element* touch_element = GetElementAtPoint(Vector2f(static_cast<float>(x), static_cast<float>(y)));
+	state.scroll_container = touch_element ? touch_element->GetClosestScrollableContainer() : nullptr;
+
+	// reset any scrolling when we touch the element
+	if (state.scroll_container && scroll_controller->GetTarget() == state.scroll_container)
+		scroll_controller->Reset();
+
+	ProcessMouseMove(x, y, 0);
+	return ProcessMouseButtonDown(contact_index, 0);
+}
+
+bool Context::ProcessTouchMove(int contact_index, int x, int y)
+{
+	RMLUI_ASSERT(contact_index >= 0 && contact_index < MAX_TOUCH_POINTS);
+
+	TouchState& state = touch_states[contact_index];
+	if (!state.is_pressed)
+		return true;
+
+	Vector2i current_position(x, y);
+
+	state.scrolling_last_time = GetSystemInterface()->GetElapsedTime();
+
+	if (state.scroll_container)
+	{
+		Vector2i delta = current_position - state.last_position;
+		if (delta.x != 0 || delta.y != 0)
+		{
+			// use instant scrolling when touch is pressed even when default scroll behavior is smooth
+			scroll_controller->InstantScrollOnTarget(
+				state.scroll_container, 
+				Vector2f(static_cast<float>(-delta.x), static_cast<float>(-delta.y))); 
+
+			// If the user changes direction, reset the start time and position.
+			bool going_right = (delta.x > 0);
+			if (delta.x != 0)
+				if (going_right != state.scrolling_right || state.scrolling_start_time_x == 0) // time set to 0 means no touch move events happened before and direction is unclear
+				{
+					state.start_position.x = x;
+					state.scrolling_right = going_right;
+					state.scrolling_start_time_x = state.scrolling_last_time;
+				}
+
+			bool going_down = (delta.y > 0);
+			if (delta.y != 0)
+				if (going_down != state.scrolling_down || state.scrolling_start_time_y == 0) // time set to 0 means no touch move events happened before and direction is unclear
+				{
+					state.start_position.y = y;
+					state.scrolling_down = going_down;
+					state.scrolling_start_time_y = state.scrolling_last_time;
+				}
+		}
+	}
+
+	state.last_position = current_position;
+
+	return ProcessMouseMove(x, y, 0);
+}
+
+bool Context::ProcessTouchRelease(int contact_index, int x, int y)
+{
+	RMLUI_ASSERT(contact_index >= 0 && contact_index < MAX_TOUCH_POINTS);
+
+	TouchState& state = touch_states[contact_index];
+
+	if (state.scroll_container)
+	{
+		double current_time = GetSystemInterface()->GetElapsedTime();
+		double time_since_last_move = current_time - state.scrolling_last_time;
+		if (time_since_last_move < SCROLL_INERTIA_DELAY)
+		{
+			// apply scrolling inertia
+			Vector2i current_position(x, y);
+			Vector2i delta = current_position - state.start_position;
+
+			Vector2f velocity(static_cast<float>(-delta.x), static_cast<float>(-delta.y));
+
+			float elapsed_time_x = static_cast<float>(current_time - state.scrolling_start_time_x);
+			float elapsed_time_y = static_cast<float>(current_time - state.scrolling_start_time_y);
+
+			if (elapsed_time_x > 0)
+				velocity.x /= elapsed_time_x;
+			if (elapsed_time_y > 0)
+				velocity.y /= elapsed_time_y;
+
+			scroll_controller->ApplyScrollInertia(state.scroll_container, velocity);
+		}
+	}
+
+	state.is_pressed = false;
+	state.scroll_container = nullptr;
+
+	ProcessMouseMove(x, y, 0);
+	return ProcessMouseButtonUp(contact_index, 0);
+}
+
 void Context::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor)
 {
 	scroll_controller->SetDefaultScrollBehavior(scroll_behavior, speed_factor);
@@ -1003,6 +1112,14 @@ void Context::OnElementDetach(Element* element)
 
 	if (scroll_controller->GetTarget() == element)
 		scroll_controller->Reset();
+
+	// Clear TouchState if we're touching element
+	for (auto& state : touch_states)
+		if (state.scroll_container == element)
+		{
+			state.is_pressed = false;
+			state.scroll_container = nullptr;
+		}
 }
 
 bool Context::OnFocusChange(Element* new_focus, bool focus_visible)

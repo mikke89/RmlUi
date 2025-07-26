@@ -237,6 +237,25 @@ public:
 	/// @note The mouse is considered activated again after the next call to 'ProcessMouseMove()'.
 	bool ProcessMouseLeave();
 
+	/// Sends a touch movement event into this context.
+	/// @param[in] contact_index The order of occurrence for multiple touch contacts starting at zero.
+	/// @param[in] x The x-coordinate of the touch, in window-coordinates (ie, 0 should be the left of the client area).
+	/// @param[in] y The y-coordinate of the touch, in window-coordinates (ie, 0 should be the top of the client area).
+	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
+	bool ProcessTouchMove(int contact_index, int x, int y);
+	/// Sends a touch press event into this context.
+	/// @param[in] contact_index The order of occurrence for multiple touch contacts starting at zero.
+	/// @param[in] x The x-coordinate of the touch, in window-coordinates (ie, 0 should be the left of the client area).
+	/// @param[in] y The y-coordinate of the touch, in window-coordinates (ie, 0 should be the top of the client area).
+	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
+	bool ProcessTouchPress(int contact_index, int x, int y);
+	/// Sends a touch release event into this context.
+	/// @param[in] contact_index The order of occurrence for multiple touch contacts starting at zero.
+	/// @param[in] x The x-coordinate of the touch, in window-coordinates (ie, 0 should be the left of the client area).
+	/// @param[in] y The y-coordinate of the touch, in window-coordinates (ie, 0 should be the top of the client area).
+	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
+	bool ProcessTouchRelease(int contact_index, int x, int y);
+
 	/// Returns a hint on whether the mouse is currently interacting with any elements in this context, based on previously submitted
 	/// 'ProcessMouse...()' commands.
 	/// @note Interaction is determined irrespective of background and opacity. See the RCSS property 'pointer-events' to disable interaction for
@@ -343,6 +362,22 @@ private:
 	// Input state; stored from the most recent input events we receive from the application.
 	Vector2i mouse_position;
 	bool mouse_active;
+
+	// Maximum simultaneous touch points supported.
+	static const unsigned int MAX_TOUCH_POINTS = 10;
+	struct TouchState
+	{
+		bool is_pressed = false;
+		Vector2i start_position;
+		Vector2i last_position;
+		Element* scroll_container = nullptr;
+		double scrolling_last_time = 0;
+		double scrolling_start_time_x = 0;
+		double scrolling_start_time_y = 0;
+		bool scrolling_right = false;
+		bool scrolling_down = false;
+	};
+	std::array<TouchState, MAX_TOUCH_POINTS> touch_states;
 
 	// Controller for various scroll behavior modes.
 	UniquePtr<ScrollController> scroll_controller; // [not-null]
