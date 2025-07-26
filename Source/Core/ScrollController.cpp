@@ -241,9 +241,9 @@ void ScrollController::UpdateInertia()
 	float dampening = 1.0f - INERTIA_FRICTION_FACTOR * dt;
 	inertia_scroll_velocity *= dampening;
 
-	if (fabs(inertia_scroll_velocity.x) < 30.0f)
+	if (std::abs(inertia_scroll_velocity.x) < 30.0f)
 		inertia_scroll_velocity.x = 0.0f;
-	if (fabs(inertia_scroll_velocity.y) < 30.0f)
+	if (std::abs(inertia_scroll_velocity.y) < 30.0f)
 		inertia_scroll_velocity.y = 0.0f;
 }
 
