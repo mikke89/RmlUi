@@ -10,6 +10,8 @@
 // #include "RmlUi_Platform_GLFW.h"
 // #include "RmlUi_Platform_X11.h"
 
+#define FIX_UNUSED(word)
+
 namespace Backend {
 Backend::Type ___renderer_type = Backend::Type::Unknown;
 KeyDownCallback ___renderer_key_down_callback = nullptr;
@@ -155,6 +157,10 @@ void Resize(Rml::Context* p_context, int width, int height)
 {
 	RMLUI_ASSERT(___renderer_type != Backend::Type::Unknown && "early calling?");
 
+	FIX_UNUSED(p_context);
+	FIX_UNUSED(width);
+	FIX_UNUSED(height);
+
 	switch (___renderer_type)
 	{
 	case Backend::Type::DirectX_12:
@@ -279,6 +285,10 @@ void BeginFrame(void* p_input_rtv, void* p_input_dsv, unsigned char current_fram
 {
 	RMLUI_ASSERT(___renderer_type != Backend::Type::Unknown && "early calling?");
 
+	FIX_UNUSED(p_input_rtv);
+	FIX_UNUSED(p_input_dsv);
+	FIX_UNUSED(current_framebuffer_index);
+
 	switch (___renderer_type)
 	{
 	case Backend::Type::DirectX_12:
@@ -401,6 +411,10 @@ void EndFrame()
 
 void ProcessEvents(Rml::Context* context, const RmlProcessEventInfo& info, bool power_save)
 {
+	FIX_UNUSED(context);
+	FIX_UNUSED(info);
+	FIX_UNUSED(power_save);
+
 	switch (___renderer_type)
 	{
 	case Backend::Type::DirectX_12:
