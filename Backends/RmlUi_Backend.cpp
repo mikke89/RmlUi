@@ -42,6 +42,9 @@ Rml::Context* Initialize(RmlRenderInitInfo* p_info)
 		Backend::TypeSystemInterface type_sys = static_cast<Backend::TypeSystemInterface>(p_info->system_interface_type);
 
 		Rml::SystemInterface* p_system_interface = nullptr;
+
+		FIX_UNUSED(p_system_interface);
+
 		switch (type_sys)
 		{
 		case Backend::TypeSystemInterface::Native_Unknown:
