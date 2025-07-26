@@ -399,7 +399,7 @@ void EndFrame()
 	}
 }
 
-void Backend::ProcessEvents(Rml::Context* context, const RmlProcessEventInfo& info, bool power_save)
+void ProcessEvents(Rml::Context* context, const RmlProcessEventInfo& info, bool power_save)
 {
 	switch (___renderer_type)
 	{
