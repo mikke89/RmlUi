@@ -90,6 +90,9 @@ void RenderInterface::RenderShader(CompiledShaderHandle /*shader*/, CompiledGeom
 
 void RenderInterface::ReleaseShader(CompiledShaderHandle /*shader*/) {}
 
-void RenderInterface::UserSetBackbufferIndex(unsigned char backbuffer_index) {}
+void RenderInterface::UserSetBackbufferIndex(unsigned char backbuffer_index) 
+{
+	backbuffer_index = unsigned char(0);
+}
 
 } // namespace Rml
