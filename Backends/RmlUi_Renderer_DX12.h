@@ -721,8 +721,6 @@ private:
 
 	void Destroy_Resource_Pipelines();
 
-	ID3DBlob* Compile_Shader(const Rml::String& relative_path_to_shader, const char* entry_point, const char* shader_version, UINT flags);
-
 	bool CheckTearingSupport() noexcept;
 
 	IDXGIAdapter* Get_Adapter(bool is_use_warp) noexcept;

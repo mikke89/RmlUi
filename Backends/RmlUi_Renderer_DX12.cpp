@@ -53,8 +53,28 @@
 		#include <dxgidebug.h>
 	#endif
 
+	#if defined _MSC_VER
+		#pragma warning(push, 0)
+	#elif defined __clang__
+		#pragma clang diagnostic push
+		#pragma clang diagnostic ignored "-Wall"
+		#pragma clang diagnostic ignored "-Wextra"
+		#pragma clang diagnostic ignored "-Wnullability-extension"
+		#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+		#pragma clang diagnostic ignored "-Wnullability-completeness"
+	#elif defined __GNUC__
+		#pragma GCC system_header
+	#endif
+
 	#include "RmlUi_DirectX\D3D12MemAlloc.cpp"
 	#include "RmlUi_DirectX\offsetAllocator.cpp"
+
+
+#if defined _MSC_VER
+		#pragma warning(pop)
+	#elif defined __clang__
+		#pragma clang diagnostic pop
+	#endif
 
 /// @brief in bytes see pShaderSourceText_Vertex - > cbuffer ConstantBuffer : register(b0)
 constexpr uint32_t kAllocationSize_ConstantBuffer_Vertex_Main = 72;
@@ -482,17 +502,6 @@ static Rml::Colourf ConvertToColorf(Rml::ColourbPremultiplied c0)
 	return result;
 }
 
-static Rml::Colourf ToPremultipliedAlpha(Rml::Colourb c0)
-{
-	RMLUI_ZoneScopedN("DirectX 12 - ToPremultipliedAlpha");
-	Rml::Colourf result;
-	result.alpha = (1.f / 255.f) * float(c0.alpha);
-	result.red = (1.f / 255.f) * float(c0.red) * result.alpha;
-	result.green = (1.f / 255.f) * float(c0.green) * result.alpha;
-	result.blue = (1.f / 255.f) * float(c0.blue) * result.alpha;
-	return result;
-}
-
 /// Flip vertical axis of the rectangle, and move its origin to the vertically opposite side of the viewport.
 /// @note Changes coordinate system from RmlUi to OpenGL, or equivalently in reverse.
 /// @note The Rectangle::Top and Rectangle::Bottom members will have reverse meaning in the returned rectangle.
@@ -795,7 +804,7 @@ static constexpr int NUM_MSAA_SAMPLES = 2;
 	    // example UTF8: RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, u8"::RenderGeometry");
 		#define RMLUI_DX_MARKER_BEGIN(list, name) \
 			if (list)                             \
-				list->BeginEvent(1, reinterpret_cast<const char*>(name), strlen(name) + 1);
+				list->BeginEvent(1, reinterpret_cast<const char*>(name), static_cast<UINT>(strlen(name) + 1));
 		#define RMLUI_DX_MARKER_END(list) \
 			if (list)                     \
 				list->EndEvent();
@@ -1270,7 +1279,7 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 
 			view_index_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + p_handle_geometry->Get_InfoIndex().Get_Offset();
 			view_index_buffer.Format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT;
-			view_index_buffer.SizeInBytes = p_handle_geometry->Get_InfoIndex().Get_Size();
+			view_index_buffer.SizeInBytes = static_cast<UINT>(p_handle_geometry->Get_InfoIndex().Get_Size());
 
 			this->m_p_command_graphics_list->IASetIndexBuffer(&view_index_buffer);
 		}
@@ -1676,7 +1685,7 @@ Rml::LayerHandle RenderInterface_DX12::RenderLayerStack::PushLayer()
 		this->m_fb_layers.push_back(Gfx::FramebufferData{});
 		auto* p_buffer = &this->m_fb_layers.back();
 		this->CreateFramebuffer(p_buffer, m_width, m_height, this->m_msaa_sample_count, false);
-		p_buffer->Set_ID(this->m_fb_layers.size() - 1);
+		p_buffer->Set_ID(static_cast<int>(this->m_fb_layers.size() - 1));
 
 	#ifdef RMLUI_DX_DEBUG
 		wchar_t framebuffer_name[32];
@@ -2212,7 +2221,7 @@ void RenderInterface_DX12::OverrideConstantBufferOfGeometry(Rml::CompiledGeometr
 		}
 		default:
 		{
-			RMLUI_ASSERT(false && "FATAL YOU FORGOT TO REGISTER CONSTANT BUFFER OVERRIDE SITUATION!");
+			RMLUI_ASSERT(!"FATAL YOU FORGOT TO REGISTER CONSTANT BUFFER OVERRIDE SITUATION!");
 			break;
 		}
 		}
@@ -2247,7 +2256,11 @@ unsigned char RenderInterface_DX12::GetMSAASupportedSampleCount(unsigned char ma
 	#endif
 
 				if (desc.SampleCount > max_result)
-					max_result = desc.SampleCount;
+				{
+					RMLUI_ASSERT(desc.SampleCount <= std::numeric_limits<unsigned char>::max() &&
+						"report to developers, it is serious but in reality > 32 is not realistic at all");
+					max_result = static_cast<unsigned char>(desc.SampleCount);
+				}
 
 	#ifndef RMLUI_DEBUG
 				// on debug we accumulate information about all possible (for debug purposes) max sample sample_counts[0] = false always be false due
@@ -2378,7 +2391,7 @@ void RenderInterface_DX12::BlitFramebuffer(const Gfx::FramebufferData& source, c
 	}
 	else
 	{
-		RMLUI_ASSERT(false && "use resolvesubresource manually! don't call this method for handling resolvesubresource!!!");
+		RMLUI_ASSERT(!"use resolvesubresource manually! don't call this method for handling resolvesubresource!!!");
 	}
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
@@ -2545,9 +2558,9 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 			// we expect only committed allocated resources
 			this->ValidateTextureAllocationNotAsPlaced(source_destination);
 	#endif
-			ID3D12Resource* p_resource = this->GetResourceFromFramebufferData(source_destination);
+			ID3D12Resource* p_resource_sd = this->GetResourceFromFramebufferData(source_destination);
 
-			RMLUI_ASSERT(p_resource && "failed to obtain resource from source_destination framebuffer!");
+			RMLUI_ASSERT(p_resource_sd && "failed to obtain resource from source_destination framebuffer!");
 		}
 		else
 		{
@@ -2555,9 +2568,9 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 			// we expect only committed allocated resources
 			this->ValidateTextureAllocationNotAsPlaced(temp);
 	#endif
-			ID3D12Resource* p_resource = this->GetResourceFromFramebufferData(temp);
+			ID3D12Resource* p_resource_t = this->GetResourceFromFramebufferData(temp);
 
-			RMLUI_ASSERT(p_resource && "failed to obtain resource from temp framebuffer!");
+			RMLUI_ASSERT(p_resource_t && "failed to obtain resource from temp framebuffer!");
 		}
 
 		bars[0].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -3644,6 +3657,9 @@ void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle,
 	RMLUI_ASSERT(shader_handle && geometry_handle);
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "RenderShader");
 
+	// fixing unreferenced parameter
+	(void)(texture);
+
 	const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
 	const CompiledShaderType type = shader.type;
 	const GeometryHandleType* geometry = reinterpret_cast<GeometryHandleType*>(geometry_handle);
@@ -3762,7 +3778,7 @@ void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle,
 
 				view_index_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + geometry->Get_InfoIndex().Get_Offset();
 				view_index_buffer.Format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT;
-				view_index_buffer.SizeInBytes = geometry->Get_InfoIndex().Get_Size();
+				view_index_buffer.SizeInBytes = static_cast<UINT>(geometry->Get_InfoIndex().Get_Size());
 
 				this->m_p_command_graphics_list->IASetIndexBuffer(&view_index_buffer);
 			}
@@ -3873,7 +3889,7 @@ void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle,
 
 				view_index_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + geometry->Get_InfoIndex().Get_Offset();
 				view_index_buffer.Format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT;
-				view_index_buffer.SizeInBytes = geometry->Get_InfoIndex().Get_Size();
+				view_index_buffer.SizeInBytes = static_cast<UINT>(geometry->Get_InfoIndex().Get_Size());
 
 				this->m_p_command_graphics_list->IASetIndexBuffer(&view_index_buffer);
 			}
@@ -4412,8 +4428,6 @@ void RenderInterface_DX12::BeginFrame_Shell()
 
 		this->m_stencil_ref_value = 0;
 
-		D3D12_RECT scissor;
-
 		if (this->m_is_scissor_was_set)
 		{
 			this->m_is_scissor_was_set = false;
@@ -4448,7 +4462,7 @@ void RenderInterface_DX12::BeginFrame_Integration()
 
 	if (!this->m_is_command_list_user)
 	{
-		RMLUI_ASSERT(false && "not tested yet");
+		RMLUI_ASSERT(!"not tested yet");
 
 		auto* p_command_allocator = this->m_backbuffers_allocators.at(this->m_current_back_buffer_index);
 
@@ -4471,8 +4485,6 @@ void RenderInterface_DX12::BeginFrame_Integration()
 		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "BeginFrame");
 
 		this->m_stencil_ref_value = 0;
-
-		D3D12_RECT scissor;
 
 		if (this->m_is_scissor_was_set)
 		{
@@ -4777,7 +4789,7 @@ void RenderInterface_DX12::EndFrame_Integration()
 
 		if (this->m_is_execute_when_end_frame_issued)
 		{
-			RMLUI_ASSERT(false && "not tested yet");
+			RMLUI_ASSERT(!"not tested yet");
 			RMLUI_DX_ASSERTMSG(this->m_p_command_graphics_list->Close(), "failed to Close");
 		}
 
@@ -4795,7 +4807,7 @@ void RenderInterface_DX12::EndFrame_Integration()
 
 		if (this->m_is_execute_when_end_frame_issued)
 		{
-			RMLUI_ASSERT(false && "not tested yet");
+			RMLUI_ASSERT(!"not tested yet");
 
 			auto fence_value = this->Signal(this->m_current_back_buffer_index);
 
@@ -4855,7 +4867,7 @@ void RenderInterface_DX12::Clear_Shell()
 	this->m_p_command_graphics_list->ClearRenderTargetView(rtv, clear_color, 0, nullptr);
 
 	auto& p_current_rtv = this->m_manager_render_layer.GetTopLayer().Get_DescriptorResourceView();
-	auto& p_current_dsv = this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
+	//	auto& p_current_dsv = this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
 
 	constexpr FLOAT clear_color_framebuffer[] = {0.0f, 0.0f, 0.0f, 0.0f};
 	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color_framebuffer, 0, nullptr);
@@ -4907,7 +4919,7 @@ void RenderInterface_DX12::Clear_Integration()
 	//	this->m_p_command_graphics_list->ClearRenderTargetView(*rtv_handle, no_color, 0, nullptr);
 
 	auto& p_current_rtv = this->m_manager_render_layer.GetTopLayer().Get_DescriptorResourceView();
-	auto& p_current_dsv = this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
+	//	auto& p_current_dsv = this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
 
 	constexpr FLOAT clear_color_framebuffer[] = {0.0f, 0.0f, 0.0f, 0.0f};
 	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color_framebuffer, 0, nullptr);
@@ -5021,7 +5033,6 @@ void RenderInterface_DX12::Initialize_Device(void) noexcept
 
 		if (p_sdk_device)
 		{
-			D3D12_DEBUG_FEATURE a = p_sdk_device->GetFeatureMask();
 			status = p_sdk_device->SetFeatureMask(D3D12_DEBUG_FEATURE_CONSERVATIVE_RESOURCE_STATE_TRACKING);
 			RMLUI_DX_ASSERTMSG(status, "failed to enable feature conservative resource state tracking");
 
@@ -5195,7 +5206,7 @@ void RenderInterface_DX12::Initialize_SyncPrimitives(void) noexcept
 			this->m_p_device->CreateFence(0, D3D12_FENCE_FLAGS::D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&this->m_p_backbuffer_fence));
 
 			this->m_p_fence_event = CreateEvent(NULL, FALSE, FALSE, NULL);
-			RMLUI_DX_ASSERTMSG(this->m_p_fence_event, "failed to CreateEvent (WinAPI)");
+			RMLUI_ASSERT(this->m_p_fence_event && "failed to CreateEvent (WinAPI)");
 		}
 	}
 }
@@ -5267,7 +5278,7 @@ void RenderInterface_DX12::Destroy_CommandAllocators(void) noexcept
 	RMLUI_ZoneScopedN("DirectX 12 - Destroy_CommandAllocators");
 	for (ID3D12CommandAllocator* p_allocator : this->m_backbuffers_allocators)
 	{
-		RMLUI_ASSERT(p_allocator, "early calling or object is damaged!");
+		RMLUI_ASSERT(p_allocator && "early calling or object is damaged!");
 		if (p_allocator)
 		{
 			auto ref_count = p_allocator->Release();
@@ -5294,7 +5305,7 @@ void RenderInterface_DX12::Destroy_Allocator(void) noexcept
 void RenderInterface_DX12::Flush() noexcept
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Flush");
-	auto value = this->Signal(this->m_current_back_buffer_index);
+	this->Signal(this->m_current_back_buffer_index);
 	RMLUI_ASSERT(this->m_p_backbuffer_fence && "you must initialize ID3D12Fence first!");
 	RMLUI_ASSERT(this->m_p_fence_event && "you must initialize fence event (HANDLE)");
 
@@ -8351,17 +8362,10 @@ void RenderInterface_DX12::Destroy_Resource_Pipelines()
 
 		if (this->m_root_signatures[i])
 		{
-			auto ref_count = this->m_root_signatures[i]->Release();
+			this->m_root_signatures[i]->Release();
 			this->m_root_signatures[i] = nullptr;
 		}
 	}
-}
-
-ID3DBlob* RenderInterface_DX12::Compile_Shader(const Rml::String& relative_path_to_shader, const char* entry_point, const char* shader_version,
-	UINT flags)
-{
-	RMLUI_ZoneScopedN("DirectX 12 - Compile_Shader");
-	return nullptr;
 }
 
 bool RenderInterface_DX12::CheckTearingSupport() noexcept
@@ -8525,7 +8529,7 @@ void RenderInterface_DX12::PrintAdapterDesc(IDXGIAdapter* p_adapter)
 		p_converted = desc.Description;
 	#endif
 
-		float vid_mem_in_bytes = desc.DedicatedVideoMemory;
+		float vid_mem_in_bytes = static_cast<float>(desc.DedicatedVideoMemory);
 		float vid_mem_in_kilobytes = vid_mem_in_bytes / 1024.0f;
 		float vid_mem_in_megabytes = vid_mem_in_kilobytes / 1024.0f;
 		float vid_mem_in_gigabytes = vid_mem_in_megabytes / 1024.0f;
@@ -8588,8 +8592,6 @@ void RenderInterface_DX12::SubmitTransformUniform(ConstantBufferType& constant_b
 	RMLUI_ZoneScopedN("DirectX 12 - SubmitTransformUniform");
 	static_assert((size_t)ProgramId::Count < RMLUI_RENDER_BACKEND_FIELD_MAXNUMPROGRAMS, "Maximum number of pipelines exceeded");
 
-	size_t program_index = (size_t)this->m_active_program_id;
-
 	std::uint8_t* p_gpu_binding_start = reinterpret_cast<std::uint8_t*>(constant_buffer.Get_GPU_StartMemoryForBindingData());
 
 	{
@@ -8646,7 +8648,7 @@ RenderInterface_DX12::ConstantBufferType* RenderInterface_DX12::Get_ConstantBuff
 	auto max_index = RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS - 1;
 
 	if (this->m_constantbuffers[current_back_buffer_index].size() > RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS)
-		max_index = this->m_constantbuffers[current_back_buffer_index].size() - 1;
+		max_index = static_cast<int>(this->m_constantbuffers[current_back_buffer_index].size() - 1);
 
 	if (current_constant_buffer_index > max_index)
 	{
@@ -8680,6 +8682,7 @@ RenderInterface_DX12::ConstantBufferType* RenderInterface_DX12::Get_ConstantBuff
 RenderInterface_DX12* RmlDX12::Initialize(Rml::String* out_message, Backend::RmlRenderInitInfo* p_info)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - RmlDX12::Initialize");
+	(void)(out_message);
 	RenderInterface_DX12* p_result{};
 
 	if (p_info)
@@ -9175,8 +9178,8 @@ D3D12MA::VirtualBlock* RenderInterface_DX12::BufferMemoryManager::Get_NotOutOfMe
 {
 	RMLUI_ZoneScopedN("DirectX 12 - BufferMemoryManager::Get_NotOutOfMemoryAndAvailableBlock");
 	RMLUI_ASSERT(result_index && "must be valid part of memory!");
-	RMLUI_ASSERT(*result_index != -1,
-		"use this method when you found of available block then tried to allocate from it but got out of memory status!");
+	RMLUI_ASSERT(
+		*result_index != -1 && "use this method when you found of available block then tried to allocate from it but got out of memory status!");
 
 	D3D12MA::VirtualBlock* p_result{};
 
@@ -9260,7 +9263,7 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 							std::wstring(L"buffer[") + std::to_wstring(this->m_buffers.size()) + L"]"
 #endif
 						);
-						result_index = this->m_buffers.size() - 1;
+						result_index = static_cast<int>(this->m_buffers.size() - 1);
 					}
 
 					p_block = this->m_virtual_buffers.at(result_index);
@@ -9271,13 +9274,13 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 					if (alignment % 2 == 0)
 						desc_alloc.Alignment = alignment;
 
-					auto status = p_block->Allocate(&desc_alloc, &alloc, &offset);
+					auto status_allocation = p_block->Allocate(&desc_alloc, &alloc, &offset);
 
-					if (status == E_OUTOFMEMORY)
+					if (status_allocation == E_OUTOFMEMORY)
 					{
 						continue;
 					}
-					else if (status == S_OK)
+					else if (status_allocation == S_OK)
 					{
 						bWasSucFoundInLoop = true;
 						break;
@@ -9285,7 +9288,7 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 #ifdef RMLUI_DX_DEBUG
 					else
 					{
-						RMLUI_ASSERT(false && "report to github");
+						RMLUI_ASSERT(!"report to github");
 					}
 #endif
 				}
@@ -9317,7 +9320,7 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 							std::wstring(L"buffer[") + std::to_wstring(this->m_buffers.size()) + L"]"
 #endif
 						);
-						result_index = this->m_buffers.size() - 1;
+						result_index = static_cast<int>(this->m_buffers.size() - 1);
 					}
 
 					p_block = this->m_virtual_buffers.at(result_index);
@@ -9328,13 +9331,13 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 					if (alignment % 2 == 0)
 						desc_alloc.Alignment = alignment;
 
-					auto status = p_block->Allocate(&desc_alloc, &alloc, &offset);
+					auto status_allocation = p_block->Allocate(&desc_alloc, &alloc, &offset);
 
-					if (status == E_OUTOFMEMORY)
+					if (status_allocation == E_OUTOFMEMORY)
 					{
 						continue;
 					}
-					else if (status == S_OK)
+					else if (status_allocation == S_OK)
 					{
 						bWasSucFoundInLoop = true;
 						break;
@@ -9342,7 +9345,7 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 #ifdef RMLUI_DX_DEBUG
 					else
 					{
-						RMLUI_ASSERT(false && "report to github");
+						RMLUI_ASSERT(!"report to github");
 					}
 #endif
 				}
@@ -9423,7 +9426,7 @@ void RenderInterface_DX12::BufferMemoryManager::TryToFreeAvailableBlock()
 	}
 
 	int total_count{};
-	int limit_for_break{max_for_free.size()};
+	int limit_for_break{static_cast<int>(max_for_free.size())};
 	int index{};
 
 	for (auto cur = this->m_virtual_buffers.begin(); cur != this->m_virtual_buffers.end(); ++cur)
@@ -9440,10 +9443,10 @@ void RenderInterface_DX12::BufferMemoryManager::TryToFreeAvailableBlock()
 			if (stats.AllocationCount == 0 && stats.BlockCount == 0)
 			{
 				auto ref_count = p_block->Release();
-				RMLUI_ASSERT(ref_count == 0, "leak");
+				RMLUI_ASSERT(ref_count == 0 && "leak");
 
 				ref_count = this->m_buffers.at(index).first->Release();
-				RMLUI_ASSERT(ref_count == 0, "leak");
+				RMLUI_ASSERT(ref_count == 0 && "leak");
 
 				this->m_buffers.at(index).second = nullptr;
 
@@ -9494,7 +9497,7 @@ void RenderInterface_DX12::TextureMemoryManager::Initialize(D3D12MA::Allocator* 
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::Initialize");
 	RMLUI_ASSERT(p_allocator && "you must pass a valid allocator pointer");
 	RMLUI_ASSERT(size_for_placed_heap > 0 && "there's no point in creating in such small heap");
-	RMLUI_ASSERT(size_for_placed_heap != size_t(-1), "invalid value!");
+	RMLUI_ASSERT(size_for_placed_heap != size_t(-1) && "invalid value!");
 	RMLUI_ASSERT(p_device && "must be valid!");
 	RMLUI_ASSERT(p_command_list && "must be valid!");
 	RMLUI_ASSERT(p_allocator_command && "must be valid!");
@@ -9535,7 +9538,7 @@ void RenderInterface_DX12::TextureMemoryManager::Initialize(D3D12MA::Allocator* 
 	RMLUI_ASSERT(this->m_size_srv_cbv_uav_descriptor > 0 && "must be positive");
 	RMLUI_ASSERT(this->m_size_rtv_descriptor > 0 && "must be positive");
 
-	RMLUI_ASSERT(this->m_size_limit_for_being_placed > 0 && this->m_size_limit_for_being_placed != size_t(-1), "something is wrong!");
+	RMLUI_ASSERT(this->m_size_limit_for_being_placed > 0 && this->m_size_limit_for_being_placed != size_t(-1) && "something is wrong!");
 
 	if (this->m_p_device)
 	{
@@ -9632,6 +9635,10 @@ ID3D12Resource* RenderInterface_DX12::TextureMemoryManager::Alloc_Texture(D3D12_
 #endif
 )
 {
+#ifdef RMLUI_DX_DEBUG
+	(void)(debug_name);
+#endif
+
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::Alloc_Texture");
 	RMLUI_ASSERT(desc.Dimension == D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
 		"this manager doesn't support 1D or 3D textures. (why do we need to support it?)");
@@ -9689,6 +9696,10 @@ ID3D12Resource* RenderInterface_DX12::TextureMemoryManager::Alloc_Texture(D3D12_
 #endif
 )
 {
+#ifdef RMLUI_DX_DEBUG
+	(void)(debug_name);
+#endif
+
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::Alloc_Texture");
 	RMLUI_ASSERT(desc.Dimension == D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
 		"this manager doesn't support 1D or 3D textures. (why do we need to support it?)");
@@ -9826,9 +9837,9 @@ void RenderInterface_DX12::TextureMemoryManager::Free_Texture(TextureHandleType*
 bool RenderInterface_DX12::TextureMemoryManager::CanAllocate(size_t total_memory_for_allocation, D3D12MA::VirtualBlock* p_block)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::CanAllocate(size_t, D3D12MA::VirtualBlock)");
-	RMLUI_ASSERT(total_memory_for_allocation > 0 && total_memory_for_allocation != size_t(-1), "must be a valid number!");
+	RMLUI_ASSERT(total_memory_for_allocation > 0 && total_memory_for_allocation != size_t(-1) && "must be a valid number!");
 
-	RMLUI_ASSERT(p_block, "must be valid virtual block");
+	RMLUI_ASSERT(p_block && "must be valid virtual block");
 
 	bool result{};
 
@@ -9846,7 +9857,7 @@ bool RenderInterface_DX12::TextureMemoryManager::CanAllocate(size_t total_memory
 bool RenderInterface_DX12::TextureMemoryManager::CanBePlacedResource(size_t total_memory_for_allocation)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::CanBePlacedResource");
-	RMLUI_ASSERT(total_memory_for_allocation > 0 && total_memory_for_allocation != size_t(-1), "must be a valid number!");
+	RMLUI_ASSERT(total_memory_for_allocation > 0 && total_memory_for_allocation != size_t(-1) && "must be a valid number!");
 
 	bool result{};
 
@@ -9859,8 +9870,8 @@ bool RenderInterface_DX12::TextureMemoryManager::CanBePlacedResource(size_t tota
 bool RenderInterface_DX12::TextureMemoryManager::CanBeSmallResource(size_t base_memory)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::CanBeSmallResource");
-	RMLUI_ASSERT(base_memory > 0, "must be greater than zero!");
-	RMLUI_ASSERT(base_memory != size_t(-1), "must be a valid number!");
+	RMLUI_ASSERT(base_memory > 0 && "must be greater than zero!");
+	RMLUI_ASSERT(base_memory != size_t(-1) && "must be a valid number!");
 
 	bool result{};
 
@@ -9876,16 +9887,17 @@ bool RenderInterface_DX12::TextureMemoryManager::CanBeSmallResource(size_t base_
 D3D12MA::VirtualBlock* RenderInterface_DX12::TextureMemoryManager::Get_AvailableBlock(size_t total_memory_for_allocation, int* result_index)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::Get_AvailableBlock");
-	RMLUI_ASSERT(this->m_p_device, "must be valid!");
-	RMLUI_ASSERT(result_index, "must be valid!");
-	RMLUI_ASSERT(total_memory_for_allocation <= this->m_size_limit_for_being_placed, "you can't pass a such size here!");
-	RMLUI_ASSERT(this->m_size_limit_for_being_placed < this->m_size_for_placed_heap, "something is wrong and you initialized your manager wrong!!!!");
+	RMLUI_ASSERT(this->m_p_device && "must be valid!");
+	RMLUI_ASSERT(result_index && "must be valid!");
+	RMLUI_ASSERT(total_memory_for_allocation <= this->m_size_limit_for_being_placed && "you can't pass a such size here!");
+	RMLUI_ASSERT(
+		this->m_size_limit_for_being_placed < this->m_size_for_placed_heap && "something is wrong and you initialized your manager wrong!!!!");
 
 	D3D12MA::VirtualBlock* p_result{};
 
 	if (this->m_blocks.empty())
 	{
-		RMLUI_ASSERT(this->m_heaps_placed.empty(), "if blocks are empty heaps must be too!");
+		RMLUI_ASSERT(this->m_heaps_placed.empty() && "if blocks are empty heaps must be too!");
 
 		auto pair = this->Create_HeapPlaced(this->m_size_for_placed_heap);
 
@@ -9959,14 +9971,14 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(size_t base_
 
 		if (this->m_p_command_allocator)
 		{
-			auto status = this->m_p_command_allocator->Reset();
-			RMLUI_DX_ASSERTMSG(status, "failed to Reset (command allocator)");
+			auto status_reset = this->m_p_command_allocator->Reset();
+			RMLUI_DX_ASSERTMSG(status_reset, "failed to Reset (command allocator)");
 		}
 
 		if (this->m_p_command_list)
 		{
-			auto status = this->m_p_command_list->Reset(this->m_p_command_allocator, nullptr);
-			RMLUI_DX_ASSERTMSG(status, "failed to Reset (command list)");
+			auto status_reset = this->m_p_command_list->Reset(this->m_p_command_allocator, nullptr);
+			RMLUI_DX_ASSERTMSG(status_reset, "failed to Reset (command list)");
 		}
 
 		this->Upload(true, p_impl, desc, p_data, p_resource);
@@ -9977,15 +9989,15 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(size_t base_
 	D3D12_RESOURCE_STATES initial_state, TextureHandleType* p_texture, Gfx::FramebufferData* p_impl)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::Alloc_As_Committed");
-	RMLUI_ASSERT(base_memory > 0, "must be greater than zero!");
-	RMLUI_ASSERT(total_memory > 0, "must be greater than zero!");
-	RMLUI_ASSERT(base_memory != size_t(-1), "must be valid number!");
-	RMLUI_ASSERT(total_memory != size_t(-1), "must be valid number!");
-	RMLUI_ASSERT(this->m_p_device, "must be valid!");
-	RMLUI_ASSERT(p_impl, "must be valid!");
-	RMLUI_ASSERT(this->m_p_command_allocator, "must be valid!");
-	RMLUI_ASSERT(this->m_p_command_list, "must be valid!");
-	RMLUI_ASSERT(this->m_p_allocator, "allocator must be valid!");
+	RMLUI_ASSERT(base_memory > 0 && "must be greater than zero!");
+	RMLUI_ASSERT(total_memory > 0 && "must be greater than zero!");
+	RMLUI_ASSERT(base_memory != size_t(-1) && "must be valid number!");
+	RMLUI_ASSERT(total_memory != size_t(-1) && "must be valid number!");
+	RMLUI_ASSERT(this->m_p_device && "must be valid!");
+	RMLUI_ASSERT(p_impl && "must be valid!");
+	RMLUI_ASSERT(this->m_p_command_allocator && "must be valid!");
+	RMLUI_ASSERT(this->m_p_command_list && "must be valid!");
+	RMLUI_ASSERT(this->m_p_allocator && "allocator must be valid!");
 	RMLUI_ASSERT(p_texture && "must be valid!");
 
 	if (this->m_p_allocator)
@@ -10047,9 +10059,10 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(size_t base_
 
 		desc_srv.Texture2D.MipLevels = desc.MipLevels;
 
-		RMLUI_ASSERT(is_rt || is_ds && "this method for dsv or rtv resources");
+		RMLUI_ASSERT((is_rt || is_ds) && "this method for dsv or rtv resources");
 
-		auto descriptor_allocation = this->m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav->allocate(this->m_size_srv_cbv_uav_descriptor);
+		auto descriptor_allocation = this->m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav->allocate(
+			static_cast<OffsetAllocator::uint32>(this->m_size_srv_cbv_uav_descriptor));
 
 		auto offset_pointer = SIZE_T(INT64(this->m_p_handle->ptr)) + INT64(descriptor_allocation.offset);
 		D3D12_CPU_DESCRIPTOR_HANDLE cast_offset_pointer;
@@ -10069,14 +10082,14 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 	TextureHandleType* p_impl, const Rml::byte* p_data)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::Alloc_As_Placed");
-	RMLUI_ASSERT(base_memory > 0, "must be greater than zero!");
-	RMLUI_ASSERT(total_memory > 0, "must be greater than zero!");
-	RMLUI_ASSERT(base_memory != size_t(-1), "must be valid number!");
-	RMLUI_ASSERT(total_memory != size_t(-1), "must be valid number!");
-	RMLUI_ASSERT(this->m_p_device, "must be valid!");
-	RMLUI_ASSERT(p_impl, "must be valid!");
-	RMLUI_ASSERT(this->m_p_command_allocator, "must be valid!");
-	RMLUI_ASSERT(this->m_p_command_list, "must be valid!");
+	RMLUI_ASSERT(base_memory > 0 && "must be greater than zero!");
+	RMLUI_ASSERT(total_memory > 0 && "must be greater than zero!");
+	RMLUI_ASSERT(base_memory != size_t(-1) && "must be valid number!");
+	RMLUI_ASSERT(total_memory != size_t(-1) && "must be valid number!");
+	RMLUI_ASSERT(this->m_p_device && "must be valid!");
+	RMLUI_ASSERT(p_impl && "must be valid!");
+	RMLUI_ASSERT(this->m_p_command_allocator && "must be valid!");
+	RMLUI_ASSERT(this->m_p_command_list && "must be valid!");
 
 	D3D12_RESOURCE_ALLOCATION_INFO info_for_alloc{};
 
@@ -10224,14 +10237,14 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 
 	if (this->m_p_command_allocator)
 	{
-		auto status = this->m_p_command_allocator->Reset();
-		RMLUI_DX_ASSERTMSG(status, "failed to Reset (command allocator)");
+		auto status_reset = this->m_p_command_allocator->Reset();
+		RMLUI_DX_ASSERTMSG(status_reset, "failed to Reset (command allocator)");
 	}
 
 	if (this->m_p_command_list)
 	{
-		auto status = this->m_p_command_list->Reset(this->m_p_command_allocator, nullptr);
-		RMLUI_DX_ASSERTMSG(status, "failed to Reset (command list)");
+		auto status_reset = this->m_p_command_list->Reset(this->m_p_command_allocator, nullptr);
+		RMLUI_DX_ASSERTMSG(status_reset, "failed to Reset (command list)");
 
 		this->m_p_command_list->ResourceBarrier(1, &bar);
 	}
@@ -10313,7 +10326,8 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 	desc_srv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	desc_srv.Texture2D.MipLevels = desc.MipLevels;
 
-	auto descriptor_allocation = this->m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav->allocate(this->m_size_srv_cbv_uav_descriptor);
+	auto descriptor_allocation = this->m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav->allocate(
+		static_cast<OffsetAllocator::uint32>(this->m_size_srv_cbv_uav_descriptor));
 
 	auto offset_pointer = SIZE_T(INT64(this->m_p_handle->ptr) + INT64(descriptor_allocation.offset));
 	D3D12_CPU_DESCRIPTOR_HANDLE cast_offset_pointer;
@@ -10353,7 +10367,7 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 		}
 
 		auto ref_count = p_allocation->Release();
-		RMLUI_ASSERT(ref_count == 0, "leak!");
+		RMLUI_ASSERT(ref_count == 0 && "leak!");
 	}
 }
 
@@ -10497,8 +10511,7 @@ size_t RenderInterface_DX12::TextureMemoryManager::BitsPerPixel(DXGI_FORMAT form
 
 	default:
 	{
-		RMLUI_ASSERT(
-			false && "failed to determine texture type that wasn't registered report to developers (https://github.com/mikke89/RmlUi/issues)");
+		RMLUI_ASSERT(!"failed to determine texture type that wasn't registered report to developers (https://github.com/mikke89/RmlUi/issues)");
 		return 0;
 	}
 	}
@@ -10506,8 +10519,10 @@ size_t RenderInterface_DX12::TextureMemoryManager::BitsPerPixel(DXGI_FORMAT form
 
 Rml::Pair<ID3D12Heap*, D3D12MA::VirtualBlock*> RenderInterface_DX12::TextureMemoryManager::Create_HeapPlaced(size_t size_for_creation)
 {
+	(void)(size_for_creation);
+
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::Create_HeapPlaced");
-	RMLUI_ASSERT(this->m_p_device, "must be valid!");
+	RMLUI_ASSERT(this->m_p_device && "must be valid!");
 
 	D3D12MA::VIRTUAL_BLOCK_DESC desc_block{};
 
