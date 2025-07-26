@@ -10,7 +10,7 @@
 // #include "RmlUi_Platform_GLFW.h"
 // #include "RmlUi_Platform_X11.h"
 
-#define FIX_UNUSED(word)
+#define FIX_UNUSED(word) (void)(word)
 
 namespace Backend {
 Backend::Type ___renderer_type = Backend::Type::Unknown;
