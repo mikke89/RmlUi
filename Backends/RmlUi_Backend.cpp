@@ -140,8 +140,6 @@ Rml::Context* Initialize(RmlRenderInitInfo* p_info)
 		return nullptr;
 	}
 	}
-
-	return nullptr;
 }
 
 void Resize(Rml::Context* p_context, int width, int height)
