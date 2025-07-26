@@ -49,12 +49,14 @@ Rml::Context* Initialize(RmlRenderInitInfo* p_info)
 		}
 		case Backend::TypeSystemInterface::Native_Win32:
 		{
+#ifdef RMLUI_PLATFORM_WIN32
 			SystemInterface_Win32* p_instance = new SystemInterface_Win32();
 
 			if (p_instance)
 				p_instance->SetWindow(static_cast<HWND>(p_info->p_native_window_handle));
 
 			p_system_interface = p_instance;
+#endif
 			break;
 		}
 		case Backend::TypeSystemInterface::Native_Linux:
