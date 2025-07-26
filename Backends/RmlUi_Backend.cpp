@@ -97,7 +97,11 @@ Rml::Context* Initialize(RmlRenderInitInfo* p_info)
 
 		RMLUI_ASSERTMSG(p_system_interface, "failed to create Rml::SystemInterface");
 
+#ifdef RMLUI_PLATFORM_WIN32
 		return Backend::DX12::Initialize(p_info, p_system_interface);
+#else
+		return nullptr;
+#endif
 	}
 	case Backend::Type::DirectX_11:
 	{
@@ -155,7 +159,10 @@ void Resize(Rml::Context* p_context, int width, int height)
 	{
 	case Backend::Type::DirectX_12:
 	{
+#ifdef RMLUI_PLATFORM_WIN32
 		Backend::DX12::Resize(p_context, width, height);
+#endif
+
 		break;
 	}
 	case Backend::Type::DirectX_11:
@@ -214,7 +221,10 @@ void Shutdown()
 	{
 	case Backend::Type::DirectX_12:
 	{
+#ifdef RMLUI_PLATFORM_WIN32
 		Backend::DX12::Shutdown();
+#endif
+
 		break;
 	}
 	case Backend::Type::DirectX_11:
@@ -273,7 +283,10 @@ void BeginFrame(void* p_input_rtv, void* p_input_dsv, unsigned char current_fram
 	{
 	case Backend::Type::DirectX_12:
 	{
+#ifdef RMLUI_PLATFORM_WIN32
 		Backend::DX12::BeginFrame(p_input_rtv, p_input_dsv, current_framebuffer_index);
+#endif
+
 		break;
 	}
 	case Backend::Type::DirectX_11:
@@ -332,7 +345,10 @@ void EndFrame()
 	{
 	case Backend::Type::DirectX_12:
 	{
+#ifdef RMLUI_PLATFORM_WIN32
 		Backend::DX12::EndFrame();
+#endif
+
 		break;
 	}
 	case Backend::Type::DirectX_11:
@@ -389,7 +405,9 @@ void Backend::ProcessEvents(Rml::Context* context, const RmlProcessEventInfo& in
 	{
 	case Backend::Type::DirectX_12:
 	{
+#ifdef RMLUI_PLATFORM_WIN32
 		Backend::DX12::ProcessEvents(context, ___renderer_key_down_callback, info, power_save);
+#endif
 
 		break;
 	}
