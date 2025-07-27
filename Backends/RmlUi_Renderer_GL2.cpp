@@ -363,18 +363,18 @@ bool RenderInterface_GL2::CaptureScreen(int& width, int& height, int& num_compon
 	height = -1;
 	raw_pixels = nullptr;
 	pixels_count = 0;
-	
-	int _num_components = 3;
+
+	int _num_components = 4;
 	int _width = viewport[2];
 	int _height = viewport[3];
-	
+
 	if (_width < 1 || _height < 1)
 		return result;
 
 	const int byte_size = _width * _height * _num_components;
 	Rml::byte* p_data = new Rml::byte[byte_size];
 
-	glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, p_data);
+	glReadPixels(0, 0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, p_data);
 
 	result = true;
 	GLenum err;
@@ -391,7 +391,7 @@ bool RenderInterface_GL2::CaptureScreen(int& width, int& height, int& num_compon
 
 	if (result)
 	{
-		num_components = 3;
+		num_components = _num_components;
 		width = viewport[2];
 		height = viewport[3];
 		raw_pixels = p_data;

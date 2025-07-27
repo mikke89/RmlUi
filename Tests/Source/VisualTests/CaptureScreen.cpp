@@ -76,9 +76,10 @@ bool CaptureScreenshot(Rml::RenderInterface* p_render_interface, const Rml::Stri
 			image.data[yb + xb] = image_orig.data[yb_orig + xb];
 		}
 	}
-
+	
 	const Rml::String output_path = GetCaptureOutputDirectory() + "/" + filename;
-	unsigned int lodepng_result = lodepng_encode24_file(output_path.c_str(), image.data.get(), image.width, image.height);
+	unsigned int lodepng_result = lodepng_encode32_file(output_path.c_str(), image.data.get(), image.width, image.height);
+
 	if (lodepng_result)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not write the captured screenshot to %s: %s", output_path.c_str(),
