@@ -186,40 +186,40 @@ TEST_CASE("LayoutIsolation.InsideOutsideFormattingContexts")
 	{
 		Element* element = document->GetElementById("flex-item");
 		Element* next_sibling = element->GetNextSibling();
-		Element* next_outside_overflow = document->GetElementById("normal-container");
-		REQUIRE(element);
-		REQUIRE(next_sibling);
-		REQUIRE(next_outside_overflow);
+		Element* normal_container = document->GetElementById("normal-container");
+		Element* normal_item = document->GetElementById("normal-item");
 
 		const Vector2f absolute_offset_element = element->GetAbsoluteOffset();
 		const Vector2f absolute_offset_next_sibling = next_sibling->GetAbsoluteOffset();
-		const Vector2f absolute_offset_next_outside_overflow = next_outside_overflow->GetAbsoluteOffset();
+		const Vector2f absolute_offset_normal_container = normal_container->GetAbsoluteOffset();
+		const Vector2f absolute_offset_normal_item = normal_item->GetAbsoluteOffset();
 		rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
 
 		TestsShell::RenderLoop();
 		CHECK(element->GetAbsoluteOffset() == absolute_offset_element);
 		CHECK(next_sibling->GetAbsoluteOffset() != absolute_offset_next_sibling);
-		CHECK(next_outside_overflow->GetAbsoluteOffset() != absolute_offset_next_outside_overflow);
+		CHECK(normal_container->GetAbsoluteOffset() != absolute_offset_normal_container);
+		CHECK(normal_item->GetAbsoluteOffset() != absolute_offset_normal_item);
 	}
 
 	SUBCASE("Overflow")
 	{
 		Element* element = document->GetElementById("overflow-item");
 		Element* next_sibling = element->GetNextSibling();
-		Element* next_outside_overflow = document->GetElementById("normal-container");
-		REQUIRE(element);
-		REQUIRE(next_sibling);
-		REQUIRE(next_outside_overflow);
+		Element* normal_container = document->GetElementById("normal-container");
+		Element* normal_item = document->GetElementById("normal-item");
 
 		const Vector2f absolute_offset_element = element->GetAbsoluteOffset();
 		const Vector2f absolute_offset_next_sibling = next_sibling->GetAbsoluteOffset();
-		const Vector2f absolute_offset_next_outside_overflow = next_outside_overflow->GetAbsoluteOffset();
+		const Vector2f absolute_offset_normal_container = normal_container->GetAbsoluteOffset();
+		const Vector2f absolute_offset_normal_item = normal_item->GetAbsoluteOffset();
 		rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
 
 		TestsShell::RenderLoop();
 		CHECK(element->GetAbsoluteOffset() == absolute_offset_element);
 		CHECK(next_sibling->GetAbsoluteOffset() != absolute_offset_next_sibling);
-		CHECK(next_outside_overflow->GetAbsoluteOffset() == absolute_offset_next_outside_overflow);
+		CHECK(normal_container->GetAbsoluteOffset() == absolute_offset_normal_container);
+		CHECK(normal_item->GetAbsoluteOffset() == absolute_offset_normal_item);
 	}
 
 	SUBCASE("Absolute")
@@ -263,22 +263,36 @@ TEST_CASE("LayoutIsolation.InsideOutsideFormattingContexts")
 TEST_CASE("LayoutIsolation.FullLayoutFormatIndependentCount")
 {
 	Context* context = TestsShell::GetContext();
-	FormatIndependentDebugTracker format_independent_tracker;
-	ElementDocument* document = context->LoadDocumentFromMemory(document_isolation_rml);
+	ElementDocument* document = nullptr;
 
-	document->Show();
-	TestsShell::RenderLoop();
+	{
+		FormatIndependentDebugTracker format_independent_tracker;
+		document = context->LoadDocumentFromMemory(document_isolation_rml);
+		document->Show();
+		TestsShell::RenderLoop();
 
-	format_independent_tracker.LogMessage();
+		format_independent_tracker.LogMessage();
 
-	const auto count_level_1 = std::count_if(format_independent_tracker.GetEntries().begin(), format_independent_tracker.GetEntries().end(),
-		[](const auto& entry) { return entry.level == 1; });
-	CHECK_MESSAGE(count_level_1 == 3, "Expecting one entry for each of flex, overflow, and absolute");
+		const auto count_level_1 = std::count_if(format_independent_tracker.GetEntries().begin(), format_independent_tracker.GetEntries().end(),
+			[](const auto& entry) { return entry.level == 1 && !entry.from_cache; });
+		CHECK_MESSAGE(count_level_1 == 3, "Expecting one entry for each of flex, overflow, and absolute");
 
-	// There are quite a few flex item format occurrences being performed currently. We might reduce the following
-	// number while working on the flex formatting engine. If this fails for any other reason, it is likely a bug.
-	CHECK(format_independent_tracker.CountEntries() == 10);
-	CHECK(format_independent_tracker.CountFormattedEntries() == 10);
+		// There are quite a few flex item format occurrences being performed currently. We might reduce the following
+		// number while working on the flex formatting engine. If this fails for any other reason, it is likely a bug.
+		CHECK(format_independent_tracker.CountEntries() == 10);
+		CHECK(format_independent_tracker.CountFormattedEntries() == 10);
+	}
+
+	{
+		FormatIndependentDebugTracker format_independent_tracker;
+		Element* element = document->GetElementById("flex-item");
+		rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
+
+		TestsShell::RenderLoop();
+		const auto count_level_1 = std::count_if(format_independent_tracker.GetEntries().begin(), format_independent_tracker.GetEntries().end(),
+			[](const auto& entry) { return entry.level == 1 && !entry.from_cache; });
+		CHECK_MESSAGE(count_level_1 == 1, "Only the flexbox should be formatted, the others should be cached");
+	}
 
 	document->Close();
 	TestsShell::ShutdownShell();
@@ -658,7 +672,7 @@ static const String rml_flexbox_shrink_to_fit_nested = R"(
 	Before
 	<div class="outer">
 		%s
-		<div class="inner">Flex</div>
+		<div id="innermost" class="inner">Flex</div>
 		%s
 	</div>
 	After
@@ -711,6 +725,44 @@ TEST_CASE("LayoutIsolation.FlexFormat.shrink-to-fit")
 		document->Close();
 	}
 
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("LayoutIsolation.FlexFormat.shrink-to-fit.cache")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	constexpr int num_nest_levels = 2;
+	const Rml::String document_rml = Rml::CreateString(rml_flexbox_shrink_to_fit_nested.c_str(),
+		StringUtilities::RepeatString(R"(<div class="inner"><div class="outer">)", num_nest_levels - 1).c_str(),
+		StringUtilities::RepeatString(R"(</div></div>)", num_nest_levels - 1).c_str());
+
+	ElementDocument* document = nullptr;
+	{
+		FormatIndependentDebugTracker format_independent_tracker;
+		document = context->LoadDocumentFromMemory(document_rml);
+		document->Show();
+		TestsShell::RenderLoop();
+		MESSAGE("Initial layout: ", format_independent_tracker.CountFormattedEntries());
+	}
+
+	{
+		FormatIndependentDebugTracker format_independent_tracker;
+		document->GetElementById("innermost")->SetInnerRML("Flex");
+		TestsShell::RenderLoop();
+		MESSAGE("With cache: ", format_independent_tracker.CountFormattedEntries());
+	}
+
+	{
+		FormatIndependentDebugTracker format_independent_tracker;
+		document->GetElementById("innermost")->SetInnerRML("Flex");
+		document->SetAttribute("rmlui-disable-layout-cache", true);
+		TestsShell::RenderLoop();
+		MESSAGE("Without cache: ", format_independent_tracker.CountFormattedEntries());
+	}
+
+	document->Close();
 	TestsShell::ShutdownShell();
 }
 

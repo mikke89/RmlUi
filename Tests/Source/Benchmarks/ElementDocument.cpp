@@ -32,6 +32,7 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Factory.h>
+#include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Core/Types.h>
 #include <doctest.h>
 #include <nanobench.h>
@@ -52,7 +53,7 @@ static const String document_rml = R"(
 			width: 800px;
 			height: 200px;
 		}
-		#performance 
+		#performance
 		{
 			width: 500px;
 			height: 300px;
@@ -86,97 +87,203 @@ TEST_CASE("elementdocument")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
+	std::string title = "ElementDocument";
+	String modified_document_rml = document_rml;
+	bool clear_style_sheet_cache = false;
+
+	SUBCASE("ElementDocument")
 	{
-		ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+		clear_style_sheet_cache = false;
+	}
+	SUBCASE("ElementDocument w/o Layout Cache")
+	{
+		title += " w/o Layout Cache";
+		clear_style_sheet_cache = false;
+		modified_document_rml = StringUtilities::Replace(document_rml, "<body", "<body rmlui-disable-layout-cache");
+	}
+	SUBCASE("ElementDocument w/o Style Sheet Cache")
+	{
+		title += " w/o Style Sheet Cache";
+		clear_style_sheet_cache = true;
+	}
+
+	auto ConditionallyClearStyleSheetCache = [&]() {
+		if (clear_style_sheet_cache)
+			Factory::ClearStyleSheetCache();
+	};
+
+	nanobench::Bench bench;
+	bench.title(title);
+	bench.timeUnit(std::chrono::microseconds(1), "us");
+	bench.relative(true);
+	bench.warmup(10);
+
+	bench.run("LoadDocument", [&] {
+		ConditionallyClearStyleSheetCache();
+		ElementDocument* document = context->LoadDocumentFromMemory(modified_document_rml);
+		document->Close();
+		context->Update();
+	});
+
+	bench.run("LoadDocument + Show", [&] {
+		ConditionallyClearStyleSheetCache();
+		ElementDocument* document = context->LoadDocumentFromMemory(modified_document_rml);
 		document->Show();
+		document->Close();
+		context->Update();
+	});
 
-		const String stats = TestsShell::GetRenderStats();
-		MESSAGE(stats);
+	bench.run("LoadDocument + Show + Update", [&] {
+		ConditionallyClearStyleSheetCache();
+		ElementDocument* document = context->LoadDocumentFromMemory(modified_document_rml);
+		document->Show();
+		context->Update();
+		document->Close();
+		context->Update();
+	});
 
+	bench.run("LoadDocument + Show + Update + Render", [&] {
+		ConditionallyClearStyleSheetCache();
+		ElementDocument* document = context->LoadDocumentFromMemory(modified_document_rml);
+		document->Show();
+		context->Update();
+		TestsShell::BeginFrame();
+		context->Render();
+		TestsShell::PresentFrame();
+		document->Close();
+		context->Update();
+	});
+}
+
+TEST_CASE("elementdocument.render_stats")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	document->Show();
+
+	const String stats = TestsShell::GetRenderStats();
+	MESSAGE(stats);
+
+	TestsShell::RenderLoop();
+	document->Close();
+}
+
+static const String document_isolation_rml = R"(
+<rml>
+<head>
+    <link type="text/rcss" href="/assets/rml.rcss"/>
+    <style>
+        body {
+            width: 800px;
+            height: 600px;
+            background-color: #ddd;
+			font-family: LatoLatin;
+			font-size: 14px;
+        }
+		scrollbarvertical {
+			width: 12px;
+			cursor: arrow;
+			margin-right: -1px;
+			padding-right: 1px;
+		}
+		scrollbarvertical slidertrack {
+			background-color: #f0f0f0;
+		}
+		scrollbarvertical sliderbar {
+			background-color: #666;
+		}
+        .container {
+            width: 200px;
+            margin: 20px;
+            padding: 10px;
+            background-color: #bbb;
+        }
+        .container > div {
+            background-color: #aaa;
+            margin: 5px;
+            padding: 10px;
+        }
+        #overflow-container {
+            overflow: scroll;
+            height: 150px;
+        }
+        #absolute-container {
+            position: absolute;
+            top: 300px;
+            left: 300px;
+			max-height: 300px;
+			overflow: scroll;
+        }
+    </style>
+</head>
+<body %s>
+    <div class="container" id="overflow-container">
+        <div id="overflow-item">Overflow item</div>
+        %s
+    </div>
+
+    <div class="container" id="absolute-container">
+        <div id="absolute-item">Absolute item</div>
+		%s
+    </div>
+</body>
+</rml>
+)";
+
+TEST_CASE("elementdocument.layout_cache")
+{
+	Context* context = TestsShell::GetContext();
+
+	auto CreateIsolationDocument = [&](bool disable_layout_cache, int num_overflow_items, int num_absolute_items) {
+		return CreateString(document_isolation_rml.c_str(), disable_layout_cache ? "rmlui-disable-layout-cache" : "",
+			StringUtilities::RepeatString("<div>Overflow item</div>", num_overflow_items).c_str(),
+			StringUtilities::RepeatString("<div>Absolute item</div>", num_absolute_items).c_str());
+	};
+
+	constexpr int num_items = 20;
+	{
+		ElementDocument* document = context->LoadDocumentFromMemory(CreateIsolationDocument(false, num_items, num_items));
+		document->Show();
 		TestsShell::RenderLoop();
 		document->Close();
 		context->Update();
 	}
 
+	for (const String& modify_item_id : {"overflow-item", "absolute-item"})
 	{
 		nanobench::Bench bench;
-		bench.title("ElementDocument");
+		bench.title("Layout cache (" + modify_item_id + ")");
 		bench.timeUnit(std::chrono::microseconds(1), "us");
 		bench.relative(true);
 
-		bench.run("LoadDocument", [&] {
-			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-			document->Close();
-			context->Update();
-		});
-
-		bench.run("LoadDocument + Show", [&] {
-			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-			document->Show();
-			document->Close();
-			context->Update();
-		});
-
-		bench.run("LoadDocument + Show + Update", [&] {
-			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+		{
+			ElementDocument* document = context->LoadDocumentFromMemory(CreateIsolationDocument(false, num_items, num_items));
 			document->Show();
 			context->Update();
+			Element* element = document->GetElementById(modify_item_id);
+			bench.run("Enabled layout cache", [&] {
+				element->SetInnerRML("Changed item");
+				context->Update();
+			});
 			document->Close();
 			context->Update();
-		});
+		}
 
-		bench.run("LoadDocument + Show + Update + Render", [&] {
-			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+		{
+			ElementDocument* document = context->LoadDocumentFromMemory(CreateIsolationDocument(true, num_items, num_items));
 			document->Show();
 			context->Update();
-			TestsShell::BeginFrame();
-			context->Render();
-			TestsShell::PresentFrame();
+			Element* element = document->GetElementById(modify_item_id);
+			bench.run("Disabled layout cache", [&] {
+				element->SetInnerRML("Changed item");
+				context->Update();
+			});
 			document->Close();
 			context->Update();
-		});
+		}
 	}
 
-	{
-		nanobench::Bench bench;
-		bench.title("ElementDocument w/ClearStyleSheetCache");
-		bench.timeUnit(std::chrono::microseconds(1), "us");
-		bench.relative(true);
-
-		bench.run("Clear + LoadDocument", [&] {
-			Factory::ClearStyleSheetCache();
-			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-			document->Close();
-			context->Update();
-		});
-
-		bench.run("Clear + LoadDocument + Show", [&] {
-			Factory::ClearStyleSheetCache();
-			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-			document->Show();
-			document->Close();
-			context->Update();
-		});
-
-		bench.run("Clear + LoadDocument + Show + Update", [&] {
-			Factory::ClearStyleSheetCache();
-			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-			document->Show();
-			context->Update();
-			document->Close();
-			context->Update();
-		});
-
-		bench.run("Clear + LoadDocument + Show + Update + Render", [&] {
-			Factory::ClearStyleSheetCache();
-			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-			document->Show();
-			context->Update();
-			TestsShell::BeginFrame();
-			context->Render();
-			TestsShell::PresentFrame();
-			document->Close();
-			context->Update();
-		});
-	}
+	TestsShell::ShutdownShell();
 }
