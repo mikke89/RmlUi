@@ -619,7 +619,7 @@ public:
 	const ComputedValues& GetComputedValues() const;
 
 protected:
-	void Update(float dp_ratio, Vector2f vp_dimensions);
+	void Update(float dp_ratio, Vector2f vp_dimensions, bool is_dom_element);
 	void Render();
 
 	/// Updates definition, computed values, and runs OnPropertyChange on this element.

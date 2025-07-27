@@ -511,7 +511,7 @@ void ElementDocument::UpdateDocument()
 {
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
 	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
-	Update(dp_ratio, vp_dimensions);
+	Update(dp_ratio, vp_dimensions, true);
 	UpdateLayout();
 	UpdatePosition();
 }
@@ -520,7 +520,7 @@ void ElementDocument::UpdatePropertiesForDebug()
 {
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
 	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
-	Update(dp_ratio, vp_dimensions);
+	Update(dp_ratio, vp_dimensions, true);
 }
 
 void ElementDocument::UpdateLayout()
@@ -538,55 +538,58 @@ void ElementDocument::UpdateLayout()
 		if (debug_logging)
 			Log::Message(Log::LT_INFO, "UpdateLayout start: %s", GetAddress().c_str());
 
-		bool force_full_document_layout = false;
+		bool force_full_document_layout = !allow_layout_cache;
 		bool any_layout_updates = false;
 
-		ElementUtilities::BreadthFirstSearch(this, [&](Element* element) {
-			if (element->GetDisplay() == Style::Display::None)
-				return ElementUtilities::CallbackControlFlow::SkipChildren;
+		if (!force_full_document_layout)
+		{
+			ElementUtilities::BreadthFirstSearch(this, [&](Element* element) {
+				if (element->GetDisplay() == Style::Display::None)
+					return ElementUtilities::CallbackControlFlow::SkipChildren;
 
-			LayoutNode* layout_node = element->GetLayoutNode();
-			if (!layout_node->IsDirty())
-				return ElementUtilities::CallbackControlFlow::Continue;
+				LayoutNode* layout_node = element->GetLayoutNode();
+				if (!layout_node->IsDirty())
+					return ElementUtilities::CallbackControlFlow::Continue;
 
-			if (!layout_node->IsLayoutBoundary())
-			{
-				// Normally the dirty layout should have propagated to the closest layout boundary during
-				// Element::Update(), which then invokes formatting on that boundary element, and which again clears the
-				// dirty layout on this element. This didn't happen here, which may be caused by modifying the layout
-				// during layouting itself. For now, we simply skip this element and keep going. The element should
-				// normally be properly layed-out on the next context update.
-				// TODO: Might want to investigate this further.
-				if (debug_logging)
-					Log::Message(Log::LT_INFO, "Dirty layout on non-layout boundary element: %s", element->GetAddress().c_str());
-				return ElementUtilities::CallbackControlFlow::Continue;
-			}
+				if (!layout_node->IsLayoutBoundary())
+				{
+					// Normally the dirty layout should have propagated to the closest layout boundary during
+					// Element::Update(), which then invokes formatting on that boundary element, and which again clears the
+					// dirty layout on this element. This didn't happen here, which may be caused by modifying the layout
+					// during layouting itself. For now, we simply skip this element and keep going. The element should
+					// normally be properly layed-out on the next context update.
+					// TODO: Might want to investigate this further.
+					if (debug_logging)
+						Log::Message(Log::LT_INFO, "Dirty layout on non-layout boundary element: %s", element->GetAddress().c_str());
+					return ElementUtilities::CallbackControlFlow::Continue;
+				}
 
-			any_layout_updates = true;
+				any_layout_updates = true;
 
-			const Optional<CommittedLayout>& committed_layout = layout_node->GetCommittedLayout();
-			if (!committed_layout)
-			{
+				const Optional<CommittedLayout>& committed_layout = layout_node->GetCommittedLayout();
+				if (!committed_layout)
+				{
+					if (element != this && debug_logging)
+						Log::Message(Log::LT_INFO, "Forcing full layout update due to missing committed layout on element: %s",
+							element->GetAddress().c_str());
+					force_full_document_layout = true;
+					// TODO: When is the committed layout dirtied?
+					return ElementUtilities::CallbackControlFlow::Break;
+				}
+
 				if (element != this && debug_logging)
-					Log::Message(Log::LT_INFO, "Forcing full layout update due to missing committed layout on element: %s",
-						element->GetAddress().c_str());
-				force_full_document_layout = true;
-				// TODO: When is the committed layout dirtied?
-				return ElementUtilities::CallbackControlFlow::Break;
-			}
+					Log::Message(Log::LT_INFO, "Doing partial layout update on element: %s", element->GetAddress().c_str());
 
-			if (element != this && debug_logging)
-				Log::Message(Log::LT_INFO, "Doing partial layout update on element: %s", element->GetAddress().c_str());
+				// TODO: In some cases, we need to check if size changed, such that we need to do a layout update in its parent.
+				LayoutEngine::FormatElement(element, committed_layout->containing_block_size,
+					committed_layout->absolutely_positioning_containing_block_size, allow_layout_cache);
 
-			// TODO: In some cases, we need to check if size changed, such that we need to do a layout update in its parent.
-			LayoutEngine::FormatElement(element, committed_layout->containing_block_size,
-				committed_layout->absolutely_positioning_containing_block_size, allow_layout_cache);
+				// TODO: A bit ugly
+				element->UpdateRelativeOffsetFromInsetConstraints();
 
-			// TODO: A bit ugly
-			element->UpdateRelativeOffsetFromInsetConstraints();
-
-			return ElementUtilities::CallbackControlFlow::SkipChildren;
-		});
+				return ElementUtilities::CallbackControlFlow::SkipChildren;
+			});
+		}
 
 		if (force_full_document_layout)
 		{

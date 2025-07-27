@@ -34,36 +34,42 @@
 
 namespace Rml {
 
-void LayoutNode::DirtyUpToClosestLayoutBoundary()
+void LayoutNode::PropagateDirtyToParent()
 {
-	if (!IsSelfDirty())
-		return;
+	auto DirtyParentNode = [](Element* element) {
+		if (Element* parent = element->GetParentNode())
+			parent->GetLayoutNode()->SetDirty(DirtyLayoutType::Child);
+	};
 
-	// We may be able to skip formatting in ancestor elements if this is a layout boundary, in some scenarios. Consider
-	// some scenarios for illustration:
-	//
-	// 1. Absolute element. `display: block` to `display: none`. This does not need a new layout. Same with margin and
-	//    size, only the current element need to be reformatted, not ancestors.
-	// 2. Absolute element. `display: none` to `display: block`. This *does* need to be layed out, since we don't know
-	//    our static position or containing block. We could in principle ignore static position in some situations where
-	//    it is not used, and could in principle find our containing block. But it is tricky.
-	// 3. Flex container contents changed. If (and only if) it results in a new layed out size, its parent needs to be
-	//    reformatted again. If so, it should be able to reuse the flex container's layout cache.
-	//
-	// Currently, we don't have all of this information here. So skip this for now.
-	// - TODO: This information could be provided as part of DirtyLayout.
-	// - TODO: Consider if some of this logic should be moved to the layout engine.
-	//
-	// ```
-	//     if (IsLayoutBoundary()) return;
-	// ```
-
-	for (Element* parent = element->GetParentNode(); parent; parent = parent->GetParentNode())
+	if (IsSelfDirty())
 	{
-		LayoutNode* parent_node = parent->GetLayoutNode();
-		parent_node->SetDirty(DirtyLayoutType::Child);
-		if (parent_node->IsLayoutBoundary())
-			break;
+		// We may be able to skip formatting in ancestor elements if this is a layout boundary, in some scenarios. Consider
+		// some scenarios for illustration:
+		//
+		// 1. Absolute element. `display: block` to `display: none`. This does not need a new layout. Same with margin and
+		//    size, only the current element need to be reformatted, not ancestors.
+		// 2. Absolute element. `display: none` to `display: block`. This *does* need to be layed out, since we don't know
+		//    our static position or containing block. We could in principle ignore static position in some situations where
+		//    it is not used, and could in principle find our containing block. But it is tricky.
+		// 3. Flex container contents changed. If (and only if) it results in a new layed out size, its parent needs to be
+		//    reformatted again. If so, it should be able to reuse the flex container's layout cache.
+		//
+		// Currently, we don't have all of this information here. So skip this for now.
+		// - TODO: This information could be provided as part of DirtyLayout.
+		// - TODO: Consider if some of this logic should be moved to the layout engine.
+		//
+		// ```
+		//     if (IsLayoutBoundary()) return;
+		// ```
+
+		DirtyParentNode(element);
+		return;
+	}
+
+	if (IsChildDirty() && !IsLayoutBoundary())
+	{
+		DirtyParentNode(element);
+		return;
 	}
 }
 
@@ -111,7 +117,7 @@ bool LayoutNode::IsLayoutBoundary() const
 	using namespace Style;
 	auto& computed = element->GetComputedValues();
 
-	// TODO: Should this be moved into DirtyUpToClosestLayoutBoundary() instead? It's not really a layout boundary, or
+	// TODO: Should this be moved into PropagateDirtyToParent() instead? It's not really a layout boundary, or
 	// maybe it's okay?
 	if (computed.display() == Display::None)
 		return true;

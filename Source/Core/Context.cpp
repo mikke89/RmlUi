@@ -223,7 +223,7 @@ bool Context::Update()
 	root->dirty_definition = false;
 	root->dirty_child_definitions = false;
 
-	root->Update(density_independent_pixel_ratio, Vector2f(dimensions));
+	root->Update(density_independent_pixel_ratio, Vector2f(dimensions), true);
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 	{

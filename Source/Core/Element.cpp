@@ -139,7 +139,7 @@ Element::~Element()
 	ElementMetaPool::element_meta_pool->pool.DestroyAndDeallocate(meta);
 }
 
-void Element::Update(float dp_ratio, Vector2f vp_dimensions)
+void Element::Update(float dp_ratio, Vector2f vp_dimensions, bool is_dom_element)
 {
 #ifdef RMLUI_TRACY_PROFILING
 	auto name = GetAddress(false, false);
@@ -167,8 +167,11 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 
 	meta->effects.InstanceEffects();
 
-	for (size_t i = 0; i < children.size(); i++)
-		children[i]->Update(dp_ratio, vp_dimensions);
+	for (int i = 0; i < (int)children.size(); i++)
+	{
+		const bool child_is_dom_element = (is_dom_element && i < (int)children.size() - num_non_dom_children);
+		children[i]->Update(dp_ratio, vp_dimensions, child_is_dom_element);
+	}
 
 	if (!animations.empty() && IsVisible(true))
 	{
@@ -176,8 +179,13 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 			ctx->RequestNextUpdate(0);
 	}
 
-	LayoutNode* layout_node = GetLayoutNode();
-	layout_node->DirtyUpToClosestLayoutBoundary();
+	// TODO: Don't think we can always skip non-DOM elements. E.g. for some input elements, we at least need to dirty
+	// the input element itself to format its contents again. This may even change itself in such a way as to need to
+	// format the layout it partakes in too. Regardless, we should at least make sure that enabling and disabling
+	// scrollbars during layouting does not cause dirtying their element. There should also be a symmetry to commiting
+	// the layout.
+	if (is_dom_element)
+		GetLayoutNode()->PropagateDirtyToParent();
 }
 
 void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimensions)

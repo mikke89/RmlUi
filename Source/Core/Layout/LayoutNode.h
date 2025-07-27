@@ -77,7 +77,7 @@ public:
 	LayoutNode(Element* element) : element(element) {}
 
 	// Assumes valid computed values.
-	void DirtyUpToClosestLayoutBoundary();
+	void PropagateDirtyToParent();
 
 	void ClearDirty();
 	void SetDirty(DirtyLayoutType dirty_type);
