@@ -4581,12 +4581,12 @@ bool RenderInterface_DX12::CaptureScreen(int& width, int& height, int& num_compo
 	if (SUCCEEDED(status))
 	{
 		Rml::byte* p_cpu_data = new Rml::byte[data_size];
-		std::memcpy(p_cpu_data, p_mapped_data, sizeof(Rml::byte) * data_size);
+		std::memcpy(p_cpu_data, p_mapped_data, data_size);
 		raw_pixels = p_cpu_data;
 		result = true;
 		width = static_cast<int>(desc.Width);
 		height = static_cast<int>(desc.Height);
-		num_components = 3;
+		num_components = 4;
 		pixels_count = data_size;
 	}
 
