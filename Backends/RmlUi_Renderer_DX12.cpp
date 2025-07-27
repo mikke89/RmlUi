@@ -69,8 +69,7 @@
 	#include "RmlUi_DirectX\D3D12MemAlloc.cpp"
 	#include "RmlUi_DirectX\offsetAllocator.cpp"
 
-
-#if defined _MSC_VER
+	#if defined _MSC_VER
 		#pragma warning(pop)
 	#elif defined __clang__
 		#pragma clang diagnostic pop
@@ -931,11 +930,13 @@ RenderInterface_DX12::RenderInterface_DX12(ID3D12Device* p_user_device, ID3D12Gr
 	m_is_command_list_user{!!(p_command_list)}, m_msaa_sample_count{settings->msaa_sample_count}, m_user_framebuffer_index{}, m_width{}, m_height{},
 	m_current_clip_operation{-1}, m_active_program_id{}, m_size_descriptor_heap_render_target_view{}, m_size_descriptor_heap_shaders{},
 	m_current_back_buffer_index{}, m_stencil_ref_value{}, m_p_device{p_user_device}, m_p_command_queue{}, m_p_copy_queue{}, m_p_swapchain{},
-	m_p_command_graphics_list{p_command_list}, m_p_descriptor_heap_render_target_view{}, m_p_descriptor_heap_render_target_view_for_texture_manager{},
+	m_p_command_graphics_list{p_command_list}, m_p_command_graphics_list_screenshot{}, m_p_command_allocator_screenshot{},
+	m_p_descriptor_heap_render_target_view{}, m_p_descriptor_heap_render_target_view_for_texture_manager{},
 	m_p_descriptor_heap_depth_stencil_view_for_texture_manager{}, m_p_descriptor_heap_shaders{}, m_p_descriptor_heap_depthstencil{},
-	m_p_depthstencil_resource{}, m_p_backbuffer_fence{}, m_p_adapter{p_user_adapter}, m_p_copy_allocator{}, m_p_copy_command_list{}, m_p_allocator{},
-	m_p_offset_allocator_for_descriptor_heap_shaders{}, m_p_user_rtv_present{}, m_p_user_dsv_present{}, m_p_window_handle{}, m_p_fence_event{},
-	m_fence_value{}, m_precompiled_fullscreen_quad_geometry{}
+	m_p_depthstencil_resource{}, m_p_backbuffer_fence{}, m_p_fence_screenshot{}, m_p_adapter{p_user_adapter}, m_p_copy_allocator{},
+	m_p_copy_command_list{}, m_p_allocator{}, m_p_offset_allocator_for_descriptor_heap_shaders{}, m_p_user_rtv_present{}, m_p_user_dsv_present{},
+	m_p_window_handle{}, m_p_fence_event{}, m_p_fence_event_screenshot{}, m_fence_value{}, m_fence_screenshot_value{},
+	m_precompiled_fullscreen_quad_geometry{}
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Constructor (user)");
 	RMLUI_ASSERT(p_user_device && "you can't pass an empty device!");
@@ -965,11 +966,12 @@ RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, const Backend:
 	m_msaa_sample_count{settings->msaa_sample_count}, m_user_framebuffer_index{}, m_width{}, m_height{}, m_current_clip_operation{-1},
 	m_active_program_id{}, m_size_descriptor_heap_render_target_view{}, m_size_descriptor_heap_shaders{}, m_current_back_buffer_index{},
 	m_stencil_ref_value{}, m_p_device{}, m_p_command_queue{}, m_p_copy_queue{}, m_p_swapchain{}, m_p_command_graphics_list{},
-	m_p_descriptor_heap_render_target_view{}, m_p_descriptor_heap_render_target_view_for_texture_manager{},
-	m_p_descriptor_heap_depth_stencil_view_for_texture_manager{}, m_p_descriptor_heap_shaders{}, m_p_descriptor_heap_depthstencil{},
-	m_p_depthstencil_resource{}, m_p_backbuffer_fence{}, m_p_adapter{}, m_p_copy_allocator{}, m_p_copy_command_list{}, m_p_allocator{},
-	m_p_offset_allocator_for_descriptor_heap_shaders{}, m_p_user_rtv_present{}, m_p_user_dsv_present{}, m_p_window_handle{}, m_p_fence_event{},
-	m_fence_value{}, m_precompiled_fullscreen_quad_geometry{}
+	m_p_command_graphics_list_screenshot{}, m_p_command_allocator_screenshot{}, m_p_descriptor_heap_render_target_view{},
+	m_p_descriptor_heap_render_target_view_for_texture_manager{}, m_p_descriptor_heap_depth_stencil_view_for_texture_manager{},
+	m_p_descriptor_heap_shaders{}, m_p_descriptor_heap_depthstencil{}, m_p_depthstencil_resource{}, m_p_backbuffer_fence{}, m_p_fence_screenshot{},
+	m_p_adapter{}, m_p_copy_allocator{}, m_p_copy_command_list{}, m_p_allocator{}, m_p_offset_allocator_for_descriptor_heap_shaders{},
+	m_p_user_rtv_present{}, m_p_user_dsv_present{}, m_p_window_handle{}, m_p_fence_event{}, m_p_fence_event_screenshot{}, m_fence_value{},
+	m_fence_screenshot_value{}, m_precompiled_fullscreen_quad_geometry{}
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Constructor (non user)");
 
@@ -3950,6 +3952,20 @@ void RenderInterface_DX12::Shutdown() noexcept
 		this->m_p_offset_allocator_for_descriptor_heap_shaders = nullptr;
 	}
 
+	if (this->m_p_command_graphics_list_screenshot)
+	{
+		auto ref_count = this->m_p_command_graphics_list_screenshot->Release();
+		RMLUI_ASSERT(ref_count == 0 && "leak");
+	}
+
+	if (this->m_p_command_allocator_screenshot)
+	{
+		auto ref_count = this->m_p_command_allocator_screenshot->Release();
+		RMLUI_ASSERT(ref_count == 0 && "leak");
+	}
+
+	this->Destroy_SyncPrimitives_Screenshot();
+
 	if (this->m_is_full_initialization)
 	{
 		this->Destroy_Allocator();
@@ -4032,6 +4048,16 @@ void RenderInterface_DX12::Shutdown() noexcept
 			auto ref_count = this->m_p_device->Release();
 			RMLUI_ASSERT(ref_count == 0 && "leak");
 		}
+	}
+
+	if (this->m_p_command_allocator_screenshot)
+	{
+		this->m_p_command_allocator_screenshot = nullptr;
+	}
+
+	if (this->m_p_command_graphics_list_screenshot)
+	{
+		this->m_p_command_graphics_list_screenshot = nullptr;
 	}
 
 	if (this->m_p_device)
@@ -4210,7 +4236,13 @@ void RenderInterface_DX12::Initialize(void) noexcept
 		this->m_p_command_graphics_list = this->Create_CommandList(this->m_backbuffers_allocators.at(this->m_current_back_buffer_index),
 			D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT);
 		this->Initialize_Allocator();
+
+		this->m_p_command_allocator_screenshot = this->Create_CommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT);
+		this->m_p_command_graphics_list_screenshot = this->Create_CommandList(this->m_p_command_allocator_screenshot, D3D12_COMMAND_LIST_TYPE_DIRECT);
+
 		this->Initialize_SyncPrimitives();
+
+		this->Initialize_SyncPrimitives_Screenshot();
 
 		this->m_p_copy_allocator = this->Create_CommandAllocator(D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_COPY);
 		this->m_p_copy_command_list = this->Create_CommandList(this->m_p_copy_allocator, D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_COPY);
@@ -4286,6 +4318,11 @@ void RenderInterface_DX12::Initialize(void) noexcept
 
 		this->m_p_copy_allocator = this->Create_CommandAllocator(D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_COPY);
 		this->m_p_copy_command_list = this->Create_CommandList(this->m_p_copy_allocator, D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_COPY);
+
+		this->m_p_command_allocator_screenshot = this->Create_CommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT);
+		this->m_p_command_graphics_list_screenshot = this->Create_CommandList(this->m_p_command_allocator_screenshot, D3D12_COMMAND_LIST_TYPE_DIRECT);
+
+		this->Initialize_SyncPrimitives_Screenshot();
 
 		this->m_p_offset_allocator_for_descriptor_heap_shaders =
 			new OffsetAllocator::Allocator(RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV * this->m_size_descriptor_heap_shaders);
@@ -4396,6 +4433,184 @@ void RenderInterface_DX12::Set_UserDepthStencil(void* dsv_where_we_render_to)
 {
 	RMLUI_ASSERT(dsv_where_we_render_to && "you can't pass empty dsv for rendering");
 	this->m_p_user_dsv_present = reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(dsv_where_we_render_to);
+}
+
+bool RenderInterface_DX12::CaptureScreen(int& width, int& height, int& num_components, Rml::byte*& raw_pixels, size_t& pixels_count)
+{
+	bool result{};
+
+	RMLUI_ASSERT(this->m_p_device && "early calling");
+	RMLUI_ASSERT(this->m_p_swapchain && "early calling");
+	RMLUI_ASSERT(this->m_p_command_allocator_screenshot && "early calling!");
+	RMLUI_ASSERT(this->m_p_command_graphics_list_screenshot && "early calling");
+	RMLUI_ASSERT(this->m_p_command_queue && "early calling");
+	RMLUI_ASSERT(this->m_p_fence_screenshot && "early calling");
+	RMLUI_ASSERT(this->m_p_fence_event_screenshot && "early calling");
+
+	// invalidate thus if success they will be re-initialized
+	width = -1;
+	height = -1;
+	num_components = -1;
+	raw_pixels = nullptr;
+	pixels_count = 0;
+
+	if (!this->m_p_device)
+		return result;
+
+	if (!this->m_p_swapchain)
+		return result;
+
+	if (!this->m_p_command_allocator_screenshot)
+		return result;
+
+	if (!this->m_p_command_graphics_list_screenshot)
+		return result;
+
+	if (!this->m_p_command_queue)
+		return result;
+
+	if (!this->m_p_fence_screenshot)
+		return result;
+
+	if (!this->m_p_fence_event_screenshot)
+		return result;
+
+	HRESULT status = this->m_p_command_allocator_screenshot->Reset();
+	RMLUI_DX_ASSERTMSG(status, "failed ID3D12CommandAllocator::Reset (screenshot)");
+
+	status = this->m_p_command_graphics_list_screenshot->Reset(this->m_p_command_allocator_screenshot, nullptr);
+	RMLUI_DX_ASSERTMSG(status, "failed ID3D12CommandGraphicsList::Reset (screenshot)");
+
+	ID3D12Resource* p_back_buffer{};
+	status = this->m_p_swapchain->GetBuffer(this->m_p_swapchain->GetCurrentBackBufferIndex(), IID_PPV_ARGS(&p_back_buffer));
+
+	RMLUI_ASSERT(p_back_buffer && "failed to obtain swapchain's backbuffer");
+	RMLUI_DX_ASSERTMSG(status, "failed to obtain swapchain's backbuffer (IDXGISwapchain::GetBuffer failed)");
+
+	const D3D12_RESOURCE_DESC& desc = p_back_buffer->GetDesc();
+
+	#ifdef RMLUI_DX_DEBUG
+	Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] Obtained swapchain's backbuffer: w=%d h=%d format=%s", desc.Width, desc.Height,
+		Rml::DXGIFormatToString(desc.Format));
+	#endif
+
+	UINT64 requiredSize = 0;
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout = {};
+	UINT64 rowSizeInBytes = 0;
+	UINT numRows = 0;
+
+	this->m_p_device->GetCopyableFootprints(&desc, 0, 1, 0, &layout, &numRows, &rowSizeInBytes, &requiredSize);
+
+	D3D12_HEAP_PROPERTIES heap_props = {};
+
+	heap_props.Type = D3D12_HEAP_TYPE_READBACK;
+	heap_props.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heap_props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	heap_props.CreationNodeMask = 1;
+	heap_props.VisibleNodeMask = 1;
+
+	D3D12_RESOURCE_DESC cpu_readaccess_buffer_desc = {};
+	cpu_readaccess_buffer_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	cpu_readaccess_buffer_desc.Alignment = 0;
+	cpu_readaccess_buffer_desc.Width = requiredSize;
+	cpu_readaccess_buffer_desc.Height = 1; // since we just want Rml::byte array there's no need in two dimensionality
+	cpu_readaccess_buffer_desc.DepthOrArraySize = 1;
+	cpu_readaccess_buffer_desc.MipLevels = 1;
+	cpu_readaccess_buffer_desc.Format = DXGI_FORMAT_UNKNOWN;
+	cpu_readaccess_buffer_desc.SampleDesc.Count = 1;
+	cpu_readaccess_buffer_desc.SampleDesc.Quality = 0;
+	cpu_readaccess_buffer_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	cpu_readaccess_buffer_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	ID3D12Resource* p_cpu_readaccess_buffer{};
+	status = this->m_p_device->CreateCommittedResource(&heap_props, D3D12_HEAP_FLAG_NONE, &cpu_readaccess_buffer_desc,
+		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&p_cpu_readaccess_buffer));
+
+	RMLUI_ASSERT(p_cpu_readaccess_buffer && "failed to create buffer for CPU reading");
+	RMLUI_DX_ASSERTMSG(status, "failed ID3D12Device::CreateCommittedResource (cpu access reading buffer for screenshot)");
+
+	D3D12_RESOURCE_BARRIER barrier = {};
+
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = p_back_buffer;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+	this->m_p_command_graphics_list_screenshot->ResourceBarrier(1, &barrier);
+
+	D3D12_TEXTURE_COPY_LOCATION src_loc = {};
+	src_loc.pResource = p_back_buffer;
+	src_loc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	src_loc.SubresourceIndex = 0;
+
+	D3D12_TEXTURE_COPY_LOCATION dst_loc = {};
+	dst_loc.pResource = p_cpu_readaccess_buffer;
+	dst_loc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+	dst_loc.PlacedFootprint = layout;
+
+	this->m_p_command_graphics_list_screenshot->CopyTextureRegion(&dst_loc, 0, 0, 0, &src_loc, nullptr);
+
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	this->m_p_command_graphics_list_screenshot->ResourceBarrier(1, &barrier);
+
+	status = this->m_p_command_graphics_list_screenshot->Close();
+	RMLUI_DX_ASSERTMSG(status, "failed ID3D12CommandGraphicsList::Close");
+
+	ID3D12CommandList* p_lists[] = {this->m_p_command_graphics_list_screenshot};
+
+	this->m_p_command_queue->ExecuteCommandLists(1, p_lists);
+
+	status = this->m_p_command_queue->Signal(this->m_p_fence_screenshot, this->m_fence_screenshot_value);
+	RMLUI_DX_ASSERTMSG(status, "failed ID3D12CommandQueue::Signal (screenshot)");
+
+	status = this->m_p_fence_screenshot->SetEventOnCompletion(this->m_fence_screenshot_value, this->m_p_fence_event_screenshot);
+	RMLUI_DX_ASSERTMSG(status, "failed ID3D12Fence::SetEventOnCompletion (screenshot)");
+
+	WaitForSingleObject(this->m_p_fence_event_screenshot, INFINITE);
+	++this->m_fence_screenshot_value;
+
+	void* p_mapped_data = nullptr;
+	size_t data_size = rowSizeInBytes * numRows;
+
+	status = p_cpu_readaccess_buffer->Map(0, nullptr, &p_mapped_data);
+	RMLUI_DX_ASSERTMSG(status, "failed to Map buffer (screenshot)");
+
+	if (SUCCEEDED(status))
+	{
+		Rml::byte* p_cpu_data = new Rml::byte[data_size];
+		std::memcpy(p_cpu_data, p_mapped_data, sizeof(Rml::byte) * data_size);
+		raw_pixels = p_cpu_data;
+		result = true;
+		width = static_cast<int>(desc.Width);
+		height = static_cast<int>(desc.Height);
+		num_components = 3;
+		pixels_count = data_size;
+	}
+
+	p_cpu_readaccess_buffer->Unmap(0, nullptr);
+
+	if (p_back_buffer)
+	{
+		p_back_buffer->Release();
+	}
+
+	if (p_cpu_readaccess_buffer)
+	{
+		p_cpu_readaccess_buffer->Release();
+	}
+
+	#ifdef RMLUI_DX_DEBUG
+	if (result)
+	{
+		Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12]: successfully captured data of swapchain backbuffer! (img_size=%zu bytes)",
+			data_size);
+	}
+	#endif
+
+	return result;
 }
 
 void RenderInterface_DX12::BeginFrame_Shell()
@@ -5211,6 +5426,21 @@ void RenderInterface_DX12::Initialize_SyncPrimitives(void) noexcept
 	}
 }
 
+void RenderInterface_DX12::Initialize_SyncPrimitives_Screenshot(void) noexcept
+{
+	RMLUI_ZoneScopedN("DirectX 12 - Initialize_SyncPrimitives_Screenshot");
+	RMLUI_ASSERT(this->m_p_device && "you must initialize device before calling this method!");
+
+	if (this->m_p_device)
+	{
+		HRESULT status = this->m_p_device->CreateFence(0, D3D12_FENCE_FLAGS::D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&this->m_p_fence_screenshot));
+		RMLUI_DX_ASSERTMSG(status, "ID3D12Device::CreateFence failed! (screenshot)");
+
+		this->m_p_fence_event_screenshot = CreateEvent(NULL, FALSE, FALSE, NULL);
+		RMLUI_ASSERT(this->m_p_fence_event_screenshot && "failed to CreateEvent (Screenshot)");
+	}
+}
+
 void RenderInterface_DX12::Initialize_CommandAllocators(void)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Initialize_CommandAllocators");
@@ -5300,6 +5530,27 @@ void RenderInterface_DX12::Destroy_Allocator(void) noexcept
 			RMLUI_ASSERT(ref_count == 0 && "leak");
 		}
 	}
+}
+
+void RenderInterface_DX12::Destroy_SyncPrimitives_Screenshot(void) noexcept
+{
+	RMLUI_ZoneScopedN("DirectX 12 - Destroy_SyncPrimitives_Screenshot");
+
+	if (this->m_p_fence_screenshot)
+	{
+		auto ref_count = this->m_p_fence_screenshot->Release();
+		RMLUI_ASSERT(ref_count == 0 && "leak");
+
+		this->m_p_fence_screenshot = nullptr;
+	}
+
+	if (this->m_p_fence_event_screenshot)
+	{
+		CloseHandle(this->m_p_fence_event_screenshot);
+		this->m_p_fence_event_screenshot = nullptr;
+	}
+
+	this->m_fence_screenshot_value = 0;
 }
 
 void RenderInterface_DX12::Flush() noexcept

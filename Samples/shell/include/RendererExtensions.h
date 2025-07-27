@@ -31,6 +31,11 @@
 
 #include <RmlUi/Core/Types.h>
 
+namespace Rml 
+{
+class RenderInterface;
+}
+
 namespace RendererExtensions {
 
 // Extensions used by the test suite
@@ -40,7 +45,7 @@ struct Image {
 	int num_components = 0;
 	Rml::UniquePtr<Rml::byte[]> data;
 };
-Image CaptureScreen();
+Image CaptureScreen(Rml::RenderInterface* p_render_interface);
 
 } // namespace RendererExtensions
 

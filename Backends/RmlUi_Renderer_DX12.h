@@ -650,6 +650,8 @@ public:
 	void Set_UserRenderTarget(void* rtv_where_we_render_to);
 	void Set_UserDepthStencil(void* dsv_where_we_render_to);
 
+	bool CaptureScreen(int& width, int& height, int& num_components, Rml::byte*& raw_pixels, size_t& pixels_count) override;
+
 private:
 	void BeginFrame_Shell();
 	void BeginFrame_Integration();
@@ -669,6 +671,7 @@ private:
 
 	void Initialize_Swapchain(int width, int height) noexcept;
 	void Initialize_SyncPrimitives(void) noexcept;
+	void Initialize_SyncPrimitives_Screenshot(void) noexcept;
 	void Initialize_CommandAllocators(void);
 
 	void Initialize_Allocator(void) noexcept;
@@ -678,6 +681,7 @@ private:
 	void Destroy_CommandAllocators(void) noexcept;
 	void Destroy_CommandList(void) noexcept;
 	void Destroy_Allocator(void) noexcept;
+	void Destroy_SyncPrimitives_Screenshot(void) noexcept;
 
 	void Flush() noexcept;
 	uint64_t Signal(uint32_t frame_index) noexcept;
@@ -800,6 +804,8 @@ private:
 	ID3D12CommandQueue* m_p_copy_queue;
 	IDXGISwapChain4* m_p_swapchain;
 	ID3D12GraphicsCommandList* m_p_command_graphics_list;
+	ID3D12GraphicsCommandList* m_p_command_graphics_list_screenshot;
+	ID3D12CommandAllocator* m_p_command_allocator_screenshot;
 	ID3D12DescriptorHeap* m_p_descriptor_heap_render_target_view;
 	ID3D12DescriptorHeap* m_p_descriptor_heap_render_target_view_for_texture_manager;
 	ID3D12DescriptorHeap* m_p_descriptor_heap_depth_stencil_view_for_texture_manager;
@@ -808,6 +814,7 @@ private:
 	ID3D12DescriptorHeap* m_p_descriptor_heap_depthstencil;
 	D3D12MA::Allocation* m_p_depthstencil_resource;
 	ID3D12Fence* m_p_backbuffer_fence;
+	ID3D12Fence* m_p_fence_screenshot;
 	IDXGIAdapter* m_p_adapter;
 
 	ID3D12PipelineState* m_pipelines[22];
@@ -825,7 +832,9 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE* m_p_user_dsv_present;
 	HWND m_p_window_handle;
 	HANDLE m_p_fence_event;
+	HANDLE m_p_fence_event_screenshot;
 	uint64_t m_fence_value;
+	uint64_t m_fence_screenshot_value;
 	Rml::CompiledGeometryHandle m_precompiled_fullscreen_quad_geometry;
 
 	Rml::Array<ID3D12Resource*, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_backbuffers_resources;

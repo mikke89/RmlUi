@@ -38,11 +38,13 @@
 #define LODEPNG_NO_COMPILE_CPP
 #include <lodepng.h>
 
-bool CaptureScreenshot(const Rml::String& filename, int clip_width)
+bool CaptureScreenshot(Rml::RenderInterface* p_render_interface, const Rml::String& filename, int clip_width)
 {
+	RMLUI_ASSERT(p_render_interface && "expected to be valid pointer!");
+
 	using Image = RendererExtensions::Image;
 
-	Image image_orig = RendererExtensions::CaptureScreen();
+	Image image_orig = RendererExtensions::CaptureScreen(p_render_interface);
 
 	if (!image_orig.data)
 	{
@@ -115,7 +117,7 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 	}
 	RMLUI_ASSERT(w_ref > 0 && h_ref > 0 && data_ref);
 
-	Image screen = RendererExtensions::CaptureScreen();
+	Image screen = RendererExtensions::CaptureScreen(render_interface);
 	if (!screen.data)
 	{
 		ComparisonResult result;
