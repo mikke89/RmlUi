@@ -650,7 +650,7 @@ public:
 	void Set_UserRenderTarget(void* rtv_where_we_render_to);
 	void Set_UserDepthStencil(void* dsv_where_we_render_to);
 
-	bool CaptureScreen(int& width, int& height, int& num_components, Rml::byte*& raw_pixels, size_t& pixels_count) override;
+	bool CaptureScreen(int& width, int& height, int& num_components, int& row_pitch, Rml::byte*& raw_pixels, size_t& pixels_count) override;
 
 private:
 	void BeginFrame_Shell();

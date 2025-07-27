@@ -63,17 +63,36 @@ bool CaptureScreenshot(Rml::RenderInterface* p_render_interface, const Rml::Stri
 	image.data = Rml::UniquePtr<Rml::byte[]>(new Rml::byte[image.width * image.height * image.num_components]);
 
 	const int c = image.num_components;
-	for (int y = 0; y < image.height; y++)
+
+	if (image_orig.row_pitch > 0)
 	{
-		const int flipped_y = image_orig.height - y - 1;
+		// handles DirectX based images
+		const int src_row_pitch = image_orig.row_pitch; 
+		const int dst_row_pitch = image.width * image.num_components;
 
-		const int yb = y * image.width * c;
-		const int yb_orig = flipped_y * image_orig.width * c;
-		const int wb = image.width * c;
-
-		for (int xb = 0; xb < wb; xb++)
+		for (int y = 0; y < image.height; y++)
 		{
-			image.data[yb + xb] = image_orig.data[yb_orig + xb];
+			// Use actual row pitch for source
+			const Rml::byte* src_row = image_orig.data.get() + y * src_row_pitch;
+			Rml::byte* dst_row = image.data.get() + y * dst_row_pitch;
+
+			memcpy(dst_row, src_row, dst_row_pitch);
+		}
+	}
+	else
+	{
+		for (int y = 0; y < image.height; y++)
+		{
+			const int flipped_y = image_orig.height - y - 1;
+
+			const int yb = y * image.width * c;
+			const int yb_orig = flipped_y * image_orig.width * c;
+			const int wb = image.width * c;
+
+			for (int xb = 0; xb < wb; xb++)
+			{
+				image.data[yb + xb] = image_orig.data[yb_orig + xb];
+			}
 		}
 	}
 	

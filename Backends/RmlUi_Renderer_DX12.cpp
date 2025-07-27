@@ -4435,7 +4435,7 @@ void RenderInterface_DX12::Set_UserDepthStencil(void* dsv_where_we_render_to)
 	this->m_p_user_dsv_present = reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(dsv_where_we_render_to);
 }
 
-bool RenderInterface_DX12::CaptureScreen(int& width, int& height, int& num_components, Rml::byte*& raw_pixels, size_t& pixels_count)
+bool RenderInterface_DX12::CaptureScreen(int& width, int& height, int& num_components, int& row_pitch, Rml::byte*& raw_pixels, size_t& pixels_count)
 {
 	bool result{};
 
@@ -4451,6 +4451,7 @@ bool RenderInterface_DX12::CaptureScreen(int& width, int& height, int& num_compo
 	width = -1;
 	height = -1;
 	num_components = -1;
+	row_pitch = -1;
 	raw_pixels = nullptr;
 	pixels_count = 0;
 
@@ -4580,14 +4581,15 @@ bool RenderInterface_DX12::CaptureScreen(int& width, int& height, int& num_compo
 
 	if (SUCCEEDED(status))
 	{
-		Rml::byte* p_cpu_data = new Rml::byte[data_size];
-		std::memcpy(p_cpu_data, p_mapped_data, data_size);
+		Rml::byte* p_cpu_data = new Rml::byte[requiredSize];
+		std::memcpy(p_cpu_data, p_mapped_data, requiredSize);
 		raw_pixels = p_cpu_data;
 		result = true;
 		width = static_cast<int>(desc.Width);
 		height = static_cast<int>(desc.Height);
+		row_pitch = layout.Footprint.RowPitch;
 		num_components = 4;
-		pixels_count = data_size;
+		pixels_count = requiredSize;
 	}
 
 	p_cpu_readaccess_buffer->Unmap(0, nullptr);

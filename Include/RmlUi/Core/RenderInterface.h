@@ -183,11 +183,12 @@ public:
 	/// @param width output width of current screen dimensions
 	/// @param height output height of current screen dimensions
 	/// @param num_components
+	/// @param row_pitch uses for backends where row_pitch is defined for GL and VK it doesn't affect and thus will be remain -1
 	/// @param raw_pixels data you don't need to allocate you just need to pass a raw pointer that will be initialized otherwise you will get nullptr
 	/// if method calling is failed
 	/// @param pixels_count size of data of raw_pixels
 	/// @return true means successful execution otherwise failed
-	virtual bool CaptureScreen(int& width, int& height, int& num_components, Rml::byte*& raw_pixels, size_t& pixels_count);
+	virtual bool CaptureScreen(int& width, int& height, int& num_components, int& row_pitch, Rml::byte*& raw_pixels, size_t& pixels_count);
 };
 
 } // namespace Rml

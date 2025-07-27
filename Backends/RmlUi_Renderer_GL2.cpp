@@ -351,7 +351,7 @@ void RenderInterface_GL2::SetTransform(const Rml::Matrix4f* transform)
 		glLoadIdentity();
 }
 
-bool RenderInterface_GL2::CaptureScreen(int& width, int& height, int& num_components, Rml::byte*& raw_pixels, size_t& pixels_count)
+bool RenderInterface_GL2::CaptureScreen(int& width, int& height, int& num_components, int& row_pitch, Rml::byte*& raw_pixels, size_t& pixels_count)
 {
 	bool result{};
 
@@ -361,6 +361,7 @@ bool RenderInterface_GL2::CaptureScreen(int& width, int& height, int& num_compon
 	num_components = -1;
 	width = -1;
 	height = -1;
+	row_pitch = -1;
 	raw_pixels = nullptr;
 	pixels_count = 0;
 
