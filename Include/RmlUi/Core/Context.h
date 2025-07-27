@@ -368,14 +368,14 @@ private:
 	struct TouchState
 	{
 		bool is_pressed = false;
+		bool scrolling_right = false;
+		bool scrolling_down = false;
 		Vector2i start_position;
 		Vector2i last_position;
 		Element* scroll_container = nullptr;
 		double scrolling_last_time = 0;
 		double scrolling_start_time_x = 0;
 		double scrolling_start_time_y = 0;
-		bool scrolling_right = false;
-		bool scrolling_down = false;
 	};
 	std::array<TouchState, MAX_TOUCH_POINTS> touch_states;
 
