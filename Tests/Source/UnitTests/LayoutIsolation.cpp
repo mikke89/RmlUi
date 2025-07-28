@@ -719,7 +719,6 @@ TEST_CASE("LayoutIsolation.FlexFormat.shrink-to-fit")
 			if (entry.context_type == FormattingContextType::Flex && !entry.from_cache)
 				num_flex_formats += 1;
 		}
-		INFO(format_independent_tracker.ToString());
 		CHECK(num_flex_formats == expected_num_nest_levels_versus_num_flex_formats.at(num_nest_levels));
 
 		document->Close();

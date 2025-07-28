@@ -228,6 +228,11 @@ static const String document_isolation_rml = R"(
         <div id="absolute-item">Absolute item</div>
 		%s
     </div>
+
+    <div class="container" id="inflow-container">
+        <div id="inflow-item">Inflow item</div>
+		%s
+    </div>
 </body>
 </rml>
 )";
@@ -236,22 +241,23 @@ TEST_CASE("elementdocument.layout_cache")
 {
 	Context* context = TestsShell::GetContext();
 
-	auto CreateIsolationDocument = [&](bool disable_layout_cache, int num_overflow_items, int num_absolute_items) {
+	constexpr int num_items = 20;
+	auto CreateIsolationDocument = [&](bool disable_layout_cache) {
 		return CreateString(document_isolation_rml.c_str(), disable_layout_cache ? "rmlui-disable-layout-cache" : "",
-			StringUtilities::RepeatString("<div>Overflow item</div>", num_overflow_items).c_str(),
-			StringUtilities::RepeatString("<div>Absolute item</div>", num_absolute_items).c_str());
+			StringUtilities::RepeatString("<div>Item text</div>", num_items).c_str(),
+			StringUtilities::RepeatString("<div>Item text</div>", num_items).c_str(),
+			StringUtilities::RepeatString("<div>Item text</div>", num_items).c_str());
 	};
 
-	constexpr int num_items = 20;
 	{
-		ElementDocument* document = context->LoadDocumentFromMemory(CreateIsolationDocument(false, num_items, num_items));
+		ElementDocument* document = context->LoadDocumentFromMemory(CreateIsolationDocument(false));
 		document->Show();
 		TestsShell::RenderLoop();
 		document->Close();
 		context->Update();
 	}
 
-	for (const String& modify_item_id : {"overflow-item", "absolute-item"})
+	for (const String& modify_item_id : {"overflow-item", "absolute-item", "inflow-item"})
 	{
 		nanobench::Bench bench;
 		bench.title("Layout cache (" + modify_item_id + ")");
@@ -259,7 +265,7 @@ TEST_CASE("elementdocument.layout_cache")
 		bench.relative(true);
 
 		{
-			ElementDocument* document = context->LoadDocumentFromMemory(CreateIsolationDocument(false, num_items, num_items));
+			ElementDocument* document = context->LoadDocumentFromMemory(CreateIsolationDocument(false));
 			document->Show();
 			context->Update();
 			Element* element = document->GetElementById(modify_item_id);
@@ -272,7 +278,7 @@ TEST_CASE("elementdocument.layout_cache")
 		}
 
 		{
-			ElementDocument* document = context->LoadDocumentFromMemory(CreateIsolationDocument(true, num_items, num_items));
+			ElementDocument* document = context->LoadDocumentFromMemory(CreateIsolationDocument(true));
 			document->Show();
 			context->Update();
 			Element* element = document->GetElementById(modify_item_id);
