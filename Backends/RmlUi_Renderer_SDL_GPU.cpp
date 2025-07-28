@@ -366,7 +366,7 @@ CompiledGeometryHandle RenderInterface_SDL_GPU::CompileGeometry(Span<const Verte
 
     geometry->num_indices = static_cast<int>(indices.size());
 
-	return reinterpret_cast<Rml::CompiledGeometryHandle>(geometry);
+    return reinterpret_cast<Rml::CompiledGeometryHandle>(geometry);
 }
 
 void RenderInterface_SDL_GPU::ReleaseGeometryCommand::Update(RenderInterface_SDL_GPU& interface)
