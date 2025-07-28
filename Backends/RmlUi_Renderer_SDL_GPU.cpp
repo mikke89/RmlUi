@@ -280,11 +280,6 @@ void RenderInterface_SDL_GPU::EndFrame()
     }
     commands.clear();
 
-    for (auto& pair : buffers)
-    {
-        pair.second.in_use = false;
-    }
-
     if (copy_pass)
     {
         SDL_EndGPUCopyPass(copy_pass);
@@ -375,6 +370,8 @@ CompiledGeometryHandle RenderInterface_SDL_GPU::CompileGeometry(Span<const Verte
     if (!vertex_data || !index_data)
     {
         Log::Message(Log::LT_ERROR, "Failed to map transfer buffer(s): %s", SDL_GetError());
+        geometry->vertex_buffer->in_use = false;
+        geometry->index_buffer->in_use = false;
         delete geometry;
         return 0;
     }
