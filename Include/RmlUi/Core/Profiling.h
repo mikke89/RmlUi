@@ -33,6 +33,10 @@
 
 	#include <tracy/Tracy.hpp>
 
+	#define RMLUI_PROFILING_PASS_STRING(value, TracyFunc)   \
+		const Rml::String& rmlui_tracy_##TracyFunc = value; \
+		TracyFunc(rmlui_tracy_##TracyFunc.c_str(), rmlui_tracy_##TracyFunc.size())
+
 	#define RMLUI_ZoneNamed(varname, active) ZoneNamed(varname, active)
 	#define RMLUI_ZoneNamedN(varname, name, active) ZoneNamedN(varname, name, active)
 	#define RMLUI_ZoneNamedC(varname, color, active) ZoneNamedC(varname, color, active)
@@ -43,8 +47,8 @@
 	#define RMLUI_ZoneScopedC(color) ZoneScopedC(color)
 	#define RMLUI_ZoneScopedNC(name, color) ZoneScopedNC(name, color)
 
-	#define RMLUI_ZoneText(txt, size) ZoneText(txt, size)
-	#define RMLUI_ZoneName(txt, size) ZoneName(txt, size)
+	#define RMLUI_ZoneText(txt) RMLUI_PROFILING_PASS_STRING(txt, ZoneText)
+	#define RMLUI_ZoneName(txt) RMLUI_PROFILING_PASS_STRING(txt, ZoneName)
 
 	#define RMLUI_TracyPlot(name, val) TracyPlot(name, val)
 
@@ -65,8 +69,8 @@
 	#define RMLUI_ZoneScopedC(color)
 	#define RMLUI_ZoneScopedNC(name, color)
 
-	#define RMLUI_ZoneText(txt, size)
-	#define RMLUI_ZoneName(txt, size)
+	#define RMLUI_ZoneText(txt)
+	#define RMLUI_ZoneName(txt)
 
 	#define RMLUI_TracyPlot(name, val)
 

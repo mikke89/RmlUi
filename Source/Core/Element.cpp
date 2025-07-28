@@ -141,11 +141,8 @@ Element::~Element()
 
 void Element::Update(float dp_ratio, Vector2f vp_dimensions, bool is_dom_element)
 {
-#ifdef RMLUI_TRACY_PROFILING
-	auto name = GetAddress(false, false);
 	RMLUI_ZoneScoped;
-	RMLUI_ZoneText(name.c_str(), name.size());
-#endif
+	RMLUI_ZoneText(GetAddress(false, false));
 
 	OnUpdate();
 
@@ -212,11 +209,8 @@ void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimension
 
 void Element::Render()
 {
-#ifdef RMLUI_TRACY_PROFILING
-	auto name = GetAddress(false, false);
 	RMLUI_ZoneScoped;
-	RMLUI_ZoneText(name.c_str(), name.size());
-#endif
+	RMLUI_ZoneText(GetAddress(false, false));
 
 	UpdateAbsoluteOffsetAndRenderBoxData();
 

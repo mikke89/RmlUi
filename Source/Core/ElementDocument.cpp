@@ -530,7 +530,7 @@ void ElementDocument::UpdateLayout()
 	if (layout_dirty)
 	{
 		RMLUI_ZoneScoped;
-		RMLUI_ZoneText(source_url.c_str(), source_url.size());
+		RMLUI_ZoneText(source_url);
 
 		const bool allow_layout_cache = !HasAttribute("rmlui-disable-layout-cache");
 

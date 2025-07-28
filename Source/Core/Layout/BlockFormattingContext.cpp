@@ -115,12 +115,8 @@ static OuterDisplayType GetOuterDisplayType(Style::Display display)
 UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_container, Element* element, Vector2f containing_block, const Box& box)
 {
 	RMLUI_ASSERT(parent_container && element);
-
-#ifdef RMLUI_TRACY_PROFILING
 	RMLUI_ZoneScopedC(0xB22222);
-	auto name = CreateString("%s %x", element->GetAddress(false, false).c_str(), element);
-	RMLUI_ZoneName(name.c_str(), name.size());
-#endif
+	RMLUI_ZoneName(CreateString("%s %x", element->GetAddress(false, false).c_str(), element));
 
 	float min_height, max_height;
 	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
@@ -215,14 +211,8 @@ bool BlockFormattingContext::FormatInlineBox(BlockContainer* parent_container, E
 
 bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_container, Element* element)
 {
-#ifdef RMLUI_TRACY_PROFILING
 	RMLUI_ZoneScoped;
-	auto name = CreateString(">%s %x", element->GetAddress(false, false).c_str(), element);
-	RMLUI_ZoneName(name.c_str(), name.size());
-#endif
-
-	if (element->GetId() == "outer")
-		int x = 0;
+	RMLUI_ZoneName(CreateString(">%s %x", element->GetAddress(false, false).c_str(), element));
 
 	// Check for special formatting tags.
 	if (element->GetTagName() == "br")
