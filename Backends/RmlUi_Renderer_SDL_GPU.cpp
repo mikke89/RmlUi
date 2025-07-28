@@ -337,8 +337,6 @@ CompiledGeometryHandle RenderInterface_SDL_GPU::CompileGeometry(Span<const Verte
     if (!vertex_data || !index_data)
     {
         Log::Message(Log::LT_ERROR, "Failed to map transfer buffer(s): %s", SDL_GetError());
-        geometry->vertex_buffer->in_use = false;
-        geometry->index_buffer->in_use = false;
         delete geometry;
         return 0;
     }
@@ -362,6 +360,8 @@ CompiledGeometryHandle RenderInterface_SDL_GPU::CompileGeometry(Span<const Verte
     SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
 
     geometry->num_indices = static_cast<int>(indices.size());
+    geometry->vertex_buffer->in_use = true;
+    geometry->index_buffer->in_use = true;
 
     return reinterpret_cast<Rml::CompiledGeometryHandle>(geometry);
 }
@@ -615,7 +615,7 @@ RenderInterface_SDL_GPU::Buffer* RenderInterface_SDL_GPU::RequestBuffer(int capa
             Buffer* buffer = &it->second;
             if (!buffer->in_use && buffer->usage == usage)
             {
-                buffer->in_use = true;
+                buffer->in_use = false;
                 return buffer;
             }
             it++;
@@ -644,6 +644,6 @@ RenderInterface_SDL_GPU::Buffer* RenderInterface_SDL_GPU::RequestBuffer(int capa
         return nullptr;
     }
     buffer->usage = usage;
-    buffer->in_use = true;
+    buffer->in_use = false;
     return buffer;
 }
