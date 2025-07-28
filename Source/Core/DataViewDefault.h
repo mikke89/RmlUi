@@ -154,7 +154,7 @@ class DataViewFor final : public DataView {
 public:
 	DataViewFor(Element* element);
 
-	bool Initialize(DataModel& model, Element* element, const String& expression, const String& inner_rml) override;
+	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
 	bool Update(DataModel& model) override;
 
@@ -164,10 +164,11 @@ protected:
 	void Release() override;
 
 private:
+	const String* RMLContents() const;
+
 	DataAddress container_address;
 	String iterator_name;
 	String iterator_index_name;
-	String rml_contents;
 	ElementAttributes attributes;
 
 	ElementList elements;

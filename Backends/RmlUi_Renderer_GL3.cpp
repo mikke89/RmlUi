@@ -1152,40 +1152,37 @@ void RenderInterface_GL3::RenderToClipMask(Rml::ClipMaskOperation operation, Rml
 	RMLUI_ASSERT(glIsEnabled(GL_STENCIL_TEST));
 	using Rml::ClipMaskOperation;
 
-	const bool clear_stencil = (operation == ClipMaskOperation::Set || operation == ClipMaskOperation::SetInverse);
-	if (clear_stencil)
-	{
-		// @performance Increment the reference value instead of clearing each time.
-		glClear(GL_STENCIL_BUFFER_BIT);
-	}
-
-	GLint stencil_test_value = 0;
-	glGetIntegerv(GL_STENCIL_REF, &stencil_test_value);
-
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glStencilFunc(GL_ALWAYS, GLint(1), GLuint(-1));
-
+	GLint stencil_write_value = 1;
+	GLint stencil_test_value = 1;
 	switch (operation)
 	{
 	case ClipMaskOperation::Set:
 	{
+		// @performance Increment the reference value instead of clearing each time.
+		glClear(GL_STENCIL_BUFFER_BIT);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-		stencil_test_value = 1;
 	}
 	break;
 	case ClipMaskOperation::SetInverse:
 	{
+		glClearStencil(1);
+		glClear(GL_STENCIL_BUFFER_BIT);
+		glClearStencil(0);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-		stencil_test_value = 0;
+		stencil_write_value = 0;
 	}
 	break;
 	case ClipMaskOperation::Intersect:
 	{
 		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+		glGetIntegerv(GL_STENCIL_REF, &stencil_test_value);
 		stencil_test_value += 1;
 	}
 	break;
 	}
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glStencilFunc(GL_ALWAYS, stencil_write_value, GLuint(-1));
 
 	RenderGeometry(geometry, translation, {});
 
