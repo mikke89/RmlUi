@@ -51,74 +51,32 @@ namespace Rml {
 
 Element* ElementUtilities::GetElementById(Element* root_element, const String& id)
 {
-	// Breadth first search on elements for the corresponding id
-	typedef Queue<Element*> SearchQueue;
-	SearchQueue search_queue;
-	search_queue.push(root_element);
-
-	while (!search_queue.empty())
-	{
-		Element* element = search_queue.front();
-		search_queue.pop();
-
+	Element* result = nullptr;
+	BreadthFirstSearch(root_element, [&](Element* element) {
 		if (element->GetId() == id)
 		{
-			return element;
+			result = element;
+			return CallbackControlFlow::Break;
 		}
-
-		// Add all children to search
-		for (int i = 0; i < element->GetNumChildren(); i++)
-			search_queue.push(element->GetChild(i));
-	}
-
-	return nullptr;
+		return CallbackControlFlow::Continue;
+	});
+	return result;
 }
 
-void ElementUtilities::GetElementsByTagName(ElementList& elements, Element* root_element, const String& tag, const String& stop_tag)
+void ElementUtilities::GetElementsByTagName(ElementList& elements, Element* root_element, const String& tag)
 {
-	// Breadth first search on elements for the corresponding id
-	typedef Queue<Element*> SearchQueue;
-	SearchQueue search_queue;
-	for (int i = 0; i < root_element->GetNumChildren(); ++i)
-		search_queue.push(root_element->GetChild(i));
-
-	while (!search_queue.empty())
-	{
-		Element* element = search_queue.front();
-		search_queue.pop();
-
+	BreadthFirstSearch(root_element, [&](Element* element) {
 		if (element->GetTagName() == tag)
 			elements.push_back(element);
-
-		if (stop_tag.empty() || element->GetTagName() != stop_tag)
-		{
-			// Add all children to search.
-			for (int i = 0; i < element->GetNumChildren(); i++)
-				search_queue.push(element->GetChild(i));
-		}
-	}
+	});
 }
 
 void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* root_element, const String& class_name)
 {
-	// Breadth first search on elements for the corresponding id
-	typedef Queue<Element*> SearchQueue;
-	SearchQueue search_queue;
-	for (int i = 0; i < root_element->GetNumChildren(); ++i)
-		search_queue.push(root_element->GetChild(i));
-
-	while (!search_queue.empty())
-	{
-		Element* element = search_queue.front();
-		search_queue.pop();
-
+	BreadthFirstSearch(root_element, [&](Element* element) {
 		if (element->IsClassSet(class_name))
 			elements.push_back(element);
-
-		// Add all children to search.
-		for (int i = 0; i < element->GetNumChildren(); i++)
-			search_queue.push(element->GetChild(i));
-	}
+	});
 }
 
 float ElementUtilities::GetDensityIndependentPixelRatio(Element* element)

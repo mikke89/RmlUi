@@ -29,6 +29,7 @@
 #ifndef RMLUI_CORE_ELEMENTUTILITIES_H
 #define RMLUI_CORE_ELEMENTUTILITIES_H
 
+#include "Element.h"
 #include "Header.h"
 #include "RenderManager.h"
 #include "Types.h"
@@ -69,8 +70,7 @@ public:
 	/// @param[out] elements Resulting elements.
 	/// @param[in] root_element First element to check.
 	/// @param[in] tag Tag to search for.
-	/// @param[in] stop_tag Optional, tag to stop searching at i.e. won't look for other elements within this tag.
-	static void GetElementsByTagName(ElementList& elements, Element* root_element, const String& tag, const String& stop_tag = "");
+	static void GetElementsByTagName(ElementList& elements, Element* root_element, const String& tag);
 	/// Get all elements with the given class set on them.
 	/// @param[out] elements Resulting elements.
 	/// @param[in] root_element First element to check.
@@ -138,6 +138,40 @@ public:
 	/// Attributes such as 'data-' are used to create the views and controllers.
 	/// @return True if a data view or controller was constructed.
 	static bool ApplyDataViewsControllers(Element* element);
+
+	enum class CallbackControlFlow { Continue, SkipChildren, Break };
+
+	template <typename Func>
+	static void BreadthFirstSearch(Element* root_element, Func&& func)
+	{
+		// Breadth-first search over the element tree, break when 'func' returns true.
+		Queue<Element*> search_queue;
+		search_queue.push(root_element);
+
+		while (!search_queue.empty())
+		{
+			Element* element = search_queue.front();
+			search_queue.pop();
+
+			if constexpr (std::is_same_v<std::invoke_result_t<Func, Element*>, CallbackControlFlow>)
+			{
+				const CallbackControlFlow control_flow = func(element);
+				if (control_flow == CallbackControlFlow::Break)
+					break;
+				if (control_flow == CallbackControlFlow::SkipChildren)
+					continue;
+			}
+			else
+			{
+				func(element);
+			}
+
+			// Add all children to search
+			const int num_children = element->GetNumChildren();
+			for (int i = 0; i < num_children; i++)
+				search_queue.push(element->GetChild(i));
+		}
+	}
 };
 
 } // namespace Rml

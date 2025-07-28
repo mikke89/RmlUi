@@ -97,31 +97,31 @@ void InputTypeRadio::PopRadioSet()
 	// Uncheck all other radio buttons with our name in the form.
 	String stop_tag;
 	Element* parent = element->GetParentNode();
-	while (parent != nullptr && rmlui_dynamic_cast<ElementForm*>(parent) == nullptr)
+	while (parent && rmlui_dynamic_cast<ElementForm*>(parent) == nullptr)
 		parent = parent->GetParentNode();
 
-	//If no containing form was found, use the containing document as the parent
-	if (parent == nullptr)
-	{
+	// If no containing form was found, use the containing document as the parent.
+	if (!parent)
 		parent = element->GetOwnerDocument();
-		stop_tag = "form"; // Don't include any radios that are inside form elements
-	}
 
-	if (parent != nullptr)
-	{
-		ElementList form_controls;
-		ElementUtilities::GetElementsByTagName(form_controls, parent, "input", stop_tag);
+	if (!parent)
+		return;
 
-		for (size_t i = 0; i < form_controls.size(); ++i)
+	ElementUtilities::BreadthFirstSearch(parent, [&](Element* candidate) {
+		// Don't include any radios that are inside other form elements.
+		if (candidate != parent && rmlui_dynamic_cast<ElementForm*>(candidate) != nullptr)
+			return ElementUtilities::CallbackControlFlow::SkipChildren;
+
+		if (ElementFormControlInput* radio_control = rmlui_dynamic_cast<ElementFormControlInput*>(candidate))
 		{
-			ElementFormControlInput* radio_control = rmlui_dynamic_cast<ElementFormControlInput*>(form_controls[i]);
-			if (radio_control != nullptr && element != radio_control && radio_control->GetAttribute<String>("type", "text") == "radio" &&
+			if (element != radio_control && radio_control->GetAttribute<String>("type", "text") == "radio" &&
 				radio_control->GetName() == element->GetName())
 			{
 				radio_control->RemoveAttribute("checked");
 			}
 		}
-	}
+		return ElementUtilities::CallbackControlFlow::Continue;
+	});
 }
 
 } // namespace Rml
