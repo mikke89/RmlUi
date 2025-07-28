@@ -40,9 +40,6 @@
 #include <RmlUi_Backend.h>
 #include <Shell.h>
 
-#include <chrono>
-#include <iostream>
-
 Rml::Context* context = nullptr;
 
 #if defined RMLUI_PLATFORM_WIN32
