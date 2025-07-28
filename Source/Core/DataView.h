@@ -70,10 +70,10 @@ public:
 	// Initialize the data view.
 	// @param[in] model The data model the view will be attached to.
 	// @param[in] element The element which spawned the view.
-	// @param[in] expression The value of the element's 'data-' attribute which spawned the view (see above).
-	// @param[in] modifier_or_inner_rml The modifier for the given view type (see above), or the inner rml contents for structural data views.
+	// @param[in] expression The value of the element's 'data-' attribute which spawned the view (see class documentation).
+	// @param[in] modifier The modifier for the given view type (see class documentation).
 	// @return True on success.
-	virtual bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier_or_inner_rml) = 0;
+	virtual bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) = 0;
 
 	// Update the data view.
 	// Returns true if the update resulted in a document change.

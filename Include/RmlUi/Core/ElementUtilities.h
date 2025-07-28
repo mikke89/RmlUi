@@ -138,11 +138,6 @@ public:
 	/// Attributes such as 'data-' are used to create the views and controllers.
 	/// @return True if a data view or controller was constructed.
 	static bool ApplyDataViewsControllers(Element* element);
-
-	/// Creates data views that use a raw inner xml content string to construct child elements.
-	/// Right now, this only applies to the 'data-for' view.
-	/// @return True if a data view was constructed.
-	static bool ApplyStructuralDataViews(Element* element, const String& inner_rml);
 };
 
 } // namespace Rml
