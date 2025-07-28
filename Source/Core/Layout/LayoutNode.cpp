@@ -34,6 +34,22 @@
 
 namespace Rml {
 
+void LayoutNode::SetDirty(DirtyLayoutType dirty_type)
+{
+	// Log::Message(Log::LT_INFO, "SetDirty. Self %d  Child %d  Element: %s", (dirty_type & DirtyLayoutType::DOM) != DirtyLayoutType::None,
+	//	(dirty_type & DirtyLayoutType::Child) != DirtyLayoutType::None, element->GetAddress().c_str());
+	dirty_flag = dirty_flag | dirty_type;
+	committed_max_content_width.reset();
+	committed_max_content_height.reset();
+}
+
+void LayoutNode::ClearDirty()
+{
+	// Log::Message(Log::LT_INFO, "ClearDirty (was Self %d  Child %d)  Element: %s", (dirty_flag & DirtyLayoutType::DOM) != DirtyLayoutType::None,
+	//	(dirty_flag & DirtyLayoutType::Child) != DirtyLayoutType::None, element->GetAddress().c_str());
+	dirty_flag = DirtyLayoutType::None;
+}
+
 void LayoutNode::PropagateDirtyToParent()
 {
 	auto DirtyParentNode = [](Element* element) {
@@ -73,22 +89,6 @@ void LayoutNode::PropagateDirtyToParent()
 	}
 }
 
-void LayoutNode::ClearDirty()
-{
-	// Log::Message(Log::LT_INFO, "ClearDirty (was Self %d  Child %d)  Element: %s", (dirty_flag & DirtyLayoutType::DOM) != DirtyLayoutType::None,
-	//	(dirty_flag & DirtyLayoutType::Child) != DirtyLayoutType::None, element->GetAddress().c_str());
-	dirty_flag = DirtyLayoutType::None;
-}
-
-void LayoutNode::SetDirty(DirtyLayoutType dirty_type)
-{
-	// Log::Message(Log::LT_INFO, "SetDirty. Self %d  Child %d  Element: %s", (dirty_type & DirtyLayoutType::DOM) != DirtyLayoutType::None,
-	//	(dirty_type & DirtyLayoutType::Child) != DirtyLayoutType::None, element->GetAddress().c_str());
-	dirty_flag = dirty_flag | dirty_type;
-	committed_max_content_width.reset();
-	committed_max_content_height.reset();
-}
-
 void LayoutNode::CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
 	bool layout_constraint, Vector2f visible_overflow_size, float max_content_width, Optional<float> baseline_of_last_line)
 {
@@ -113,8 +113,42 @@ void LayoutNode::CommitLayout(Vector2f containing_block_size, Vector2f absolutel
 	ClearDirty();
 }
 
+bool LayoutNode::CommittedLayoutMatches(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size,
+	const Box* override_box, bool layout_constraint) const
+{
+	if (IsDirty())
+		return false;
+	if (!committed_layout.has_value())
+		return false;
+	if (committed_layout->containing_block_size != containing_block_size ||
+		committed_layout->absolutely_positioning_containing_block_size != absolutely_positioning_containing_block_size)
+		return false;
+
+	// Layout under a constraint may make some simplifications that requires re-evaluation under a normal formatting mode.
+	if (committed_layout->layout_constraint && !layout_constraint)
+		return false;
+
+	if (!override_box)
+		return !committed_layout->override_box.has_value();
+
+	const Box& compare_box = committed_layout->override_box.has_value() ? *committed_layout->override_box : element->GetBox();
+
+	// In some situations, if we have an indefinite size on the committed box, we could see if the laid-out size
+	// matches the input override box and use the cache here. However, because of cyclic-percentage rules with
+	// containing block sizes, this is only correct in certain situations, particularly when the vertical size of
+	// the containing block is indefinite. In this case the used containing block size should resolve to indefinite,
+	// even after it is sized. Although, we don't actually implement this behavior for now, but once we do, we could
+	// implement caching here in this case. For the horizontal axis, we are always required to re-evaluate any
+	// children for which this box acts as a containing block for, thus we cannot use a cache mechanism here. See:
+	// https://drafts.csswg.org/css-sizing/#cyclic-percentage-contribution
+
+	return *override_box == compare_box;
+}
+
 bool LayoutNode::IsLayoutBoundary() const
 {
+	// Layout boundary, a.k.a. reflow root.
+
 	using namespace Style;
 	auto& computed = element->GetComputedValues();
 

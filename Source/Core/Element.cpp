@@ -1975,7 +1975,7 @@ void Element::OnChildRemove(Element* /*child*/) {}
 
 void Element::DirtyLayout()
 {
-	GetLayoutNode()->SetDirty(DirtyLayoutType::DOM);
+	GetLayoutNode()->SetDirty(DirtyLayoutType::Self);
 
 	if (ElementDocument* document = GetOwnerDocument())
 		document->DirtyDocumentLayout();

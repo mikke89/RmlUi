@@ -30,20 +30,17 @@
 #define RMLUI_CORE_LAYOUT_LAYOUTNODE_H
 
 #include "../../../Include/RmlUi/Core/Box.h"
-#include "../../../Include/RmlUi/Core/Element.h"
 #include "../../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
+class Element;
+
+// Determines if the element, or its descendants, have been changed in such a way as to require a new layout pass.
 enum class DirtyLayoutType : uint8_t {
 	None = 0,
-	DOM = 1 << 0,
-	PropertyForcingLayout = 1 << 1,
-	TableAttribute = 1 << 2,
-	ReplacedElement = 1 << 3,
-	IntrinsicSize = 1 << 4, // Closely tied to ReplacedElement, combine them?
-	Text = 1 << 5,
-	Child = 1 << 6,
+	Self = 1 << 1,  // This element has been modified such that the layout may have changed.
+	Child = 1 << 2, // One or more descendent elements within the same layout boundary have been modified.
 };
 
 inline DirtyLayoutType operator|(DirtyLayoutType lhs, DirtyLayoutType rhs)
@@ -57,6 +54,7 @@ inline DirtyLayoutType operator&(DirtyLayoutType lhs, DirtyLayoutType rhs)
 	return DirtyLayoutType(T(lhs) & T(rhs));
 }
 
+// The conditions and result of the last committed layout on the element.
 struct CommittedLayout {
 	Vector2f containing_block_size;
 	Vector2f absolutely_positioning_containing_block_size;
@@ -69,23 +67,22 @@ struct CommittedLayout {
 };
 
 /*
-    A LayoutNode TODO
+    A LayoutNode maintains the layout state and cache of an Element.
+
+    All usage of this class assumes valid computed values, except for setting its dirty state which is always allowed.
 */
 class LayoutNode {
 public:
-	enum class Type { Undefined, Root, BlockContainer, InlineContainer, FlexContainer, TableWrapper, Replaced };
-
 	LayoutNode(Element* element) : element(element) {}
 
-	// Assumes valid computed values.
-	void PropagateDirtyToParent();
-
-	void ClearDirty();
 	void SetDirty(DirtyLayoutType dirty_type);
+	void ClearDirty();
 
-	bool IsChildDirty() const { return (dirty_flag & DirtyLayoutType::Child) != DirtyLayoutType::None; }
 	bool IsDirty() const { return dirty_flag != DirtyLayoutType::None; }
-	bool IsSelfDirty() const { return !(dirty_flag == DirtyLayoutType::None || dirty_flag == DirtyLayoutType::Child); }
+	bool IsChildDirty() const { return (dirty_flag & DirtyLayoutType::Child) != DirtyLayoutType::None; }
+	bool IsSelfDirty() const { return (dirty_flag & DirtyLayoutType::Self) != DirtyLayoutType::None; }
+
+	void PropagateDirtyToParent();
 
 	void CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
 		bool layout_constraint, Vector2f visible_overflow_size, float max_content_width, Optional<float> baseline_of_last_line);
@@ -96,41 +93,12 @@ public:
 	{
 		committed_layout.reset();
 		committed_max_content_width.reset();
-	}
-
-	bool CommittedLayoutMatches(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
-		bool layout_constraint) const
-	{
-		if (IsDirty())
-			return false;
-		if (!committed_layout.has_value())
-			return false;
-		if (committed_layout->containing_block_size != containing_block_size ||
-			committed_layout->absolutely_positioning_containing_block_size != absolutely_positioning_containing_block_size)
-			return false;
-
-		// Layout under a constraint may make some simplifications that requires re-evaluation under a normal formatting mode.
-		if (committed_layout->layout_constraint && !layout_constraint)
-			return false;
-
-		if (!override_box)
-			return !committed_layout->override_box.has_value();
-
-		const Box& compare_box = committed_layout->override_box.has_value() ? *committed_layout->override_box : element->GetBox();
-
-		// In some situations, if we have an indefinite size on the committed box, we could see if the layed-out size
-		// matches the input override box and use the cache here. However, because of cyclic-percentage rules with
-		// containing block sizes, this is only correct in certain situations, particularly when the vertical size of
-		// the containing block is indefinite. In this case the used containing block size should resolve to indefinite,
-		// even after it is sized. Although, we don't actually implement this behavior for now, but once we do, we could
-		// implement caching here in this case. For the horizontal axis, we are always required to re-evaluate any
-		// children for which this box acts as a containing block for, thus we cannot use a cache mechanism here. See:
-		// https://drafts.csswg.org/css-sizing/#cyclic-percentage-contribution
-
-		return *override_box == compare_box;
+		committed_max_content_height.reset();
 	}
 
 	bool HasCommittedLayout() const { return committed_layout.has_value(); }
+	bool CommittedLayoutMatches(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
+		bool layout_constraint) const;
 
 	Optional<float> GetMaxContentWidthIfCached() const { return committed_max_content_width; }
 	void CommitMaxContentWidth(float width) { committed_max_content_width = width; }
@@ -141,17 +109,13 @@ public:
 	// TODO: Remove and replace with a better interface.
 	const Optional<CommittedLayout>& GetCommittedLayout() const { return committed_layout; }
 
-	// A.k.a. reflow root.
+	// TODO: Can we make it private?
 	bool IsLayoutBoundary() const;
 
 private:
 	Element* element;
-	Type type = Type::Undefined;
 
 	DirtyLayoutType dirty_flag = DirtyLayoutType::None;
-
-	// Store this for partial layout updates / reflow. If this changes, always do layout again, regardless of any cache.
-	Vector2f containing_block;
 
 	Optional<CommittedLayout> committed_layout;
 	Optional<float> committed_max_content_width;
