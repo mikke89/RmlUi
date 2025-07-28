@@ -381,8 +381,8 @@ bool CachedContainer::GetBaselineOfLastLine(float& out_baseline) const
 
 float CachedContainer::GetShrinkToFitWidth() const
 {
-	RMLUI_ERRORMSG("Internal error: CachedContainer should not be used under a max-content constraint.");
-	return 0.f;
+	RMLUI_ASSERTMSG(max_content_width >= 0.f, "Internal error: Using undefined max-content width from CachedContainer.");
+	return max_content_width;
 }
 
 String CachedContainer::DebugDumpTree(int depth) const

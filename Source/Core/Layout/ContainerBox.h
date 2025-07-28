@@ -204,10 +204,10 @@ private:
 */
 class CachedContainer final : public ContainerBox {
 public:
-	CachedContainer(Element* element, ContainerBox* parent_container, const Box& box, Vector2f visible_overflow_size,
+	CachedContainer(Element* element, ContainerBox* parent_container, const Box& box, Vector2f visible_overflow_size, float max_content_width,
 		Optional<float> baseline_of_last_line) :
 		ContainerBox(Type::CachedContainer, element, parent_container, parent_container->GetFormattingMode()), box(box),
-		baseline_of_last_line(baseline_of_last_line)
+		max_content_width(max_content_width), baseline_of_last_line(baseline_of_last_line)
 	{
 		SetVisibleOverflowSize(visible_overflow_size);
 	}
@@ -220,6 +220,7 @@ public:
 
 private:
 	const Box& box;
+	float max_content_width;
 	Optional<float> baseline_of_last_line;
 };
 

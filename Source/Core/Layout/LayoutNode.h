@@ -64,6 +64,7 @@ struct CommittedLayout {
 	bool layout_constraint;
 
 	Vector2f visible_overflow_size;
+	float max_content_width;
 	Optional<float> baseline_of_last_line;
 };
 
@@ -87,7 +88,7 @@ public:
 	bool IsSelfDirty() const { return !(dirty_flag == DirtyLayoutType::None || dirty_flag == DirtyLayoutType::Child); }
 
 	void CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
-		bool layout_constraint, Vector2f visible_overflow_size, Optional<float> baseline_of_last_line);
+		bool layout_constraint, Vector2f visible_overflow_size, float max_content_width, Optional<float> baseline_of_last_line);
 
 	// TODO: Currently, should only be used by `Context::SetDimensions`. Ideally, we would remove this and "commit" the
 	// containing block (without the layout result, see comment in `CommitLayout`).
@@ -148,9 +149,6 @@ private:
 	Type type = Type::Undefined;
 
 	DirtyLayoutType dirty_flag = DirtyLayoutType::None;
-
-	// TODO: Cache this after running LayoutDetails::GetShrinkToFitWidth. Clear the cache whenever any child or self is dirtied.
-	float max_content_size = 0;
 
 	// Store this for partial layout updates / reflow. If this changes, always do layout again, regardless of any cache.
 	Vector2f containing_block;

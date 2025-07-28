@@ -105,17 +105,17 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 
 	const FormattingMode& formatting_mode = parent_container->GetFormattingMode();
 
+	if (formatting_mode.allow_format_independent_cache)
 	{
 		const Vector2f containing_block = parent_container->GetContainingBlockSize(Style::Position::Static);
 		const Vector2f absolute_containing_block = parent_container->GetContainingBlockSize(Style::Position::Absolute);
 
 #ifdef RMLUI_TRACY_PROFILING
 		auto DebugCacheTracyMessage = [&](const char* cache_info) {
-			const String message = CreateString("%s on %x. Containing block: %g, %g. Absolute containing block: %g, %g. Box (size): %g, %g",
-				cache_info, element, containing_block.x, containing_block.y, absolute_containing_block.x, absolute_containing_block.y,
+			RMLUI_ZoneText(CreateString("%s on %x. Containing block: %g, %g. Absolute containing block: %g, %g. Box (size): %g, %g", cache_info,
+				element, containing_block.x, containing_block.y, absolute_containing_block.x, absolute_containing_block.y,
 				override_initial_box ? override_initial_box->GetSize().x : std::numeric_limits<float>::quiet_NaN(),
-				override_initial_box ? override_initial_box->GetSize().y : std::numeric_limits<float>::quiet_NaN());
-			RMLUI_ZoneText(message.c_str(), message.size());
+				override_initial_box ? override_initial_box->GetSize().y : std::numeric_limits<float>::quiet_NaN()));
 		};
 #else
 	#define DebugCacheTracyMessage(message)
@@ -126,17 +126,18 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 				formatting_mode.constraint != FormattingMode::Constraint::None))
 		{
 			DebugCacheTracyMessage("Cache match");
-
-			if (formatting_mode.allow_format_independent_cache)
-			{
-				layout_box = MakeUnique<CachedContainer>(element, parent_container, element->GetBox(),
-					layout_node->GetCommittedLayout()->visible_overflow_size, layout_node->GetCommittedLayout()->baseline_of_last_line);
-			}
+			const CommittedLayout& commited_layout = layout_node->GetCommittedLayout().value();
+			layout_box = MakeUnique<CachedContainer>(element, parent_container, element->GetBox(), commited_layout.visible_overflow_size,
+				commited_layout.max_content_width, commited_layout.baseline_of_last_line);
 		}
 		else
 		{
 			DebugCacheTracyMessage(layout_node->HasCommittedLayout() ? "Cache miss" : "No cache");
 		}
+	}
+	else
+	{
+		RMLUI_ZoneText("Cache disabled");
 	}
 
 	if (!layout_box)
@@ -168,17 +169,19 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 		case FormattingContextType::None: RMLUI_ERROR; break;
 		}
 
-		if (layout_box)
+		if (layout_box && formatting_mode.allow_format_independent_cache)
 		{
-			Optional<float> baseline_of_last_line;
-			float baseline_of_last_line_value = 0.f;
-			if (layout_box->GetBaselineOfLastLine(baseline_of_last_line_value))
-				baseline_of_last_line = baseline_of_last_line_value;
+			Optional<float> baseline_of_last_line = 0.f;
+			if (!layout_box->GetBaselineOfLastLine(*baseline_of_last_line))
+				baseline_of_last_line.reset();
 
 			LayoutNode* layout_node = element->GetLayoutNode();
+			const bool layout_constraint = (formatting_mode.constraint != FormattingMode::Constraint::None);
+			const float max_content_width =
+				(formatting_mode.constraint == FormattingMode::Constraint::MaxContent ? layout_box->GetShrinkToFitWidth() : -1.f);
 			layout_node->CommitLayout(parent_container->GetContainingBlockSize(Style::Position::Static),
-				parent_container->GetContainingBlockSize(Style::Position::Absolute), override_initial_box,
-				formatting_mode.constraint != FormattingMode::Constraint::None, layout_box->GetVisibleOverflowSize(), baseline_of_last_line);
+				parent_container->GetContainingBlockSize(Style::Position::Absolute), override_initial_box, layout_constraint,
+				layout_box->GetVisibleOverflowSize(), max_content_width, baseline_of_last_line);
 		}
 	}
 
@@ -210,6 +213,7 @@ float FormattingContext::FormatFitContentWidth(ContainerBox* parent_container, E
 
 float FormattingContext::FormatFitContentHeight(ContainerBox* parent_container, Element* element, const Box& box)
 {
+	RMLUI_ZoneScoped;
 	if (box.GetSize().y >= 0.f)
 		return box.GetSize().y;
 
@@ -254,12 +258,9 @@ void FormattingContext::FormatFitContentWidth(Box& box, Element* element, Format
 	const Vector2f containing_block)
 {
 	RMLUI_ASSERT(element);
-#ifdef RMLUI_TRACY_PROFILING
 	RMLUI_ZoneScoped;
-	const String zone_text = CreateString("%s    %x    Containing block: %g x %g", element->GetAddress(false, false).c_str(), element,
-		containing_block.x, containing_block.y);
-	RMLUI_ZoneText(zone_text.c_str(), zone_text.size());
-#endif
+	RMLUI_ZoneText(CreateString("%s    %x    Containing block: %g x %g", element->GetAddress(false, false).c_str(), element, containing_block.x,
+		containing_block.y));
 
 #ifdef RMLUI_DEBUG
 	auto* debug_tracker = FormatIndependentDebugTracker::GetIf();
