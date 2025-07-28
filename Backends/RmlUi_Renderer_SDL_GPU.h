@@ -41,44 +41,24 @@ class RenderInterface_SDL_GPU : public Rml::RenderInterface {
 public:
 	RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Window* window);
 	void Shutdown();
-
-	void BeginFrame();
+	void BeginFrame(SDL_GPUCommandBuffer* command_buffer, SDL_GPUTexture* swapchain_texture, uint32_t width, uint32_t height);
 	void EndFrame();
-
-	// -- Inherited from Rml::RenderInterface --
-
 	Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
 	void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override;
 	void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override;
-
 	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
 	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) override;
 	void ReleaseTexture(Rml::TextureHandle texture_handle) override;
-
 	void EnableScissorRegion(bool enable) override;
 	void SetScissorRegion(Rml::Rectanglei region) override;
-
 	void SetTransform(const Rml::Matrix4f* new_transform) override;
 
 private:
-	void CreatePipelines();
-	bool BeginCopyPass();
-	bool BeginRenderPass();
-
-private:
-	// Owned by backend
-
 	SDL_GPUDevice* device;
 	SDL_Window* window;
-
-	// Owned by render interface
-
 	SDL_GPUGraphicsPipeline* texture_pipeline;
 	SDL_GPUGraphicsPipeline* color_pipeline;
 	SDL_GPUSampler* linear_sampler;
-
-	// Owned by render interface (per-frame)
-
 	SDL_GPUCommandBuffer* command_buffer;
 	SDL_GPUTexture* swapchain_texture;
 	uint32_t swapchain_width;
@@ -87,38 +67,28 @@ private:
 	SDL_GPUCopyPass* copy_pass;
 	SDL_Rect scissor;
 	Rml::Matrix4f transform;
-	Rml::Matrix4f projection;
-	bool has_frame;
-	int render_passes;
+	Rml::Matrix4f proj;
 
-	struct Command
-	{
+	struct Command {
 		virtual void Update(RenderInterface_SDL_GPU& interface) = 0;
 	};
 
-	struct EnableScissorRegionCommand : Command
-	{
+	struct EnableScissorRegionCommand : Command {
 		EnableScissorRegionCommand(bool enable) : enable(enable) {}
-
 		void Update(RenderInterface_SDL_GPU& interface) override;
 
 		bool enable;
 	};
 
-	struct SetScissorRegionCommand : Command
-	{
+	struct SetScissorRegionCommand : Command {
 		SetScissorRegionCommand(Rml::Rectanglei region) : region(region) {}
-
 		void Update(RenderInterface_SDL_GPU& interface) override;
 
 		Rml::Rectanglei region;
 	};
 
-	struct RenderGeometryCommand : Command
-	{
-		RenderGeometryCommand(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
-			: handle(handle), translation(translation), texture(texture) {}
-
+	struct RenderGeometryCommand : Command {
+		RenderGeometryCommand(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) : handle(handle), translation(translation), texture(texture) {}
 		void Update(RenderInterface_SDL_GPU& interface) override;
 
 		Rml::CompiledGeometryHandle handle;
@@ -126,28 +96,22 @@ private:
 		Rml::TextureHandle texture;
 	};
 
-	struct ReleaseGeometryCommand : Command
-	{
+	struct ReleaseGeometryCommand : Command {
 		ReleaseGeometryCommand(Rml::CompiledGeometryHandle handle) : handle(handle) {}
-
 		void Update(RenderInterface_SDL_GPU& interface) override;
 
 		Rml::CompiledGeometryHandle handle;
 	};
 
-	struct ReleaseTextureCommand : Command
-	{
+	struct ReleaseTextureCommand : Command {
 		ReleaseTextureCommand(Rml::TextureHandle handle) : handle(handle) {}
-
 		void Update(RenderInterface_SDL_GPU& interface) override;
 
 		Rml::TextureHandle handle;
 	};
 
-	struct SetTransformCommand : Command
-	{
+	struct SetTransformCommand : Command {
 		SetTransformCommand(const Rml::Matrix4f* new_transform);
-
 		void Update(RenderInterface_SDL_GPU& interface) override;
 
 		Rml::Matrix4f transform;
@@ -176,9 +140,15 @@ private:
 		int num_indices;
 	};
 
+	// List of ordered render commands
 	std::vector<std::unique_ptr<Command>> commands;
+
+	// Map of capacities to vertex/index buffers
 	std::multimap<int, Buffer> buffers;
 
+	void CreatePipelines();
+	bool BeginCopyPass();
+	bool BeginRenderPass();
 	Buffer* RequestBuffer(int capacity, SDL_GPUBufferUsageFlags usage);
 };
 

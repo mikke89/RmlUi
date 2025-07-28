@@ -240,36 +240,15 @@ void RenderInterface_SDL_GPU::Shutdown()
     SDL_ReleaseGPUGraphicsPipeline(device, texture_pipeline);
 }
 
-void RenderInterface_SDL_GPU::BeginFrame()
+void RenderInterface_SDL_GPU::BeginFrame(SDL_GPUCommandBuffer* command_buffer, SDL_GPUTexture* swapchain_texture, uint32_t width, uint32_t height)
 {
-    has_frame = false;
-    render_passes = 0;
-
-    command_buffer = SDL_AcquireGPUCommandBuffer(device);
-    if (!command_buffer)
-    {
-        Log::Message(Log::LT_ERROR, "Failed to acquire command buffer: %s", SDL_GetError());
-        return;
-    }
-
-    if (!SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, &swapchain_width, &swapchain_height))
-    {
-        Log::Message(Log::LT_ERROR, "Failed to acquire swapchain texture: %s", SDL_GetError());
-        return;
-    }
-
-    if (!swapchain_texture || !swapchain_width || !swapchain_height)
-    {
-        // Not an error. Happens on minimize
-        SDL_CancelGPUCommandBuffer(command_buffer);
-        return;
-    }
-
-    projection = Matrix4f::ProjectOrtho(0.0f, static_cast<float>(swapchain_width), static_cast<float>(swapchain_height), 0.0f, 0.0f, 1.0f);
+    this->command_buffer = command_buffer;
+    this->swapchain_texture = swapchain_texture;
+    swapchain_width = width;
+    swapchain_height = height;
+    proj = Matrix4f::ProjectOrtho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 0.0f, 1.0f);
     SetTransform(nullptr);
     EnableScissorRegion(false);
-
-    has_frame = true;
 }
 
 void RenderInterface_SDL_GPU::EndFrame()
@@ -290,8 +269,6 @@ void RenderInterface_SDL_GPU::EndFrame()
         SDL_EndGPURenderPass(render_pass);
         render_pass = nullptr;
     }
-    SDL_SubmitGPUCommandBuffer(command_buffer);
-    command_buffer = nullptr;
 }
 
 bool RenderInterface_SDL_GPU::BeginCopyPass()
@@ -327,14 +304,7 @@ bool RenderInterface_SDL_GPU::BeginRenderPass()
     }
     SDL_GPUColorTargetInfo color_info{};
     color_info.texture = swapchain_texture;
-    if (render_passes++ == 0)
-    {
-        color_info.load_op = SDL_GPU_LOADOP_CLEAR;
-    }
-    else
-    {
-        color_info.load_op = SDL_GPU_LOADOP_LOAD;
-    }
+    color_info.load_op = SDL_GPU_LOADOP_LOAD;
     color_info.store_op = SDL_GPU_STOREOP_STORE;
     render_pass = SDL_BeginGPURenderPass(command_buffer, &color_info, 1, nullptr);
     if (!render_pass)
@@ -454,10 +424,6 @@ void RenderInterface_SDL_GPU::RenderGeometryCommand::Update(RenderInterface_SDL_
 
 void RenderInterface_SDL_GPU::RenderGeometry(CompiledGeometryHandle handle, Vector2f translation, TextureHandle texture)
 {
-    if (!has_frame)
-    {
-        return;
-    }
     commands.push_back(std::make_unique<RenderGeometryCommand>(handle, translation, texture));
 }
 
@@ -525,8 +491,6 @@ TextureHandle RenderInterface_SDL_GPU::LoadTexture(Vector2i& texture_dimensions,
 
 TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, Vector2i source_dimensions)
 {
-    // TODO: On error, there's a few leaks. Not sure it's a big deal though since it never should happen anyways
-
     SDL_GPUTransferBuffer* transfer_buffer;
     {
         SDL_GPUTransferBufferCreateInfo info{};
@@ -581,6 +545,8 @@ TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, 
     if (!command_buffer)
     {
         Log::Message(Log::LT_ERROR, "Failed to acquire command buffer: %s", SDL_GetError());
+        SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+        SDL_ReleaseGPUTexture(device, texture);
         return 0;
     }
 
@@ -588,6 +554,8 @@ TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, 
     if (!copy_pass)
     {
         Log::Message(Log::LT_ERROR, "Failed to begin copy pass: %s", SDL_GetError());
+        SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+        SDL_ReleaseGPUTexture(device, texture);
         SDL_CancelGPUCommandBuffer(command_buffer);
         return 0;
     }
@@ -628,11 +596,11 @@ void RenderInterface_SDL_GPU::SetTransformCommand::Update(RenderInterface_SDL_GP
 {
     if (has_transform)
     {
-        interface.transform = interface.projection * transform;
+        interface.transform = interface.proj * transform;
     }
     else
     {
-        interface.transform = interface.projection;
+        interface.transform = interface.proj;
     }
 }
 

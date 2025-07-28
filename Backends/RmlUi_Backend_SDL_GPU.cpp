@@ -46,6 +46,7 @@ struct BackendData {
 
 	SDL_Window* window = nullptr;
 	SDL_GPUDevice* device = nullptr;
+	SDL_GPUCommandBuffer* command_buffer = nullptr;
 
 	bool running = true;
 };
@@ -201,11 +202,46 @@ void Backend::RequestExit()
 void Backend::BeginFrame()
 {
 	RMLUI_ASSERT(data);
-	data->render_interface.BeginFrame();
+
+    data->command_buffer = SDL_AcquireGPUCommandBuffer(data->device);
+    if (!data->command_buffer)
+    {
+        Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to acquire command buffer: %s", SDL_GetError());
+        return;
+    }
+
+	SDL_GPUTexture* swapchain_texture;
+	uint32_t width;
+	uint32_t height;
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(data->command_buffer, data->window, &swapchain_texture, &width, &height))
+    {
+        Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to acquire swapchain texture: %s", SDL_GetError());
+        return;
+    }
+
+    if (!swapchain_texture || !width || !height)
+    {
+        // Not an error. Happens on minimize
+        SDL_CancelGPUCommandBuffer(data->command_buffer);
+        return;
+    }
+
+	// Do your normal draw operations (make sure you clear the swapchain texture)
+    SDL_GPUColorTargetInfo color_info{};
+    color_info.texture = swapchain_texture;
+	color_info.load_op = SDL_GPU_LOADOP_CLEAR;
+    color_info.store_op = SDL_GPU_STOREOP_STORE;
+    SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(data->command_buffer, &color_info, 1, nullptr);
+	SDL_EndGPURenderPass(render_pass);
+
+	data->render_interface.BeginFrame(data->command_buffer, swapchain_texture, width, height);
 }
 
 void Backend::PresentFrame()
 {
 	RMLUI_ASSERT(data);
 	data->render_interface.EndFrame();
+
+    SDL_SubmitGPUCommandBuffer(data->command_buffer);
+    data->command_buffer = nullptr;
 }
