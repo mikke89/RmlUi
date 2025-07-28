@@ -36,11 +36,11 @@
 namespace Rml {
 #ifdef RMLUI_DEBUG
 
-class FormatIndependentDebugTracker {
+class FormattingContextDebugTracker {
 public:
-	FormatIndependentDebugTracker();
-	~FormatIndependentDebugTracker();
-	static FormatIndependentDebugTracker* GetIf();
+	FormattingContextDebugTracker();
+	~FormattingContextDebugTracker();
+	static FormattingContextDebugTracker* GetIf();
 
 	enum class FormatType {
 		FormatIndependent,
@@ -89,6 +89,68 @@ private:
 	int current_stack_level = 0;
 };
 
+class ScopedFormatIndependentDebugTracker {
+public:
+	ScopedFormatIndependentDebugTracker(ContainerBox* parent_container, Element* element, const Box* override_initial_box, FormattingContextType type)
+	{
+		if (auto debug_tracker = FormattingContextDebugTracker::GetIf())
+		{
+			tracker_entry = &debug_tracker->PushEntry(FormattingContextDebugTracker::FormatType::FormatIndependent, parent_container, element,
+				override_initial_box, type);
+		}
+	}
+
+	void CloseEntry(LayoutBox* layout_box)
+	{
+		if (tracker_entry)
+			FormattingContextDebugTracker::GetIf()->CloseEntry(*tracker_entry, layout_box);
+	}
+
+private:
+	FormattingContextDebugTracker::Entry* tracker_entry = nullptr;
+};
+
+class ScopedFormatFitContentWidthDebugTracker {
+public:
+	ScopedFormatFitContentWidthDebugTracker(Element* element, FormattingContextType type, Box& box)
+	{
+		if (auto debug_tracker = FormattingContextDebugTracker::GetIf())
+		{
+			tracker_entry = &debug_tracker->PushEntry(FormattingContextDebugTracker::FormatType::FormatFitContentWidth, nullptr, element, &box, type);
+		}
+	}
+
+	void SetCacheHit() { from_cache = true; }
+
+	void CloseEntry(float max_content_width)
+	{
+		if (tracker_entry)
+			FormattingContextDebugTracker::GetIf()->CloseEntry(*tracker_entry, max_content_width, from_cache);
+	}
+
+private:
+	bool from_cache = false;
+	FormattingContextDebugTracker::Entry* tracker_entry = nullptr;
+};
+
+#else
+
+class ScopedFormatIndependentDebugTracker {
+public:
+	ScopedFormatIndependentDebugTracker(ContainerBox* /*parent_container*/, Element* /* element*/, const Box* /* override_initial_box*/,
+		FormattingContextType /* type*/)
+	{}
+	void CloseEntry(LayoutBox* /*layout_box*/) {}
+};
+
+class ScopedFormatFitContentWidthDebugTracker {
+public:
+	ScopedFormatFitContentWidthDebugTracker(Element* /*element*/, FormattingContextType /*type*/, Box& /*box*/) {}
+	void SetCacheHit() {}
+	void CloseEntry(float /*max_content_width*/) {}
+};
+
 #endif // RMLUI_DEBUG
+
 } // namespace Rml
 #endif

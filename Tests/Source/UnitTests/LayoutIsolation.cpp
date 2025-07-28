@@ -266,7 +266,7 @@ TEST_CASE("LayoutIsolation.FullLayoutFormatIndependentCount")
 	ElementDocument* document = nullptr;
 
 	{
-		FormatIndependentDebugTracker format_independent_tracker;
+		FormattingContextDebugTracker format_independent_tracker;
 		document = context->LoadDocumentFromMemory(document_isolation_rml);
 		document->Show();
 		TestsShell::RenderLoop();
@@ -284,7 +284,7 @@ TEST_CASE("LayoutIsolation.FullLayoutFormatIndependentCount")
 	}
 
 	{
-		FormatIndependentDebugTracker format_independent_tracker;
+		FormattingContextDebugTracker format_independent_tracker;
 		Element* element = document->GetElementById("flex-item");
 		rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
 
@@ -362,7 +362,7 @@ TEST_CASE("LayoutIsolation.Absolute")
 
 	TestsShell::RenderLoop();
 
-	FormatIndependentDebugTracker format_independent_tracker;
+	FormattingContextDebugTracker format_independent_tracker;
 	SUBCASE("Modify absolute content")
 	{
 		Element* element = document->GetElementById("absolute-item");
@@ -509,7 +509,7 @@ TEST_CASE("LayoutIsolation.HiddenSkipsFormatting")
 		element->SetClass("absolute", true);
 	}
 
-	FormatIndependentDebugTracker format_independent_tracker;
+	FormattingContextDebugTracker format_independent_tracker;
 	document->Show();
 	TestsShell::RenderLoop();
 	CHECK(format_independent_tracker.CountFormattedEntries() == 1);
@@ -614,7 +614,7 @@ TEST_CASE("LayoutIsolation.Document")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context->GetDimensions() == Rml::Vector2i{1500, 800});
 
-	FormatIndependentDebugTracker format_independent_tracker;
+	FormattingContextDebugTracker format_independent_tracker;
 
 	ElementDocument* document = context->LoadDocumentFromMemory(layout_isolation_document_rml);
 	document->Show();
@@ -707,7 +707,7 @@ TEST_CASE("LayoutIsolation.FlexFormat.shrink-to-fit")
 			StringUtilities::RepeatString(R"(<div class="inner"><div class="outer">)", num_nest_levels - 1).c_str(),
 			StringUtilities::RepeatString(R"(</div></div>)", num_nest_levels - 1).c_str());
 
-		FormatIndependentDebugTracker format_independent_tracker;
+		FormattingContextDebugTracker format_independent_tracker;
 		ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
 
 		document->Show();
@@ -739,7 +739,7 @@ TEST_CASE("LayoutIsolation.FlexFormat.shrink-to-fit.cache")
 
 	ElementDocument* document = nullptr;
 	{
-		FormatIndependentDebugTracker format_independent_tracker;
+		FormattingContextDebugTracker format_independent_tracker;
 		document = context->LoadDocumentFromMemory(document_rml);
 		document->Show();
 		TestsShell::RenderLoop();
@@ -747,14 +747,14 @@ TEST_CASE("LayoutIsolation.FlexFormat.shrink-to-fit.cache")
 	}
 
 	{
-		FormatIndependentDebugTracker format_independent_tracker;
+		FormattingContextDebugTracker format_independent_tracker;
 		document->GetElementById("innermost")->SetInnerRML("Flex");
 		TestsShell::RenderLoop();
 		MESSAGE("With cache: ", format_independent_tracker.CountFormattedEntries());
 	}
 
 	{
-		FormatIndependentDebugTracker format_independent_tracker;
+		FormattingContextDebugTracker format_independent_tracker;
 		document->GetElementById("innermost")->SetInnerRML("Flex");
 		document->SetAttribute("rmlui-disable-layout-cache", true);
 		TestsShell::RenderLoop();

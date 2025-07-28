@@ -33,30 +33,30 @@
 namespace Rml {
 #ifdef RMLUI_DEBUG
 
-static FormatIndependentDebugTracker* g_debug_format_independent_tracker = nullptr;
+static FormattingContextDebugTracker* g_debug_format_independent_tracker = nullptr;
 
-FormatIndependentDebugTracker::FormatIndependentDebugTracker()
+FormattingContextDebugTracker::FormattingContextDebugTracker()
 {
-	RMLUI_ASSERTMSG(!g_debug_format_independent_tracker, "An instance of FormatIndependentDebugTracker already exists");
+	RMLUI_ASSERTMSG(!g_debug_format_independent_tracker, "An instance of FormattingContextDebugTracker already exists");
 	g_debug_format_independent_tracker = this;
 }
 
-FormatIndependentDebugTracker::~FormatIndependentDebugTracker()
+FormattingContextDebugTracker::~FormattingContextDebugTracker()
 {
 	RMLUI_ASSERT(g_debug_format_independent_tracker == this);
 	RMLUI_ASSERT(current_stack_level == 0);
 	g_debug_format_independent_tracker = nullptr;
 }
 
-FormatIndependentDebugTracker* FormatIndependentDebugTracker::GetIf()
+FormattingContextDebugTracker* FormattingContextDebugTracker::GetIf()
 {
 	return g_debug_format_independent_tracker;
 }
 
-FormatIndependentDebugTracker::Entry& FormatIndependentDebugTracker::PushEntry(FormatType format_type, ContainerBox* parent_container,
+FormattingContextDebugTracker::Entry& FormattingContextDebugTracker::PushEntry(FormatType format_type, ContainerBox* parent_container,
 	Element* element, const Box* override_initial_box, FormattingContextType type)
 {
-	Entry& result = entries.emplace_back(FormatIndependentDebugTracker::Entry{
+	Entry& result = entries.emplace_back(FormattingContextDebugTracker::Entry{
 		current_stack_level,
 		format_type,
 		parent_container && parent_container->GetElement() ? parent_container->GetElement()->GetAddress() : "",
@@ -73,33 +73,33 @@ FormatIndependentDebugTracker::Entry& FormatIndependentDebugTracker::PushEntry(F
 	return result;
 }
 
-void FormatIndependentDebugTracker::CloseEntry(Entry& entry, LayoutBox* layout_box)
+void FormattingContextDebugTracker::CloseEntry(Entry& entry, LayoutBox* layout_box)
 {
 	current_stack_level -= 1;
 	if (layout_box)
 	{
 		entry.from_cache = (layout_box->GetType() == LayoutBox::Type::CachedContainer);
-		entry.layout_result = Optional<FormatIndependentDebugTracker::Entry::LayoutResult>({
+		entry.layout_result = Optional<FormattingContextDebugTracker::Entry::LayoutResult>({
 			layout_box->GetVisibleOverflowSize(),
 			layout_box->GetIfBox() ? Optional<Box>{*layout_box->GetIfBox()} : std::nullopt,
 		});
 	}
 }
-void FormatIndependentDebugTracker::CloseEntry(Entry& entry, float max_content_width, bool from_cache)
+void FormattingContextDebugTracker::CloseEntry(Entry& entry, float max_content_width, bool from_cache)
 {
 	current_stack_level -= 1;
 	entry.from_cache = from_cache;
-	entry.fit_width_result = Optional<FormatIndependentDebugTracker::Entry::FitWidthResult>({
+	entry.fit_width_result = Optional<FormattingContextDebugTracker::Entry::FitWidthResult>({
 		max_content_width,
 	});
 }
 
-void FormatIndependentDebugTracker::Reset()
+void FormattingContextDebugTracker::Reset()
 {
 	*this = {};
 }
 
-String FormatIndependentDebugTracker::ToString() const
+String FormattingContextDebugTracker::ToString() const
 {
 	String result;
 
@@ -175,22 +175,22 @@ String FormatIndependentDebugTracker::ToString() const
 	return result;
 }
 
-void FormatIndependentDebugTracker::LogMessage() const
+void FormattingContextDebugTracker::LogMessage() const
 {
 	Log::Message(Log::LT_INFO, "%s", ToString().c_str());
 }
 
-int FormatIndependentDebugTracker::CountCachedEntries() const
+int FormattingContextDebugTracker::CountCachedEntries() const
 {
 	return (int)std::count_if(entries.begin(), entries.end(), [](const auto& entry) { return entry.from_cache; });
 }
 
-int FormatIndependentDebugTracker::CountFormattedEntries() const
+int FormattingContextDebugTracker::CountFormattedEntries() const
 {
 	return (int)entries.size() - CountCachedEntries();
 }
 
-int FormatIndependentDebugTracker::CountEntries() const
+int FormattingContextDebugTracker::CountEntries() const
 {
 	return (int)entries.size();
 }
