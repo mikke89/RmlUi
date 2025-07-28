@@ -198,6 +198,8 @@ bool ContainerBox::CatchOverflow(const Vector2f content_overflow_size, const Box
 	const float padding_width = box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Padding);
 
 	Vector2f available_space = box.GetSize();
+	if (available_space.x < 0.f)
+		available_space.x = HUGE_VALF;
 	if (available_space.y < 0.f)
 		available_space.y = max_height;
 	if (available_space.y < 0.f)
