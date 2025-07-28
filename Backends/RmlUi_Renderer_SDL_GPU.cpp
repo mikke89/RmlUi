@@ -231,6 +231,11 @@ void RenderInterface_SDL_GPU::Shutdown()
     {
         command->Update(*this);
     }
+    for (auto& pair : buffers)
+    {
+        SDL_ReleaseGPUTransferBuffer(device, pair.second.transfer_buffer);
+        SDL_ReleaseGPUBuffer(device, pair.second.buffer);
+    }
     SDL_ReleaseGPUGraphicsPipeline(device, color_pipeline);
     SDL_ReleaseGPUGraphicsPipeline(device, texture_pipeline);
 }
@@ -240,9 +245,6 @@ void RenderInterface_SDL_GPU::BeginFrame()
     has_frame = false;
     render_passes = 0;
 
-    // TODO:
-    count = 0;
-
     command_buffer = SDL_AcquireGPUCommandBuffer(device);
     if (!command_buffer)
     {
@@ -250,20 +252,11 @@ void RenderInterface_SDL_GPU::BeginFrame()
         return;
     }
 
-    // using namespace std::chrono;
-    // auto start = high_resolution_clock::now();
-
-    // not sure what's going on here. it's switching between 0ms and 50ms each frame to wait for the image
-
     if (!SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, &swapchain_width, &swapchain_height))
     {
         Log::Message(Log::LT_ERROR, "Failed to acquire swapchain texture: %s", SDL_GetError());
         return;
     }
-
-    // auto end = high_resolution_clock::now();
-    // auto duration = duration_cast<milliseconds>(end - start);
-    // std::cout << "wait cost: " << duration.count() << " ms" << std::endl;
 
     if (!swapchain_texture || !swapchain_width || !swapchain_height)
     {
@@ -286,6 +279,11 @@ void RenderInterface_SDL_GPU::EndFrame()
         command->Update(*this);
     }
     commands.clear();
+
+    for (auto& pair : buffers)
+    {
+        pair.second.in_use = false;
+    }
 
     if (copy_pass)
     {
@@ -352,100 +350,65 @@ bool RenderInterface_SDL_GPU::BeginRenderPass()
     return true;
 }
 
-struct GeometryView
-{
-    GeometryView(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, Span<const Vertex> vertices, Span<const int> indices)
-    {
-        // TODO: On error, there's a few leaks. Not sure it's a big deal though since it never should happen anyways
-
-        SDL_GPUTransferBuffer* vertex_transfer_buffer;
-        SDL_GPUTransferBuffer* index_transfer_buffer;
-
-        {
-            SDL_GPUTransferBufferCreateInfo info{};
-            info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-            info.size = static_cast<Uint32>(vertices.size() * sizeof(Vertex));
-            vertex_transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
-            info.size = static_cast<Uint32>(indices.size() * sizeof(int));
-            index_transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
-            if (!vertex_transfer_buffer || !index_transfer_buffer)
-            {
-                Log::Message(Log::LT_ERROR, "Failed to create transfer buffers(s): %s", SDL_GetError());
-                return;
-            }
-        }
-
-        Vertex* vertex_data = static_cast<Vertex*>(SDL_MapGPUTransferBuffer(device, vertex_transfer_buffer, false));
-        int* index_data = static_cast<int*>(SDL_MapGPUTransferBuffer(device, index_transfer_buffer, false));
-        if (!vertex_data || !index_data)
-        {
-            Log::Message(Log::LT_ERROR, "Failed to map transfer buffers(s): %s", SDL_GetError());
-            return;
-        }
-
-        std::memcpy(vertex_data, vertices.data(), vertices.size() * sizeof(Vertex));
-        std::memcpy(index_data, indices.data(), indices.size() * sizeof(int));
-
-        SDL_UnmapGPUTransferBuffer(device, vertex_transfer_buffer);
-        SDL_UnmapGPUTransferBuffer(device, index_transfer_buffer);
-
-        {
-            SDL_GPUBufferCreateInfo info{};
-            info.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
-            info.size = static_cast<Uint32>(vertices.size() * sizeof(Vertex));
-            vertex_buffer = SDL_CreateGPUBuffer(device, &info);
-            info.usage = SDL_GPU_BUFFERUSAGE_INDEX;
-            info.size = static_cast<Uint32>(indices.size() * sizeof(int));
-            index_buffer = SDL_CreateGPUBuffer(device, &info);
-            if (!vertex_buffer || !index_buffer)
-            {
-                Log::Message(Log::LT_ERROR, "Failed to create buffers(s): %s", SDL_GetError());
-                return;
-            }
-        }
-
-        SDL_GPUTransferBufferLocation location{};
-        SDL_GPUBufferRegion region{};
-
-        location.transfer_buffer = vertex_transfer_buffer;
-        region.buffer = vertex_buffer;
-        region.size = static_cast<Uint32>(vertices.size() * sizeof(Vertex));
-        SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
-        SDL_ReleaseGPUTransferBuffer(device, vertex_transfer_buffer);
-
-        location.transfer_buffer = index_transfer_buffer;
-        region.buffer = index_buffer;
-        region.size = static_cast<Uint32>(indices.size() * sizeof(int));
-        SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
-        SDL_ReleaseGPUTransferBuffer(device, index_transfer_buffer);
-
-        num_indices = static_cast<int>(indices.size());
-    }
-
-    SDL_GPUBuffer* vertex_buffer;
-    SDL_GPUBuffer* index_buffer;
-    int num_indices;
-};
-
 CompiledGeometryHandle RenderInterface_SDL_GPU::CompileGeometry(Span<const Vertex> vertices, Span<const int> indices)
 {
     if (!BeginCopyPass())
     {
-        return false;
+        return 0;
     }
-	GeometryView* data = new GeometryView{device, copy_pass, vertices, indices};
-    count++;
-	return reinterpret_cast<Rml::CompiledGeometryHandle>(data);
+
+    uint32_t vertex_size = static_cast<int>(vertices.size() * sizeof(Vertex));
+    uint32_t index_size = static_cast<int>(indices.size() * sizeof(int));
+
+    Geometry* geometry = new Geometry();
+    geometry->vertex_buffer = RequestBuffer(vertex_size, SDL_GPU_BUFFERUSAGE_VERTEX);
+    geometry->index_buffer = RequestBuffer(index_size, SDL_GPU_BUFFERUSAGE_INDEX);
+    if (!geometry->vertex_buffer || !geometry->index_buffer)
+    {
+        Log::Message(Log::LT_ERROR, "Failed to request buffer(s)");
+        delete geometry;
+        return 0;
+    }
+
+    void* vertex_data = SDL_MapGPUTransferBuffer(device, geometry->vertex_buffer->transfer_buffer, true);
+    void* index_data = SDL_MapGPUTransferBuffer(device, geometry->index_buffer->transfer_buffer, true);
+    if (!vertex_data || !index_data)
+    {
+        Log::Message(Log::LT_ERROR, "Failed to map transfer buffer(s): %s", SDL_GetError());
+        delete geometry;
+        return 0;
+    }
+
+    std::memcpy(vertex_data, vertices.data(), vertex_size);
+    std::memcpy(index_data, indices.data(), index_size);
+    SDL_UnmapGPUTransferBuffer(device, geometry->vertex_buffer->transfer_buffer);
+    SDL_UnmapGPUTransferBuffer(device, geometry->index_buffer->transfer_buffer);
+
+    SDL_GPUTransferBufferLocation location{};
+    SDL_GPUBufferRegion region{};
+
+    location.transfer_buffer = geometry->vertex_buffer->transfer_buffer;
+    region.buffer = geometry->vertex_buffer->buffer;
+    region.size = vertex_size;
+    SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
+
+    location.transfer_buffer = geometry->index_buffer->transfer_buffer;
+    region.buffer = geometry->index_buffer->buffer;
+    region.size = index_size;
+    SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
+
+    geometry->num_indices = static_cast<int>(indices.size());
+
+	return reinterpret_cast<Rml::CompiledGeometryHandle>(geometry);
 }
 
 void RenderInterface_SDL_GPU::ReleaseGeometryCommand::Update(RenderInterface_SDL_GPU& interface)
 {
-    GeometryView* data = reinterpret_cast<GeometryView*>(handle);
-
-    SDL_ReleaseGPUBuffer(interface.device, data->vertex_buffer);
-    SDL_ReleaseGPUBuffer(interface.device, data->index_buffer);
-
-	delete reinterpret_cast<GeometryView*>(handle);
+    (void) interface;
+    Geometry* geometry = reinterpret_cast<Geometry*>(handle);
+    geometry->vertex_buffer->in_use = false;
+    geometry->index_buffer->in_use = false;
+    delete geometry;
 }
 
 void RenderInterface_SDL_GPU::ReleaseGeometry(CompiledGeometryHandle handle)
@@ -460,7 +423,7 @@ void RenderInterface_SDL_GPU::RenderGeometryCommand::Update(RenderInterface_SDL_
         return;
     }
 
-    GeometryView* data = reinterpret_cast<GeometryView*>(handle);
+    Geometry* geometry = reinterpret_cast<Geometry*>(handle);
 
     if (texture != 0)
     {
@@ -478,8 +441,9 @@ void RenderInterface_SDL_GPU::RenderGeometryCommand::Update(RenderInterface_SDL_
 
     SDL_GPUBufferBinding vertex_buffer_binding{};
     SDL_GPUBufferBinding index_buffer_binding{};
-    vertex_buffer_binding.buffer = data->vertex_buffer;
-    index_buffer_binding.buffer = data->index_buffer;
+    vertex_buffer_binding.buffer = geometry->vertex_buffer->buffer;
+    index_buffer_binding.buffer = geometry->index_buffer->buffer;
+
     SDL_BindGPUVertexBuffers(interface.render_pass, 0, &vertex_buffer_binding, 1);
     SDL_BindGPUIndexBuffer(interface.render_pass, &index_buffer_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
@@ -488,7 +452,7 @@ void RenderInterface_SDL_GPU::RenderGeometryCommand::Update(RenderInterface_SDL_
     SDL_PushGPUVertexUniformData(interface.command_buffer, 0, &interface.transform, sizeof(interface.transform));
     SDL_PushGPUVertexUniformData(interface.command_buffer, 1, &translation, sizeof(translation));
 
-    SDL_DrawGPUIndexedPrimitives(interface.render_pass, data->num_indices, 1, 0, 0, 0);
+    SDL_DrawGPUIndexedPrimitives(interface.render_pass, geometry->num_indices, 1, 0, 0, 0);
 }
 
 void RenderInterface_SDL_GPU::RenderGeometry(CompiledGeometryHandle handle, Vector2f translation, TextureHandle texture)
@@ -627,6 +591,7 @@ TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, 
     if (!copy_pass)
     {
         Log::Message(Log::LT_ERROR, "Failed to begin copy pass: %s", SDL_GetError());
+        SDL_CancelGPUCommandBuffer(command_buffer);
         return 0;
     }
 
@@ -677,4 +642,46 @@ void RenderInterface_SDL_GPU::SetTransformCommand::Update(RenderInterface_SDL_GP
 void RenderInterface_SDL_GPU::SetTransform(const Rml::Matrix4f* new_transform)
 {
     commands.push_back(std::make_unique<SetTransformCommand>(new_transform));
+}
+
+RenderInterface_SDL_GPU::Buffer* RenderInterface_SDL_GPU::RequestBuffer(int capacity, SDL_GPUBufferUsageFlags usage)
+{
+    {
+        auto it = buffers.lower_bound(capacity);
+        while (it != buffers.end())
+        {
+            Buffer* buffer = &it->second;
+            if (!buffer->in_use && buffer->usage == usage)
+            {
+                buffer->in_use = true;
+                return buffer;
+            }
+            it++;
+        }
+    }
+
+    auto it = buffers.emplace(capacity, Buffer{});
+    Buffer* buffer = &it->second;
+    {
+        SDL_GPUTransferBufferCreateInfo info{};
+        info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        info.size = capacity;
+        buffer->transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
+    }
+    {
+        SDL_GPUBufferCreateInfo info{};
+        info.usage = usage;
+        info.size = capacity;
+        buffer->buffer = SDL_CreateGPUBuffer(device, &info);
+    }
+    if (!buffer->transfer_buffer || !buffer->buffer)
+    {
+        Log::Message(Log::LT_ERROR, "Failed to create buffer(s): %s", SDL_GetError());
+        SDL_ReleaseGPUTransferBuffer(device, buffer->transfer_buffer);
+        SDL_ReleaseGPUBuffer(device, buffer->buffer);
+        return nullptr;
+    }
+    buffer->usage = usage;
+    buffer->in_use = true;
+    return buffer;
 }

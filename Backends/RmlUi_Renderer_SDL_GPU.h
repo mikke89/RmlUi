@@ -34,6 +34,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <map>
 #include <vector>
 
 class RenderInterface_SDL_GPU : public Rml::RenderInterface {
@@ -160,9 +161,25 @@ private:
 	friend struct ReleaseTextureCommand;
 	friend struct SetTransformCommand;
 
-	std::vector<std::unique_ptr<Command>> commands;
+	struct Buffer
+	{
+		SDL_GPUTransferBuffer* transfer_buffer;
+		SDL_GPUBuffer* buffer;
+		SDL_GPUBufferUsageFlags usage;
+		bool in_use;
+	};
 
-	int count;
+	struct Geometry
+	{
+		Buffer* vertex_buffer;
+		Buffer* index_buffer;
+		int num_indices;
+	};
+
+	std::vector<std::unique_ptr<Command>> commands;
+	std::multimap<int, Buffer> buffers;
+
+	Buffer* RequestBuffer(int capacity, SDL_GPUBufferUsageFlags usage);
 };
 
 #endif
