@@ -35,9 +35,6 @@
 
 #include <SDL3_image/SDL_image.h>
 
-#include <chrono>
-#include <iostream>
-
 using namespace Rml;
 
 enum ShaderType
