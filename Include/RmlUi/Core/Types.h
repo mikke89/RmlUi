@@ -101,6 +101,7 @@ enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
 enum class MediaQueryId : uint8_t;
 enum class FamilyId : int;
+enum class TouchId : int;
 
 // Types for external interfaces.
 using FileHandle = uintptr_t;
@@ -116,6 +117,12 @@ using LayerHandle = uintptr_t;
 using ElementPtr = UniqueReleaserPtr<Element>;
 using ContextPtr = UniqueReleaserPtr<Context>;
 using EventPtr = UniqueReleaserPtr<Event>;
+
+struct Touch {
+	TouchId identifier;
+	Vector2f position;
+};
+using TouchList = Vector<Touch>;
 
 enum class StableVectorIndex : uint32_t { Invalid = uint32_t(-1) };
 enum class TextureFileIndex : uint32_t { Invalid = uint32_t(-1) };
