@@ -237,24 +237,22 @@ public:
 	/// @note The mouse is considered activated again after the next call to 'ProcessMouseMove()'.
 	bool ProcessMouseLeave();
 
-	/// Sends a touch movement event into this context.
-	/// @param[in] contact_index The order of occurrence for multiple touch contacts starting at zero.
-	/// @param[in] x The x-coordinate of the touch, in window-coordinates (ie, 0 should be the left of the client area).
-	/// @param[in] y The y-coordinate of the touch, in window-coordinates (ie, 0 should be the top of the client area).
+	/// Sends a touch movement event for multiple touches into this context.
+	/// @param[in] touches List of touches.
 	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
-	bool ProcessTouchMove(int contact_index, int x, int y);
-	/// Sends a touch press event into this context.
-	/// @param[in] contact_index The order of occurrence for multiple touch contacts starting at zero.
-	/// @param[in] x The x-coordinate of the touch, in window-coordinates (ie, 0 should be the left of the client area).
-	/// @param[in] y The y-coordinate of the touch, in window-coordinates (ie, 0 should be the top of the client area).
+	bool ProcessTouchMove(const TouchList& touches);
+	/// Sends a touch press event for multiple touches into this context.
+	/// @param[in] touches List of touches.
 	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
-	bool ProcessTouchPress(int contact_index, int x, int y);
-	/// Sends a touch release event into this context.
-	/// @param[in] contact_index The order of occurrence for multiple touch contacts starting at zero.
-	/// @param[in] x The x-coordinate of the touch, in window-coordinates (ie, 0 should be the left of the client area).
-	/// @param[in] y The y-coordinate of the touch, in window-coordinates (ie, 0 should be the top of the client area).
+	bool ProcessTouchStart(const TouchList& touches);
+	/// Sends a touch release event for multiple touches into this context.
+	/// @param[in] touches List of touches.
 	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
-	bool ProcessTouchRelease(int contact_index, int x, int y);
+	bool ProcessTouchEnd(const TouchList& touches);
+	/// Sends a touch cancel event for multiple touches into this context.
+	/// @param[in] touches List of touches.
+	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
+	bool ProcessTouchCancel(const TouchList& touches);
 
 	/// Returns a hint on whether the mouse is currently interacting with any elements in this context, based on previously submitted
 	/// 'ProcessMouse...()' commands.
@@ -364,20 +362,20 @@ private:
 	bool mouse_active;
 
 	// Maximum simultaneous touch points supported.
-	static const int MAX_TOUCH_POINTS = 10;
 	struct TouchState
 	{
+		TouchId identifier;
 		bool is_pressed = false;
 		bool scrolling_right = false;
 		bool scrolling_down = false;
-		Vector2i start_position;
-		Vector2i last_position;
+		Vector2f start_position;
+		Vector2f last_position;
 		Element* scroll_container = nullptr;
 		double scrolling_last_time = 0;
 		double scrolling_start_time_x = 0;
 		double scrolling_start_time_y = 0;
 	};
-	std::array<TouchState, MAX_TOUCH_POINTS> touch_states;
+	Vector<TouchState> touch_states;
 
 	// Controller for various scroll behavior modes.
 	UniquePtr<ScrollController> scroll_controller; // [not-null]
@@ -449,6 +447,25 @@ private:
 
 	// Releases all unloaded documents pending destruction.
 	void ReleaseUnloadedDocuments();
+
+	// Helper method to lookup TouchState by touch id.
+	TouchState* LookupTouch(TouchId identifier);
+	/// Sends a touch movement event for one touch into this context.
+	/// @param[in] touch Touch data: identifier and coordinates.
+	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
+	bool ProcessTouchMove(const Touch& touch);
+	/// Sends a touch press event for one touch into this context.
+	/// @param[in] touch Touch data: identifier and coordinates.
+	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
+	bool ProcessTouchStart(const Touch& touch);
+	/// Sends a touch release event for one touch into this context.
+	/// @param[in] touch Touch data: identifier and coordinates.
+	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
+	bool ProcessTouchEnd(const Touch& touch);
+	/// Sends a touch cancel event for one touch into this context.
+	/// @param[in] touch Touch data: identifier and coordinates.
+	/// @return True if the touch is not interacting with any elements in the context (see 'IsMouseInteracting'), otherwise false.
+	bool ProcessTouchCancel(const Touch& touch);
 
 	// Sends the specified event to all elements in new_items that don't appear in old_items.
 	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);
