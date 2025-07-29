@@ -79,7 +79,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	if (!window)
 	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "SDL error on create window: %s\n", SDL_GetError());
+		Rml::Log::Message(Rml::Log::LT_ERROR, "SDL error on create window: %s", SDL_GetError());
 		return false;
 	}
 
@@ -92,10 +92,16 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	SDL_DestroyProperties(props);
 
 	if (!device)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "SDL error on create GPU device: %s", SDL_GetError());
 		return false;
+	}
 
 	if (!SDL_ClaimWindowForGPUDevice(device, window))
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "SDL error on claiming window for GPU device: %s", SDL_GetError());
 		return false;
+	}
 
 	data = Rml::MakeUnique<BackendData>(device, window);
 	data->window = window;
