@@ -229,10 +229,10 @@ void RenderInterface_SDL_GPU::Shutdown()
     {
         command->Update(*this);
     }
-    for (auto& pair : buffers)
+    for (std::shared_ptr<Buffer>& buffer : buffers)
     {
-        SDL_ReleaseGPUTransferBuffer(device, pair.second.transfer_buffer);
-        SDL_ReleaseGPUBuffer(device, pair.second.buffer);
+        SDL_ReleaseGPUTransferBuffer(device, buffer->transfer_buffer);
+        SDL_ReleaseGPUBuffer(device, buffer->buffer);
     }
     SDL_ReleaseGPUGraphicsPipeline(device, color_pipeline);
     SDL_ReleaseGPUGraphicsPipeline(device, texture_pipeline);
@@ -637,24 +637,25 @@ void RenderInterface_SDL_GPU::SetTransform(const Rml::Matrix4f* new_transform)
     commands.push_back(std::make_unique<SetTransformCommand>(new_transform));
 }
 
-RenderInterface_SDL_GPU::Buffer* RenderInterface_SDL_GPU::RequestBuffer(int capacity, SDL_GPUBufferUsageFlags usage)
+std::shared_ptr<RenderInterface_SDL_GPU::Buffer> RenderInterface_SDL_GPU::RequestBuffer(int capacity, SDL_GPUBufferUsageFlags usage)
 {
+    auto it = std::lower_bound(buffers.begin(), buffers.end(), capacity, [](const std::shared_ptr<Buffer>& lhs, int capacity)
     {
-        auto it = buffers.lower_bound(capacity);
-        while (it != buffers.end())
+        return lhs->capacity < capacity;
+    });
+
+    for (auto tmp_it = it; tmp_it != buffers.end(); ++tmp_it)
+    {
+        const auto& buffer = *tmp_it;
+        if (!buffer->in_use && buffer->usage == usage)
         {
-            Buffer* buffer = &it->second;
-            if (!buffer->in_use && buffer->usage == usage)
-            {
-                buffer->in_use = false;
-                return buffer;
-            }
-            it++;
+            // set in_use as false and expect the caller to set it to true themselves
+            buffer->in_use = false;
+            return buffer;
         }
     }
 
-    auto it = buffers.emplace(capacity, Buffer{});
-    Buffer* buffer = &it->second;
+    auto buffer = std::make_shared<Buffer>();
     {
         SDL_GPUTransferBufferCreateInfo info{};
         info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
@@ -676,5 +677,7 @@ RenderInterface_SDL_GPU::Buffer* RenderInterface_SDL_GPU::RequestBuffer(int capa
     }
     buffer->usage = usage;
     buffer->in_use = false;
+    buffer->capacity = capacity;
+    buffers.insert(it, buffer);
     return buffer;
 }

@@ -34,7 +34,7 @@
 
 #include <SDL3/SDL.h>
 
-#include <map>
+#include <memory>
 #include <vector>
 
 class RenderInterface_SDL_GPU : public Rml::RenderInterface {
@@ -130,26 +130,27 @@ private:
         SDL_GPUTransferBuffer* transfer_buffer;
         SDL_GPUBuffer* buffer;
         SDL_GPUBufferUsageFlags usage;
+        int capacity;
         bool in_use;
     };
 
     struct GeometryView
     {
-        Buffer* vertex_buffer;
-        Buffer* index_buffer;
+        std::shared_ptr<Buffer> vertex_buffer;
+        std::shared_ptr<Buffer> index_buffer;
         int num_indices;
     };
 
     // List of ordered render commands
     std::vector<std::unique_ptr<Command>> commands;
 
-    // Map of capacities to vertex/index buffers
-    std::multimap<int, Buffer> buffers;
+    // Sorted vertex/index buffers by capacities
+    std::vector<std::shared_ptr<Buffer>> buffers;
 
     void CreatePipelines();
     bool BeginCopyPass();
     bool BeginRenderPass();
-    Buffer* RequestBuffer(int capacity, SDL_GPUBufferUsageFlags usage);
+    std::shared_ptr<Buffer> RequestBuffer(int capacity, SDL_GPUBufferUsageFlags usage);
 };
 
 #endif
