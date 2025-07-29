@@ -27,16 +27,23 @@ import sys
 import os
 import subprocess
 
-# Compiles all .frag and .vert files in this directory to SPIR-V, MSL, and DXIL binary C character arrays
+# Compiles all .frag and .vert files in this directory to SPIR-V, MSL, and DXIL binary C character arrays.
+#
+# Requires the SDL_shadercross tool. Binaries can be found here: https://github.com/libsdl-org/SDL_shadercross/actions
+# Click on the latest workflow and download them for the platform of your choice.
+
+if len(sys.argv) < 2:
+    print("Usage: python compile_shaders.py <shadercross_path>")
+    sys.exit(1)
 
 out_file = "ShadersCompiledSPV.h"
 
 current_dir = os.path.dirname(os.path.realpath(__file__));
+shadercross_path = os.path.realpath(sys.argv[1])
 
-# The SDL_shadercross binaries can be found here: https://github.com/libsdl-org/SDL_shadercross/actions
-# Click on the latest workflow and download them for the platform of your choice.
-# Set the path to the shadercross executable (shadercross.exe) below.
-shadercross_path = ""
+if not os.path.isfile(shadercross_path):
+    print(f"Error: The specified shadercross path '{shadercross_path}' does not exist.")
+    sys.exit(1)
 
 out_path = os.path.join(current_dir, out_file)
 
