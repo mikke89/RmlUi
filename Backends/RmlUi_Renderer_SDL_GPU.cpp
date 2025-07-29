@@ -221,7 +221,7 @@ void RenderInterface_SDL_GPU::BeginFrame(SDL_GPUCommandBuffer* command_buffer, S
 	this->swapchain_texture = swapchain_texture;
 	swapchain_width = width;
 	swapchain_height = height;
-	proj = Matrix4f::ProjectOrtho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 0.0f, 1.0f);
+	proj = Matrix4f::ProjectOrtho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -10'000.f, 10'000.f);
 	SetTransform(nullptr);
 	EnableScissorRegion(false);
 }
