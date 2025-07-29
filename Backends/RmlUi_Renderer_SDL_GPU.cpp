@@ -210,7 +210,7 @@ void RenderInterface_SDL_GPU::Shutdown()
 		SDL_ReleaseGPUTransferBuffer(device, buffer->transfer_buffer);
 		SDL_ReleaseGPUBuffer(device, buffer->buffer);
 	}
-    SDL_ReleaseGPUSampler(device, linear_sampler);
+	SDL_ReleaseGPUSampler(device, linear_sampler);
 	SDL_ReleaseGPUGraphicsPipeline(device, color_pipeline);
 	SDL_ReleaseGPUGraphicsPipeline(device, texture_pipeline);
 }
