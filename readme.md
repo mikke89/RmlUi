@@ -485,6 +485,10 @@ See
 
 See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT licensed.
 
+#### Library included with the SDL GPU backend *(in Backends/RmlUi_SDL_GPU/)*
+
+See [Backends/RmlUi_SDL_GPU/LICENSE.txt](Backends/RmlUi_SDL_GPU/LICENSE.txt) - Zlib licensed.
+
 #### Libraries included with the test suite *(in Tests/Dependencies/)*
 
 See [Tests/Dependencies/LICENSE.txt](Tests/Dependencies/LICENSE.txt).
