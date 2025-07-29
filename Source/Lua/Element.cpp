@@ -656,10 +656,28 @@ luaL_Reg ElementSetters[] = {
 
 RMLUI_LUATYPE_DEFINE(Element)
 
-template <>
-void ExtraInit<ElementPtr>(lua_State* /*L*/, int /*metatable_index*/)
+//--------------------------------------------------------------------
+//  Forward all unknown look-ups on ElementPtr to the Element metatable
+//--------------------------------------------------------------------
+static int ElementPtr__indexForward(lua_State* L)
 {
-	return;
+	// stack: userdata (ElementPtr), key
+	// 1) resolve Element metatable (cached in registry at "RmlUi.Element")
+	luaL_getmetatable(L, "RmlUi.Element");     // +1
+	if (lua_isnil(L, -1))
+		return 0;                              // should never happen
+	// 2) push key again & rawget – fetch method or property getter
+	lua_pushvalue(L, 2);                       // duplicate key
+	lua_rawget(L, -2);                         // look-up
+	return 1;                                  // leave result on stack
+}
+
+template <>
+void ExtraInit<ElementPtr>(lua_State* L, int metatable_index)
+{
+	lua_pushstring(L, "__index");
+	lua_pushcfunction(L, ElementPtr__indexForward);
+	lua_settable(L, metatable_index);
 }
 
 RegType<ElementPtr> ElementPtrMethods[] = {
