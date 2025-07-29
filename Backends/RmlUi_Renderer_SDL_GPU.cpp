@@ -97,47 +97,48 @@ static const Shader shaders[ShaderTypeCount] =
 
 static SDL_GPUShader* CreateShaderFromMemory(SDL_GPUDevice* device, ShaderType type)
 {
-    SDL_GPUShaderFormat sdlShaderFormat = SDL_GetGPUShaderFormats(device);
+    SDL_GPUShaderFormat sdl_shader_format = SDL_GetGPUShaderFormats(device);
     ShaderFormat format = ShaderFormatCount;
     const char* entrypoint = nullptr;
-    if (sdlShaderFormat & SDL_GPU_SHADERFORMAT_SPIRV)
+    if (sdl_shader_format & SDL_GPU_SHADERFORMAT_SPIRV)
     {
-        sdlShaderFormat = SDL_GPU_SHADERFORMAT_SPIRV;
+        sdl_shader_format = SDL_GPU_SHADERFORMAT_SPIRV;
         format = ShaderFormatSPIRV;
         entrypoint = "main";
     }
-    else if (sdlShaderFormat & SDL_GPU_SHADERFORMAT_DXIL)
+    else if (sdl_shader_format & SDL_GPU_SHADERFORMAT_DXIL)
     {
-        sdlShaderFormat = SDL_GPU_SHADERFORMAT_DXIL;
+        sdl_shader_format = SDL_GPU_SHADERFORMAT_DXIL;
         format = ShaderFormatDXIL;
         entrypoint = "main";
     }
-    else if (sdlShaderFormat & SDL_GPU_SHADERFORMAT_MSL)
+    else if (sdl_shader_format & SDL_GPU_SHADERFORMAT_MSL)
     {
-        sdlShaderFormat = SDL_GPU_SHADERFORMAT_MSL;
+        sdl_shader_format = SDL_GPU_SHADERFORMAT_MSL;
         format = ShaderFormatMSL;
         entrypoint = "main0";
     }
     else
     {
         RMLUI_ERRORMSG("Invalid shader format");
+        return nullptr;
     }
     const Shader& shader = shaders[type];
     SDL_GPUShaderCreateInfo info{};
     info.code = static_cast<const Uint8*>(shader.data[format].data());
     info.code_size = shader.data[format].size();
     info.entrypoint = entrypoint;
-    info.format = sdlShaderFormat;
+    info.format = sdl_shader_format;
     info.stage = shader.stage;
     info.num_samplers = shader.samplers;
     info.num_uniform_buffers = shader.uniforms;
-    SDL_GPUShader* sdlShader = SDL_CreateGPUShader(device, &info);
-    if (!sdlShader)
+    SDL_GPUShader* sdl_shader = SDL_CreateGPUShader(device, &info);
+    if (!sdl_shader)
     {
         Log::Message(Log::LT_ERROR, "Failed to create shader: %s", SDL_GetError());
         RMLUI_ERROR;
     }
-    return sdlShader;
+    return sdl_shader;
 }
  
 void RenderInterface_SDL_GPU::CreatePipelines()
@@ -151,8 +152,8 @@ void RenderInterface_SDL_GPU::CreatePipelines()
     target.blend_state.enable_blend = true;
     target.blend_state.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
     target.blend_state.color_blend_op = SDL_GPU_BLENDOP_ADD;
-    target.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
-    target.blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+    target.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+    target.blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
     target.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
     target.blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
 
@@ -322,7 +323,7 @@ CompiledGeometryHandle RenderInterface_SDL_GPU::CompileGeometry(Span<const Verte
     uint32_t vertex_size = static_cast<int>(vertices.size() * sizeof(Vertex));
     uint32_t index_size = static_cast<int>(indices.size() * sizeof(int));
 
-    Geometry* geometry = new Geometry();
+    GeometryView* geometry = new GeometryView();
     geometry->vertex_buffer = RequestBuffer(vertex_size, SDL_GPU_BUFFERUSAGE_VERTEX);
     geometry->index_buffer = RequestBuffer(index_size, SDL_GPU_BUFFERUSAGE_INDEX);
     if (!geometry->vertex_buffer || !geometry->index_buffer)
@@ -369,7 +370,7 @@ CompiledGeometryHandle RenderInterface_SDL_GPU::CompileGeometry(Span<const Verte
 void RenderInterface_SDL_GPU::ReleaseGeometryCommand::Update(RenderInterface_SDL_GPU& interface)
 {
     (void) interface;
-    Geometry* geometry = reinterpret_cast<Geometry*>(handle);
+    GeometryView* geometry = reinterpret_cast<GeometryView*>(handle);
     geometry->vertex_buffer->in_use = false;
     geometry->index_buffer->in_use = false;
     delete geometry;
@@ -387,7 +388,7 @@ void RenderInterface_SDL_GPU::RenderGeometryCommand::Update(RenderInterface_SDL_
         return;
     }
 
-    Geometry* geometry = reinterpret_cast<Geometry*>(handle);
+    GeometryView* geometry = reinterpret_cast<GeometryView*>(handle);
 
     if (texture != 0)
     {
@@ -455,26 +456,56 @@ void RenderInterface_SDL_GPU::SetScissorRegion(Rectanglei region)
 
 TextureHandle RenderInterface_SDL_GPU::LoadTexture(Vector2i& texture_dimensions, const String& source)
 {
-    SDL_Surface* surface = IMG_Load(source.data());
-    if (!surface)
+	Rml::FileInterface* file_interface = Rml::GetFileInterface();
+	Rml::FileHandle file_handle = file_interface->Open(source);
+	if (!file_handle)
     {
-        Log::Message(Log::LT_ERROR, "Failed to load surface: %s, %s", source.data(), SDL_GetError());
+		return 0;
+    }
+
+	file_interface->Seek(file_handle, 0, SEEK_END);
+	size_t buffer_size = file_interface->Tell(file_handle);
+	file_interface->Seek(file_handle, 0, SEEK_SET);
+
+	using Rml::byte;
+	Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
+	file_interface->Read(buffer.get(), buffer_size, file_handle);
+	file_interface->Close(file_handle);
+
+	const size_t i_ext = source.rfind('.');
+	Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
+
+    SDL_Surface* surface = IMG_LoadTyped_IO(SDL_IOFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
+	if (!surface)
+    {
         return 0;
     }
 
-    if (surface->format != SDL_PIXELFORMAT_RGBA32)
-    {
-        SDL_Surface* converted_surface = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
-        if (!surface)
+	texture_dimensions = {surface->w, surface->h};
+
+	if (surface->format != SDL_PIXELFORMAT_RGBA32)
+	{
+		SDL_Surface* converted_surface = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+		SDL_DestroySurface(surface);
+		if (!converted_surface)
         {
-            Log::Message(Log::LT_ERROR, "Failed to convert surface: %s", SDL_GetError());
-            SDL_DestroySurface(surface);
-            return 0;
+			return 0;
         }
 
-        SDL_DestroySurface(surface);
-        surface = converted_surface;
-    }
+		surface = converted_surface;
+	}
+
+	// Convert colors to premultiplied alpha, which is necessary for correct alpha compositing.
+	const size_t pixels_byte_size = surface->w * surface->h * 4;
+	byte* pixels = static_cast<byte*>(surface->pixels);
+	for (size_t i = 0; i < pixels_byte_size; i += 4)
+	{
+		const byte alpha = pixels[i + 3];
+		for (size_t j = 0; j < 3; ++j)
+        {
+			pixels[i + j] = byte(int(pixels[i + j]) * int(alpha) / 255);
+        }
+	}
 
     Span<const byte> data{static_cast<const byte*>(surface->pixels), static_cast<size_t>(surface->pitch * surface->h)};
     texture_dimensions = {surface->w, surface->h};

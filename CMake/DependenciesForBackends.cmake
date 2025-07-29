@@ -88,6 +88,10 @@ if(RMLUI_BACKEND MATCHES "^SDL" AND NOT TARGET SDL::SDL AND (RMLUI_SDL_VERSION_M
 		message(FATAL_ERROR "SDL native renderer backend (${RMLUI_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
 	endif()
 
+	if(RMLUI_BACKEND STREQUAL "SDL_GPU")
+		message(FATAL_ERROR "SDL GPU backend (${RMLUI_BACKEND}) requires SDL3 (found ${SDL2_VERSION}).")
+	endif()
+
 	if(RMLUI_SDLIMAGE_REQUIRED)
 		find_package("SDL2_image")
 		report_dependency_found_or_error("SDL2_image" "SDL2_image" SDL2_image::SDL2_image)

@@ -133,7 +133,7 @@ private:
         bool in_use;
     };
 
-    struct Geometry
+    struct GeometryView
     {
         Buffer* vertex_buffer;
         Buffer* index_buffer;
