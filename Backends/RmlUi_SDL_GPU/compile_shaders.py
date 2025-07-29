@@ -35,7 +35,7 @@ current_dir = os.path.dirname(os.path.realpath(__file__));
 
 # The SDL_shadercross binaries can be found here: https://github.com/libsdl-org/SDL_shadercross/actions
 # Click on the latest workflow and download them for the platform of your choice.
-# You will likely need to update the paths below if you're building from Windows.
+# You will likely need to update the paths below if you're not building from Windows.
 if sys.platform == "win32":
 	shadercross_path = os.path.join(current_dir, "SDL_shadercross", "win32", "shadercross.exe")
 else:
