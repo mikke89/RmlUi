@@ -33,6 +33,10 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Log.h>
 
+#ifndef RMLUI_BACKEND_SDL_GPU_DEBUG
+	#define RMLUI_BACKEND_SDL_GPU_DEBUG false
+#endif
+
 /**
     Global data used by this backend.
 
@@ -83,9 +87,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_SPIRV_BOOLEAN, true);
 	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXIL_BOOLEAN, true);
 	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN, true);
-#ifdef RMLUI_DEBUG
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, true);
-#endif
+	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, RMLUI_BACKEND_SDL_GPU_DEBUG);
 	SDL_GPUDevice* device = SDL_CreateGPUDeviceWithProperties(props);
 	SDL_DestroyProperties(props);
 
