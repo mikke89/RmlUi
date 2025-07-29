@@ -45,7 +45,7 @@ namespace SVG {
 
 	DecoratorDataHandle DecoratorSVG::GenerateElementData(Element* element, BoxArea paint_area) const
 	{
-		SharedPtr<SVGData> handle = SVGCache::GetHandle(source_path, element, crop_to_content, paint_area);
+		SharedPtr<SVGData> handle = SVGCache::GetHandle(source_path, source_path, SVGCache::SOURCE_FILE, element, crop_to_content, paint_area);
 		if (!handle)
 			return {};
 

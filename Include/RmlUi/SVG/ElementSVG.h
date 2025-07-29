@@ -41,14 +41,23 @@ class RMLUICORE_API ElementSVG : public Element {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
 
-	ElementSVG(const String& tag);
-	virtual ~ElementSVG();
+	explicit ElementSVG(const String& tag);
+	~ElementSVG() override;
 
 	/// Returns the element's inherent size.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
 	/// Loads the current source file if needed. This normally happens automatically during layouting.
 	void EnsureSourceLoaded();
+
+	/// Sets the dirty flag for the element.
+	/// @param[in] flag_value The value to set the dirty flag to. Defaults to true.
+	/// @param[in] force_relayout For layout to be re-evaluated after flag is set. Defaults to true.
+	void SetDirtyFlag(bool flag_value = true, bool force_relayout = true);
+
+	/// Gets the SVG XML data (as text) if using inline SVG, if using a file source this will return a blank string
+	/// @param[out] content The SVG XML data (as text) or blank string
+	void GetInnerRML(String& content) const override;
 
 protected:
 	/// Renders the image.

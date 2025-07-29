@@ -34,7 +34,6 @@
 namespace Rml {
 
 ElementSVG::ElementSVG(const String& tag) : Element(tag) {}
-
 ElementSVG::~ElementSVG()
 {
 	handle.reset();
@@ -82,13 +81,7 @@ void ElementSVG::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
 	Element::OnAttributeChange(changed_attributes);
 
-	if (changed_attributes.count("src"))
-	{
-		svg_dirty = true;
-		DirtyLayout();
-	}
-
-	if (changed_attributes.count("crop-to-content"))
+	if (changed_attributes.count("src") || changed_attributes.count("crop-to-content"))
 	{
 		svg_dirty = true;
 		DirtyLayout();
@@ -110,6 +103,39 @@ void ElementSVG::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 }
 
+void ElementSVG::SetDirtyFlag(const bool flag_value, const bool force_relayout)
+{
+	svg_dirty = flag_value;
+	if (force_relayout)
+		DirtyLayout();
+}
+
+void ElementSVG::GetInnerRML(String& content) const
+{
+	// If the SVG is from a file source return an empty string.
+	const auto source = GetAttribute<String>("src", "");
+	if (!source.empty())
+	{
+		content = "";
+		return;
+	}
+
+	// Try to get the text node that should contain the SVG data.
+	Element* data_element = nullptr;
+	const int non_dom_children = GetNumChildren(true) - GetNumChildren(false);
+	for (int i = 0; i < non_dom_children; i++)
+		if (GetChild(i)->GetTagName() == "#svgdata")
+			data_element = GetChild(i);
+
+	if (data_element == nullptr)
+	{
+		content = "";
+		return;
+	}
+
+	content = rmlui_static_cast<ElementText*>(data_element)->GetText();
+}
+
 void ElementSVG::UpdateCachedData()
 {
 	if (!svg_dirty)
@@ -117,16 +143,49 @@ void ElementSVG::UpdateCachedData()
 
 	svg_dirty = false;
 
-	const std::string source = GetAttribute<String>("src", "");
+	const bool crop_to_content = HasAttribute("crop-to-content");
+	const auto source = GetAttribute<String>("src", "");
 	if (source.empty())
 	{
-		handle.reset();
-		return;
+		Element* data_element = nullptr;
+		const int non_dom_children = GetNumChildren(true) - GetNumChildren(false);
+		for (int i = 0; i < non_dom_children; i++)
+			if (GetChild(i)->GetTagName() == "#svgdata")
+				data_element = GetChild(i);
+
+		if (data_element == nullptr)
+			return;
+
+		const String cdata = rmlui_static_cast<ElementText*>(data_element)->GetText();
+		const auto source_id = data_element->GetAttribute<String>("id", "");
+		if (handle)
+			handle.reset(); // The old handle won't be re-used so clear it.
+
+		if (cdata.empty())
+			return;
+
+		// Build an svg wrapper tag, copying all but src/_cdata attributes (expected attributes could be width, height, viewBox, etc.)
+		String svg_data = "<svg ";
+		ElementAttributes attrs = GetAttributes();
+		for (auto& attr : attrs)
+		{
+			if (attr.first == "src")
+				continue;
+			svg_data.append(attr.first);
+			svg_data.append("=\"");
+			svg_data.append(StringUtilities::Replace(attr.second.Get<String>(), "\"", "&quot;"));
+			svg_data.append("\" ");
+		}
+		svg_data.append(">");
+		svg_data.append(cdata);
+		svg_data.append("</svg>");
+
+		handle = SVG::SVGCache::GetHandle(source_id, svg_data, SVG::SVGCache::SOURCE_DATA, this, crop_to_content, BoxArea::Content);
 	}
-
-	const bool crop_to_content = HasAttribute("crop-to-content");
-
-	handle = SVG::SVGCache::GetHandle(source, this, crop_to_content, BoxArea::Content);
+	else
+	{
+		handle = SVG::SVGCache::GetHandle(source, source, SVG::SVGCache::SOURCE_FILE, this, crop_to_content, BoxArea::Content);
+	}
 }
 
 } // namespace Rml
