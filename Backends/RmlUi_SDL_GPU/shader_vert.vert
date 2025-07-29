@@ -22,7 +22,7 @@ Output main(Input input) {
     Output output;
     output.TexCoord = input.TexCoord;
     output.Color = input.InColor;
-    float4 position = float4(input.Position + Translate, 0.5, 1);
+    float4 position = float4(input.Position + Translate, 0, 1);
     output.Position = mul(Transform, position);
     return output;
 }
