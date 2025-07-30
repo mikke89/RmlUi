@@ -35,6 +35,16 @@
 
 #define GLFW_HAS_EXTRA_CURSORS (GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 4)
 
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+struct TouchSimulationState
+{
+	Rml::Vector2f mouse_pos;
+	Rml::SmallUnorderedSet<int> buttons_pressed;
+};
+// Lifetime is tied to a lifetime of SystemInterface.
+Rml::UniquePtr<TouchSimulationState> touch_simulation_state;
+#endif
+
 SystemInterface_GLFW::SystemInterface_GLFW()
 {
 	cursor_pointer = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
@@ -49,10 +59,18 @@ SystemInterface_GLFW::SystemInterface_GLFW()
 	cursor_resize = cursor_pointer;
 	cursor_unavailable = nullptr;
 #endif
+
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+	touch_simulation_state = Rml::MakeUnique<TouchSimulationState>();
+#endif
 }
 
 SystemInterface_GLFW::~SystemInterface_GLFW()
 {
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+	touch_simulation_state.reset();
+#endif
+
 	glfwDestroyCursor(cursor_pointer);
 	glfwDestroyCursor(cursor_cross);
 	glfwDestroyCursor(cursor_text);
@@ -146,7 +164,16 @@ bool RmlGLFW::ProcessCursorEnterCallback(Rml::Context* context, int entered)
 
 	bool result = true;
 	if (!entered)
+	{
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+		Rml::TouchList touch_list;
+		for (const auto& button : touch_simulation_state->buttons_pressed)
+			touch_list.emplace_back(Rml::Touch{static_cast<Rml::TouchId>(button), touch_simulation_state->mouse_pos});
+		result = context->ProcessTouchCancel(touch_list);
+#else
 		result = context->ProcessMouseLeave();
+#endif
+	}
 	return result;
 }
 
@@ -166,7 +193,16 @@ bool RmlGLFW::ProcessCursorPosCallback(Rml::Context* context, GLFWwindow* window
 	const Vector2d mouse_pos = Vector2d(xpos, ypos) * (Vector2d(framebuffer_size) / Vector2d(window_size));
 	const Vector2i mouse_pos_round = {int(Rml::Math::Round(mouse_pos.x)), int(Rml::Math::Round(mouse_pos.y))};
 
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+	Rml::TouchList touch_list;
+	touch_simulation_state->mouse_pos.x = static_cast<float>(mouse_pos.x);
+	touch_simulation_state->mouse_pos.y = static_cast<float>(mouse_pos.y);
+	for (const auto& button : touch_simulation_state->buttons_pressed)
+		touch_list.emplace_back(Rml::Touch{static_cast<Rml::TouchId>(button), touch_simulation_state->mouse_pos});
+	bool result = context->ProcessTouchMove(touch_list, RmlGLFW::ConvertKeyModifiers(mods));
+#else
 	bool result = context->ProcessMouseMove(mouse_pos_round.x, mouse_pos_round.y, RmlGLFW::ConvertKeyModifiers(mods));
+#endif
 	return result;
 }
 
@@ -177,11 +213,32 @@ bool RmlGLFW::ProcessMouseButtonCallback(Rml::Context* context, int button, int 
 
 	bool result = true;
 
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+
+	switch (action)
+	{
+	case GLFW_PRESS:
+		touch_simulation_state->buttons_pressed.insert(button);
+		result = context->ProcessTouchStart(Rml::TouchList{Rml::Touch{static_cast<Rml::TouchId>(button), touch_simulation_state->mouse_pos}},
+			RmlGLFW::ConvertKeyModifiers(mods)); 
+		break;
+	case GLFW_RELEASE: 
+		result = context->ProcessTouchEnd(Rml::TouchList{Rml::Touch{static_cast<Rml::TouchId>(button), touch_simulation_state->mouse_pos}},
+			RmlGLFW::ConvertKeyModifiers(mods)); 
+		touch_simulation_state->buttons_pressed.erase(button);
+		break;
+	}
+
+#else
+
 	switch (action)
 	{
 	case GLFW_PRESS: result = context->ProcessMouseButtonDown(button, RmlGLFW::ConvertKeyModifiers(mods)); break;
 	case GLFW_RELEASE: result = context->ProcessMouseButtonUp(button, RmlGLFW::ConvertKeyModifiers(mods)); break;
 	}
+
+#endif
+
 	return result;
 }
 
