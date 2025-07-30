@@ -42,7 +42,7 @@
 	#pragma comment(lib, "imm32")
 #endif
 
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 struct TouchSimulationState {
 	Rml::SmallUnorderedSet<int> buttons_pressed;
 };
@@ -67,14 +67,14 @@ SystemInterface_Win32::SystemInterface_Win32()
 	cursor_text = LoadCursor(nullptr, IDC_IBEAM);
 	cursor_unavailable = LoadCursor(nullptr, IDC_NO);
 
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 	touch_simulation_state = Rml::MakeUnique<TouchSimulationState>();
 #endif
 }
 
 SystemInterface_Win32::~SystemInterface_Win32()
 {
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 	touch_simulation_state.reset();
 #endif
 }
@@ -264,7 +264,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, TextInputMethodEditor_Win3
 	bool result = true;
 
 	auto HandleMouseButtonDown = [l_param, context](int button) {
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 		touch_simulation_state->buttons_pressed.insert(button);
 		bool result = context->ProcessTouchStart(
 			Rml::TouchList{Rml::Touch{button, Rml::Vector2f(static_cast<float>((short)LOWORD(l_param)), static_cast<float>((short)HIWORD(l_param)))}},
@@ -276,7 +276,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, TextInputMethodEditor_Win3
 	};
 
 	auto HandleMouseButtonUp = [l_param, context](int button) {
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 		touch_simulation_state->buttons_pressed.erase(button);
 		bool result = context->ProcessTouchEnd(
 			Rml::TouchList{Rml::Touch{button, Rml::Vector2f(static_cast<float>((short)LOWORD(l_param)), static_cast<float>((short)HIWORD(l_param)))}},
@@ -302,7 +302,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, TextInputMethodEditor_Win3
 	case WM_MBUTTONDOWN: result = HandleMouseButtonDown(2); break;
 	case WM_MBUTTONUP: result = HandleMouseButtonUp(2); break;
 	case WM_MOUSEMOVE:
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 		{
 			Rml::TouchList touch_list;
 			Rml::Vector2f mouse_pos(static_cast<float>((short)LOWORD(l_param)), static_cast<float>((short)HIWORD(l_param)));
@@ -329,7 +329,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, TextInputMethodEditor_Win3
 			RmlWin32::GetKeyModifierState());
 		break;
 	case WM_MOUSELEAVE:
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 		{
 			Rml::TouchList touch_list;
 			for (const auto& button : touch_simulation_state->buttons_pressed)

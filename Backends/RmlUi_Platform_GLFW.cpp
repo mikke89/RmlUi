@@ -35,7 +35,7 @@
 
 #define GLFW_HAS_EXTRA_CURSORS (GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 4)
 
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 struct TouchSimulationState
 {
 	Rml::Vector2f mouse_pos;
@@ -60,14 +60,14 @@ SystemInterface_GLFW::SystemInterface_GLFW()
 	cursor_unavailable = nullptr;
 #endif
 
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 	touch_simulation_state = Rml::MakeUnique<TouchSimulationState>();
 #endif
 }
 
 SystemInterface_GLFW::~SystemInterface_GLFW()
 {
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 	touch_simulation_state.reset();
 #endif
 
@@ -165,7 +165,7 @@ bool RmlGLFW::ProcessCursorEnterCallback(Rml::Context* context, int entered)
 	bool result = true;
 	if (!entered)
 	{
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 		Rml::TouchList touch_list;
 		for (const auto& button : touch_simulation_state->buttons_pressed)
 			touch_list.emplace_back(Rml::Touch{button, touch_simulation_state->mouse_pos});
@@ -193,7 +193,7 @@ bool RmlGLFW::ProcessCursorPosCallback(Rml::Context* context, GLFWwindow* window
 	const Vector2d mouse_pos = Vector2d(xpos, ypos) * (Vector2d(framebuffer_size) / Vector2d(window_size));
 	const Vector2i mouse_pos_round = {int(Rml::Math::Round(mouse_pos.x)), int(Rml::Math::Round(mouse_pos.y))};
 
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 	Rml::TouchList touch_list;
 	touch_simulation_state->mouse_pos.x = static_cast<float>(mouse_pos.x);
 	touch_simulation_state->mouse_pos.y = static_cast<float>(mouse_pos.y);
@@ -213,7 +213,7 @@ bool RmlGLFW::ProcessMouseButtonCallback(Rml::Context* context, int button, int 
 
 	bool result = true;
 
-#ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
+#ifdef RMLUI_BACKEND_SIMULATE_TOUCH
 
 	switch (action)
 	{

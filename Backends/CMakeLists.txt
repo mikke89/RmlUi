@@ -11,8 +11,8 @@ target_sources(rmlui_backend_common_headers INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend.h"
 )
 
-if(RMLUI_BACKEND_SIMULATE_TOUCHES)
-	target_compile_definitions(rmlui_backend_common_headers INTERFACE "RMLUI_BACKEND_SIMULATE_TOUCHES")
+if(RMLUI_BACKEND_SIMULATE_TOUCH)
+	target_compile_definitions(rmlui_backend_common_headers INTERFACE "RMLUI_BACKEND_SIMULATE_TOUCH")
 endif()
 
 add_library(rmlui_backend_Win32_GL2 INTERFACE)
