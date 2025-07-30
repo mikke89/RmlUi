@@ -144,6 +144,7 @@ The provided backends on the other hand are not intended to be used directly by 
 | OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |    ❌    |    ❌    | Uncompressed TGA                                                  |
 | OpenGL 3 (GL3)    |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
 | Vulkan (VK)       |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Uncompressed TGA                                                  |
+| SDL GPU           |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 | SDLrenderer       |       ✔️        |     ❌     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2D layouts.\
@@ -169,18 +170,18 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Backends
 
-| Platform \ Renderer | OpenGL 2 (GL2) | OpenGL 3 (GL3) | Vulkan (VK) | SDLrenderer |
-|---------------------|:--------------:|:--------------:|:-----------:|:-----------:|
-| Win32               |       ✔️       |                |     ✔️      |             |
-| X11                 |       ✔️       |                |             |             |
-| SFML                |       ✔️       |                |             |             |
-| GLFW                |       ✔️       |       ✔️       |     ✔️      |             |
-| SDL¹                |       ✔️       |      ✔️²       |     ✔️      |     ✔️      |
+| Platform \ Renderer | OpenGL 2       | OpenGL 3      | Vulkan        | SDL GPU      | SDLrenderer          |
+|---------------------|----------------|---------------|---------------|--------------|----------------------|
+| Win32               | ✔️ `Win32_GL2` |               | ✔️ `Win32_VK` |              |                      |
+| X11                 | ✔️ `X11_GL2`   |               |               |              |                      |
+| SFML                | ✔️ `SFML_GL2`  |               |               |              |                      |
+| GLFW                | ✔️ `GLFW_GL2`  | ✔️ `GLFW_GL3` | ✔️ `GLFW_VK`  |              |                      |
+| SDL¹                | ✔️ `SDL_GL2`   | ✔️² `SDL_GL3` | ✔️ `SDL_VK`   | ✔️ `SDL_GPU` | ✔️ `SDL_SDLrenderer` |
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
 
-When building the samples, the backend can be selected by setting the CMake option `RMLUI_BACKEND` to `<Platform>_<RendererShorthand>` for any of the above supported combinations of platforms and renderers, such as `SDL_GL3`.
+When building the samples, the backend can be selected by setting the CMake option `RMLUI_BACKEND` to a combination of a platform and renderer, according to the above table.
 
 
 ## Example document
@@ -483,7 +484,11 @@ See
 
 #### Library included with the Vulkan backend *(in Backends/RmlUi_Vulkan/)*
 
-See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT licensed.
+See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT license.
+
+#### Library included with the SDL GPU backend *(in Backends/RmlUi_SDL_GPU/)*
+
+See [Backends/RmlUi_SDL_GPU/LICENSE.txt](Backends/RmlUi_SDL_GPU/LICENSE.txt) - Zlib license.
 
 #### Libraries included with the test suite *(in Tests/Dependencies/)*
 
