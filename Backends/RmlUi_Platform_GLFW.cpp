@@ -168,7 +168,7 @@ bool RmlGLFW::ProcessCursorEnterCallback(Rml::Context* context, int entered)
 #ifdef RMLUI_BACKEND_SIMULATE_TOUCHES
 		Rml::TouchList touch_list;
 		for (const auto& button : touch_simulation_state->buttons_pressed)
-			touch_list.emplace_back(Rml::Touch{static_cast<Rml::TouchId>(button), touch_simulation_state->mouse_pos});
+			touch_list.emplace_back(Rml::Touch{button, touch_simulation_state->mouse_pos});
 		result = context->ProcessTouchCancel(touch_list);
 #else
 		result = context->ProcessMouseLeave();
@@ -198,7 +198,7 @@ bool RmlGLFW::ProcessCursorPosCallback(Rml::Context* context, GLFWwindow* window
 	touch_simulation_state->mouse_pos.x = static_cast<float>(mouse_pos.x);
 	touch_simulation_state->mouse_pos.y = static_cast<float>(mouse_pos.y);
 	for (const auto& button : touch_simulation_state->buttons_pressed)
-		touch_list.emplace_back(Rml::Touch{static_cast<Rml::TouchId>(button), touch_simulation_state->mouse_pos});
+		touch_list.emplace_back(Rml::Touch{button, touch_simulation_state->mouse_pos});
 	bool result = context->ProcessTouchMove(touch_list, RmlGLFW::ConvertKeyModifiers(mods));
 #else
 	bool result = context->ProcessMouseMove(mouse_pos_round.x, mouse_pos_round.y, RmlGLFW::ConvertKeyModifiers(mods));
@@ -219,11 +219,11 @@ bool RmlGLFW::ProcessMouseButtonCallback(Rml::Context* context, int button, int 
 	{
 	case GLFW_PRESS:
 		touch_simulation_state->buttons_pressed.insert(button);
-		result = context->ProcessTouchStart(Rml::TouchList{Rml::Touch{static_cast<Rml::TouchId>(button), touch_simulation_state->mouse_pos}},
+		result = context->ProcessTouchStart(Rml::TouchList{Rml::Touch{button, touch_simulation_state->mouse_pos}},
 			RmlGLFW::ConvertKeyModifiers(mods)); 
 		break;
 	case GLFW_RELEASE: 
-		result = context->ProcessTouchEnd(Rml::TouchList{Rml::Touch{static_cast<Rml::TouchId>(button), touch_simulation_state->mouse_pos}},
+		result = context->ProcessTouchEnd(Rml::TouchList{Rml::Touch{button, touch_simulation_state->mouse_pos}},
 			RmlGLFW::ConvertKeyModifiers(mods)); 
 		touch_simulation_state->buttons_pressed.erase(button);
 		break;

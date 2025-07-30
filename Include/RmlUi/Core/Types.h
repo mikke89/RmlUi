@@ -101,7 +101,7 @@ enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
 enum class MediaQueryId : uint8_t;
 enum class FamilyId : int;
-enum class TouchId : int;
+using TouchId = int;
 
 // Types for external interfaces.
 using FileHandle = uintptr_t;
