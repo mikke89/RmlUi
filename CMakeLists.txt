@@ -24,6 +24,7 @@ option(BUILD_SHARED_LIBS "CMake standard option. Choose whether to build shared 
 #   - Do not include negations (such as "not" and "disable"), to avoid situations with double negation.
 #   - Do not include a verb prefix (such as "enable" and "build"), as these are often superfluous.
 option(RMLUI_SAMPLES "Build samples of the library." OFF)
+option(RMLUI_BACKEND_SIMULATE_TOUCHES "Simulate touch events with mouse events" OFF)
 set(RMLUI_BACKEND "auto" CACHE STRING "Backend to use when building the RmlUi samples. Choose one from ./CMake/OptionsLists.cmake.")
 set_property(CACHE RMLUI_BACKEND PROPERTY STRINGS ${RMLUI_BACKEND_OPTIONS})
 if(NOT RMLUI_BACKEND IN_LIST RMLUI_BACKEND_OPTIONS)
