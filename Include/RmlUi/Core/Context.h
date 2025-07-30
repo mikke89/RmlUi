@@ -361,7 +361,7 @@ private:
 	Vector2i mouse_position;
 	bool mouse_active;
 
-	// Maximum simultaneous touch points supported.
+	// The current state of Touches, required to implement proper inertia scrolling.
 	struct TouchState
 	{
 		TouchId identifier;
