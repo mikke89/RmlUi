@@ -925,6 +925,7 @@ bool Context::ProcessTouchStart(const Touch& touch)
 	{
 		touch_states.push_back({});
 		state = &touch_states.back();
+		state->identifier = touch.identifier;
 
 		RMLUI_ASSERTMSG(touch_states.size() < 100, "Too many different touch identifiers were used.");
 	}
