@@ -32,7 +32,11 @@
 
 namespace Rml {
 
-InputTypeButton::InputTypeButton(ElementFormControlInput* element) : InputType(element) {}
+InputTypeButton::InputTypeButton(ElementFormControlInput* element) : InputType(element)
+{
+	value_element = element->AppendChild(Factory::InstanceElement(element, "#text", "", XMLAttributes()), true);
+	rmlui_static_cast<ElementText*>(value_element)->SetText(element->GetAttribute<String>("value", ""));
+}
 
 InputTypeButton::~InputTypeButton() {}
 
@@ -40,6 +44,16 @@ bool InputTypeButton::IsSubmitted()
 {
 	// Buttons are never submitted.
 	return false;
+}
+
+bool InputTypeButton::OnAttributeChange(const ElementAttributes& changed_attributes)
+{
+	if (changed_attributes.find("value") != changed_attributes.end())
+	{
+		rmlui_static_cast<ElementText*>(value_element)->SetText(element->GetAttribute<String>("value", ""));
+		return false;
+	}
+	return true;
 }
 
 void InputTypeButton::ProcessDefaultAction(Event& /*event*/) {}
