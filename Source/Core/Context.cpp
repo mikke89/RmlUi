@@ -956,32 +956,41 @@ bool Context::ProcessTouchMove(const Touch& touch)
 
 	if (state->scroll_container)
 	{
-		Vector2f delta = touch.position - state->last_position;
-		if (delta.x != 0 || delta.y != 0)
+		if (drag)
 		{
-			// use instant scrolling when touch is pressed even when default scroll behavior is smooth
-			scroll_controller->InstantScrollOnTarget(state->scroll_container, -delta);
+			// Don't scroll and reset scrolling state when dragging any element (scrollbars and others)
+			state->start_position = state->last_position = touch.position;
+			state->scrolling_start_time_x = state->scrolling_start_time_y = 0;
+		}
+		else
+		{
+			Vector2f delta = touch.position - state->last_position;
+			if (delta.x != 0 || delta.y != 0)
+			{
+				// use instant scrolling when touch is pressed even when default scroll behavior is smooth
+				scroll_controller->InstantScrollOnTarget(state->scroll_container, -delta);
 
-			// If the user changes direction, reset the start time and position.
-			bool going_right = (delta.x > 0);
-			if (delta.x != 0)
-				if (going_right != state->scrolling_right ||
-					state->scrolling_start_time_x == 0) // time set to 0 means no touch move events happened before and direction is unclear
-				{
-					state->start_position.x = touch.position.x;
-					state->scrolling_right = going_right;
-					state->scrolling_start_time_x = state->scrolling_last_time;
-				}
+				// If the user changes direction, reset the start time and position.
+				bool going_right = (delta.x > 0);
+				if (delta.x != 0)
+					if (going_right != state->scrolling_right ||
+						state->scrolling_start_time_x == 0) // time set to 0 means no touch move events happened before and direction is unclear
+					{
+						state->start_position.x = touch.position.x;
+						state->scrolling_right = going_right;
+						state->scrolling_start_time_x = state->scrolling_last_time;
+					}
 
-			bool going_down = (delta.y > 0);
-			if (delta.y != 0)
-				if (going_down != state->scrolling_down ||
-					state->scrolling_start_time_y == 0) // time set to 0 means no touch move events happened before and direction is unclear
-				{
-					state->start_position.y = touch.position.y;
-					state->scrolling_down = going_down;
-					state->scrolling_start_time_y = state->scrolling_last_time;
-				}
+				bool going_down = (delta.y > 0);
+				if (delta.y != 0)
+					if (going_down != state->scrolling_down ||
+						state->scrolling_start_time_y == 0) // time set to 0 means no touch move events happened before and direction is unclear
+					{
+						state->start_position.y = touch.position.y;
+						state->scrolling_down = going_down;
+						state->scrolling_start_time_y = state->scrolling_last_time;
+					}
+			}
 		}
 	}
 
