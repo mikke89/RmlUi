@@ -886,7 +886,7 @@ Context::TouchState* Context::LookupTouch(TouchId identifier)
 	return touch_it != touch_states.end() ? &(*touch_it) : nullptr;
 }
 
-bool Context::ProcessTouchStart(const TouchList& touches)
+bool Context::ProcessTouchStart(const TouchList& touches, int /*key_modifier_state*/)
 {
 	bool result = true;
 	for (const auto& touch : touches)
@@ -894,7 +894,7 @@ bool Context::ProcessTouchStart(const TouchList& touches)
 	return result;
 }
 
-bool Context::ProcessTouchMove(const TouchList& touches)
+bool Context::ProcessTouchMove(const TouchList& touches, int /*key_modifier_state*/)
 {
 	bool result = true;
 	for (const auto& touch : touches)
@@ -902,7 +902,7 @@ bool Context::ProcessTouchMove(const TouchList& touches)
 	return result;
 }
 
-bool Context::ProcessTouchEnd(const TouchList& touches)
+bool Context::ProcessTouchEnd(const TouchList& touches, int /*key_modifier_state*/)
 {
 	bool result = true;
 	for (const auto& touch : touches)
