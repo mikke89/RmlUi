@@ -13,6 +13,12 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
+## RmlUi 6.2 (Unreleased)
+
+### Lua plugin
+
+- **Fixed Issue #390**: ElementPtr values returned from [`Document:CreateElement()`](Source/Lua/Document.cpp:126), [`Element:AppendChild()`](Source/Lua/Element.cpp:100), and similar Lua APIs can now access all Element methods and properties. Previously, ElementPtr was registered as its own userdata type without proper [`__index`](Source/Lua/Element.cpp:677) forwarding to the Element metatable, creating an unnecessary roadblock for beginners writing dynamic DOM code in Lua. The fix adds a 15-line helper function that transparently forwards property/method lookups from ElementPtr values to the regular Element table, maintaining full backward compatibility.
+
 ## RmlUi 6.1
 
 ### Prevent single pixel gaps between elements
