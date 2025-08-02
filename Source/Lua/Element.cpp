@@ -657,6 +657,41 @@ luaL_Reg ElementSetters[] = {
 RMLUI_LUATYPE_DEFINE(Element)
 
 //--------------------------------------------------------------------
+//  Method wrapper for ElementPtr to Element method forwarding
+//--------------------------------------------------------------------
+static int ElementPtr_methodWrapper(lua_State* L)
+{
+	// Number of arguments passed to the method (excluding self)
+	int num_args = lua_gettop(L) - 1;
+	
+	// Extract the original self (ElementPtr userdata)
+	ElementPtr* element_ptr = LuaType<ElementPtr>::check(L, 1);
+	if (!element_ptr || !*element_ptr)
+	{
+		return luaL_error(L, "Invalid element pointer");
+	}
+	
+	// Get the raw Element* and create a temporary Element userdata
+	Element* element = element_ptr->get();
+	LuaType<Element>::push(L, element, false); // Don't manage memory
+	
+	// Replace the original self (ElementPtr) with the temp Element userdata
+	lua_replace(L, 1);
+	
+	// Push the original function (stored as upvalue)
+	lua_pushvalue(L, lua_upvalueindex(1));
+	
+	// Insert the function at position 1 (before the args)
+	lua_insert(L, 1);
+	
+	// Call the original function with the adjusted self and original args
+	lua_call(L, num_args + 1, LUA_MULTRET);
+	
+	// Return the number of results from the call
+	return lua_gettop(L);
+}
+
+//--------------------------------------------------------------------
 //  Forward all unknown look-ups on ElementPtr to the Element metatable
 //--------------------------------------------------------------------
 static int ElementPtr__indexForward(lua_State* L)
@@ -680,7 +715,16 @@ static int ElementPtr__indexForward(lua_State* L)
 	lua_replace(L, 1); // Stack: [1] = Element userdata, [2] = key
 	
 	// Call Element's index function directly
-	return LuaType<Element>::index(L);
+	int result = LuaType<Element>::index(L);
+	
+	// If the result is a C function (method), wrap it in a closure
+	if (result == 1 && lua_iscfunction(L, -1))
+	{
+		// Create a closure that wraps the original function
+		lua_pushcclosure(L, ElementPtr_methodWrapper, 1);
+	}
+	
+	return result;
 }
 
 template <>
