@@ -661,15 +661,26 @@ RMLUI_LUATYPE_DEFINE(Element)
 //--------------------------------------------------------------------
 static int ElementPtr__indexForward(lua_State* L)
 {
-	// stack: userdata (ElementPtr), key
-	// 1) resolve Element metatable (cached in registry at "RmlUi.Element")
-	luaL_getmetatable(L, "RmlUi.Element");     // +1
-	if (lua_isnil(L, -1))
-		return 0;                              // should never happen
-	// 2) push key again & rawget – fetch method or property getter
-	lua_pushvalue(L, 2);                       // duplicate key
-	lua_rawget(L, -2);                         // look-up
-	return 1;                                  // leave result on stack
+	// Stack: [1] = userdata (ElementPtr), [2] = key (string)
+	
+	// Extract the Element* from the ElementPtr userdata
+	ElementPtr* element_ptr = LuaType<ElementPtr>::check(L, 1);
+	if (!element_ptr || !*element_ptr)
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+	
+	// Get the raw Element* and create a temporary Element userdata
+	Element* element = element_ptr->get();
+	LuaType<Element>::push(L, element, false); // Don't manage memory
+	
+	// Stack: [1] = ElementPtr, [2] = key, [3] = Element userdata
+	// Move Element userdata to position 1, keep key at position 2
+	lua_replace(L, 1); // Stack: [1] = Element userdata, [2] = key
+	
+	// Call Element's index function directly
+	return LuaType<Element>::index(L);
 }
 
 template <>

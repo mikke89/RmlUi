@@ -17,7 +17,7 @@
 
 ### Lua plugin
 
-- **Fixed Issue #390**: ElementPtr values returned from [`Document:CreateElement()`](Source/Lua/Document.cpp:126), [`Element:AppendChild()`](Source/Lua/Element.cpp:100), and similar Lua APIs can now access all Element methods and properties. Previously, ElementPtr was registered as its own userdata type without proper [`__index`](Source/Lua/Element.cpp:677) forwarding to the Element metatable, creating an unnecessary roadblock for beginners writing dynamic DOM code in Lua. The fix adds a 15-line helper function that transparently forwards property/method lookups from ElementPtr values to the regular Element table, maintaining full backward compatibility.
+- **Fixed Issue #390**: ElementPtr values returned from [`Document:CreateElement()`](Source/Lua/Document.cpp:123), [`Element:AppendChild()`](Source/Lua/Element.cpp:100), and similar Lua APIs can now access all Element methods and properties transparently. Previously, ElementPtr was registered as its own userdata type without proper [`__index`](Source/Lua/Element.cpp:659) forwarding to the Element metatable, making it impossible to call methods like `SetAttribute()` or access properties like `tag_name` on elements created dynamically in Lua. The fix adds an `__index` metamethod to ElementPtr that extracts the underlying Element pointer and delegates property/method lookups to the Element's standard Lua interface, maintaining full backward compatibility while enabling intuitive dynamic DOM manipulation in Lua scripts.
 
 ## RmlUi 6.1
 
