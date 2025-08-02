@@ -29,6 +29,7 @@
 #ifndef RMLUI_CORE_ELEMENTS_INPUTTYPESUBMIT_H
 #define RMLUI_CORE_ELEMENTS_INPUTTYPESUBMIT_H
 
+#include "../Include/RmlUi/Core/ElementText.h"
 #include "InputType.h"
 
 namespace Rml {

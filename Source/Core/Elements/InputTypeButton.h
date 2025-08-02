@@ -31,6 +31,7 @@
 
 #include "../../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../../Include/RmlUi/Core/EventListener.h"
+#include "../Include/RmlUi/Core/ElementText.h"
 #include "InputType.h"
 
 namespace Rml {

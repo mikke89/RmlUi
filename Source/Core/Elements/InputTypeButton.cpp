@@ -29,7 +29,6 @@
 #include "InputTypeButton.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementForm.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControlInput.h"
-#include "../Include/RmlUi/Core/ElementText.h"
 #include "../Include/RmlUi/Core/Factory.h"
 
 namespace Rml {
