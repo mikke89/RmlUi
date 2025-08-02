@@ -62,7 +62,7 @@ public:
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
 private:
-	Element* value_element = nullptr;
+	ElementText* value_element = nullptr;
 };
 
 } // namespace Rml
