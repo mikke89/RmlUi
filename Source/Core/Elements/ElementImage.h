@@ -74,6 +74,9 @@ public:
 	/// Returns the element's inherent size.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
+	/// Loads the current source file if needed. This normally happens automatically during layouting.
+	void EnsureSourceLoaded();
+
 protected:
 	/// Renders the image.
 	void OnRender() override;

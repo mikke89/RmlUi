@@ -35,6 +35,7 @@
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
@@ -93,9 +94,9 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
-	visible(true), offset_fixed(false), absolute_offset_dirty(true), dirty_definition(false), dirty_child_definitions(false), dirty_animation(false),
-	dirty_transition(false), dirty_transform(false), dirty_perspective(false), tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0),
-	absolute_offset(0, 0), scroll_offset(0, 0)
+	visible(true), offset_fixed(false), absolute_offset_dirty(true), rounded_main_padding_size_dirty(true), dirty_definition(false),
+	dirty_child_definitions(false), dirty_animation(false), dirty_transition(false), dirty_transform(false), dirty_perspective(false), tag(tag),
+	relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0)
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;
@@ -206,10 +207,7 @@ void Element::Render()
 	RMLUI_ZoneText(name.c_str(), name.size());
 #endif
 
-	// TODO: This is a work-around for the dirty offset not being properly updated when used by containing block children. This results
-	// in scrolling not working properly. We don't care about the return value, the call is only used to force the absolute offset to update.
-	if (absolute_offset_dirty)
-		GetAbsoluteOffset(BoxArea::Border);
+	UpdateAbsoluteOffsetAndRenderBoxData();
 
 	// Rebuild our stacking context if necessary.
 	if (stacking_context_dirty)
@@ -382,28 +380,51 @@ Vector2f Element::GetRelativeOffset(BoxArea area)
 
 Vector2f Element::GetAbsoluteOffset(BoxArea area)
 {
-	if (absolute_offset_dirty)
+	UpdateAbsoluteOffsetAndRenderBoxData();
+	return area == BoxArea::Border ? absolute_offset : absolute_offset + GetBox().GetPosition(area);
+}
+
+void Element::UpdateAbsoluteOffsetAndRenderBoxData()
+{
+	if (absolute_offset_dirty || rounded_main_padding_size_dirty)
 	{
 		absolute_offset_dirty = false;
+		rounded_main_padding_size_dirty = false;
 
+		Vector2f offset_from_ancestors;
 		if (offset_parent)
-			absolute_offset = offset_parent->GetAbsoluteOffset(BoxArea::Border) + relative_offset_base + relative_offset_position;
-		else
-			absolute_offset = relative_offset_base + relative_offset_position;
+			offset_from_ancestors = offset_parent->GetAbsoluteOffset(BoxArea::Border);
 
 		if (!offset_fixed)
 		{
 			// Add any parent scrolling onto our position as well.
 			if (offset_parent)
-				absolute_offset -= offset_parent->scroll_offset;
+				offset_from_ancestors -= offset_parent->scroll_offset;
 
 			// Finally, there may be relatively positioned elements between ourself and our containing block, add their relative offsets as well.
 			for (Element* ancestor = parent; ancestor && ancestor != offset_parent; ancestor = ancestor->parent)
-				absolute_offset += ancestor->relative_offset_position;
+				offset_from_ancestors += ancestor->relative_offset_position;
+		}
+
+		const Vector2f relative_offset = relative_offset_base + relative_offset_position;
+		absolute_offset = relative_offset + offset_from_ancestors;
+
+		// Next, we find the rounded size of the box so that elements can be placed border-to-border next to each other
+		// without any gaps. To achieve this, we have to adjust their rounded/rendered sizes based on their position, in
+		// such a way that the bottom-right of this element exactly matches the top-left of the next element. The order
+		// of floating-point operations matter here, we want to replicate the operations in the layout engine as close
+		// as possible to avoid any gaps.
+		const Vector2f main_padding_size = main_box.GetSize(BoxArea::Padding);
+		const Vector2f bottom_right_absolute_offset = (relative_offset + main_padding_size) + offset_from_ancestors;
+		const Vector2f new_rounded_main_padding_size = bottom_right_absolute_offset.Round() - absolute_offset.Round();
+		if (new_rounded_main_padding_size != rounded_main_padding_size)
+		{
+			rounded_main_padding_size = new_rounded_main_padding_size;
+			meta->background_border.DirtyBackground();
+			meta->background_border.DirtyBorder();
+			meta->effects.DirtyEffectsData();
 		}
 	}
-
-	return absolute_offset + GetBox().GetPosition(area);
 }
 
 void Element::SetClipArea(BoxArea _clip_area)
@@ -430,11 +451,20 @@ void Element::SetBox(const Box& box)
 {
 	if (box != main_box || additional_boxes.size() > 0)
 	{
+#ifdef RMLUI_DEBUG
+		for (const BoxEdge edge : {BoxEdge::Top, BoxEdge::Right, BoxEdge::Bottom, BoxEdge::Left})
+		{
+			const float border_width = box.GetEdge(BoxArea::Border, edge);
+			if (border_width != Math::Round(border_width))
+				Log::Message(Log::LT_WARNING, "Expected integer border width but got %g px on element: %s", border_width, GetAddress().c_str());
+		}
+#endif
+
 		main_box = box;
 		additional_boxes.clear();
 
 		OnResize();
-
+		rounded_main_padding_size_dirty = true;
 		meta->background_border.DirtyBackground();
 		meta->background_border.DirtyBorder();
 		meta->effects.DirtyEffectsData();
@@ -444,9 +474,7 @@ void Element::SetBox(const Box& box)
 void Element::AddBox(const Box& box, Vector2f offset)
 {
 	additional_boxes.emplace_back(PositionedBox{box, offset});
-
 	OnResize();
-
 	meta->background_border.DirtyBackground();
 	meta->background_border.DirtyBorder();
 	meta->effects.DirtyEffectsData();
@@ -461,16 +489,55 @@ const Box& Element::GetBox(int index, Vector2f& offset)
 {
 	offset = Vector2f(0);
 
-	if (index < 1)
-		return main_box;
-
 	const int additional_box_index = index - 1;
-	if (additional_box_index >= (int)additional_boxes.size())
+	if (index < 1 || additional_box_index >= (int)additional_boxes.size())
 		return main_box;
 
 	offset = additional_boxes[additional_box_index].offset;
-
 	return additional_boxes[additional_box_index].box;
+}
+
+RenderBox Element::GetRenderBox(BoxArea fill_area, int index)
+{
+	RMLUI_ASSERTMSG(fill_area >= BoxArea::Border && fill_area <= BoxArea::Content,
+		"Render box can only be generated with fill area of border, padding or content.");
+
+	UpdateAbsoluteOffsetAndRenderBoxData();
+
+	struct BoxReference {
+		const Box& box;
+		Vector2f padding_size;
+		Vector2f offset;
+	};
+	auto GetBoxAndOffset = [this, index]() {
+		const int additional_box_index = index - 1;
+		if (index < 1 || additional_box_index >= (int)additional_boxes.size())
+			return BoxReference{main_box, rounded_main_padding_size, {}};
+		const PositionedBox& positioned_box = additional_boxes[additional_box_index];
+		return BoxReference{positioned_box.box, positioned_box.box.GetSize(BoxArea::Padding), positioned_box.offset.Round()};
+	};
+
+	BoxReference box = GetBoxAndOffset();
+
+	EdgeSizes edge_sizes = {};
+	for (int area = (int)BoxArea::Border; area < (int)fill_area; area++)
+	{
+		edge_sizes[0] += box.box.GetEdge(BoxArea(area), BoxEdge::Top);
+		edge_sizes[1] += box.box.GetEdge(BoxArea(area), BoxEdge::Right);
+		edge_sizes[2] += box.box.GetEdge(BoxArea(area), BoxEdge::Bottom);
+		edge_sizes[3] += box.box.GetEdge(BoxArea(area), BoxEdge::Left);
+	}
+	Vector2f inner_size;
+	switch (fill_area)
+	{
+	case BoxArea::Border: inner_size = box.padding_size + box.box.GetFrameSize(BoxArea::Border); break;
+	case BoxArea::Padding: inner_size = box.padding_size; break;
+	case BoxArea::Content: inner_size = box.padding_size - box.box.GetFrameSize(BoxArea::Padding); break;
+	case BoxArea::Margin:
+	case BoxArea::Auto: RMLUI_ERROR;
+	}
+
+	return RenderBox{inner_size, box.offset, edge_sizes, meta->computed_values.border_radius()};
 }
 
 int Element::GetNumBoxes()
@@ -638,6 +705,8 @@ Vector2f Element::GetContainingBlock()
 		if (position_property == Position::Static || position_property == Position::Relative)
 		{
 			containing_block = parent_box.GetSize();
+			containing_block.x -= meta->scroll.GetScrollbarSize(ElementScroll::VERTICAL);
+			containing_block.y -= meta->scroll.GetScrollbarSize(ElementScroll::HORIZONTAL);
 		}
 		else if (position_property == Position::Absolute || position_property == Position::Fixed)
 		{
@@ -701,7 +770,7 @@ bool Element::Project(Vector2f& point) const noexcept
 		Vector3f ray = local_points[1] - local_points[0];
 
 		// Only continue if we are not close to parallel with the plane.
-		if (std::fabs(ray.z) > 1.0f)
+		if (Math::Absolute(ray.z) > 1.0f)
 		{
 			// Solving the line equation p = p0 + t*ray for t, knowing that p.z = 0, produces the following.
 			float t = -local_points[0].z / ray.z;
@@ -917,7 +986,7 @@ float Element::GetScrollLeft()
 
 void Element::SetScrollLeft(float scroll_left)
 {
-	const float new_offset = Math::Clamp(Math::Round(scroll_left), 0.0f, GetScrollWidth() - GetClientWidth());
+	const float new_offset = Math::Round(Math::Clamp(scroll_left, 0.0f, GetScrollWidth() - GetClientWidth()));
 	if (new_offset != scroll_offset.x)
 	{
 		scroll_offset.x = new_offset;
@@ -935,7 +1004,7 @@ float Element::GetScrollTop()
 
 void Element::SetScrollTop(float scroll_top)
 {
-	const float new_offset = Math::Clamp(Math::Round(scroll_top), 0.0f, GetScrollHeight() - GetClientHeight());
+	const float new_offset = Math::Round(Math::Clamp(Math::Round(scroll_top), 0.0f, GetScrollHeight() - GetClientHeight()));
 	if (new_offset != scroll_offset.y)
 	{
 		scroll_offset.y = new_offset;
@@ -998,7 +1067,7 @@ Element* Element::Closest(const String& selectors) const
 	{
 		for (const StyleSheetNode* node : leaf_nodes)
 		{
-			if (node->IsApplicable(parent))
+			if (node->IsApplicable(parent, this))
 			{
 				return parent;
 			}
@@ -1228,6 +1297,9 @@ void Element::ScrollIntoView(const ScrollIntoViewOptions options)
 			// Currently, only a single scrollable parent can be smooth scrolled at a time, so any other parents must be instant scrolled.
 			scroll_behavior = ScrollBehavior::Instant;
 		}
+
+		if ((scrollable_box_x || scrollable_box_y) && options.parentage == ScrollParentage::Closest)
+			break;
 	}
 }
 
@@ -1452,7 +1524,7 @@ void Element::GetElementsByClassName(ElementList& elements, const String& class_
 	return ElementUtilities::GetElementsByClassName(elements, this, class_name);
 }
 
-static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, Element* element)
+static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, Element* element, Element* scope)
 {
 	const int num_children = element->GetNumChildren();
 
@@ -1464,11 +1536,11 @@ static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, 
 
 		for (const StyleSheetNode* node : nodes)
 		{
-			if (node->IsApplicable(child))
+			if (node->IsApplicable(child, scope))
 				return child;
 		}
 
-		Element* matching_element = QuerySelectorMatchRecursive(nodes, child);
+		Element* matching_element = QuerySelectorMatchRecursive(nodes, child, scope);
 		if (matching_element)
 			return matching_element;
 	}
@@ -1476,7 +1548,7 @@ static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, 
 	return nullptr;
 }
 
-static void QuerySelectorAllMatchRecursive(ElementList& matching_elements, const StyleSheetNodeListRaw& nodes, Element* element)
+static void QuerySelectorAllMatchRecursive(ElementList& matching_elements, const StyleSheetNodeListRaw& nodes, Element* element, Element* scope)
 {
 	const int num_children = element->GetNumChildren();
 
@@ -1488,14 +1560,14 @@ static void QuerySelectorAllMatchRecursive(ElementList& matching_elements, const
 
 		for (const StyleSheetNode* node : nodes)
 		{
-			if (node->IsApplicable(child))
+			if (node->IsApplicable(child, scope))
 			{
 				matching_elements.push_back(child);
 				break;
 			}
 		}
 
-		QuerySelectorAllMatchRecursive(matching_elements, nodes, child);
+		QuerySelectorAllMatchRecursive(matching_elements, nodes, child, scope);
 	}
 }
 
@@ -1510,7 +1582,7 @@ Element* Element::QuerySelector(const String& selectors)
 		return nullptr;
 	}
 
-	return QuerySelectorMatchRecursive(leaf_nodes, this);
+	return QuerySelectorMatchRecursive(leaf_nodes, this, this);
 }
 
 void Element::QuerySelectorAll(ElementList& elements, const String& selectors)
@@ -1524,7 +1596,7 @@ void Element::QuerySelectorAll(ElementList& elements, const String& selectors)
 		return;
 	}
 
-	QuerySelectorAllMatchRecursive(elements, leaf_nodes, this);
+	QuerySelectorAllMatchRecursive(elements, leaf_nodes, this, this);
 }
 
 bool Element::Matches(const String& selectors)
@@ -1540,12 +1612,23 @@ bool Element::Matches(const String& selectors)
 
 	for (const StyleSheetNode* node : leaf_nodes)
 	{
-		if (node->IsApplicable(this))
+		if (node->IsApplicable(this, this))
 		{
 			return true;
 		}
 	}
 
+	return false;
+}
+
+bool Element::Contains(Element* element) const
+{
+	while (element)
+	{
+		if (element == this)
+			return true;
+		element = element->GetParentNode();
+	}
 	return false;
 }
 
@@ -2920,8 +3003,8 @@ void Element::DirtyFontFaceRecursive()
 void Element::ClampScrollOffset()
 {
 	const Vector2f new_scroll_offset = {
-		Math::Min(scroll_offset.x, GetScrollWidth() - GetClientWidth()),
-		Math::Min(scroll_offset.y, GetScrollHeight() - GetClientHeight()),
+		Math::Round(Math::Min(scroll_offset.x, GetScrollWidth() - GetClientWidth())),
+		Math::Round(Math::Min(scroll_offset.y, GetScrollHeight() - GetClientHeight())),
 	};
 
 	if (new_scroll_offset != scroll_offset)
@@ -2929,12 +3012,17 @@ void Element::ClampScrollOffset()
 		scroll_offset = new_scroll_offset;
 		DirtyAbsoluteOffset();
 	}
+
+	// At this point the scrollbars have been resolved, both in terms of size and visibility. Update their properties
+	// now so that any visibility changes in particular are reflected immediately on the next render. Otherwise we risk
+	// that the scrollbars renders a frame late, since changes to scrollbars can happen during layouting.
+	meta->scroll.UpdateProperties();
 }
 
 void Element::ClampScrollOffsetRecursive()
 {
 	ClampScrollOffset();
-	const int num_children = GetNumChildren(true);
+	const int num_children = GetNumChildren();
 	for (int i = 0; i < num_children; ++i)
 		GetChild(i)->ClampScrollOffsetRecursive();
 }

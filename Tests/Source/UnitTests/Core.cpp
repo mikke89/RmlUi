@@ -49,6 +49,7 @@ static const String document_textures_rml = R"(
 			top: 0;
 			right: 0;
 			bottom: 0;
+			font-family: LatoLatin;
 		}
 		div.file {
 			height: 100px;
@@ -78,6 +79,7 @@ static const String document_textures_rml = R"(
 	<div class="file"/>
 	<div class="sprite"/>
 	<progress direction="clockwise" start-edge="bottom" value="0.5"/>
+	abc
 </div>
 </body>
 </rml>
@@ -155,6 +157,95 @@ TEST_CASE("core.texture_source_list")
 
 	document->Close();
 
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("core.load_texture_only_when_visible")
+{
+	TestsRenderInterface* render_interface = TestsShell::GetTestsRenderInterface();
+	// This test only works with the dummy renderer.
+	if (!render_interface)
+		return;
+
+	const auto& counters = render_interface->GetCounters();
+	REQUIRE(counters.load_texture == 0);
+	REQUIRE(counters.generate_texture == 0);
+	REQUIRE(counters.release_texture == 0);
+
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_textures_rml);
+	Element* child_div = document->GetFirstChild();
+
+	SUBCASE("Invisible")
+	{
+		CHECK(counters.load_texture == 0);
+		CHECK(counters.generate_texture == 0);
+		CHECK(counters.release_texture == 0);
+
+		TestsShell::RenderLoop();
+		CHECK(counters.load_texture == 0);
+		CHECK(counters.generate_texture == 0);
+		CHECK(counters.release_texture == 0);
+
+		document->Show();
+		TestsShell::RenderLoop();
+		CHECK(counters.load_texture == 0);
+		CHECK(counters.generate_texture == 0);
+		CHECK(counters.release_texture == 0);
+	}
+
+	SUBCASE("Visible")
+	{
+		child_div->SetProperty(PropertyId::Display, Style::Display::Block);
+		document->Show();
+		TestsShell::RenderLoop();
+		REQUIRE(counters.load_texture == 4);
+		REQUIRE(counters.generate_texture > 0);
+		REQUIRE(counters.release_texture == 0);
+	}
+
+	SUBCASE("Partially visible")
+	{
+		child_div->SetProperty(PropertyId::Display, Style::Display::Block);
+		ElementList elements;
+		document->GetElementsByTagName(elements, "img");
+		REQUIRE(elements.size() == 1);
+		elements.front()->SetProperty(PropertyId::Display, Style::Display::None);
+
+		document->Show();
+		TestsShell::RenderLoop();
+		REQUIRE(counters.load_texture == 3);
+		REQUIRE(counters.generate_texture > 0);
+		REQUIRE(counters.release_texture == 0);
+	}
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("core.warn_missing_texture_once_when_visible")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	const String document_missing_textures_rml = StringUtilities::Replace(document_textures_rml, ".tga", "_invalid.tga");
+	ElementDocument* document = context->LoadDocumentFromMemory(document_missing_textures_rml);
+	Element* child_div = document->GetFirstChild();
+
+	TestsShell::SetNumExpectedWarnings(0);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	TestsShell::SetNumExpectedWarnings(4);
+	child_div->SetProperty(PropertyId::Display, Style::Display::Block);
+	TestsShell::RenderLoop();
+
+	TestsShell::SetNumExpectedWarnings(0);
+	TestsShell::RenderLoop();
+
+	document->Close();
 	TestsShell::ShutdownShell();
 }
 

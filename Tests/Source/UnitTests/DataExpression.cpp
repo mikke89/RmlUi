@@ -93,11 +93,15 @@ TEST_CASE("Data expressions")
 	int num_trolls = 1;
 	String color_name = "color";
 	Colourb color_value = Colourb(180, 100, 255);
+	std::vector<String> num_multi = {"left", "right"};
 
 	DataModelConstructor constructor(&model);
+	constructor.RegisterArray<std::vector<String>>();
+
 	constructor.Bind("radius", &radius);
 	constructor.Bind("color_name", &color_name);
 	constructor.Bind("num_trolls", &num_trolls);
+	constructor.Bind("num_multi", &num_multi);
 	constructor.BindFunc("color_value", [&](Variant& variant) { variant = ToString(color_value); });
 
 	constructor.RegisterTransformFunc("concatenate", [](const VariantList& arguments) -> Variant {
@@ -192,4 +196,8 @@ TEST_CASE("Data expressions")
 	handle.DirtyVariable("num_trolls");
 	CHECK(TestExpression("concatenate('It takes', num_trolls*3 + ' goats', 'to outsmart', num_trolls | number_suffix('troll','trolls'))") ==
 		"It takes,9 goats,to outsmart,3 trolls");
+
+	// Test that only one side of ternary is evaluated
+	CHECK(TestExpression("true ? num_multi[0] : num_multi[999]") == "left");
+	CHECK(TestExpression("false ? num_multi[999] : num_multi[1]") == "right");
 }

@@ -63,11 +63,11 @@ public:
 	void Shutdown() override;
 
 	/// Called by RmlUi when it wants to load a font face from file.
-	bool LoadFontFace(const String& file_name, bool fallback_face, FontWeight weight) override;
+	bool LoadFontFace(const String& file_name, int face_index, bool fallback_face, FontWeight weight) override;
 
 	/// Called by RmlUi when it wants to load a font face from memory, registered using the provided family, style, and weight.
 	/// @param[in] data A pointer to the data.
-	bool LoadFontFace(Span<const byte> data, const String& family, FontStyle style, FontWeight weight, bool fallback_face) override;
+	bool LoadFontFace(Span<const byte> data, int face_index, const String& family, FontStyle style, FontWeight weight, bool fallback_face) override;
 
 	/// Called by RmlUi when a font configuration is resolved for an element. Should return a handle that
 	/// can later be used to resolve properties of the face, and generate string geometry to be rendered.

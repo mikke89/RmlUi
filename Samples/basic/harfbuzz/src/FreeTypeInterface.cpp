@@ -34,9 +34,9 @@
 #include FT_MULTIPLE_MASTERS_H
 #include FT_TRUETYPE_TABLES_H
 
-namespace FreeType
-{
-static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs, const float bitmap_scaling_factor);
+namespace FreeType {
+static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs,
+	const float bitmap_scaling_factor);
 static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const float bitmap_scaling_factor, const bool load_default_glyphs);
 static void GenerateMetrics(FT_Face ft_face, FontMetrics& metrics, float bitmap_scaling_factor);
 static bool SetFontSize(FT_Face ft_face, int font_size, float& out_bitmap_scaling_factor);
@@ -80,32 +80,6 @@ bool AppendGlyph(FontFaceHandleFreetype face, int font_size, FontGlyphIndex glyp
 	return true;
 }
 
-int GetKerning(FontFaceHandleFreetype face, int font_size, FontGlyphIndex lhs, FontGlyphIndex rhs)
-{
-	FT_Face ft_face = (FT_Face)face;
-
-	RMLUI_ASSERT(FT_HAS_KERNING(ft_face));
-
-	// Set face size again in case it was used at another size in another font face handle.
-	// Font size value of zero assumes it is already set.
-	if (font_size > 0)
-	{
-		float bitmap_scaling_factor = 1.0f;
-		if (!SetFontSize(ft_face, font_size, bitmap_scaling_factor) || bitmap_scaling_factor != 1.0f)
-			return 0;
-	}
-
-	FT_Vector ft_kerning;
-
-	FT_Error ft_error = FT_Get_Kerning(ft_face, lhs, rhs,FT_KERNING_DEFAULT, &ft_kerning);
-
-	if (ft_error)
-		return 0;
-
-	int kerning = ft_kerning.x >> 6;
-	return kerning;
-}
-
 FontGlyphIndex GetGlyphIndexFromCharacter(FontFaceHandleFreetype face, Character character)
 {
 	return FT_Get_Char_Index((FT_Face)face, (FT_ULong)character);
@@ -121,8 +95,7 @@ static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Charac
 	if (error != 0)
 	{
 		Rml::Log::Message(Rml::Log::LT_WARNING, "Unable to load glyph at index '%u' on the font face '%s %s'; error code: %d.",
-			(unsigned int)glyph_index,
-			ft_face->family_name, ft_face->style_name, error);
+			(unsigned int)glyph_index, ft_face->family_name, ft_face->style_name, error);
 		return false;
 	}
 
@@ -130,8 +103,7 @@ static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Charac
 	if (error != 0)
 	{
 		Rml::Log::Message(Rml::Log::LT_WARNING, "Unable to render glyph at index '%u' on the font face '%s %s'; error code: %d.",
-			(unsigned int)glyph_index,
-			ft_face->family_name, ft_face->style_name, error);
+			(unsigned int)glyph_index, ft_face->family_name, ft_face->style_name, error);
 		return false;
 	}
 
@@ -147,18 +119,9 @@ static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Charac
 
 	FT_GlyphSlot ft_glyph = ft_face->glyph;
 
-	// Set the glyph's dimensions.
-	glyph.dimensions.x = ft_glyph->metrics.width >> 6;
-	glyph.dimensions.y = ft_glyph->metrics.height >> 6;
-
-	// Set the glyph's bearing.
-	glyph.bearing.x = ft_glyph->metrics.horiBearingX >> 6;
-	glyph.bearing.y = ft_glyph->metrics.horiBearingY >> 6;
-
-	// Set the glyph's advance.
+	glyph.bearing.x = ft_glyph->bitmap_left;
+	glyph.bearing.y = ft_glyph->bitmap_top;
 	glyph.advance = ft_glyph->metrics.horiAdvance >> 6;
-
-	// Set the glyph's bitmap dimensions.
 	glyph.bitmap_dimensions.x = ft_glyph->bitmap.width;
 	glyph.bitmap_dimensions.y = ft_glyph->bitmap.rows;
 
@@ -166,7 +129,6 @@ static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Charac
 	const bool scale_bitmap = (bitmap_scaling_factor < 1.f);
 	if (scale_bitmap)
 	{
-		glyph.dimensions = Rml::Vector2i(Rml::Vector2f(glyph.dimensions) * bitmap_scaling_factor);
 		glyph.bearing = Rml::Vector2i(Rml::Vector2f(glyph.bearing) * bitmap_scaling_factor);
 		glyph.advance = int(float(glyph.advance) * bitmap_scaling_factor);
 		glyph.bitmap_dimensions = Rml::Vector2i(Rml::Vector2f(glyph.bitmap_dimensions) * bitmap_scaling_factor);
@@ -306,10 +268,9 @@ static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const
 	if (it == glyphs.end())
 	{
 		Rml::FontGlyph glyph;
-		glyph.dimensions = {size / 3, (size * 2) / 3};
-		glyph.bitmap_dimensions = glyph.dimensions;
-		glyph.advance = glyph.dimensions.x + 2;
-		glyph.bearing = {1, glyph.dimensions.y};
+		glyph.bitmap_dimensions = {size / 3, (size * 2) / 3};
+		glyph.advance = glyph.bitmap_dimensions.x + 2;
+		glyph.bearing = {1, glyph.bitmap_dimensions.y};
 
 		glyph.bitmap_owned_data.reset(new Rml::byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y]);
 		glyph.bitmap_data = glyph.bitmap_owned_data.get();

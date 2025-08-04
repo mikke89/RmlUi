@@ -168,9 +168,8 @@ void DebuggerPlugin::Render()
 					ElementUtilities::ApplyTransform(*element);
 					for (int j = 0; j < element->GetNumBoxes(); ++j)
 					{
-						Vector2f box_offset;
-						const Box& box = element->GetBox(j, box_offset);
-						Geometry::RenderOutline(element->GetAbsoluteOffset(BoxArea::Border) + box_offset, box.GetSize(BoxArea::Border),
+						const RenderBox box = element->GetRenderBox(BoxArea::Border, j);
+						Geometry::RenderOutline(element->GetAbsoluteOffset(BoxArea::Border) + box.GetBorderOffset(), box.GetFillSize(),
 							Colourb(255, 0, 0, 128), 1);
 					}
 

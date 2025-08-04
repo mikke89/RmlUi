@@ -70,7 +70,7 @@ target_sources(rmlui_backend_SDL_GL2 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_GL2.h"
 )
-target_link_libraries(rmlui_backend_SDL_GL2 INTERFACE rmlui_backend_common_headers OpenGL::GL SDL2::SDL2 GLEW::GLEW SDL2_image::SDL2_image)
+target_link_libraries(rmlui_backend_SDL_GL2 INTERFACE rmlui_backend_common_headers OpenGL::GL SDL::SDL SDL_image::SDL_image)
 
 add_library(rmlui_backend_SDL_GL3 INTERFACE)
 target_sources(rmlui_backend_SDL_GL3 INTERFACE
@@ -81,7 +81,7 @@ target_sources(rmlui_backend_SDL_GL3 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_GL3.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_GL3.h"
 )
-target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE rmlui_backend_common_headers SDL2::SDL2 SDL2_image::SDL2_image)
+target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE rmlui_backend_common_headers SDL::SDL SDL_image::SDL_image)
 if(UNIX)
 	# The OpenGL 3 renderer implementation uses dlopen/dlclose
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
@@ -102,7 +102,7 @@ target_sources(rmlui_backend_SDL_VK INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_Vulkan.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/ShadersCompiledSPV.h"
 )
-target_link_libraries(rmlui_backend_SDL_VK INTERFACE rmlui_backend_common_headers SDL2::SDL2)
+target_link_libraries(rmlui_backend_SDL_VK INTERFACE rmlui_backend_common_headers SDL::SDL)
 if(UNIX)
 	# The Vulkan renderer implementation uses dlopen/dlclose
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
@@ -117,7 +117,17 @@ target_sources(rmlui_backend_SDL_SDLrenderer INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_SDL.h"
 )
-target_link_libraries(rmlui_backend_SDL_SDLrenderer INTERFACE rmlui_backend_common_headers SDL2::SDL2 SDL2_image::SDL2_image)
+target_link_libraries(rmlui_backend_SDL_SDLrenderer INTERFACE rmlui_backend_common_headers SDL::SDL SDL_image::SDL_image)
+
+add_library(rmlui_backend_SDL_GPU INTERFACE)
+target_sources(rmlui_backend_SDL_GPU INTERFACE
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_SDL_GPU.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_SDL_GPU.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_SDL_GPU.h"
+)
+target_link_libraries(rmlui_backend_SDL_GPU INTERFACE rmlui_backend_common_headers SDL::SDL SDL_image::SDL_image)
 
 add_library(rmlui_backend_SFML_GL2 INTERFACE)
 target_sources(rmlui_backend_SFML_GL2 INTERFACE

@@ -39,12 +39,12 @@ void FontEngineInterface::Initialize() {}
 
 void FontEngineInterface::Shutdown() {}
 
-bool FontEngineInterface::LoadFontFace(const String& /*file_path*/, bool /*fallback_face*/, Style::FontWeight /*weight*/)
+bool FontEngineInterface::LoadFontFace(const String& /*file_path*/, int /*face_index*/, bool /*fallback_face*/, Style::FontWeight /*weight*/)
 {
 	return false;
 }
 
-bool FontEngineInterface::LoadFontFace(Span<const byte> /*data*/, const String& /*family*/, Style::FontStyle /*style*/, Style::FontWeight /*weight*/,
+bool FontEngineInterface::LoadFontFace(Span<const byte> /*data*/, int /*face_index*/, const String& /*family*/, Style::FontStyle /*style*/, Style::FontWeight /*weight*/,
 	bool /*fallback_face*/)
 {
 	return false;

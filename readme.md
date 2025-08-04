@@ -14,17 +14,17 @@ RmlUi is the C++ user interface package based on the HTML and CSS standards, des
 
 RmlUi aims at being a light-weight and performant library with its own layouting engine and few dependencies. In essence, RmlUi takes your HTML/CSS-like source files and turns them into vertices, indices and draw commands, and then you bring your own renderer to draw them. And of course there is full access to the element hierarchy/DOM, event handling, and all the interactivity and customizability you would expect. All of this directly from C++, or optionally from scripting languages using plugins. The core library compiles down to fractions of the size it takes to integrate a fully fledged web browser. 
 
-RmlUi is based around the XHTML1 and CSS2 standards while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Take a look at the [conformance](#conformance) and [enhancements](#enhancements) sections below for details.
+RmlUi is based around the XHTML1 and CSS2 standards while integrating features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Take a look at the [conformance](#conformance) and [enhancements](#enhancements) sections below for details.
 
 Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
 ## Features
 
-- Cross-platform architecture: Windows, macOS, Linux, iOS, etc.
+- Cross-platform architecture: Windows, Linux, macOS, Android, iOS, Switch, and more.
 - Dynamic layout system.
 - Full animation and transform support.
 - Efficient application-wide styling, with a custom-built templating engine.
-- Fully featured control set: buttons, sliders, drop-downs, etc.
+- Fully featured control set: buttons, sliders, drop-downs, and more.
 - Runtime visual debugging suite.
 
 ## Extensible
@@ -41,7 +41,6 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 - Input handling and rendering is performed by the user.
 - The library generates vertices, indices, and textures for the user to render how they like.
 - File handling and the font engine can optionally be fully replaced by the user.
-
 
 ## Conformance
 
@@ -73,7 +72,7 @@ RmlUi adds features and enhancements over CSS and HTML where it makes sense, mos
 - [Sprite sheets](https://mikke89.github.io/RmlUiDoc/pages/rcss/sprite_sheets.html). Define and use sprites with easy high DPI support.
 - [Templates](https://mikke89.github.io/RmlUiDoc/pages/rml/templates.html). Making windows look consistent.
 - [Localization](https://mikke89.github.io/RmlUiDoc/pages/localisation.html). Translate any text in the document.
-
+- [Spatial navigation](https://mikke89.github.io/RmlUiDoc/pages/rcss/user_interface.html#nav). Suitable for controllers.
 
 ## Dependencies
 
@@ -105,6 +104,8 @@ cmake -B Build -S . --preset samples -DRMLUI_BACKEND=GLFW_GL3 -DCMAKE_TOOLCHAIN_
 cmake --build Build
 ```
 Make sure to replace the path to vcpkg. This example uses the `GLFW_GL3` backend, other backends are available as shown below. When this completes, feel free to test the freshly built samples, such as the `invaders` sample (`rmlui_sample_invaders` target), and enjoy! The executables should be located somewhere in the `Build` directory.
+
+To make all the samples available, you can additionally install `lua lunasvg rlottie harfbuzz` and pass `--preset samples-all` during CMake configuration.
 
 #### Conan
 
@@ -143,6 +144,7 @@ The provided backends on the other hand are not intended to be used directly by 
 | OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |    ❌    |    ❌    | Uncompressed TGA                                                  |
 | OpenGL 3 (GL3)    |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
 | Vulkan (VK)       |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Uncompressed TGA                                                  |
+| SDL GPU           |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 | SDLrenderer       |       ✔️        |     ❌     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 | DirectX 11        |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
 
@@ -155,13 +157,13 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Platforms
 
-| Platform support | Basic windowing | Clipboard | High DPI | Comments                                          |
-|------------------|:---------------:|:---------:|:----------:|---------------------------------------------------|
-| Win32            |        ✔️        |     ✔️     |     ✔️    | High DPI only supported on Windows 10 and newer.  |
-| X11              |        ✔️        |     ✔️     |     ❌    |                                                   |
-| SFML             |        ✔️        |     ⚠️     |     ❌    | Some issues with Unicode characters in clipboard. |
-| GLFW             |        ✔️        |     ✔️     |     ✔️    |                                                   |
-| SDL              |        ✔️        |     ✔️     |     ❌    |                                                   |
+| Platform support | Basic windowing | Clipboard | High DPI | Comments  |
+|------------------|:---------------:|:---------:|:--------:|-----------|
+| Win32            |       ✔️        |    ✔️     |    ✔️    | High DPI only supported on Windows 10 and newer. |
+| X11              |       ✔️        |    ✔️     |    ❌     |  |
+| SFML             |       ✔️        |    ⚠️     |    ❌     | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
+| GLFW             |       ✔️        |    ✔️     |    ✔️    |  |
+| SDL              |       ✔️        |    ✔️     |    ✔️    | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3. |
 
 **Basic windowing**: Open windows, react to resize events, submit inputs to the RmlUi context.\
 **Clipboard**: Read from and write to the system clipboard.\
@@ -169,18 +171,18 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Backends
 
-| Platform \ Renderer | OpengGL 2 | OpengGL 3 | Vulkan | SDLrenderer | DirectX11 |
-|---------------------|:---------:|:---------:|:---------:|:-----------:|:-----------:|
-| Win32               |     ✔️     |           |    ✔️     |             |      ✔️     |
-| X11                 |     ✔️     |           |          |             |             |
-| SFML                |     ✔️     |           |          |             |             |
-| GLFW                |     ✔️     |     ✔️    |     ✔️    |             |      ✔️     |
-| SDL¹                |     ✔️     |     ✔️²   |     ✔️    |      ✔️     |             |
+| Platform \ Renderer | OpenGL 2       | OpenGL 3      | Vulkan        | SDL GPU      | SDLrenderer          | DirectX11 |
+|---------------------|:----------------:|:---------------:|:---------------:|:--------------:|:----------------------:|:-----------:|
+| Win32               | ✔️<br>`Win32_GL2` |               | ✔️<br>`Win32_VK` |              |                      | ✔️<br>`Win32_DX11` |
+| X11                 | ✔️<br>`X11_GL2`   |               |               |              |                      |             |
+| SFML                | ✔️<br>`SFML_GL2`  |               |               |              |                      |             |
+| GLFW                | ✔️<br>`GLFW_GL2`  | ✔️<br>`GLFW_GL3` | ✔️<br>`GLFW_VK`  |              |                      | ✔️ <br>`GLFW_DX11` |
+| SDL¹                | ✔️<br>`SDL_GL2`   | ✔️²<br>`SDL_GL3` | ✔️<br>`SDL_VK`   | ✔️<br>`SDL_GPU` | ✔️<br>`SDL_SDLrenderer` |             |
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
 
-When building the samples, the backend can be selected by setting the CMake option `RMLUI_BACKEND` to `<Platform>_<RendererShorthand>` for any of the above supported combinations of platforms and renderers, such as `SDL_GL3`.
+When building the samples, the backend can be selected by setting the CMake option `RMLUI_BACKEND` to a combination of a platform and renderer, according to the above table.
 
 
 ## Example document
@@ -350,7 +352,7 @@ int main(int argc, char** argv)
 
 ![Hello world document](Samples/assets/hello_world.png)
 
-Users can now edit the text field to change the animal. The data bindings ensure that both the document text as well as the application string `my_data.animal` are automatically modified accordingly.
+Users can now edit the text field to change the animal. The data bindings ensure that both the document text and the application string `my_data.animal` are automatically modified accordingly.
 
 
 ## Gallery
@@ -372,6 +374,9 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 [Effects sample video](https://github.com/mikke89/RmlUi/assets/5490330/bdc0422d-867d-4090-9d48-e7159e3adc18)
 
+**[Killing Time: Resurrected](https://nightdivestudios.com/killing-time-resurrected/) by [Nightdive Studios](https://www.nightdivestudios.com/) and [Ziggurat Interactive](https://www.ziggurat.games/game/killing-time-resurrected) - remastered version of the classic shooter game - user interface made with RmlUi**\
+![Killing Time: Resurrected collage](https://raw.githubusercontent.com/mikke89/RmlUiDoc/7ca874cc506986a789e2c9a317a4e23f359d2316/assets/gallery/killing_time_resurrected_collage.webp)
+
 **[alt:V](https://altv.mp/) installer - a multiplayer client for GTA:V**\
 ![alt:V installer collage](https://user-images.githubusercontent.com/5490330/230487770-275fe98f-753f-4b35-b2e1-1e20a798f5e8.png)
 
@@ -390,6 +395,9 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 **Sandbox from the 'demo' sample, try it yourself!**\
 ![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/sandbox.png?raw=true)
+
+**Collage of advanced effects:**\
+![Collage of advanced effects](https://github.com/user-attachments/assets/71840d6f-903e-45fe-9e34-a02ed1ddae07)
 
 **Visual testing framework - for built-in automated layout tests**\
 ![Visual testing framework](https://github.com/mikke89/RmlUiDoc/blob/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/gallery/visual_tests_flex.png?raw=true)
@@ -438,7 +446,7 @@ RmlUi is published under the [MIT license](LICENSE.txt). The library includes th
 MIT License
 
 Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors\
-Copyright (c) 2019-2024 The RmlUi Team, and contributors
+Copyright (c) 2019-2025 The RmlUi Team, and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -477,7 +485,11 @@ See
 
 #### Library included with the Vulkan backend *(in Backends/RmlUi_Vulkan/)*
 
-See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT licensed.
+See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT license.
+
+#### Library included with the SDL GPU backend *(in Backends/RmlUi_SDL_GPU/)*
+
+See [Backends/RmlUi_SDL_GPU/LICENSE.txt](Backends/RmlUi_SDL_GPU/LICENSE.txt) - Zlib license.
 
 #### Libraries included with the test suite *(in Tests/Dependencies/)*
 

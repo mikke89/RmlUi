@@ -90,7 +90,7 @@ public:
 	}
 
 	// Bind a user-declared DataVariable.
-	// For advanced use cases, for example for binding variables to a custom 'VariableDefinition'.
+	// For advanced use cases, such as binding variables to a custom 'VariableDefinition'.
 	bool BindCustomDataVariable(const String& name, DataVariable data_variable) { return BindVariable(name, data_variable); }
 
 	// Register a scalar type with associated get and set functions.
@@ -106,7 +106,7 @@ public:
 	template <typename T>
 	StructHandle<T> RegisterStruct();
 
-	// Register a user-declared VariableDefinition to describe a custom type behaviour.
+	// Register a user-declared VariableDefinition to describe a custom type behavior.
 	template <typename T>
 	bool RegisterCustomDataVariableDefinition(UniquePtr<VariableDefinition> definition);
 
@@ -143,7 +143,7 @@ private:
 template <typename T>
 inline bool DataModelConstructor::RegisterScalar(DataTypeGetFunc<T> get_func, DataTypeSetFunc<T> set_func)
 {
-	// Though enum is builtin scalar type, we allow custom getter/setter on it.
+	// We allow custom getters/setters for enums, even though they are considered builtin data scalars.
 	static_assert(!is_builtin_data_scalar<T>::value || std::is_enum<T>::value,
 		"Cannot register scalar data type function. Arithmetic types and String are handled internally and does not need to be registered.");
 	const FamilyId id = Family<T>::Id();

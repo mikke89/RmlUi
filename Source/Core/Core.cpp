@@ -356,14 +356,14 @@ int GetNumContexts()
 	return (int)core_data->contexts.size();
 }
 
-bool LoadFontFace(const String& file_path, bool fallback_face, Style::FontWeight weight)
+bool LoadFontFace(const String& file_path, bool fallback_face, Style::FontWeight weight, int face_index)
 {
-	return font_interface->LoadFontFace(file_path, fallback_face, weight);
+	return font_interface->LoadFontFace(file_path, face_index, fallback_face, weight);
 }
 
-bool LoadFontFace(Span<const byte> data, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
+bool LoadFontFace(Span<const byte> data, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, int face_index)
 {
-	return font_interface->LoadFontFace(data, family, style, weight, fallback_face);
+	return font_interface->LoadFontFace(data, face_index, family, style, weight, fallback_face);
 }
 
 void RegisterPlugin(Plugin* plugin)

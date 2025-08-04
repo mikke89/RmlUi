@@ -85,7 +85,7 @@ public:
 	void ClearOptions();
 
 	/// Returns one of the widget's options.
-	/// @param[in] The index of the desired option.
+	/// @param[in] index The index of the desired option.
 	/// @return The option element or nullptr if the index was out of bounds.
 	Element* GetOption(int index);
 	/// Returns the number of options in the widget.
@@ -100,10 +100,16 @@ public:
 	/// Processes the incoming event.
 	void ProcessEvent(Event& event) override;
 
-private:
-	// Shows or hides the selection box.
-	void ShowSelectBox(bool show);
+	/// Shows the selection box.
+	void ShowSelectBox();
+	/// Hides the selection box.
+	void HideSelectBox();
+	/// Revert to the value selected when the selection box was opened, then hide the box.
+	void CancelSelectBox();
+	/// Check whether the select box is visible or not.
+	bool IsSelectBoxVisible();
 
+private:
 	void AttachScrollEvent();
 	void DetachScrollEvent();
 
@@ -115,12 +121,16 @@ private:
 	Element* selection_element;
 	Element* value_element;
 
-	bool lock_selection;
-	bool selection_dirty;
-	bool value_rml_dirty;
-	bool value_layout_dirty;
-	bool box_layout_dirty;
-	bool box_visible;
+	String selected_value_on_box_open;
+
+	bool lock_selection = false;
+	bool selection_dirty = false;
+	bool value_rml_dirty = false;
+	bool value_layout_dirty = false;
+	bool value_changed_since_last_box_format = false;
+	bool box_layout_dirty = false;
+	bool box_opened_since_last_format = false;
+	bool box_visible = false;
 };
 
 } // namespace Rml

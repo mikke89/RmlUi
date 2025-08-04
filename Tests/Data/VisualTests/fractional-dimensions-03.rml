@@ -1,0 +1,69 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>Fractional dimensions 03 - Flexbox</title>
+	<meta name="Description" content="Layout of nested elements with fractional height within a flex container."/>
+	<style>
+		handle {
+			background-color: red;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-end;
+			position: relative;
+			width: auto;
+			height: auto;
+			cursor: move;
+		}
+		div.outer {
+			background-color: red;
+		}
+		div.inner {
+			border: 1.23dp #333;
+			background-color: #666;
+			height: 15.23333dp;
+		}
+		div.outer:nth-child(odd) > div.inner {
+			background-color: #999;
+		}
+	</style>
+</head>
+<body>
+	<p>Borders should be placed edge-to-edge, and there should be no red.</p>
+	<handle move_target="#self" edge_margin="none">
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+		<div class="outer"><div class="inner"></div></div>
+	</handle>
+</body>
+</rml>

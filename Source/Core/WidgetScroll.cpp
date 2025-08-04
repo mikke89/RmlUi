@@ -456,17 +456,21 @@ void WidgetScroll::PositionBar()
 
 	if (orientation == VERTICAL)
 	{
-		float traversable_track_length = track_dimensions.y - bar_dimensions.y;
-		bar->SetOffset(
-			Vector2f(bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left), track->GetRelativeOffset().y + traversable_track_length * bar_position),
-			parent);
+		const float traversable_track_length = track_dimensions.y - bar_dimensions.y;
+		const Vector2f offset = {
+			bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left),
+			track->GetRelativeOffset().y + traversable_track_length * bar_position,
+		};
+		bar->SetOffset(offset.Round(), parent);
 	}
 	else
 	{
-		float traversable_track_length = track_dimensions.x - bar_dimensions.x;
-		bar->SetOffset(
-			Vector2f(track->GetRelativeOffset().x + traversable_track_length * bar_position, bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top)),
-			parent);
+		const float traversable_track_length = track_dimensions.x - bar_dimensions.x;
+		const Vector2f offset = {
+			track->GetRelativeOffset().x + traversable_track_length * bar_position,
+			bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top),
+		};
+		bar->SetOffset(offset.Round(), parent);
 	}
 }
 

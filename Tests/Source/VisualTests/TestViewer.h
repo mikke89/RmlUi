@@ -53,6 +53,7 @@ public:
 		int filtered_number_of_tests, int suite_index, int number_of_suites, bool keep_scroll_position = false);
 
 	void SetGoToText(const Rml::String& rml);
+	Rml::Rectanglef GetGoToArea() const;
 
 	void SetAttention(bool active);
 

@@ -33,10 +33,9 @@
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/ID.h"
+#include "DecoratorUtilities.h"
 
 namespace Rml {
-
-using Vector2Numeric = Vector2<NumericValue>;
 
 /**
     Straight gradient.

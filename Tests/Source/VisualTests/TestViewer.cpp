@@ -345,6 +345,13 @@ void TestViewer::SetGoToText(const Rml::String& rml)
 	description_goto->SetInnerRML(rml);
 }
 
+Rml::Rectanglef TestViewer::GetGoToArea() const
+{
+	Element* description_goto = document_description->GetElementById("goto");
+	RMLUI_ASSERT(description_goto);
+	return Rml::Rectanglef::FromPositionSize(description_goto->GetAbsoluteOffset(), description_goto->GetBox().GetSize());
+}
+
 void TestViewer::SetAttention(bool active)
 {
 	if (active)

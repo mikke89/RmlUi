@@ -1,0 +1,65 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>Fractional dimensions 01</title>
+	<link rel="#438" href="https://github.com/mikke89/RmlUi/issues/438"/>
+	<meta name="Description" content="Layout of elements with fractional height. Try zooming in and out (Ctrl +/-). The inner heights are allowed to vary by one pixel to accommodate the accumulation of the fractional pixels."/>
+	<style>
+		handle {
+			background-color: red;
+			display: block;
+			position: relative;
+			width: auto;
+			height: auto;
+			cursor: move;
+		}
+		div {
+			border: 1.23dp #333;
+			background-color: #666;
+			height: 15.33333dp;
+		}
+		div:nth-child(odd) {
+			background-color: #999;
+		}
+	</style>
+</head>
+<body>
+	<p>Borders should be placed edge-to-edge, and there should be no red.</p>
+	<handle move_target="#self" edge_margin="-80%">
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+	</handle>
+</body>
+</rml>

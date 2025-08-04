@@ -34,7 +34,6 @@
 #include "../../../Include/RmlUi/Core/Types.h"
 #include "ContainerBox.h"
 #include "LayoutDetails.h"
-#include "LayoutEngine.h"
 #include <algorithm>
 #include <float.h>
 #include <numeric>
@@ -91,8 +90,6 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 			context.flex_content_containing_block.y = containing_block.y;
 		}
 
-		Math::SnapToPixelGrid(context.flex_content_offset, context.flex_available_content_size);
-
 		// Format the flexbox and all its children.
 		Vector2f flex_resulting_content_size, content_overflow_size;
 		float flex_baseline = 0.f;
@@ -120,8 +117,7 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 
 Vector2f FlexFormattingContext::GetMaxContentSize(Element* element)
 {
-	// A large but finite number is used here, because the flexbox formatting algorithm
-	// needs to round numbers, and it doesn't support infinities.
+	// A large but finite number is used here, since layouting doesn't always work well with infinities.
 	const Vector2f infinity(10000.0f, 10000.0f);
 	RootBox root(infinity);
 	auto flex_container_box = MakeUnique<FlexContainer>(element, &root);
@@ -231,7 +227,7 @@ static void GetItemSizing(FlexItem::Size& destination, const ComputedAxisSize& c
 
 static float GetInnerUsedMainSize(const FlexItem& item)
 {
-	// Due to pixel snapping (rounding) of the outer size, `sum_edges` may be larger than it, so clamp the result to zero.
+	// Due to floating-point precision the outer size may be smaller than `sum_edges`, so clamp the result to zero.
 	return Math::Max(item.used_main_size - item.main.sum_edges, 0.f);
 }
 
@@ -570,9 +566,10 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	}
 
 	// -- Align main axis (§9.5) --
-	// Main alignment is done before cross sizing. Due to rounding to the pixel grid, the main size can
-	// change slightly after main alignment/offseting. Also, the cross sizing depends on the main sizing
-	// so doing it in this order ensures no surprises (overflow/wrapping issues) due to pixel rounding.
+	// Main alignment is done before cross sizing. Previously, doing it in this order was important due to pixel
+	// rounding, since changing the main offset could change the main size after rounding, which in turn could influence
+	// the cross size. However, now we no longer do pixel rounding, so we may be free to do cross sizing first if we
+	// want to do it in that order for some particular reason.
 	for (FlexLine& line : container.lines)
 	{
 		const float remaining_free_space = used_main_size -
@@ -653,7 +650,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			}
 		}
 
-		// Now find the offset and snap the outer edges to the pixel grid.
+		// Now find the offset for each item.
 		float cursor = 0.0f;
 		for (FlexItem& item : line.items)
 		{
@@ -663,7 +660,6 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				item.main_offset = cursor + item.main.margin_a + item.main_auto_margin_size_a;
 
 			cursor += item.used_main_size + item.main_auto_margin_size_a + item.main_auto_margin_size_b;
-			Math::SnapToPixelGrid(item.main_offset, item.used_main_size);
 		}
 	}
 
@@ -748,7 +744,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				})->hypothetical_cross_size;
 
 			// Currently, we don't handle the case where baseline alignment could extend the line's cross size, see CSS specs 9.4.8.
-			line.cross_size = Math::Max(0.0f, Math::Round(largest_hypothetical_cross_size));
+			line.cross_size = Math::Max(0.0f, largest_hypothetical_cross_size);
 
 			if (flex_single_line)
 				line.cross_size = Math::Clamp(line.cross_size, cross_min_size, cross_max_size);
@@ -878,10 +874,6 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				}
 			}
 		}
-
-		// Snap the outer item cross edges to the pixel grid.
-		for (FlexItem& item : line.items)
-			Math::SnapToPixelGrid(item.cross_offset, item.used_cross_size);
 	}
 
 	const float accumulated_lines_cross_size = std::accumulate(container.lines.begin(), container.lines.end(), 0.f,
@@ -963,7 +955,6 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				line.cross_offset = cursor + line.cross_spacing_a;
 
 			cursor += line.cross_spacing_a + line.cross_size + line.cross_spacing_b;
-			Math::SnapToPixelGrid(line.cross_offset, line.cross_size);
 		}
 	}
 
@@ -986,7 +977,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			UniquePtr<LayoutBox> item_layout_box =
 				FormattingContext::FormatIndependent(flex_container_box, item.element, &item.box, FormattingContextType::Block);
 
-			// Set the position of the element within the the flex container
+			// Set the position of the element within the flex container
 			item.element->SetOffset(flex_content_offset + item_offset, element_flex);
 
 			// The flex container baseline is simply set to the first flex item that has a baseline.

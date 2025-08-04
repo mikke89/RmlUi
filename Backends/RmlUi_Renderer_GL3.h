@@ -50,7 +50,7 @@ public:
 	explicit operator bool() const { return static_cast<bool>(program_data); }
 
 	// The viewport should be updated whenever the window size changes.
-	void SetViewport(int viewport_width, int viewport_height);
+	void SetViewport(int viewport_width, int viewport_height, int viewport_offset_x = 0, int viewport_offset_y = 0);
 
 	// Sets up OpenGL states for taking rendering commands from RmlUi.
 	void BeginFrame();
@@ -100,6 +100,11 @@ public:
 	// Can be passed to RenderGeometry() to leave the bound texture and used program unchanged.
 	static constexpr Rml::TextureHandle TexturePostprocess = Rml::TextureHandle(-2);
 
+	// -- Utility functions for clients --
+
+	const Rml::Matrix4f& GetTransform() const;
+	void ResetProgram();
+
 private:
 	void UseProgram(ProgramId program_id);
 	int GetUniformLocation(UniformId uniform_id) const;
@@ -126,6 +131,8 @@ private:
 
 	int viewport_width = 0;
 	int viewport_height = 0;
+	int viewport_offset_x = 0;
+	int viewport_offset_y = 0;
 
 	Rml::CompiledGeometryHandle fullscreen_quad_geometry = {};
 

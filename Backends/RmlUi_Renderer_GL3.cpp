@@ -35,9 +35,10 @@
 #include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/Platform.h>
 #include <RmlUi/Core/SystemInterface.h>
+#include <algorithm>
 #include <string.h>
 
-#if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
+#if defined RMLUI_PLATFORM_WIN32_NATIVE
 	// function call missing argument list
 	#pragma warning(disable : 4551)
 	// unreferenced local function has been removed
@@ -57,7 +58,9 @@
 #endif
 
 // Determines the anti-aliasing quality when creating layers. Enables better-looking visuals, especially when transforms are applied.
-static constexpr int NUM_MSAA_SAMPLES = 2;
+#ifndef RMLUI_NUM_MSAA_SAMPLES
+	#define RMLUI_NUM_MSAA_SAMPLES 2
+#endif
 
 #define MAX_NUM_STOPS 16
 #define BLUR_SIZE 7
@@ -714,6 +717,27 @@ static void DestroyFramebuffer(FramebufferData& fb)
 	fb = {};
 }
 
+static GLuint CreateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions)
+{
+	GLuint texture_id = 0;
+	glGenTextures(1, &texture_id);
+	if (texture_id == 0)
+		return 0;
+
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source_data.data());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return texture_id;
+}
+
 static void BindTexture(const FramebufferData& fb)
 {
 	if (!fb.color_tex_buffer)
@@ -802,10 +826,12 @@ RenderInterface_GL3::~RenderInterface_GL3()
 	}
 }
 
-void RenderInterface_GL3::SetViewport(int width, int height)
+void RenderInterface_GL3::SetViewport(int width, int height, int offset_x, int offset_y)
 {
 	viewport_width = Rml::Math::Max(width, 1);
 	viewport_height = Rml::Math::Max(height, 1);
+	viewport_offset_x = offset_x;
+	viewport_offset_y = offset_y;
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 }
 
@@ -906,6 +932,7 @@ void RenderInterface_GL3::EndFrame()
 
 	// Draw to backbuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(viewport_offset_x, viewport_offset_y, viewport_width, viewport_height);
 
 	// Assuming we have an opaque background, we can just write to it with the premultiplied alpha blend mode and we'll get the correct result.
 	// Instead, if we had a transparent destination that didn't use premultiplied alpha, we would need to perform a manual un-premultiplication step.
@@ -1062,8 +1089,8 @@ void RenderInterface_GL3::ReleaseGeometry(Rml::CompiledGeometryHandle handle)
 	delete geometry;
 }
 
-/// Flip vertical axis of the rectangle, and move its origin to the vertically opposite side of the viewport.
-/// @note Changes coordinate system from RmlUi to OpenGL, or equivalently in reverse.
+/// Flip the vertical axis of the rectangle, and move its origin to the vertically opposite side of the viewport.
+/// @note Changes the coordinate system from RmlUi to OpenGL, or equivalently in reverse.
 /// @note The Rectangle::Top and Rectangle::Bottom members will have reverse meaning in the returned rectangle.
 static Rml::Rectanglei VerticallyFlipped(Rml::Rectanglei rect, int viewport_height)
 {
@@ -1125,40 +1152,37 @@ void RenderInterface_GL3::RenderToClipMask(Rml::ClipMaskOperation operation, Rml
 	RMLUI_ASSERT(glIsEnabled(GL_STENCIL_TEST));
 	using Rml::ClipMaskOperation;
 
-	const bool clear_stencil = (operation == ClipMaskOperation::Set || operation == ClipMaskOperation::SetInverse);
-	if (clear_stencil)
-	{
-		// @performance Increment the reference value instead of clearing each time.
-		glClear(GL_STENCIL_BUFFER_BIT);
-	}
-
-	GLint stencil_test_value = 0;
-	glGetIntegerv(GL_STENCIL_REF, &stencil_test_value);
-
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glStencilFunc(GL_ALWAYS, GLint(1), GLuint(-1));
-
+	GLint stencil_write_value = 1;
+	GLint stencil_test_value = 1;
 	switch (operation)
 	{
 	case ClipMaskOperation::Set:
 	{
+		// @performance Increment the reference value instead of clearing each time.
+		glClear(GL_STENCIL_BUFFER_BIT);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-		stencil_test_value = 1;
 	}
 	break;
 	case ClipMaskOperation::SetInverse:
 	{
+		glClearStencil(1);
+		glClear(GL_STENCIL_BUFFER_BIT);
+		glClearStencil(0);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-		stencil_test_value = 0;
+		stencil_write_value = 0;
 	}
 	break;
 	case ClipMaskOperation::Intersect:
 	{
 		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+		glGetIntegerv(GL_STENCIL_REF, &stencil_test_value);
 		stencil_test_value += 1;
 	}
 	break;
 	}
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glStencilFunc(GL_ALWAYS, stencil_write_value, GLuint(-1));
 
 	RenderGeometry(geometry, translation, {});
 
@@ -1269,25 +1293,14 @@ Rml::TextureHandle RenderInterface_GL3::LoadTexture(Rml::Vector2i& texture_dimen
 
 Rml::TextureHandle RenderInterface_GL3::GenerateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions)
 {
-	GLuint texture_id = 0;
-	glGenTextures(1, &texture_id);
+	RMLUI_ASSERT(source_data.data() && source_data.size() == size_t(source_dimensions.x * source_dimensions.y * 4));
+
+	GLuint texture_id = Gfx::CreateTexture(source_data, source_dimensions);
 	if (texture_id == 0)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to generate texture.");
-		return false;
+		return {};
 	}
-
-	glBindTexture(GL_TEXTURE_2D, texture_id);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source_data.data());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
 	return (Rml::TextureHandle)texture_id;
 }
 
@@ -1959,9 +1972,12 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture()
 	RMLUI_ASSERT(scissor_state.Valid());
 	const Rml::Rectanglei bounds = scissor_state;
 
-	Rml::TextureHandle render_texture = GenerateTexture({}, bounds.Size());
-	if (!render_texture)
+	GLuint render_texture = Gfx::CreateTexture({}, bounds.Size());
+	if (render_texture == 0)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to create render texture.");
 		return {};
+	}
 
 	BlitLayerToPostprocessPrimary(render_layers.GetTopLayerHandle());
 
@@ -1981,7 +1997,7 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture()
 		GL_COLOR_BUFFER_BIT, GL_NEAREST                 //
 	);
 
-	glBindTexture(GL_TEXTURE_2D, (GLuint)render_texture);
+	glBindTexture(GL_TEXTURE_2D, render_texture);
 
 	const Gfx::FramebufferData& texture_source = destination;
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, texture_source.framebuffer);
@@ -1991,7 +2007,7 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture()
 	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
 	Gfx::CheckGLError("SaveLayerAsTexture");
 
-	return render_texture;
+	return (Rml::TextureHandle)render_texture;
 }
 
 Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
@@ -2069,7 +2085,8 @@ Rml::LayerHandle RenderInterface_GL3::RenderLayerStack::PushLayer()
 		GLuint shared_depth_stencil = (fb_layers.empty() ? 0 : fb_layers.front().depth_stencil_buffer);
 
 		fb_layers.push_back(Gfx::FramebufferData{});
-		Gfx::CreateFramebuffer(fb_layers.back(), width, height, NUM_MSAA_SAMPLES, Gfx::FramebufferAttachment::DepthStencil, shared_depth_stencil);
+		Gfx::CreateFramebuffer(fb_layers.back(), width, height, RMLUI_NUM_MSAA_SAMPLES, Gfx::FramebufferAttachment::DepthStencil,
+			shared_depth_stencil);
 	}
 
 	layers_size += 1;
@@ -2145,6 +2162,16 @@ const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::EnsureFramebu
 	if (!fb.framebuffer)
 		Gfx::CreateFramebuffer(fb, width, height, 0, Gfx::FramebufferAttachment::None, 0);
 	return fb;
+}
+
+const Rml::Matrix4f& RenderInterface_GL3::GetTransform() const
+{
+	return transform;
+}
+
+void RenderInterface_GL3::ResetProgram()
+{
+	UseProgram(ProgramId::None);
 }
 
 bool RmlGL3::Initialize(Rml::String* out_message)

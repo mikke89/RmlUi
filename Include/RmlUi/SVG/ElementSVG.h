@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ * Copyright (c) 2019- The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,16 +29,13 @@
 #ifndef RMLUI_SVG_ELEMENT_SVG_H
 #define RMLUI_SVG_ELEMENT_SVG_H
 
-#include "../Core/CallbackTexture.h"
 #include "../Core/Element.h"
-#include "../Core/Geometry.h"
 #include "../Core/Header.h"
 
-namespace lunasvg {
-class Document;
-}
-
 namespace Rml {
+namespace SVG {
+	struct SVGData;
+}
 
 class RMLUICORE_API ElementSVG : public Element {
 public:
@@ -49,6 +46,9 @@ public:
 
 	/// Returns the element's inherent size.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
+
+	/// Loads the current source file if needed. This normally happens automatically during layouting.
+	void EnsureSourceLoaded();
 
 protected:
 	/// Renders the image.
@@ -66,29 +66,11 @@ protected:
 	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
 private:
-	// Generates the element's geometry.
-	void GenerateGeometry();
-	// Loads the SVG document specified by the 'src' attribute.
-	bool LoadSource();
-	// Update the texture when necessary.
-	void UpdateTexture();
+	void UpdateCachedData();
 
-	bool source_dirty = false;
-	bool geometry_dirty = false;
-	bool texture_dirty = false;
+	bool svg_dirty = false;
 
-	// The texture this element is rendering from.
-	CallbackTexture texture;
-
-	// The image's intrinsic dimensions.
-	Vector2f intrinsic_dimensions;
-	// The element's size for rendering.
-	Vector2i render_dimensions;
-
-	// The geometry used to render this element.
-	Geometry geometry;
-
-	UniquePtr<lunasvg::Document> svg_document;
+	SharedPtr<SVG::SVGData> handle;
 };
 
 } // namespace Rml

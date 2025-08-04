@@ -40,12 +40,12 @@ void FontEngineInterfaceBitmap::Shutdown()
 	FontProviderBitmap::Shutdown();
 }
 
-bool FontEngineInterfaceBitmap::LoadFontFace(const String& file_name, bool /*fallback_face*/, FontWeight /*weight*/)
+bool FontEngineInterfaceBitmap::LoadFontFace(const String& file_name, int /*face_index*/, bool /*fallback_face*/, FontWeight /*weight*/)
 {
 	return FontProviderBitmap::LoadFontFace(file_name);
 }
 
-bool FontEngineInterfaceBitmap::LoadFontFace(Span<const byte> /*data*/, const String& font_family, FontStyle /*style*/, FontWeight /*weight*/,
+bool FontEngineInterfaceBitmap::LoadFontFace(Span<const byte> /*data*/, int /*face_index*/, const String& font_family, FontStyle /*style*/, FontWeight /*weight*/,
 	bool /*fallback_face*/)
 {
 	// We return 'true' here to allow the debugger to continue loading, but we will use our own fonts when it asks for a handle.

@@ -35,6 +35,7 @@
 #include "Header.h"
 #include "ObserverPtr.h"
 #include "Property.h"
+#include "RenderBox.h"
 #include "ScriptInterface.h"
 #include "ScrollTypes.h"
 #include "StyleTypes.h"
@@ -158,6 +159,11 @@ public:
 	/// @param[out] offset The offset of the box relative to the element's border box.
 	/// @return The requested box.
 	const Box& GetBox(int index, Vector2f& offset);
+	/// Returns one of the render boxes describing how to generate the geometry for the corresponding element's box.
+	/// @param[in] fill_area The box area that acts as the background, or fill, of the render box.
+	/// @param[in] index The index of the desired box, with 0 being the main box. If outside of bounds, the main render box will be returned.
+	/// @return The requested render box.
+	RenderBox GetRenderBox(BoxArea fill_area = BoxArea::Padding, int index = 0);
 	/// Returns the number of boxes making up this element's geometry.
 	/// @return the number of boxes making up this element's geometry.
 	int GetNumBoxes();
@@ -226,8 +232,8 @@ public:
 	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);
 	const Property* GetLocalProperty(PropertyId id);
-	/// Returns the local style properties, excluding any properties from local class.
-	/// @return The local properties for this element, or nullptr if no properties defined
+	/// Returns the local style properties. Does not include properties applied from any locally set classes.
+	/// @return The local properties for this element.
 	const PropertyMap& GetLocalStyleProperties();
 
 	/// Resolves a length to its canonical unit ('px').
@@ -244,13 +250,13 @@ public:
 
 	/// Returns the size of the containing block. Often percentages are scaled relative to this.
 	Vector2f GetContainingBlock();
-	/// Returns 'position' property value from element's computed values.
+	/// Returns 'position' property value from the element's computed values.
 	Style::Position GetPosition();
-	/// Returns 'float' property value from element's computed values.
+	/// Returns 'float' property value from the element's computed values.
 	Style::Float GetFloat();
-	/// Returns 'display' property value from element's computed values.
+	/// Returns 'display' property value from the element's computed values.
 	Style::Display GetDisplay();
-	/// Returns 'line-height' property value from element's computed values.
+	/// Returns 'line-height' property value from the element's computed values.
 	float GetLineHeight();
 
 	/// Project a 2D point in pixel coordinates onto the element's plane.
@@ -310,7 +316,7 @@ public:
 	Variant* GetAttribute(const String& name);
 	/// Gets the specified attribute.
 	const Variant* GetAttribute(const String& name) const;
-	/// Gets the specified attribute, with default value.
+	/// Gets the specified attribute, or the default value.
 	/// @param[in] name Name of the attribute to retrieve.
 	/// @param[in] default_value Value to return if the attribute doesn't exist.
 	template <typename T>
@@ -359,10 +365,10 @@ public:
 	/// @param[in] id The new id of the element.
 	void SetId(const String& id);
 
-	/// Gets the horizontal offset from the context's left edge to element's left border edge.
+	/// Gets the horizontal offset from the context's left edge to the element's left border edge.
 	/// @return The horizontal offset of the element within its context, in pixels.
 	float GetAbsoluteLeft();
-	/// Gets the vertical offset from the context's top edge to element's top border edge.
+	/// Gets the vertical offset from the context's top edge to the element's top border edge.
 	/// @return The vertical offset of the element within its context, in pixels.
 	float GetAbsoluteTop();
 
@@ -451,7 +457,7 @@ public:
 	/// @return The child element at the given index.
 	Element* GetChild(int index) const;
 	/// Get the current number of children in this element
-	/// @param[in] include_non_dom_elements True if the caller wants to include the non DOM children. Only set this to true if you know what you're
+	/// @param[in] include_non_dom_elements True if the caller wants to include the non-DOM children. Only set this to true if you know what you're
 	/// doing!
 	/// @return The number of children.
 	int GetNumChildren(bool include_non_dom_elements = false) const;
@@ -484,7 +490,7 @@ public:
 	/// Adds an event listener to this element.
 	/// @param[in] event Event to attach to.
 	/// @param[in] listener The listener object to be attached.
-	/// @param[in] in_capture_phase True to attach in the capture phase, false in bubble phase.
+	/// @param[in] in_capture_phase True to attach in the capture phase, false in the bubble phase.
 	/// @lifetime The added listener must stay alive until after the dispatched call from EventListener::OnDetach(). This occurs
 	///     e.g. when the element is destroyed or when RemoveEventListener() is called with the same parameters passed here.
 	void AddEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
@@ -510,7 +516,7 @@ public:
 	bool DispatchEvent(EventId id, const Dictionary& parameters);
 
 	/// Scrolls the parent element's contents so that this element is visible.
-	/// @param[in] options Scroll parameters that control desired element alignment relative to the parent.
+	/// @param[in] options Scroll parameters that control the desired element alignment relative to the parent.
 	void ScrollIntoView(ScrollIntoViewOptions options);
 	/// Scrolls the parent element's contents so that this element is visible.
 	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be
@@ -519,7 +525,7 @@ public:
 	/// Sets the scroll offset of this element to the given coordinates.
 	/// @param[in] offset The scroll destination coordinates.
 	/// @param[in] behavior Smooth scrolling behavior.
-	/// @note Smooth scrolling can only be applied to a single element at a time, any active smooth scrolls will be cancelled.
+	/// @note Smooth scrolling can only be applied to a single element at a time, any active smooth scrolls will be canceled.
 	void ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Instant);
 
 	/// Append a child to this element.
@@ -566,10 +572,14 @@ public:
 	/// @param[in] selector The selector or comma-separated selectors to match against.
 	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
 	void QuerySelectorAll(ElementList& elements, const String& selector);
-	/// Check if the element matches the given RCSS selector query.
+	/// Checks if the element matches the given RCSS selector query.
 	/// @param[in] selector The selector or comma-separated selectors to match against.
 	/// @return True if the element matches the given RCSS selector query, false otherwise.
 	bool Matches(const String& selector);
+	/// Checks if the provided element is a descendant of the current element.
+	/// @param[in] element The element to test with.
+	/// @return True if the provided element is a descendant of this element, false otherwise.
+	bool Contains(Element* element) const;
 
 	//@}
 
@@ -579,7 +589,7 @@ public:
 	//@{
 	/// Access the event dispatcher for this element.
 	EventDispatcher* GetEventDispatcher() const;
-	/// Returns event types with number of listeners for debugging.
+	/// Returns event types with the number of listeners for debugging.
 	String GetEventDispatcherSummary() const;
 	/// Access the element background and border.
 	ElementBackgroundBorder* GetElementBackgroundBorder() const;
@@ -678,6 +688,7 @@ private:
 
 	void DirtyAbsoluteOffset();
 	void DirtyAbsoluteOffsetRecursive();
+	void UpdateAbsoluteOffsetAndRenderBoxData();
 	void UpdateOffset();
 	void SetBaseline(float baseline);
 
@@ -728,6 +739,7 @@ private:
 
 	bool offset_fixed;
 	bool absolute_offset_dirty;
+	bool rounded_main_padding_size_dirty : 1;
 
 	bool dirty_definition : 1; // Implies dirty child definitions as well.
 	bool dirty_child_definitions : 1;
@@ -770,6 +782,7 @@ private:
 	Vector2f relative_offset_position; // the offset of a relatively positioned element
 
 	Vector2f absolute_offset;
+	Vector2f rounded_main_padding_size;
 
 	// The offset this element adds to its logical children due to scrolling content.
 	Vector2f scroll_offset;

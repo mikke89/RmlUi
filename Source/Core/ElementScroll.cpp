@@ -203,6 +203,15 @@ void ElementScroll::FormatScrollbars()
 	}
 }
 
+void ElementScroll::UpdateProperties()
+{
+	for (Element* scroll_element : {scrollbars[VERTICAL].element, scrollbars[HORIZONTAL].element, corner})
+	{
+		if (scroll_element)
+			UpdateScrollElementProperties(scroll_element);
+	}
+}
+
 bool ElementScroll::CreateScrollbar(Orientation orientation)
 {
 	if (scrollbars[orientation].element && scrollbars[orientation].widget)

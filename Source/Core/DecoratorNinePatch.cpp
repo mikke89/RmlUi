@@ -61,8 +61,9 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element, Bo
 	Texture texture = GetTexture();
 	const Vector2f texture_dimensions(texture.GetDimensions());
 
-	const Vector2f surface_offset = element->GetBox().GetPosition(paint_area);
-	const Vector2f surface_dimensions = element->GetBox().GetSize(paint_area).Round();
+	const RenderBox render_box = element->GetRenderBox(paint_area);
+	const Vector2f surface_offset = render_box.GetFillOffset();
+	const Vector2f surface_dimensions = render_box.GetFillSize();
 
 	const ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
 

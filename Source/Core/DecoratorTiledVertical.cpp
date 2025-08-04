@@ -83,8 +83,9 @@ DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element
 	for (int i = 0; i < 3; i++)
 		tiles[i].CalculateDimensions(GetTexture(tiles[i].texture_index));
 
-	const Vector2f offset = element->GetBox().GetPosition(paint_area);
-	const Vector2f size = element->GetBox().GetSize(paint_area);
+	const RenderBox render_box = element->GetRenderBox(paint_area);
+	const Vector2f offset = render_box.GetFillOffset();
+	const Vector2f size = render_box.GetFillSize();
 
 	Vector2f top_dimensions = tiles[TOP].GetNaturalDimensions(element);
 	Vector2f bottom_dimensions = tiles[BOTTOM].GetNaturalDimensions(element);

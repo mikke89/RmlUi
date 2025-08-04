@@ -250,32 +250,33 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 					// Try to break up the word
 					max_token_width = int(maximum_line_width - line_width);
 					const int token_max_size = int(next_token_begin - token_begin);
-					bool force_loop_break_after_next = false;
+					const char* partial_string_end = token_begin + token_max_size;
 
 					// @performance: Can be made much faster. Use string width heuristics and logarithmic search.
-					for (int i = token_max_size - 1; i > 0; --i)
+					while (true)
 					{
+						partial_string_end = StringUtilities::SeekBackwardUTF8(partial_string_end - 1, token_begin);
+
+						bool force_loop_break_at_end = false;
+						if (partial_string_end == token_begin)
+						{
+							// Not even the first character of the token fits. Let it overflow onto the next line if we can.
+							if (allow_empty || !line.empty())
+								return false;
+
+							// Continue by forcing the first character to be consumed, even though it will overflow.
+							partial_string_end = StringUtilities::SeekForwardUTF8(token_begin + 1, token_begin + token_max_size);
+							force_loop_break_at_end = true;
+						}
+
 						token.clear();
 						next_token_begin = token_begin;
-						const char* partial_string_end = StringUtilities::SeekBackwardUTF8(token_begin + i, token_begin);
 						BuildToken(token, next_token_begin, partial_string_end, line.empty() && trim_whitespace_prefix, collapse_white_space,
 							break_at_endline, text_transform_property, decode_escape_characters);
 						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, text_shaping_context, previous_codepoint);
 
-						if (force_loop_break_after_next || token_width <= max_token_width)
-						{
+						if (force_loop_break_at_end || token_width <= max_token_width)
 							break;
-						}
-						else if (next_token_begin == token_begin)
-						{
-							// This means the first character of the token doesn't fit. Let it overflow into the next line if we can.
-							if (allow_empty || !line.empty())
-								return false;
-
-							// Not even the first character of the line fits. Go back to consume the first character even though it will overflow.
-							i += 2;
-							force_loop_break_after_next = true;
-						}
 					}
 
 					break_line = true;
@@ -306,7 +307,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 
 void ElementText::ClearLines()
 {
-	geometry.clear();
+	RMLUI_ZoneScoped;
 	lines.clear();
 	generated_decoration = Style::TextDecoration::None;
 }
@@ -365,8 +366,6 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		changed_properties.Contains(PropertyId::RmlUi_Direction))
 	{
 		font_face_changed = true;
-
-		geometry.clear();
 		geometry_dirty = true;
 
 		font_effects_handle = 0;
@@ -454,10 +453,8 @@ void ElementText::GenerateGeometry(RenderManager& render_manager, const FontFace
 	const auto& computed = GetComputedValues();
 	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.letter_spacing()};
 
-	// Release the old geometry, and reuse the mesh buffers.
-	TexturedMeshList mesh_list(geometry.size());
-	for (size_t i = 0; i < geometry.size(); i++)
-		mesh_list[i].mesh = geometry[i].geometry.Release(Geometry::ReleaseMode::ClearMesh);
+	TexturedMeshList mesh_list;
+	mesh_list.reserve(geometry.size());
 
 	// Generate the new geometry, one line at a time.
 	for (size_t i = 0; i < lines.size(); ++i)
@@ -466,11 +463,14 @@ void ElementText::GenerateGeometry(RenderManager& render_manager, const FontFace
 			lines[i].position, colour, opacity, text_shaping_context, mesh_list);
 	}
 
-	// Apply the new geometry and textures.
+	// Apply the new geometry and textures. Reuse the old geometry if the mesh matches, which can be relatively common
+	// where the layout is changed in a way that does not visually affect this element.
 	geometry.resize(mesh_list.size());
-	for (size_t i = 0; i < geometry.size(); i++)
+	for (size_t i = 0; i < mesh_list.size(); i++)
 	{
-		geometry[i].geometry = render_manager.MakeGeometry(std::move(mesh_list[i].mesh));
+		if (!geometry[i].geometry || geometry[i].geometry.GetMesh() != mesh_list[i].mesh)
+			geometry[i].geometry = render_manager.MakeGeometry(std::move(mesh_list[i].mesh));
+
 		geometry[i].texture = mesh_list[i].texture;
 	}
 

@@ -121,28 +121,31 @@ public:
 	/// @return True if the document is hogging focus.
 	bool IsModal() const;
 
-	/// Load a inline script into the document. Note that the base implementation does nothing, scripting language addons hook
-	/// this method.
+	/// Finds the next tabbable element in the document tree, starting at the given element, possibly wrapping around the document.
+	/// @param[in] current_element The element to start from.
+	/// @param[in] forward True to search forward, false to search backward.
+	/// @return The next tabbable element, or nullptr if none could be found.
+	Element* FindNextTabElement(Element* current_element, bool forward);
+
+	/// Loads an inline script into the document. Note that the base implementation does nothing, but script plugins can hook into this method.
 	/// @param[in] content The script content.
 	/// @param[in] source_path Path of the script the source comes from, useful for debug information.
 	/// @param[in] source_line Line of the script the source comes from, useful for debug information.
 	virtual void LoadInlineScript(const String& content, const String& source_path, int source_line);
-
-	/// Load a external script into the document. Note that the base implementation does nothing, scripting language addons hook
-	/// this method.
+	/// Loads an external script into the document. Note that the base implementation does nothing, but script plugins can hook into this method.
 	/// @param[in] source_path The script file path.
 	virtual void LoadExternalScript(const String& source_path);
 
 	/// Updates the document, including its layout. Users must call this manually before requesting information such as
-	/// size or position of an element if any element in the document was recently changed, unless Context::Update has
-	/// already been called after the change. This has a perfomance penalty, only call when necessary.
+	/// the size or position of an element if any element in the document was recently changed, unless Context::Update
+	/// has already been called after the change. This has a performance penalty, only call when necessary.
 	void UpdateDocument();
 
 protected:
 	/// Repositions the document if necessary.
 	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
-	/// Processes the 'onpropertychange' event, checking for a change in position or size.
+	/// Processes any events specially handled by the document.
 	void ProcessDefaultAction(Event& event) override;
 
 	/// Called during update if the element size has been changed.
@@ -154,9 +157,7 @@ protected:
 	void SetFocusableFromModal(bool focusable);
 
 private:
-	/// Find the next element to focus, starting at the current element
-	Element* FindNextTabElement(Element* current_element, bool forward);
-	/// Searches forwards or backwards for a focusable element in the given substree
+	/// Searches forwards or backwards for a focusable element in the given subtree.
 	Element* SearchFocusSubtree(Element* element, bool forward);
 	/// Find the next element to navigate to, starting at the current element.
 	Element* FindNextNavigationElement(Element* current_element, NavigationSearchDirection direction, const Property& property);
@@ -166,7 +167,7 @@ private:
 	/// Returns true if the document has been marked as needing a re-layout.
 	bool IsLayoutDirty() override;
 
-	/// Notify the document that media query related properties have changed and that style sheets need to be re-evaluated.
+	/// Notify the document that media query-related properties have changed and that style sheets need to be re-evaluated.
 	void DirtyMediaQueries();
 
 	/// Updates all sizes defined by the 'vw' and the 'vh' units.

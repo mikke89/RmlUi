@@ -286,7 +286,6 @@ void WidgetTextInput::SetValue(String value)
 	else
 	{
 		TransformValue(value);
-		RMLUI_ASSERTMSG(value.size() == initial_size, "TransformValue must not change the text length.");
 
 		text_element->SetText(value);
 
@@ -300,6 +299,16 @@ void WidgetTextInput::SetValue(String value)
 }
 
 void WidgetTextInput::TransformValue(String& /*value*/) {}
+
+int WidgetTextInput::DisplayIndexToAttributeIndex(int display_index, const String& /*attribute_value*/)
+{
+	return display_index;
+}
+
+int WidgetTextInput::AttributeIndexToDisplayIndex(int attribute_index, const String& /*attribute_value*/)
+{
+	return attribute_index;
+}
 
 void WidgetTextInput::SetMaxLength(int _max_length)
 {
@@ -584,7 +593,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 
 		case Input::KI_A:
 		{
-			if (ctrl)
+			if (ctrl && !alt)
 				Select();
 		}
 		break;
@@ -739,9 +748,11 @@ bool WidgetTextInput::AddCharacters(String string)
 		return false;
 
 	String value = GetAttributeValue();
-	value.insert(std::min<size_t>((size_t)absolute_cursor_index, value.size()), string);
+	const int attribute_insert_index = DisplayIndexToAttributeIndex(absolute_cursor_index, value);
+	value.insert(std::min<size_t>((size_t)attribute_insert_index, value.size()), string);
 
-	absolute_cursor_index += (int)string.size();
+	const int new_cursor_attribute_index = AttributeIndexToDisplayIndex(attribute_insert_index + (int)string.size(), value);
+	absolute_cursor_index = new_cursor_attribute_index;
 	parent->SetAttribute("value", value);
 
 	if (UpdateSelection(false))
@@ -1504,8 +1515,13 @@ void WidgetTextInput::DeleteSelection()
 	if (selection_length > 0)
 	{
 		String new_value = GetAttributeValue();
-		const size_t selection_begin = std::min((size_t)selection_begin_index, (size_t)new_value.size());
-		new_value.erase(selection_begin, (size_t)selection_length);
+		const int selection_begin_index_attribute = DisplayIndexToAttributeIndex(selection_begin_index, new_value);
+		const int selection_end_index_attribute = DisplayIndexToAttributeIndex(selection_begin_index + selection_length, new_value);
+		RMLUI_ASSERT(selection_end_index_attribute >= selection_begin_index_attribute);
+
+		const size_t selection_begin = std::min((size_t)selection_begin_index_attribute, (size_t)new_value.size());
+		const size_t attribute_selection_length = size_t(selection_end_index_attribute - selection_begin_index_attribute);
+		new_value.erase(selection_begin, (size_t)attribute_selection_length);
 
 		// Move the cursor to the beginning of the old selection.
 		absolute_cursor_index = selection_begin_index;

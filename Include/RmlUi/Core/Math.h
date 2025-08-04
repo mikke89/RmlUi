@@ -95,21 +95,21 @@ namespace Math {
 	/// Color interpolation.
 	RMLUICORE_API ColourbPremultiplied RoundedLerp(float t, ColourbPremultiplied c0, ColourbPremultiplied c1);
 
-	/// Evaluates if a number is, or close to, zero.
+	/// Evaluates if a number is zero or close to it.
 	/// @param[in] value The number to compare to zero.
 	/// @return True if the number is zero or close to it, false otherwise.
 	RMLUICORE_API bool IsCloseToZero(float value);
 
 	/// Calculates the absolute value of a number.
-	/// @param[in] value The number of get the absolute value of.
+	/// @param[in] value The number to get the absolute value of.
 	/// @return The absolute value of the number.
 	RMLUICORE_API float Absolute(float value);
 	/// Calculates the absolute value of a number.
-	/// @param[in] value The number of get the absolute value of.
+	/// @param[in] value The number to get the absolute value of.
 	/// @return The absolute value of the number.
 	RMLUICORE_API int Absolute(int value);
 	/// Calculates the component-wise absolute value of a vector.
-	/// @param[in] value The vector of get the absolute value of.
+	/// @param[in] value The vector to get the absolute value of.
 	/// @return The absolute value of the vector.
 	RMLUICORE_API Vector2f Absolute(Vector2f value);
 
@@ -131,7 +131,7 @@ namespace Math {
 	RMLUICORE_API float ASin(float value);
 	/// Calculates the tangent of an angle.
 	/// @param[in] angle The angle to calculate the tangent of, in radians.
-	/// @return The tanget of the angle.
+	/// @return The tangent of the angle.
 	RMLUICORE_API float Tan(float angle);
 	/// Calculates the angle of a two-dimensional line.
 	/// @param[in] y The y-component of the line.
@@ -194,7 +194,7 @@ namespace Math {
 	/// @return The rounded integer.
 	RMLUICORE_API int RoundDownToInteger(float value);
 
-	/// Decompose floating-point value to its fractional and integral parts.
+	/// Decomposes a floating-point value to its fractional and integral parts.
 	/// @param[in] value The value to decompose.
 	/// @param[out] integral The integral part of the value.
 	/// @return The fractional part of the value.
@@ -224,7 +224,7 @@ namespace Math {
 	/// @return The smallest power of two that is as least as big as the input value.
 	RMLUICORE_API int ToPowerOfTwo(int value);
 
-	/// Converts from the ASCII-representation of a hexadecimal digit to decimal.
+	/// Converts from the ASCII representation of a hexadecimal digit to decimal.
 	/// @param[in] hex_digit The hexadecimal digit to convert to decimal.
 	/// @return The digit in decimal.
 	RMLUICORE_API int HexToDecimal(char hex_digit);
@@ -237,7 +237,7 @@ namespace Math {
 	/// @param[in] max_value The limit to random value. The generated value will be guaranteed to be below this limit.
 	/// @return The random value.
 	RMLUICORE_API int RandomInteger(int max_value);
-	/// Generates a random boolean value, with equal chance of true or false.
+	/// Generates a random boolean value, with an equal chance of true or false.
 	/// @return The random value.
 	RMLUICORE_API bool RandomBool();
 

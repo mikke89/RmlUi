@@ -17,6 +17,11 @@
 include(FindPackageHandleStandardArgs)
 
 if(NOT TARGET lunasvg::lunasvg)
+	# Look for lunasvg 3.0+ official config
+	find_package("lunasvg" CONFIG QUIET)
+endif()
+
+if(NOT TARGET lunasvg::lunasvg)
 	# Look for vcpkg port
 	find_package("unofficial-lunasvg" CONFIG QUIET)
 	if(TARGET unofficial::lunasvg::lunasvg)

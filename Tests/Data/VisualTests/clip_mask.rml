@@ -16,6 +16,7 @@
 			height: auto;
 			display: block;
 			position: relative;
+			cursor: move;
 		}
 		.box {
 			margin: 20dp auto;

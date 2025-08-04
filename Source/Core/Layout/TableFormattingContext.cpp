@@ -73,7 +73,6 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 
 	context.table_content_offset = box.GetPosition();
 	context.table_initial_content_size = Vector2f(initial_content_size.x, Math::Max(0.0f, initial_content_size.y));
-	Math::SnapToPixelGrid(context.table_content_offset, context.table_initial_content_size);
 
 	// When width or height is set, they act as minimum width or height, just as in CSS.
 	if (computed_table.width().type != Style::Width::Auto)
@@ -476,7 +475,7 @@ void TableFormattingContext::FormatCells(BoxList& cells, Vector2f& table_overflo
 		auto cell_box = FormattingContext::FormatIndependent(table_wrapper_box, element_cell, &box, FormattingContextType::Block);
 		Vector2f cell_visible_overflow_size = cell_box->GetVisibleOverflowSize();
 
-		// Set the position of the element within the the table container
+		// Set the position of the element within the table container
 		element_cell->SetOffset(cell_offset, element_table);
 
 		// The table baseline is simply set to the first cell that has a baseline.

@@ -58,14 +58,21 @@ void ElementLabel::ProcessEvent(Event& event)
 	{
 		if (event.GetPhase() == EventPhase::Capture || event.GetPhase() == EventPhase::Target)
 		{
-			if (Element* target = GetTarget())
+			if (Element* label_target = GetTarget())
 			{
-				// Temporarily disable click captures to avoid infinite recursion in case this element is on the path to the target element.
-				disable_click = true;
-				event.StopPropagation();
-				target->Focus();
-				target->Click();
-				disable_click = false;
+				Element* event_target = event.GetTargetElement();
+				// If the event is already on the way to the label target, there is no reason to intervene with the
+				// click. Just let the event move down the chain without interrupting it. Otherwise, intervene to
+				// manually redirect the click to the label target.
+				if (!label_target->Contains(event_target))
+				{
+					// Temporarily disable click captures to avoid infinite recursion in case this element is on the path to the target element.
+					disable_click = true;
+					event.StopPropagation();
+					label_target->Focus();
+					label_target->Click();
+					disable_click = false;
+				}
 			}
 		}
 	}

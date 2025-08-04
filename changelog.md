@@ -1,3 +1,4 @@
+* [RmlUi 6.1](#rmlui-61)
 * [RmlUi 6.0](#rmlui-60)
 * [RmlUi 5.1](#rmlui-51)
 * [RmlUi 5.0](#rmlui-50)
@@ -12,32 +13,179 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
-## RmlUi 6.1 (WIP)
+## RmlUi 6.1
+
+### Prevent single pixel gaps between elements
+
+This release addresses the issue of 1px gaps appearing between fractionally sized elements when placed border-to-border. This was particularly pronounced in DPI-scaled layouts, as that often leads to fractionally sized elements.
+
+The solution involves rounding the rendered size of elements based on their absolute positions to ensure that the bottom/right of one element matches the top/left of the next element. This implies that the rendered size of a fractional element may vary by up to one pixel. This generally matches how web browsers behave. Floating-point precision issues may still cause rare gaps, but the improvements should cover almost all cases. See the [commit message](https://github.com/mikke89/RmlUi/commit/b197f985b328d5493af3190e27d4290bb496ff1d) for details. Resolves #438, thanks to @mwl4 for the extensive initiative and proof of concept.
+
+In particular, this fixes several situations with single pixel gaps and overlaps:
+
+- Gap of 1px between border or backgrounds of neighboring elements.
+- Overlap of 1px between border or backgrounds of neighboring elements.
+- Table cell backgrounds overlap the table border by 1px.
+- Gap between nested elements in a flex container.
+- Clipping area offset by 1px compared to the border area.
+
+![Single pixel gap fix examples - before and after comparisons](https://github.com/user-attachments/assets/f1b29382-4686-4fea-a4dc-ea9628669b80)
+
+### Handle element
+
+The `<handle>` element has received several major improvements.
+
+- The handle now retains the anchoring that applies to the target element, even after moving or sizing it. #637
+  - If an element has all of its inset (top/right/bottom/left) properties set, this determines the size, and anchors to all edges. Previously, we would break the anchoring and just declare its new position or size. Now, positioning and sizing is performed in a way that retains this anchoring. Similarly, this applies to every combination of anchoring.
+  - Thus, when first sizing and moving the target and then resizing its container, the element can now still resize itself to match the new dimensions.
+- The `edge_margin` attribute is introduced to constrain the target placement to the edges of its containing block. #631 
+  - Applies to both position and size targets.
+  - This attribute can take any length or percentage, which specifies the minimum distance between the target and the edges of its containing block. Each side can be specified individually, and negative values are allowed. See the [documentation](https://mikke89.github.io/RmlUiDoc/pages/rml/controls.html#handle) for details.
+  - Defaults to `0px`, which means that handle targets will now be constrained exactly to the edges of their containing block.
+- Fix several issues where the element jolts some distance at drag start:
+  - When the target's containing block has a border.
+  - When the target is set to relative positioning and offset from the top-left corner.
+
+### New decorator: `text`
+
+Implement a new decorator to render text as a background on elements. This can be particularly helpful when using icon fonts, and even allows using such fonts for generated elements. #348 #655 #679
+
+```
+decorator: text("Hello 🌎 world!" blue bottom right);
+```
+
+The font face will be inherited from the element it is being applied to. However, it can be colored independently. Further, the text can be freely aligned within the element using lengths, percentages, or keywords. Unicode numerical references are supported with the HTML syntax, e.g. `&#x1F30E;`.
+
+![Text decorator examples](https://github.com/mikke89/RmlUiDoc/blob/b050d5d0b316c961cd05ed37cdd3dda1b809d80e/assets/images/decorators/text.png)
 
 ### Flexbox layout improvements
 
 - Apply automatic minimum size of flex items in column mode with auto size. #658
 - Performance improvement: Skip calculating hypothetical cross size when not needed. Avoids a potentially expensive formatting step in some situations. #658 
-- Fix hypothetical width of replaced elements (such as images) in column direction layout. #666
-- Fix hitting an assertion due to negative flex item size in some situations when edge size is fractional. #657
+- Fix the hypothetical width of replaced elements (such as images) in column direction layout. #666
+- Fix hitting an assertion due to negative flex item size in some situations when the edge size is fractional. #657
+
+### Data binding
+
+- Allow custom getter/setter on scoped enum. #693 #699 (thanks @AmaiKinono)
+- Ternary expressions are now implemented with jumps so that only one branch is evaluated. This makes it possible to e.g. avoid invalid array access in case of an empty array. #740 (thanks @rminderhoud and @exjam)
+- Fix an issue where the `FamilyId` would have the same value for different types across shared library boundaries, which could lead to a crash or other unexpected behavior. 
 
 ### Animations
 
 - Add interpolation of color stop lists, which enables animation of color and position of stops in gradient decorators. #667
+- Improve warning message when trying to animate box shadows. #688
 
 ### RCSS Values
 
 - Support `hsl` and `hsla` colors. E.g. `color: hsl(30, 80%, 50%)`. #674 (thanks @AmaiKinono)
 
-### RML Parsing
+### Input elements
+
+- Implement the ability to style the progress of a `range` input. #736 (thanks @viseztrance)
+  - A new [`sliderprogress` child element](https://mikke89.github.io/RmlUiDoc/pages/style_guide.html) is added for this purpose.\
+  ![Range input with styled progress bar](https://github.com/user-attachments/assets/aa1ecea7-6fc1-4bc5-99a0-5bbc969e190e)
+- Improve navigation of `<select>` elements when using controller/keyboard navigation. #565 #566 (thanks @Paril)
+  - Scroll to the selected options as one is moving up or down the list.
+  - Scroll to the selected option when opening up the selection box.
+  - Add the ability to programmatically [show or hide](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/element_packages/form.html#drop-down-select-box) the selection box.
+- Fix some layout and behavior issues of the `<select>` element. 
+  - Fix issues related to specifying the height of the select arrow element. 
+  - Fix an issue where the selection box would scroll to the top-left corner when the document layout is updated.
+- Fix an issue where wrapping a `<select>` element inside a `<label>` element would prevent mouse clicks from being able to select a new option. #494
+- Fix an issue where the contents of the `<input type="text">` and `<textarea>` elements could sometimes inadvertently scroll to a new place after a layout update.
+- Handle multi-byte characters in `<input type="password">` fields. #735
+
+### Elements
+
+- Add support for the [`:scope` pseudo selector](https://mikke89.github.io/RmlUiDoc/pages/rcss/selectors.html#pseudo-selectors) when calling into the `Element` DOM query methods, i.e. `Element::QuerySelector[All]`, `Element::Matches`, and `Element::Closest`. #578 (thanks @Paril)
+- Add [`Element::Contains` DOM method](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/elements.html#dom-interface).
+- Allow `Element::ScrollIntoView` to only scroll in the nearest scroll container, instead of all ancestor scroll containers, by using the new `ScrollParentage::Closest` scroll option.
+- Fix an issue where scrollbars could appear or disappear one frame after they should have changed visibility.
+
+### Documents
+
+- Expose `ElementDocument::FindNextTabElement` publicly.
+- Disallow focusing into an unloaded document to prevent a potential situation with dangling pointers. #730
+
+### Font engine
+
+- Add the ability to select a font face from a font collection, using its face index passed to `Rml::LoadFontFace`. #720 (thanks @leduyquang753)
+- Fix rare placement of glyphs appearing below the baseline in some fonts, by using the bitmap bearing instead of the glyph metrics.
+- The [HarfBuzz font engine](./Samples/basic/harfbuzz) now uses kerning from HarfBuzz instead of FreeType. #639 (thanks @TriangulumDesire)
+
+### RML Parsing and layouting
 
 - Fix RML parsing of extra hyphen in closing comment, i.e. `--->` instead of `-->`. #681
+- Fix a crash during layouting with word break enabled, when the first character of a token is multi-byte and does not fit on the line. #753 (thanks @and3md)
 
 ### Rendering
 
 - Fix incorrect clipping when using multiple contexts of different dimensions. #677 #680 (thanks @s1sw)
+- Defer texture loading until the texture becomes visible.
 
+### Backends
 
+- Update the SFML backend to support SFML 3, in addition to the existing SFML 2 support.
+  - By default, SFML 3 is preferred before SFML 2 during CMake configuration. To override the automatic selection, set the CMake variable `RMLUI_SFML_VERSION_MAJOR` to the desired version (2 or 3).
+- Update all SDL backends to support SDL 3, in addition to the existing SDL 2 support.
+  - By default, SDL 3 is preferred before SDL 2 during CMake configuration. To override the automatic selection, set the CMake variable `RMLUI_SDL_VERSION_MAJOR` to the desired version (2 or 3).
+- SDL 3-specific improvements:
+  - Enable high DPI support.
+  - Enable positioning of the input method editor (IME) to the text cursor.
+- Improvements to both SDL 2 and SDL 3:
+  - Keyboard is activated and deactivated when focusing text input fields.
+  - Text input events are only submitted when text input fields are focused.
+- `SDL_GL2`-specific improvements:
+  - GLEW is no longer required, and no longer linked to.
+  - Use OpenGL directly instead of the SDL renderer, just like the `SDL_GL3` renderer.
+- OpenGL 3 renderer-specific improvements:
+  - Added the ability to set an offset with the call to `SetViewport()`. #724 (thanks @viseztrance)
+  - Added `RMLUI_NUM_MSAA_SAMPLES` as a customizable macro for the number of MSAA samples to use in RmlUi framebuffers.
+  - Added utility functions `GetTransform()` and `ResetProgram()` to more easily enable client projects to render with their own shaders.
+
+### Plugins
+
+- Log warnings when SVG or Lottie files cannot be rendered. #687
+- Support for LunaSVG 3.0 with the SVG plugin.
+
+### Unit testing
+
+- Enable shell renderer with environment variable `RMLUI_TESTS_USE_SHELL=1` instead of a compile definition.
+
+### Resource management
+
+- Avoid memory allocations during global initialization. #689
+  - Instead, explicitly start lifetime of globals during the call to `Rml::Initialise`.
+  - Thus, there should no longer be any memory allocations occurring before `main()` when linking to RmlUi.
+  - We now give a warning if there are objects in user space that refer to any RmlUi resources at the end of `Rml::Shutdown`, as this prevents the library from cleaning up memory pools.
+    - We make an exemption for `Rml::EventListener` as those are commonly kept around until after `Rml::Shutdown` which is considered reasonable.
+- Add manual release of render managers, `Rml::ReleaseRenderManagers`, to allow the render interface to be destroyed before `Rml::Shutdown`. #703
+
+### Building
+
+- Remove `OpenGL::GL` dependency for GL3 backends. #684 (thanks @std-microblock)
+- Fix dependency check signature in RmlUiConfig causing failure to find dependencies. #721 #722 (thanks @mpersano) 
+- Log to console by default when building on MinGW. #757 (thanks @trexxet)
+- Fix a missing header include in the GL3 renderer, causing a compilation error on Visual Studio 17.12.
+- Fix a build issue on certain Visual Studio 2017 setups by using `std::enable_if_t` consistently. #734
+- Fix a build issue on Android with C++ 23 enabled due to mismatching std-namespace usage and C vs. C++ math headers.
+- Fix unit tests and missing sample data when building with Emscripten.
+- Libraries and archives will now be placed in the top-level binary directory, unless overridden by users or parent projects. This matches the existing runtime output directory.
+
+### Readme
+
+- Improve readme code examples. #683 (thanks @std-microblock)
+
+### Breaking changes
+
+- Layouts may see 1px shifts in various places due to the improvements to prevent single pixel gaps.
+- The target of the `<handle>` element will no longer move outside its containing block by default, see above for how to override this behavior.
+- Changed the signature of `MeshUtilities::GenerateBackground` and  `MeshUtilities::GenerateBackgroundBorder`.
+  - They now take the new `RenderBox` class as input. The `Element::GetRenderBox` method can be used to construct it.
+- Changed `ComputedValues::border_radius` to return an array instead of `Vector4f`.
+- `Rml::ReleaseMemoryPools` is no longer exposed publicly. This function is automatically called during shutdown and should not be used manually.
+- SDL backends: The SDL platform's `InputEventHandler` function now takes an additional parameter `window`. 
 
 
 ## RmlUi 6.0

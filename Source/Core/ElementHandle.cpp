@@ -300,7 +300,7 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			{
 				HandleEdgeMarginParser parser;
 				if (!parser.Parse(edge_margin_str, edge_margin))
-					Log::Message(Log::LT_WARNING, "Failed to parse 'edge-constraints' attribute for element '%s'.", GetAddress().c_str());
+					Log::Message(Log::LT_WARNING, "Failed to parse 'edge_margin' attribute for element '%s'.", GetAddress().c_str());
 			}
 
 			initialised = true;

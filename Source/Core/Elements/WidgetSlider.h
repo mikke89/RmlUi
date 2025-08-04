@@ -92,6 +92,9 @@ private:
 	/// Lays out and positions the bar element.
 	void FormatBar();
 
+	/// Lays out and positions the progress element.
+	void FormatProgress();
+
 	/// Returns the widget's parent element.
 	Element* GetParent() const;
 
@@ -117,6 +120,7 @@ private:
 	float AbsolutePositionToBarPosition(float absolute_position) const;
 
 	void PositionBar();
+	void ResizeProgress();
 
 	// Clamps the new value, sets it on the slider and returns it as a normalized number from 0 to 1.
 	float SetValueInternal(float new_value, bool force_submit_change_event = true);
@@ -129,6 +133,8 @@ private:
 	Element* track;
 	// The bar element. This is the element that is dragged across the trough.
 	Element* bar;
+	// Element that renders the progress area of the slider.
+	Element* progress;
 	// The two (optional) buttons for incrementing and decrementing the slider.
 	Element* arrows[2];
 

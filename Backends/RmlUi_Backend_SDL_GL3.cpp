@@ -34,15 +34,17 @@
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Profiling.h>
-#include <SDL.h>
-#include <SDL_image.h>
+
+#if SDL_MAJOR_VERSION >= 3
+	#include <SDL3_image/SDL_image.h>
+#else
+	#include <SDL_image.h>
+#endif
 
 #if defined RMLUI_PLATFORM_EMSCRIPTEN
 	#include <emscripten.h>
-#else
-	#if !(SDL_VIDEO_RENDER_OGL)
-		#error "Only the OpenGL SDL backend is supported."
-	#endif
+#elif SDL_MAJOR_VERSION == 2 && !(SDL_VIDEO_RENDER_OGL)
+	#error "Only the OpenGL SDL backend is supported."
 #endif
 
 /**
@@ -73,18 +75,29 @@ public:
 		const size_t i_ext = source.rfind('.');
 		Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
 
-		SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
+#if SDL_MAJOR_VERSION >= 3
+		auto CreateSurface = [&]() { return IMG_LoadTyped_IO(SDL_IOFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str()); };
+		auto GetSurfaceFormat = [](SDL_Surface* surface) { return surface->format; };
+		auto ConvertSurface = [](SDL_Surface* surface, SDL_PixelFormat format) { return SDL_ConvertSurface(surface, format); };
+		auto DestroySurface = [](SDL_Surface* surface) { SDL_DestroySurface(surface); };
+#else
+		auto CreateSurface = [&]() { return IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str()); };
+		auto GetSurfaceFormat = [](SDL_Surface* surface) { return surface->format->format; };
+		auto ConvertSurface = [](SDL_Surface* surface, Uint32 format) { return SDL_ConvertSurfaceFormat(surface, format, 0); };
+		auto DestroySurface = [](SDL_Surface* surface) { SDL_FreeSurface(surface); };
+#endif
+
+		SDL_Surface* surface = CreateSurface();
 		if (!surface)
 			return {};
 
 		texture_dimensions = {surface->w, surface->h};
 
-		if (surface->format->format != SDL_PIXELFORMAT_RGBA32)
+		if (GetSurfaceFormat(surface) != SDL_PIXELFORMAT_RGBA32)
 		{
 			// Ensure correct format for premultiplied alpha conversion and GenerateTexture below.
-			SDL_Surface* converted_surface = SDL_ConvertSurfaceFormat(surface, SDL_PixelFormatEnum::SDL_PIXELFORMAT_RGBA32, 0);
-			SDL_FreeSurface(surface);
-
+			SDL_Surface* converted_surface = ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+			DestroySurface(surface);
 			if (!converted_surface)
 				return {};
 
@@ -103,7 +116,7 @@ public:
 
 		Rml::TextureHandle texture_handle = RenderInterface_GL3::GenerateTexture({pixels, pixels_byte_size}, texture_dimensions);
 
-		SDL_FreeSurface(surface);
+		DestroySurface(surface);
 
 		return texture_handle;
 	}
@@ -129,8 +142,13 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 {
 	RMLUI_ASSERT(!data);
 
+#if SDL_MAJOR_VERSION >= 3
+	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
+		return false;
+#else
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
 		return false;
+#endif
 
 	// Submit click events when focusing the window.
 	SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
@@ -151,9 +169,26 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+#if SDL_MAJOR_VERSION >= 3
+	const float window_size_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+	SDL_PropertiesID props = SDL_CreateProperties();
+	SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, window_name);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, int(width * window_size_scale));
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, int(height * window_size_scale));
+	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
+	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, allow_resize);
+	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, true);
+	SDL_Window* window = SDL_CreateWindowWithProperties(props);
+	SDL_DestroyProperties(props);
+#else
 	const Uint32 window_flags = (SDL_WINDOW_OPENGL | (allow_resize ? SDL_WINDOW_RESIZABLE : 0));
-
 	SDL_Window* window = SDL_CreateWindow(window_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
+	// SDL2 implicitly activates text input on window creation. Turn it off for now, it will be activated again e.g. when focusing a text input field.
+	SDL_StopTextInput();
+#endif
+
 	if (!window)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "SDL error on create window: %s", SDL_GetError());
@@ -192,7 +227,12 @@ void Backend::Shutdown()
 {
 	RMLUI_ASSERT(data);
 
+#if SDL_MAJOR_VERSION >= 3
+	SDL_GL_DestroyContext(data->glcontext);
+#else
 	SDL_GL_DeleteContext(data->glcontext);
+#endif
+
 	SDL_DestroyWindow(data->window);
 
 	data.reset();
@@ -230,61 +270,89 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 
 #endif
 
+#if SDL_MAJOR_VERSION >= 3
+	#define RMLSDL_WINDOW_EVENTS_BEGIN
+	#define RMLSDL_WINDOW_EVENTS_END
+	auto GetKey = [](const SDL_Event& event) { return event.key.key; };
+	auto GetDisplayScale = []() { return SDL_GetWindowDisplayScale(data->window); };
+	constexpr auto event_quit = SDL_EVENT_QUIT;
+	constexpr auto event_key_down = SDL_EVENT_KEY_DOWN;
+	constexpr auto event_window_size_changed = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED;
+	bool has_event = false;
+#else
+	#define RMLSDL_WINDOW_EVENTS_BEGIN \
+	case SDL_WINDOWEVENT:              \
+	{                                  \
+		switch (ev.window.event)       \
+		{
+	#define RMLSDL_WINDOW_EVENTS_END \
+		}                            \
+		}                            \
+		break;
+	auto GetKey = [](const SDL_Event& event) { return event.key.keysym.sym; };
+	auto GetDisplayScale = []() { return 1.f; };
+	constexpr auto event_quit = SDL_QUIT;
+	constexpr auto event_key_down = SDL_KEYDOWN;
+	constexpr auto event_window_size_changed = SDL_WINDOWEVENT_SIZE_CHANGED;
+	int has_event = 0;
+#endif
+
 	bool result = data->running;
 	data->running = true;
 
 	SDL_Event ev;
-	int has_event = 0;
 	if (power_save)
 		has_event = SDL_WaitEventTimeout(&ev, static_cast<int>(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0) * 1000));
 	else
 		has_event = SDL_PollEvent(&ev);
+
 	while (has_event)
 	{
+		bool propagate_event = true;
 		switch (ev.type)
 		{
-		case SDL_QUIT:
+		case event_quit:
 		{
+			propagate_event = false;
 			result = false;
 		}
 		break;
-		case SDL_KEYDOWN:
+		case event_key_down:
 		{
-			const Rml::Input::KeyIdentifier key = RmlSDL::ConvertKey(ev.key.keysym.sym);
+			propagate_event = false;
+			const Rml::Input::KeyIdentifier key = RmlSDL::ConvertKey(GetKey(ev));
 			const int key_modifier = RmlSDL::GetKeyModifierState();
-			const float native_dp_ratio = 1.f;
+			const float native_dp_ratio = GetDisplayScale();
 
 			// See if we have any global shortcuts that take priority over the context.
 			if (key_down_callback && !key_down_callback(context, key, key_modifier, native_dp_ratio, true))
 				break;
 			// Otherwise, hand the event over to the context by calling the input handler as normal.
-			if (!RmlSDL::InputEventHandler(context, ev))
+			if (!RmlSDL::InputEventHandler(context, data->window, ev))
 				break;
 			// The key was not consumed by the context either, try keyboard shortcuts of lower priority.
 			if (key_down_callback && !key_down_callback(context, key, key_modifier, native_dp_ratio, false))
 				break;
 		}
 		break;
-		case SDL_WINDOWEVENT:
+
+			RMLSDL_WINDOW_EVENTS_BEGIN
+
+		case event_window_size_changed:
 		{
-			switch (ev.window.event)
-			{
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-			{
-				Rml::Vector2i dimensions(ev.window.data1, ev.window.data2);
-				data->render_interface.SetViewport(dimensions.x, dimensions.y);
-			}
-			break;
-			}
-			RmlSDL::InputEventHandler(context, ev);
+			Rml::Vector2i dimensions = {ev.window.data1, ev.window.data2};
+			data->render_interface.SetViewport(dimensions.x, dimensions.y);
 		}
 		break;
-		default:
-		{
-			RmlSDL::InputEventHandler(context, ev);
+
+			RMLSDL_WINDOW_EVENTS_END
+
+		default: break;
 		}
-		break;
-		}
+
+		if (propagate_event)
+			RmlSDL::InputEventHandler(context, data->window, ev);
+
 		has_event = SDL_PollEvent(&ev);
 	}
 

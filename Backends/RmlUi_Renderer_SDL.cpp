@@ -30,8 +30,33 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Types.h>
-#include <SDL.h>
-#include <SDL_image.h>
+
+#if SDL_MAJOR_VERSION >= 3
+	#include <SDL3_image/SDL_image.h>
+#else
+	#include <SDL_image.h>
+#endif
+
+#if SDL_MAJOR_VERSION == 2 && !(SDL_VIDEO_RENDER_OGL)
+	#error "Only the OpenGL SDL backend is supported."
+#endif
+
+static void SetRenderClipRect(SDL_Renderer* renderer, const SDL_Rect* rect)
+{
+#if SDL_MAJOR_VERSION >= 3
+	SDL_SetRenderClipRect(renderer, rect);
+#else
+	SDL_RenderSetClipRect(renderer, rect);
+#endif
+}
+static void SetRenderViewport(SDL_Renderer* renderer, const SDL_Rect* rect)
+{
+#if SDL_MAJOR_VERSION >= 3
+	SDL_SetRenderViewport(renderer, rect);
+#else
+	SDL_RenderSetViewport(renderer, rect);
+#endif
+}
 
 RenderInterface_SDL::RenderInterface_SDL(SDL_Renderer* renderer) : renderer(renderer)
 {
@@ -43,7 +68,7 @@ RenderInterface_SDL::RenderInterface_SDL(SDL_Renderer* renderer) : renderer(rend
 
 void RenderInterface_SDL::BeginFrame()
 {
-	SDL_RenderSetViewport(renderer, nullptr);
+	SetRenderViewport(renderer, nullptr);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 	SDL_SetRenderDrawBlendMode(renderer, blend_mode);
@@ -70,28 +95,32 @@ void RenderInterface_SDL::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml
 	const int* indices = geometry->indices.data();
 	const size_t num_indices = geometry->indices.size();
 
-	SDL_FPoint* positions = new SDL_FPoint[num_vertices];
+	Rml::UniquePtr<SDL_Vertex[]> sdl_vertices{new SDL_Vertex[num_vertices]};
 
 	for (size_t i = 0; i < num_vertices; i++)
 	{
-		positions[i].x = vertices[i].position.x + translation.x;
-		positions[i].y = vertices[i].position.y + translation.y;
+		sdl_vertices[i].position = {vertices[i].position.x + translation.x, vertices[i].position.y + translation.y};
+		sdl_vertices[i].tex_coord = {vertices[i].tex_coord.x, vertices[i].tex_coord.y};
+
+		const auto& color = vertices[i].colour;
+#if SDL_MAJOR_VERSION >= 3
+		sdl_vertices[i].color = {color.red / 255.f, color.green / 255.f, color.blue / 255.f, color.alpha / 255.f};
+#else
+		sdl_vertices[i].color = {color.red, color.green, color.blue, color.alpha};
+#endif
 	}
 
 	SDL_Texture* sdl_texture = (SDL_Texture*)texture;
 
-	SDL_RenderGeometryRaw(renderer, sdl_texture, &positions[0].x, sizeof(SDL_FPoint), (const SDL_Color*)&vertices->colour, sizeof(Rml::Vertex),
-		&vertices->tex_coord.x, sizeof(Rml::Vertex), (int)num_vertices, indices, (int)num_indices, 4);
-
-	delete[] positions;
+	SDL_RenderGeometry(renderer, sdl_texture, sdl_vertices.get(), (int)num_vertices, indices, (int)num_indices);
 }
 
 void RenderInterface_SDL::EnableScissorRegion(bool enable)
 {
 	if (enable)
-		SDL_RenderSetClipRect(renderer, &rect_scissor);
+		SetRenderClipRect(renderer, &rect_scissor);
 	else
-		SDL_RenderSetClipRect(renderer, nullptr);
+		SetRenderClipRect(renderer, nullptr);
 
 	scissor_region_enabled = enable;
 }
@@ -104,7 +133,7 @@ void RenderInterface_SDL::SetScissorRegion(Rml::Rectanglei region)
 	rect_scissor.h = region.Height();
 
 	if (scissor_region_enabled)
-		SDL_RenderSetClipRect(renderer, &rect_scissor);
+		SetRenderClipRect(renderer, &rect_scissor);
 }
 
 Rml::TextureHandle RenderInterface_SDL::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
@@ -126,15 +155,28 @@ Rml::TextureHandle RenderInterface_SDL::LoadTexture(Rml::Vector2i& texture_dimen
 	const size_t i_ext = source.rfind('.');
 	Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
 
-	SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
+#if SDL_MAJOR_VERSION >= 3
+	auto CreateSurface = [&]() { return IMG_LoadTyped_IO(SDL_IOFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str()); };
+	auto GetSurfaceFormat = [](SDL_Surface* surface) { return surface->format; };
+	auto ConvertSurface = [](SDL_Surface* surface, SDL_PixelFormat format) { return SDL_ConvertSurface(surface, format); };
+	auto DestroySurface = [](SDL_Surface* surface) { SDL_DestroySurface(surface); };
+#else
+	auto CreateSurface = [&]() { return IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str()); };
+	auto GetSurfaceFormat = [](SDL_Surface* surface) { return surface->format->format; };
+	auto ConvertSurface = [](SDL_Surface* surface, Uint32 format) { return SDL_ConvertSurfaceFormat(surface, format, 0); };
+	auto DestroySurface = [](SDL_Surface* surface) { SDL_FreeSurface(surface); };
+#endif
+
+	SDL_Surface* surface = CreateSurface();
 	if (!surface)
 		return {};
 
-	if (surface->format->format != SDL_PIXELFORMAT_RGBA32 && surface->format->format != SDL_PIXELFORMAT_BGRA32)
-	{
-		SDL_Surface* converted_surface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
-		SDL_FreeSurface(surface);
+	texture_dimensions = {surface->w, surface->h};
 
+	if (GetSurfaceFormat(surface) != SDL_PIXELFORMAT_RGBA32 && GetSurfaceFormat(surface) != SDL_PIXELFORMAT_BGRA32)
+	{
+		SDL_Surface* converted_surface = ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+		DestroySurface(surface);
 		if (!converted_surface)
 			return {};
 
@@ -142,18 +184,18 @@ Rml::TextureHandle RenderInterface_SDL::LoadTexture(Rml::Vector2i& texture_dimen
 	}
 
 	// Convert colors to premultiplied alpha, which is necessary for correct alpha compositing.
+	const size_t pixels_byte_size = surface->w * surface->h * 4;
 	byte* pixels = static_cast<byte*>(surface->pixels);
-	for (int i = 0; i < surface->w * surface->h * 4; i += 4)
+	for (size_t i = 0; i < pixels_byte_size; i += 4)
 	{
 		const byte alpha = pixels[i + 3];
-		for (int j = 0; j < 3; ++j)
+		for (size_t j = 0; j < 3; ++j)
 			pixels[i + j] = byte(int(pixels[i + j]) * int(alpha) / 255);
 	}
 
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-
 	texture_dimensions = Rml::Vector2i(surface->w, surface->h);
-	SDL_FreeSurface(surface);
+	DestroySurface(surface);
 
 	if (texture)
 		SDL_SetTextureBlendMode(texture, blend_mode);
@@ -163,13 +205,27 @@ Rml::TextureHandle RenderInterface_SDL::LoadTexture(Rml::Vector2i& texture_dimen
 
 Rml::TextureHandle RenderInterface_SDL::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions)
 {
-	SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom((void*)source.data(), source_dimensions.x, source_dimensions.y, 32,
-		source_dimensions.x * 4, SDL_PIXELFORMAT_RGBA32);
+	RMLUI_ASSERT(source.data() && source.size() == size_t(source_dimensions.x * source_dimensions.y * 4));
+
+#if SDL_MAJOR_VERSION >= 3
+	auto CreateSurface = [&]() {
+		return SDL_CreateSurfaceFrom(source_dimensions.x, source_dimensions.y, SDL_PIXELFORMAT_RGBA32, (void*)source.data(), source_dimensions.x * 4);
+	};
+	auto DestroySurface = [](SDL_Surface* surface) { SDL_DestroySurface(surface); };
+#else
+	auto CreateSurface = [&]() {
+		return SDL_CreateRGBSurfaceWithFormatFrom((void*)source.data(), source_dimensions.x, source_dimensions.y, 32, source_dimensions.x * 4,
+			SDL_PIXELFORMAT_RGBA32);
+	};
+	auto DestroySurface = [](SDL_Surface* surface) { SDL_FreeSurface(surface); };
+#endif
+
+	SDL_Surface* surface = CreateSurface();
 
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_SetTextureBlendMode(texture, blend_mode);
 
-	SDL_FreeSurface(surface);
+	DestroySurface(surface);
 	return (Rml::TextureHandle)texture;
 }
 
