@@ -13,7 +13,7 @@ if(RMLUI_BACKEND MATCHES "^SDL")
 	mark_as_advanced(RMLUI_SDL_VERSION_MAJOR)
 
 	# List of SDL backends that require SDL_image to work with samples
-	set(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer")
+	set(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer" "SDL_GPU")
 
 	# Determine if the selected SDL backend requires SDL_image
 	if(RMLUI_BACKEND IN_LIST RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
@@ -86,6 +86,10 @@ if(RMLUI_BACKEND MATCHES "^SDL" AND NOT TARGET SDL::SDL AND (RMLUI_SDL_VERSION_M
 	# Check version requirement for the SDL renderer
 	if(RMLUI_BACKEND STREQUAL "SDL_SDLrenderer" AND SDL2_VERSION VERSION_LESS "2.0.20")
 		message(FATAL_ERROR "SDL native renderer backend (${RMLUI_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
+	endif()
+
+	if(RMLUI_BACKEND STREQUAL "SDL_GPU")
+		message(FATAL_ERROR "SDL GPU backend (${RMLUI_BACKEND}) requires SDL3 (found ${SDL2_VERSION}).")
 	endif()
 
 	if(RMLUI_SDLIMAGE_REQUIRED)

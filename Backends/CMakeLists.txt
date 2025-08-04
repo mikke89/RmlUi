@@ -131,6 +131,16 @@ target_sources(rmlui_backend_SDL_SDLrenderer INTERFACE
 )
 target_link_libraries(rmlui_backend_SDL_SDLrenderer INTERFACE rmlui_backend_common_headers SDL::SDL SDL_image::SDL_image)
 
+add_library(rmlui_backend_SDL_GPU INTERFACE)
+target_sources(rmlui_backend_SDL_GPU INTERFACE
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_SDL_GPU.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_SDL_GPU.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_SDL_GPU.h"
+)
+target_link_libraries(rmlui_backend_SDL_GPU INTERFACE rmlui_backend_common_headers SDL::SDL SDL_image::SDL_image)
+
 add_library(rmlui_backend_SFML_GL2 INTERFACE)
 target_sources(rmlui_backend_SFML_GL2 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SFML.cpp"

@@ -61,28 +61,30 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 		dimensions = rect.Size();
 	}
 
-	// Calculate the source ratio
-	_ratio = dimensions.x / dimensions.y;
+	if (dimensions.y > 0)
+	{
+		_ratio = dimensions.x / dimensions.y;
 
-	// Scale based on attributes (this only appears to be done by LayoutDetails for CSS set height/width)
-	auto requested_width = GetAttribute<float>("width", -1);
-	auto requested_height = GetAttribute<float>("height", -1);
-	if (requested_height > 0 && requested_width > 0)
-	{
-		// If both a height and width are set update the ratio to match
-		_ratio = requested_width / requested_height;
-		dimensions.x = requested_width;
-		dimensions.y = requested_height;
-	}
-	else if (requested_height > 0)
-	{
-		dimensions.x = requested_height * _ratio;
-		dimensions.y = requested_height;
-	}
-	else if (requested_width > 0)
-	{
-		dimensions.x = requested_width;
-		dimensions.y = requested_width / _ratio;
+		// Scale intrinsic size based on attributes. CSS properties can in turn override these attributes, see LayoutDetails.
+		auto requested_width = GetAttribute<float>("width", -1);
+		auto requested_height = GetAttribute<float>("height", -1);
+		if (requested_height > 0 && requested_width > 0)
+		{
+			// If both a height and width are set update the ratio to match
+			_ratio = requested_width / requested_height;
+			dimensions.x = requested_width;
+			dimensions.y = requested_height;
+		}
+		else if (requested_height > 0)
+		{
+			dimensions.x = requested_height * _ratio;
+			dimensions.y = requested_height;
+		}
+		else if (requested_width > 0)
+		{
+			dimensions.x = requested_width;
+			dimensions.y = requested_width / _ratio;
+		}
 	}
 
 	dimensions *= dimensions_scale;
