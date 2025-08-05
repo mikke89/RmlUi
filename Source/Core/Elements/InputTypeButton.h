@@ -30,8 +30,8 @@
 #define RMLUI_CORE_ELEMENTS_INPUTTYPEBUTTON_H
 
 #include "../../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../../Include/RmlUi/Core/ElementText.h"
 #include "../../../Include/RmlUi/Core/EventListener.h"
-#include "../Include/RmlUi/Core/ElementText.h"
 #include "InputType.h"
 
 namespace Rml {

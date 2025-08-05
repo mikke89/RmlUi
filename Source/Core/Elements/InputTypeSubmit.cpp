@@ -29,7 +29,7 @@
 #include "InputTypeSubmit.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementForm.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControlInput.h"
-#include "../Include/RmlUi/Core/Factory.h"
+#include "../../../Include/RmlUi/Core/Factory.h"
 
 namespace Rml {
 
