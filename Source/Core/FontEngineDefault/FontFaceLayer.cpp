@@ -43,20 +43,18 @@ FontFaceLayer::FontFaceLayer(const SharedPtr<const FontEffect>& _effect) : colou
 
 FontFaceLayer::~FontFaceLayer() {}
 
-bool FontFaceLayer::Generate(
-	const FontFaceHandleDefault* handle, const Vector<const FontGlyphMap::value_type*> &new_glyphs,
-	const FontFaceLayer* clone, bool clone_glyph_origins
-)
+bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const Vector<const FontGlyphMap::value_type*>& new_glyphs,
+	const FontFaceLayer* clone, bool clone_glyph_origins)
 {
 	// Clear the old layout if it exists.
 	{
 		// @performance: We could be much smarter about this, e.g. such as adding new glyphs to the existing texture layout and textures.
 		// Right now we re-generate the whole thing, including textures.
-		//texture_layout = TextureLayout{};
-		//character_boxes.clear();
+		// texture_layout = TextureLayout{};
+		// character_boxes.clear();
 		textures_owned.clear();
 		textures_ptr = &textures_owned;
-		//sprite_set = {4, 1024, 0};
+		// sprite_set = {4, 1024, 0};
 	}
 
 	// Generate the new layout.
@@ -154,7 +152,6 @@ bool FontFaceLayer::Generate(
 			// Set the character's texture index.
 			box.texture_index = sprite_data.texture_id;
 			// Generate the character's texture coordinates.
-			const float texture_size = 1024.f;
 			box.texcoords[0].x = static_cast<float>(sprite_data.x) / texture_size;
 			box.texcoords[0].y = static_cast<float>(sprite_data.y) / texture_size;
 			box.texcoords[1].x = static_cast<float>(sprite_data.x + sprite_data.width) / texture_size;
@@ -169,26 +166,26 @@ bool FontFaceLayer::Generate(
 		// Generate the texture layout; this will position the glyph rectangles efficiently and
 		// allocate the texture data ready for writing.
 		if (!texture_layout.GenerateLayout(max_texture_dimensions))
-			return false;
+		    return false;
 
 		// Iterate over each rectangle in the layout, copying the glyph data into the rectangle as
 		// appropriate and generating geometry.
 		for (int i = 0; i < texture_layout.GetNumRectangles(); ++i)
 		{
-			TextureLayoutRectangle& rectangle = texture_layout.GetRectangle(i);
-			const TextureLayoutTexture& texture = texture_layout.GetTexture(rectangle.GetTextureIndex());
-			Character character = (Character)rectangle.GetId();
-			RMLUI_ASSERT(character_boxes.find(character) != character_boxes.end());
-			TextureBox& box = character_boxes[character];
+		    TextureLayoutRectangle& rectangle = texture_layout.GetRectangle(i);
+		    const TextureLayoutTexture& texture = texture_layout.GetTexture(rectangle.GetTextureIndex());
+		    Character character = (Character)rectangle.GetId();
+		    RMLUI_ASSERT(character_boxes.find(character) != character_boxes.end());
+		    TextureBox& box = character_boxes[character];
 
-			// Set the character's texture index.
-			box.texture_index = rectangle.GetTextureIndex();
+		    // Set the character's texture index.
+		    box.texture_index = rectangle.GetTextureIndex();
 
-			// Generate the character's texture coordinates.
-			box.texcoords[0].x = float(rectangle.GetPosition().x) / float(texture.GetDimensions().x);
-			box.texcoords[0].y = float(rectangle.GetPosition().y) / float(texture.GetDimensions().y);
-			box.texcoords[1].x = float(rectangle.GetPosition().x + rectangle.GetDimensions().x) / float(texture.GetDimensions().x);
-			box.texcoords[1].y = float(rectangle.GetPosition().y + rectangle.GetDimensions().y) / float(texture.GetDimensions().y);
+		    // Generate the character's texture coordinates.
+		    box.texcoords[0].x = float(rectangle.GetPosition().x) / float(texture.GetDimensions().x);
+		    box.texcoords[0].y = float(rectangle.GetPosition().y) / float(texture.GetDimensions().y);
+		    box.texcoords[1].x = float(rectangle.GetPosition().x + rectangle.GetDimensions().x) / float(texture.GetDimensions().x);
+		    box.texcoords[1].y = float(rectangle.GetPosition().y + rectangle.GetDimensions().y) / float(texture.GetDimensions().y);
 		}
 		*/
 
@@ -226,9 +223,9 @@ bool FontFaceLayer::GenerateTexture(Span<const byte>& texture_data, Vector2i& te
 	if (texture_id < 0 || texture_id > static_cast<int>(sprite_set_textures.size()))
 		return false;
 
-	const unsigned char *const source = sprite_set_textures[texture_id];
-	texture_data = {source, 1024 * 1024 * 4};
-	texture_dimensions = {1024, 1024};
+	const unsigned char* const source = sprite_set_textures[texture_id];
+	texture_data = {source, texture_size * texture_size * 4};
+	texture_dimensions = {texture_size, texture_size};
 
 	/*
 	// Generate the texture data.
@@ -237,65 +234,65 @@ bool FontFaceLayer::GenerateTexture(Span<const byte>& texture_data, Vector2i& te
 
 	for (int i = 0; i < texture_layout.GetNumRectangles(); ++i)
 	{
-		TextureLayoutRectangle& rectangle = texture_layout.GetRectangle(i);
-		Character character = (Character)rectangle.GetId();
-		RMLUI_ASSERT(character_boxes.find(character) != character_boxes.end());
+	    TextureLayoutRectangle& rectangle = texture_layout.GetRectangle(i);
+	    Character character = (Character)rectangle.GetId();
+	    RMLUI_ASSERT(character_boxes.find(character) != character_boxes.end());
 
-		TextureBox& box = character_boxes[character];
+	    TextureBox& box = character_boxes[character];
 
-		if (box.texture_index != texture_id)
-			continue;
+	    if (box.texture_index != texture_id)
+	        continue;
 
-		auto it = glyphs.find((Character)rectangle.GetId());
-		if (it == glyphs.end())
-			continue;
+	    auto it = glyphs.find((Character)rectangle.GetId());
+	    if (it == glyphs.end())
+	        continue;
 
-		const FontGlyph& glyph = it->second;
+	    const FontGlyph& glyph = it->second;
 
-		if (effect == nullptr)
-		{
-			// Copy the glyph's bitmap data into its allocated texture.
-			if (glyph.bitmap_data)
-			{
-				byte* destination = rectangle.GetTextureData();
-				const byte* source = glyph.bitmap_data;
-				const int num_bytes_per_line = glyph.bitmap_dimensions.x * (glyph.color_format == ColorFormat::RGBA8 ? 4 : 1);
+	    if (effect == nullptr)
+	    {
+	        // Copy the glyph's bitmap data into its allocated texture.
+	        if (glyph.bitmap_data)
+	        {
+	            byte* destination = rectangle.GetTextureData();
+	            const byte* source = glyph.bitmap_data;
+	            const int num_bytes_per_line = glyph.bitmap_dimensions.x * (glyph.color_format == ColorFormat::RGBA8 ? 4 : 1);
 
-				for (int j = 0; j < glyph.bitmap_dimensions.y; ++j)
-				{
-					switch (glyph.color_format)
-					{
-					case ColorFormat::A8:
-					{
-						// We use premultiplied alpha, so copy the alpha into all four channels.
-						for (int k = 0; k < num_bytes_per_line; ++k)
-							for (int c = 0; c < 4; ++c)
-								destination[k * 4 + c] = source[k];
-					}
-					break;
-					case ColorFormat::RGBA8:
-					{
-						memcpy(destination, source, num_bytes_per_line);
-					}
-					break;
-					}
+	            for (int j = 0; j < glyph.bitmap_dimensions.y; ++j)
+	            {
+	                switch (glyph.color_format)
+	                {
+	                case ColorFormat::A8:
+	                {
+	                    // We use premultiplied alpha, so copy the alpha into all four channels.
+	                    for (int k = 0; k < num_bytes_per_line; ++k)
+	                        for (int c = 0; c < 4; ++c)
+	                            destination[k * 4 + c] = source[k];
+	                }
+	                break;
+	                case ColorFormat::RGBA8:
+	                {
+	                    memcpy(destination, source, num_bytes_per_line);
+	                }
+	                break;
+	                }
 
-					destination += rectangle.GetTextureStride();
-					source += num_bytes_per_line;
-				}
-			}
-		}
-		else
-		{
-			effect->GenerateGlyphTexture(rectangle.GetTextureData(), Vector2i(box.dimensions), rectangle.GetTextureStride(), glyph);
-		}
+	                destination += rectangle.GetTextureStride();
+	                source += num_bytes_per_line;
+	            }
+	        }
+	    }
+	    else
+	    {
+	        effect->GenerateGlyphTexture(rectangle.GetTextureData(), Vector2i(box.dimensions), rectangle.GetTextureStride(), glyph);
+	    }
 	}
 	*/
 
 	return true;
 }
 
-void FontFaceLayer::RemoveGlyphs(const Vector<Character> &characters)
+void FontFaceLayer::RemoveGlyphs(const Vector<Character>& characters)
 {
 	for (const auto character : characters)
 	{
