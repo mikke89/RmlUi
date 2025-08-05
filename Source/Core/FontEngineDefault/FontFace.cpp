@@ -85,6 +85,12 @@ FontFaceHandleDefault* FontFace::GetHandle(int size, bool load_default_glyphs)
 	return result;
 }
 
+void FontFace::OnBeginFrame()
+{
+	for (auto iterator = handles.begin(); iterator != handles.end(); ++iterator)
+		iterator->second->PurgeUnusedGlyphs();
+}
+
 void FontFace::ReleaseFontResources()
 {
 	HandleMap().swap(handles);
