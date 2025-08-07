@@ -198,7 +198,7 @@ void ElementLog::OnUpdate()
 {
 	ElementDocument::OnUpdate();
 
-	if (dirty_logs)
+	if (dirty_logs && IsVisible())
 	{
 		// Set the log content:
 		String messages;
@@ -211,7 +211,7 @@ void ElementLog::OnUpdate()
 			int num_messages = 0;
 			while (next_type != -1 && num_messages < MAX_LOG_MESSAGES)
 			{
-				messages += CreateString("<div class=\"log-entry\"><div class=\"icon %s\">%s</div><p class=\"message\">",
+				messages += CreateString(R"(<div class="log-entry"><div class="icon %s">%s</div><p class="message">)",
 					log_types[next_type].class_name.c_str(), log_types[next_type].alert_contents.c_str());
 				messages += log_types[next_type].log_messages[log_pointers[next_type]].message;
 				messages += "</p></div>";
