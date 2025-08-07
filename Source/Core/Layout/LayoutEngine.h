@@ -44,11 +44,10 @@ namespace Rml {
 class LayoutEngine {
 public:
 	/// Formats the contents for a root-level element, usually a document, or a replaced element with custom formatting.
-	/// @param[in] element The element to lay out.
+	/// @param[in] layout_root The element to lay out.
 	/// @param[in] containing_block The size of the containing block.
-	/// @param[in] absolutely_positioning_containing_block The size of the absolutely positioning containing block.
 	/// @param[in] allow_cache True to allow skipping layout of elements that match the current layout.
-	static void FormatElement(Element* element, Vector2f containing_block, Vector2f absolutely_positioning_containing_block, bool allow_cache = true);
+	static void FormatElement(Element* layout_root, Vector2f containing_block, bool allow_cache);
 };
 
 } // namespace Rml

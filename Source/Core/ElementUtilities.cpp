@@ -304,7 +304,7 @@ bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* elemen
 
 void ElementUtilities::FormatElement(Element* element, Vector2f containing_block)
 {
-	LayoutEngine::FormatElement(element, containing_block, containing_block);
+	LayoutEngine::FormatElement(element, containing_block, false);
 }
 
 void ElementUtilities::BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element)
