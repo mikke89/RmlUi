@@ -85,19 +85,6 @@ static void LogLayoutTree(const Vector<ElementLayoutInfo>& layout_info_list)
 	Rml::Log::Message(Rml::Log::LT_DEBUG, "%s", message.c_str());
 }
 
-static void LogDirtyLayoutTree(Element* root_element)
-{
-	String tree_dirty_state;
-	ElementUtilities::VisitElementsDepthOrder(root_element, [&](Element* element, int tree_depth) {
-		tree_dirty_state += String(size_t(4 * tree_depth), ' ');
-		tree_dirty_state += CreateString("%s.  Self: %d  Child: %d", element->GetAddress(false, tree_depth == 0).c_str(),
-			element->GetLayoutNode()->IsSelfDirty(), element->GetLayoutNode()->IsChildDirty());
-		tree_dirty_state += '\n';
-	});
-
-	Log::Message(Log::LT_INFO, "Dirty layout tree:\n%s\n", tree_dirty_state.c_str());
-}
-
 static const String document_isolation_rml = R"(
 <rml>
 <head>
@@ -384,9 +371,9 @@ TEST_CASE("LayoutIsolation.Absolute")
 
 		container->SetProperty("width", "300px");
 
-		LogDirtyLayoutTree(document);
+		DebugLogDirtyLayoutTree(document);
 		document->UpdatePropertiesForDebug();
-		LogDirtyLayoutTree(document);
+		DebugLogDirtyLayoutTree(document);
 
 		TestsShell::RenderLoop();
 

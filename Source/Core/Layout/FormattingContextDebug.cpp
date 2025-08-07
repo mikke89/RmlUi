@@ -28,7 +28,9 @@
 
 #include "FormattingContextDebug.h"
 #include "../../../Include/RmlUi/Core/Element.h"
+#include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
+#include "LayoutNode.h"
 
 namespace Rml {
 #ifdef RMLUI_DEBUG
@@ -193,6 +195,19 @@ int FormattingContextDebugTracker::CountFormattedEntries() const
 int FormattingContextDebugTracker::CountEntries() const
 {
 	return (int)entries.size();
+}
+
+void DebugLogDirtyLayoutTree(Element* root_element)
+{
+	String tree_dirty_state;
+	ElementUtilities::VisitElementsDepthOrder(root_element, [&](Element* element, int tree_depth) {
+		tree_dirty_state += String(size_t(4 * tree_depth), ' ');
+		tree_dirty_state += CreateString("%s.  Self: %d  Child: %d", element->GetAddress(false, tree_depth == 0).c_str(),
+			element->GetLayoutNode()->IsSelfDirty(), element->GetLayoutNode()->IsChildDirty());
+		tree_dirty_state += '\n';
+	});
+
+	Log::Message(Log::LT_INFO, "Dirty layout tree:\n%s\n", tree_dirty_state.c_str());
 }
 
 #endif // RMLUI_DEBUG

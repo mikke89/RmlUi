@@ -216,7 +216,7 @@ float FormattingContext::FormatFitContentHeight(ContainerBox* parent_container, 
 	const FormattingMode& parent_formatting_mode = parent_container->GetFormattingMode();
 
 	float max_content_height = box.GetSize().y;
-	if (Optional<float> cached_height = (parent_formatting_mode.allow_max_content_cache ? layout_node->GetMaxContentHeightIfCached() : std::nullopt))
+	if (Optional<float> cached_height = (parent_formatting_mode.allow_max_content_cache ? layout_node->GetCommittedMaxContentHeight() : std::nullopt))
 	{
 		max_content_height = *cached_height;
 	}
@@ -262,7 +262,7 @@ void FormattingContext::FormatFitContentWidth(Box& box, Element* element, Format
 	float max_content_width = -1.f;
 	ScopedFormatFitContentWidthDebugTracker debug_tracker{element, type, box};
 
-	if (Optional<float> cached_width = (parent_formatting_mode.allow_max_content_cache ? layout_node->GetMaxContentWidthIfCached() : std::nullopt))
+	if (Optional<float> cached_width = (parent_formatting_mode.allow_max_content_cache ? layout_node->GetCommittedMaxContentWidth() : std::nullopt))
 	{
 		max_content_width = *cached_width;
 		debug_tracker.SetCacheHit();

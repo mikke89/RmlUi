@@ -133,6 +133,8 @@ private:
 	FormattingContextDebugTracker::Entry* tracker_entry = nullptr;
 };
 
+void DebugLogDirtyLayoutTree(Element* root_element);
+
 #else
 
 class ScopedFormatIndependentDebugTracker {
@@ -149,6 +151,8 @@ public:
 	void SetCacheHit() {}
 	void CloseEntry(float /*max_content_width*/) {}
 };
+
+inline void DebugLogDirtyLayoutTree(Element* /*root_element*/) {}
 
 #endif // RMLUI_DEBUG
 

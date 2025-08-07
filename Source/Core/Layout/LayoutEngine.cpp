@@ -33,6 +33,7 @@
 #include "../../../Include/RmlUi/Core/Profiling.h"
 #include "ContainerBox.h"
 #include "FormattingContext.h"
+#include "FormattingContextDebug.h"
 #include "LayoutDetails.h"
 #include "LayoutNode.h"
 
@@ -41,12 +42,10 @@ namespace Rml {
 static void FormatElementImpl(Element* element, Vector2f containing_block, Vector2f absolutely_positioning_containing_block,
 	const FormattingMode& formatting_mode)
 {
-	RMLUI_ZoneScoped;
-
 	RootBox absolute_root(Box(absolutely_positioning_containing_block), formatting_mode);
 	RootBox root(Box(containing_block), &absolute_root);
 
-	auto layout_box = FormattingContext::FormatIndependent(&root, element, nullptr, FormattingContextType::Block);
+	UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(&root, element, nullptr, FormattingContextType::Block);
 	if (!layout_box)
 	{
 		Log::Message(Log::LT_ERROR, "Error while formatting element: %s", element->GetAddress().c_str());
@@ -62,13 +61,17 @@ static void FormatElementImpl(Element* element, Vector2f containing_block, Vecto
 
 void LayoutEngine::FormatElement(Element* layout_root, Vector2f containing_block, bool allow_cache)
 {
+	RMLUI_ZoneScoped;
 	RMLUI_ASSERT(layout_root && containing_block.x >= 0 && containing_block.y >= 0);
 
 	const FormattingMode formatting_mode{FormattingMode::Constraint::None, allow_cache, allow_cache};
 
 	constexpr bool debug_logging = false;
 	if (debug_logging)
+	{
 		Log::Message(Log::LT_INFO, "UpdateLayout start: %s", layout_root->GetAddress().c_str());
+		DebugLogDirtyLayoutTree(layout_root);
+	}
 
 	struct ElementToFormat {
 		Element* element;
@@ -80,6 +83,7 @@ void LayoutEngine::FormatElement(Element* layout_root, Vector2f containing_block
 	bool force_full_document_layout = !allow_cache;
 	if (!force_full_document_layout)
 	{
+		RMLUI_ZoneScopedNC("Search dirty elements", 0x66AACC);
 		ElementUtilities::BreadthFirstSearch(layout_root, [&](Element* candidate) {
 			if (candidate->GetDisplay() == Style::Display::None)
 				return ElementUtilities::CallbackControlFlow::SkipChildren;

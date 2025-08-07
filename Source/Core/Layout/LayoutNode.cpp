@@ -59,25 +59,19 @@ void LayoutNode::PropagateDirtyToParent()
 
 	if (IsSelfDirty())
 	{
-		// We may be able to skip formatting in ancestor elements if this is a layout boundary, in some scenarios. Consider
-		// some scenarios for illustration:
+		// @performance We may be able to skip formatting in ancestor elements if this is a layout boundary, in some
+		// scenarios. Consider the following for illustration:
 		//
-		// 1. Absolute element. `display: block` to `display: none`. This does not need a new layout. Same with margin and
-		//    size, only the current element need to be reformatted, not ancestors.
-		// 2. Absolute element. `display: none` to `display: block`. This *does* need to be layed out, since we don't know
+		// 1. Absolute element. `display: block` to `display: none`. This does not need parents to be layed out.
+		// 2. Absolute element. `width` or `margin`. Same, this does not need parents to be layed out. Only the current
+		//    element needs to be reformatted, not ancestors.
+		// 3. Absolute element. `display: none` to `display: block`. This *does* need parents to be layed out, since we don't know
 		//    our static position or containing block. We could in principle ignore static position in some situations where
-		//    it is not used, and could in principle find our containing block. But it is tricky.
-		// 3. Flex container contents changed. If (and only if) it results in a new layed out size, its parent needs to be
+		//    it is not used, and could in principle find our containing block.
+		// 4. Flex container contents changed. If (and only if) it results in a new layed out size, its parent needs to be
 		//    reformatted again. If so, it should be able to reuse the flex container's layout cache.
 		//
-		// Currently, we don't have all of this information here. So skip this for now.
-		// - TODO: This information could be provided as part of DirtyLayout.
-		// - TODO: Consider if some of this logic should be moved to the layout engine.
-		//
-		// ```
-		//     if (IsLayoutBoundary()) return;
-		// ```
-
+		// We don't attempt to optimize these situations for now, simply continue with dirtying the parent node.
 		DirtyParentNode(element);
 		return;
 	}
@@ -97,7 +91,7 @@ void LayoutNode::CommitLayout(Vector2f containing_block_size, Vector2f absolutel
 	// even if there is nothing to format (for example due to `display: none`), or if the element itself can be cached
 	// despite ancestor changes. This way we can resume the layout here, without formatting its ancestors, if it is
 	// dirtied in a non-parent-mutable way.
-	// - E.g. consider scenario 2 above with Absolute element `display: none` to `display: block`.
+	// - E.g. consider scenario 3 above with Absolute element `display: none` to `display: block`.
 	//
 	// Conversely, the output of the layout passed in here can later be used by when formatting ancestors, when the
 	// current element does not need a new layout by itself.
