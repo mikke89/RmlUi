@@ -28,6 +28,7 @@
 
 #include "ElementLog.h"
 #include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "BeaconSource.h"
 #include "CommonSource.h"
@@ -37,17 +38,10 @@
 namespace Rml {
 namespace Debugger {
 
-const int MAX_LOG_MESSAGES = 50;
+constexpr int MAX_LOG_MESSAGES = 50;
 
 ElementLog::ElementLog(const String& tag) : ElementDebugDocument(tag)
 {
-	dirty_logs = false;
-	beacon = nullptr;
-	current_beacon_level = Log::LT_MAX;
-	auto_scroll = true;
-	message_content = nullptr;
-	current_index = 0;
-
 	// Set up the log type buttons.
 	log_types[Log::LT_ALWAYS].visible = true;
 	log_types[Log::LT_ALWAYS].class_name = "error";
@@ -142,37 +136,43 @@ bool ElementLog::Initialise()
 
 void ElementLog::AddLogMessage(Log::Type type, const String& message)
 {
-	LogMessageList& log_message_list = log_types[type].log_messages;
-	if (log_message_list.size() >= MAX_LOG_MESSAGES)
+	if (log_messages.size() >= MAX_LOG_MESSAGES)
 	{
-		log_message_list.erase(log_message_list.begin());
+		log_messages.pop_front();
 	}
 
-	// Add the message to the list of messages for the specified log type.
-	LogMessage log_message;
-	log_message.index = current_index++;
-	log_message.message = StringUtilities::EncodeRml(message);
-	log_message_list.push_back(log_message);
+	log_messages.push_back(LogMessage{type, StringUtilities::EncodeRml(message)});
+	num_new_messages += 1;
 
-	// If this log type is invisible, and there is a button for this log type, then change its text from
-	// "Off" to "Off*" to signal that there are unread logs.
-	if (!log_types[type].visible)
+	// Force a refresh of the RML.
+	dirty_logs = true;
+}
+
+void ElementLog::OnUpdate()
+{
+	ElementDocument::OnUpdate();
+
+	if (beacon && num_new_messages > 0)
 	{
-		if (!log_types[type].button_name.empty())
+		for (int i = Math::Max(0, (int)log_messages.size() - num_new_messages); i < (int)log_messages.size(); i++)
 		{
-			Element* button = GetElementById(log_types[type].button_name);
-			if (button)
+			const LogMessage& log_message = log_messages[i];
+			const Log::Type type = log_message.type;
+
+			// If this log type is invisible, and there is a button for this log type, then change its text from
+			// "Off" to "Off*" to signal that there are unread logs.
+			if (!log_types[type].visible)
 			{
-				button->SetInnerRML("Off*");
+				if (!log_types[type].button_name.empty())
+				{
+					if (Element* button = GetElementById(log_types[type].button_name))
+					{
+						rmlui_static_cast<ElementText*>(button->GetFirstChild())->SetText("Off*");
+					}
+				}
 			}
-		}
-	}
-	// Trigger the beacon if we're hidden. Override any lower-level log type if it is already visible.
-	else
-	{
-		if (beacon != nullptr)
-		{
-			if (type < current_beacon_level)
+			// Trigger the beacon if we're hidden. Override any lower-level log type if it is already visible.
+			else if (!IsVisible() && type < current_beacon_level)
 			{
 				beacon->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 
@@ -183,42 +183,26 @@ void ElementLog::AddLogMessage(Log::Type type, const String& message)
 					beacon_button->SetClassNames(log_types[type].class_name);
 					beacon_button->SetInnerRML(log_types[type].alert_contents);
 				}
-
-				// We need to update the document manually in case the beacon appears during context update.
-				beacon->UpdateDocument();
 			}
 		}
+		num_new_messages = 0;
 	}
-
-	// Force a refresh of the RML.
-	dirty_logs = true;
-}
-
-void ElementLog::OnUpdate()
-{
-	ElementDocument::OnUpdate();
 
 	if (dirty_logs && IsVisible())
 	{
-		// Set the log content:
 		String messages;
 		if (message_content)
 		{
-			unsigned int log_pointers[Log::LT_MAX];
-			for (int i = 0; i < Log::LT_MAX; i++)
-				log_pointers[i] = 0;
-			int next_type = FindNextEarliestLogType(log_pointers);
-			int num_messages = 0;
-			while (next_type != -1 && num_messages < MAX_LOG_MESSAGES)
+			for (const LogMessage& log_message : log_messages)
 			{
-				messages += CreateString(R"(<div class="log-entry"><div class="icon %s">%s</div><p class="message">)",
-					log_types[next_type].class_name.c_str(), log_types[next_type].alert_contents.c_str());
-				messages += log_types[next_type].log_messages[log_pointers[next_type]].message;
-				messages += "</p></div>";
+				const int type = log_message.type;
+				if (!log_types[type].visible)
+					continue;
 
-				log_pointers[next_type]++;
-				next_type = FindNextEarliestLogType(log_pointers);
-				num_messages++;
+				messages += CreateString(R"(<div class="log-entry"><div class="icon %s">%s</div><p class="message">)",
+					log_types[type].class_name.c_str(), log_types[type].alert_contents.c_str());
+				messages += log_message.message;
+				messages += "</p></div>";
 			}
 
 			if (message_content->HasChildNodes())
@@ -227,7 +211,9 @@ void ElementLog::OnUpdate()
 				auto_scroll = message_content->GetAbsoluteTop() + message_content->GetAbsoluteTop() > last_element_top;
 			}
 			else
+			{
 				auto_scroll = true;
+			}
 
 			message_content->SetInnerRML(messages);
 
@@ -238,8 +224,7 @@ void ElementLog::OnUpdate()
 
 void ElementLog::ProcessEvent(Event& event)
 {
-	// Only process events if we're visible
-	if (beacon != nullptr)
+	if (beacon)
 	{
 		if (event == EventId::Click)
 		{
@@ -259,13 +244,15 @@ void ElementLog::ProcessEvent(Event& event)
 			{
 				for (int i = 0; i < Log::LT_MAX; i++)
 				{
-					log_types[i].log_messages.clear();
-					if (!log_types[i].visible)
+					if (!log_types[i].visible && !log_types[i].button_name.empty())
 					{
 						if (Element* button = GetElementById(log_types[i].button_name))
-							button->SetInnerRML("Off");
+						{
+							rmlui_static_cast<ElementText*>(button->GetFirstChild())->SetText("Off");
+						}
 					}
 				}
+				log_messages.clear();
 				dirty_logs = true;
 			}
 			else
@@ -275,10 +262,7 @@ void ElementLog::ProcessEvent(Event& event)
 					if (!log_types[i].button_name.empty() && event.GetTargetElement()->GetId() == log_types[i].button_name)
 					{
 						log_types[i].visible = !log_types[i].visible;
-						if (log_types[i].visible)
-							event.GetTargetElement()->SetInnerRML("On");
-						else
-							event.GetTargetElement()->SetInnerRML("Off");
+						rmlui_static_cast<ElementText*>(event.GetTargetElement()->GetFirstChild())->SetText(log_types[i].visible ? "On" : "Off");
 						dirty_logs = true;
 					}
 				}
@@ -291,29 +275,6 @@ void ElementLog::ProcessEvent(Event& event)
 		if (message_content != nullptr && message_content->HasChildNodes())
 			message_content->GetLastChild()->ScrollIntoView();
 	}
-}
-
-int ElementLog::FindNextEarliestLogType(unsigned int log_pointers[Log::LT_MAX])
-{
-	int log_channel = -1;
-	unsigned int index = UINT_MAX;
-
-	for (int i = 0; i < Log::LT_MAX; i++)
-	{
-		if (log_types[i].visible)
-		{
-			if (log_pointers[i] < log_types[i].log_messages.size())
-			{
-				if (log_types[i].log_messages[log_pointers[i]].index < index)
-				{
-					index = log_types[i].log_messages[log_pointers[i]].index;
-					log_channel = i;
-				}
-			}
-		}
-	}
-
-	return log_channel;
 }
 
 } // namespace Debugger

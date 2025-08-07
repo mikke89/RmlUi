@@ -62,29 +62,27 @@ protected:
 	void ProcessEvent(Event& event) override;
 
 private:
-	struct LogMessage {
-		unsigned int index;
-		String message;
-	};
-	using LogMessageList = Vector<LogMessage>;
-
 	struct LogType {
 		bool visible;
 		String class_name;
 		String alert_contents;
 		String button_name;
-		LogMessageList log_messages;
 	};
-	LogType log_types[Log::LT_MAX];
 
-	int FindNextEarliestLogType(unsigned int log_pointers[Log::LT_MAX]);
+	struct LogMessage {
+		Log::Type type;
+		String message;
+	};
 
-	unsigned int current_index;
-	bool dirty_logs;
-	bool auto_scroll;
-	Element* message_content;
-	ElementDocument* beacon;
-	int current_beacon_level;
+	Array<LogType, Log::LT_MAX> log_types;
+	Deque<LogMessage> log_messages;
+
+	bool dirty_logs = false;
+	bool auto_scroll = true;
+	Element* message_content = nullptr;
+	ElementDocument* beacon = nullptr;
+	int current_beacon_level = Log::LT_MAX;
+	int num_new_messages = 0;
 };
 
 } // namespace Debugger
