@@ -970,26 +970,46 @@ bool Context::ProcessTouchMove(const Touch& touch)
 				// use instant scrolling when touch is pressed even when default scroll behavior is smooth
 				scroll_controller->InstantScrollOnTarget(state->scroll_container, -delta);
 
+				double current_time = GetSystemInterface()->GetElapsedTime();
+
 				// If the user changes direction, reset the start time and position.
 				bool going_right = (delta.x > 0);
-				if (delta.x != 0)
-					if (going_right != state->scrolling_right ||
-						state->scrolling_start_time_x == 0) // time set to 0 means no touch move events happened before and direction is unclear
-					{
-						state->start_position.x = touch.position.x;
-						state->scrolling_right = going_right;
-						state->scrolling_start_time_x = state->scrolling_last_time;
-					}
+				if (delta.x != 0 && (going_right != state->scrolling_right ||
+						state->scrolling_start_time_x == 0)) // time set to 0 means no touch move events happened before and direction is unclear
+				{
+					state->start_position.x = touch.position.x;
+					state->scrolling_right = going_right;
+					state->scrolling_start_time_x = state->scrolling_last_time;
+				}
+				else
+				{
+					// move starting position towards end position with a weight of e^-5t to better capture 
+					// and calculate velocity of the very last touch movements before touch release
+					float elapsed_time_x = static_cast<float>(current_time - state->scrolling_start_time_x);
+					float weight = expf(-elapsed_time_x * 5.0f);
+
+					state->start_position.x = touch.position.x - (touch.position.x - state->start_position.x) * weight;
+					state->scrolling_start_time_x = current_time - (current_time - state->scrolling_start_time_x) * weight;
+				}
 
 				bool going_down = (delta.y > 0);
-				if (delta.y != 0)
-					if (going_down != state->scrolling_down ||
-						state->scrolling_start_time_y == 0) // time set to 0 means no touch move events happened before and direction is unclear
-					{
-						state->start_position.y = touch.position.y;
-						state->scrolling_down = going_down;
-						state->scrolling_start_time_y = state->scrolling_last_time;
-					}
+				if (delta.y != 0 && (going_down != state->scrolling_down ||
+						state->scrolling_start_time_y == 0)) // time set to 0 means no touch move events happened before and direction is unclear
+				{
+					state->start_position.y = touch.position.y;
+					state->scrolling_down = going_down;
+					state->scrolling_start_time_y = state->scrolling_last_time;
+				}
+				else
+				{
+					// move starting position towards end position with a weight of e^-5t to better capture
+					// and calculate velocity of the very last touch movements before touch release
+					float elapsed_time_y = static_cast<float>(current_time - state->scrolling_start_time_y);
+					float weight = expf(-elapsed_time_y * 5.0f);
+
+					state->start_position.y = touch.position.y - (touch.position.y - state->start_position.y) * weight;
+					state->scrolling_start_time_y = current_time - (current_time - state->scrolling_start_time_y) * weight;
+				}	
 			}
 		}
 	}
