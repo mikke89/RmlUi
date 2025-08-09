@@ -986,7 +986,7 @@ bool Context::ProcessTouchMove(const Touch& touch)
 					// move starting position towards end position with a weight of e^-5t to better capture 
 					// and calculate velocity of the very last touch movements before touch release
 					float elapsed_time_x = static_cast<float>(current_time - state->scrolling_start_time_x);
-					float weight = std::exp(-elapsed_time_x * 5.0f);
+					float weight = std::expf(-elapsed_time_x * 5.0f);
 
 					state->start_position.x = touch.position.x - (touch.position.x - state->start_position.x) * weight;
 					state->scrolling_start_time_x = current_time - (current_time - state->scrolling_start_time_x) * weight;
@@ -1005,7 +1005,7 @@ bool Context::ProcessTouchMove(const Touch& touch)
 					// move starting position towards end position with a weight of e^-5t to better capture
 					// and calculate velocity of the very last touch movements before touch release
 					float elapsed_time_y = static_cast<float>(current_time - state->scrolling_start_time_y);
-					float weight = std::exp(-elapsed_time_y * 5.0f);
+					float weight = std::expf(-elapsed_time_y * 5.0f);
 
 					state->start_position.y = touch.position.y - (touch.position.y - state->start_position.y) * weight;
 					state->scrolling_start_time_y = current_time - (current_time - state->scrolling_start_time_y) * weight;
