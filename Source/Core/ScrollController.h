@@ -47,11 +47,16 @@ public:
 		None,
 		Smoothscroll, // Smooth scrolling to target distance.
 		Autoscroll,   // Scrolling with middle mouse button.
+		Inertia,      // Applying scrolling inertia when using swipe gesture
 	};
 
 	void ActivateAutoscroll(Element* target, Vector2i start_position);
 
 	void ActivateSmoothscroll(Element* target, Vector2f delta_distance, ScrollBehavior scroll_behavior);
+	
+	void InstantScrollOnTarget(Element* target, Vector2f delta_distance);
+	
+	void ApplyScrollInertia(Element* target, const Vector2f& velocity);
 
 	bool Update(Vector2i mouse_position, float dp_ratio);
 
@@ -79,6 +84,8 @@ private:
 
 	void UpdateSmoothscroll(float dp_ratio);
 
+	void UpdateInertia();
+
 	bool HasSmoothscrollReachedTarget() const;
 
 	void PerformScrollOnTarget(Vector2f delta_distance);
@@ -97,6 +104,8 @@ private:
 
 	Vector2f smoothscroll_target_distance;
 	Vector2f smoothscroll_scrolled_distance;
+
+	Vector2f inertia_scroll_velocity;
 };
 
 } // namespace Rml
