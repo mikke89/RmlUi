@@ -76,6 +76,15 @@ private:
 	EdgeSizes border_widths;
 	CornerSizes border_radius;
 };
-
+inline bool operator==(const RenderBox& a, const RenderBox& b)
+{
+	return a.GetFillSize() == b.GetFillSize() && a.GetBorderOffset() == b.GetBorderOffset() && a.GetBorderWidths() == b.GetBorderWidths() &&
+		a.GetBorderRadius() == b.GetBorderRadius();
+}
+inline bool operator!=(const RenderBox& a, const RenderBox& b)
+{
+	return !(a == b);
+}
 } // namespace Rml
+
 #endif
