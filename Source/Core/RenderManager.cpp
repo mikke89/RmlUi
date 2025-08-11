@@ -113,6 +113,17 @@ CallbackTexture RenderManager::MakeCallbackTexture(CallbackTextureFunction callb
 	return CallbackTexture(this, texture_database->callback_database.CreateTexture(std::move(callback)));
 }
 
+CallbackTexture RenderManager::FindOrMakeBoxShadowCallbackTexture(const BoxShadowGeometryInfo& geometry_info, CallbackTextureFunction callback)
+{
+	auto it = box_shadow_cache.find(geometry_info);
+	if (it != box_shadow_cache.end()) {
+		return it->second;
+	}
+	CallbackTexture& cb = box_shadow_cache[geometry_info];
+	cb = MakeCallbackTexture(callback);
+	return cb;
+}
+
 void RenderManager::DisableScissorRegion()
 {
 	SetScissorRegion(Rectanglei::MakeInvalid());

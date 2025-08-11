@@ -88,7 +88,28 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 
 	// Callback for generating the box-shadow texture. Using a callback ensures that the texture can be regenerated at any time, for example if the
 	// device loses its GPU context and the client calls Rml::ReleaseTextures().
-	auto texture_callback = [&background_border_geometry, element, border_radius, texture_dimensions, element_offset_in_texture,
+	Vector<RenderBox> padding_render_boxes{};
+	Vector<RenderBox> border_render_boxes{};
+
+	for (int i = 0; i < element->GetNumBoxes(); i++)
+	{
+		padding_render_boxes.push_back(element->GetRenderBox(BoxArea::Padding, i));
+		border_render_boxes.push_back(element->GetRenderBox(BoxArea::Border, i));
+	}
+
+	BoxShadowGeometryInfo geometry_info;
+	geometry_info.border_radius = border_radius;
+	geometry_info.texture_dimensions = texture_dimensions;
+	geometry_info.element_offset_in_texture = element_offset_in_texture;
+	geometry_info.padding_render_boxes = padding_render_boxes;
+	geometry_info.border_render_boxes = border_render_boxes;
+	geometry_info.shadow_list = shadow_list;
+
+	auto texture_callback = [&background_border_geometry, border_radius, 
+								texture_dimensions, element_offset_in_texture,
+								padding_render_boxes = std::move(padding_render_boxes),
+								num_boxes = element->GetNumBoxes(),
+								border_render_boxes = std::move(border_render_boxes),
 								shadow_list = std::move(shadow_list)](const CallbackTextureInterface& texture_interface) -> bool {
 		RenderManager& render_manager = texture_interface.GetRenderManager();
 
@@ -106,13 +127,13 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 		}
 
 		// Generate the geometry for all the element's boxes and extend the render-texture further to cover all of them.
-		for (int i = 0; i < element->GetNumBoxes(); i++)
+		for (int i = 0; i < num_boxes; i++)
 		{
 			ColourbPremultiplied white(255);
 			if (has_inner_shadow)
-				MeshUtilities::GenerateBackground(mesh_padding, element->GetRenderBox(BoxArea::Padding, i), white);
+				MeshUtilities::GenerateBackground(mesh_padding, padding_render_boxes[i], white);
 			if (has_outer_shadow)
-				MeshUtilities::GenerateBackground(mesh_padding_border, element->GetRenderBox(BoxArea::Border, i), white);
+				MeshUtilities::GenerateBackground(mesh_padding_border, border_render_boxes[i], white);
 		}
 
 		const RenderState initial_render_state = render_manager.GetState();
@@ -132,8 +153,8 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 		{
 			Log::Message(Log::LT_INFO,
 				"The desired box-shadow texture dimensions (%d, %d) are larger than the current window region (%d, %d). "
-				"Results may be clipped. In element: %s",
-				texture_dimensions.x, texture_dimensions.y, scissor_region.Width(), scissor_region.Height(), element->GetAddress().c_str());
+				"Results may be clipped. ", // FIXME: how do we log this? now that elements share box shadows? //In element: %s",
+				texture_dimensions.x, texture_dimensions.y, scissor_region.Width(), scissor_region.Height()/*, element->GetAddress().c_str()*/);
 		}
 
 		render_manager.PushLayer();
@@ -164,10 +185,10 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 			Mesh mesh_shadow;
 
 			// Generate the shadow geometry. For outer box-shadows it is rendered normally, while for inset box-shadows it is used as a clipping mask.
-			for (int i = 0; i < element->GetNumBoxes(); i++)
+			for (int i = 0; i < num_boxes; i++)
 			{
 				const float signed_spread_distance = (inset ? -spread_distance : spread_distance);
-				RenderBox render_box = element->GetRenderBox(inset ? BoxArea::Padding : BoxArea::Border, i);
+				RenderBox render_box = (inset ? padding_render_boxes : border_render_boxes)[i];
 				render_box.SetFillSize(Math::Max(render_box.GetFillSize() + Vector2f(2.f * signed_spread_distance), Vector2f{0.001f}));
 				render_box.SetBorderRadius(spread_radii);
 				render_box.SetBorderOffset(render_box.GetBorderOffset() - Vector2f(signed_spread_distance));
@@ -227,7 +248,7 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 	const byte alpha = byte(opacity * 255.f);
 	MeshUtilities::GenerateQuad(mesh, -element_offset_in_texture, Vector2f(texture_dimensions), ColourbPremultiplied(alpha, alpha));
 
-	out_shadow_texture = render_manager.MakeCallbackTexture(std::move(texture_callback));
+	out_shadow_texture = render_manager.FindOrMakeBoxShadowCallbackTexture(geometry_info, std::move(texture_callback));
 	out_shadow_geometry = render_manager.MakeGeometry(std::move(mesh));
 }
 
