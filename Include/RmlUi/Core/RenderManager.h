@@ -36,145 +36,212 @@
 #include "Types.h"
 
 namespace Rml {
+	class Geometry;
+	class CompiledFilter;
+	class CompiledShader;
+	class TextureDatabase;
+	class Texture;
+	class RenderManagerAccess;
 
-    class Geometry;
-    class CompiledFilter;
-    class CompiledShader;
-    class TextureDatabase;
-    class Texture;
-    class RenderManagerAccess;
+	struct BoxShadowGeometryInfo {
+		Mesh background_border_mesh;
+		CornerSizes border_radius;
+		Vector2i texture_dimensions;
+		Vector2f element_offset_in_texture;
+		Vector<RenderBox> padding_render_boxes;
+		Vector<RenderBox> border_render_boxes;
+		BoxShadowList shadow_list;
+	};
+	inline bool operator==(const BoxShadowGeometryInfo& a, const BoxShadowGeometryInfo& b)
+	{
+		return a.background_border_mesh==b.background_border_mesh && a.border_radius == b.border_radius && a.texture_dimensions == b.texture_dimensions && a.element_offset_in_texture == b.element_offset_in_texture &&
+			a.padding_render_boxes == b.padding_render_boxes && a.border_render_boxes == b.border_render_boxes && a.shadow_list == b.shadow_list;
+	}
+	inline bool operator!=(const BoxShadowGeometryInfo& a, const BoxShadowGeometryInfo& b)
+	{
+		return !(a == b);
+	}
+	
+	template<> struct std::hash<BoxShadowGeometryInfo> {
+	private:
+		// TODO is there already a hash combine function? or could this maybe be moved to a utility file?
+		template <typename T>
+		inline void HashCombine(std::size_t& seed, const T& v)
+		{
+			std::hash<T> hasher;
+			seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		}
+	public:
+		std::size_t operator()(const BoxShadowGeometryInfo& in) const noexcept {
+			std::size_t result = std::size_t(849128392);
 
-    struct BoxShadowGeometryInfo {
-        CornerSizes border_radius;
-        Vector2i texture_dimensions;
-        Vector2f element_offset_in_texture;
-        Vector<RenderBox> padding_render_boxes;
-        Vector<RenderBox> border_render_boxes;
-        BoxShadowList shadow_list;
-    };
-    inline bool operator==(const BoxShadowGeometryInfo& a, const BoxShadowGeometryInfo& b)
-    {
-        return a.border_radius == b.border_radius && a.texture_dimensions == b.texture_dimensions && a.element_offset_in_texture == b.element_offset_in_texture &&
-            a.padding_render_boxes == b.padding_render_boxes && a.border_render_boxes == b.border_render_boxes && a.shadow_list == b.shadow_list;
-    }
-    inline bool operator!=(const BoxShadowGeometryInfo& a, const BoxShadowGeometryInfo& b)
-    {
-        return !(a == b);
-    }
+			for (const auto& v : in.background_border_mesh) {
+				for (const auto& w : v.indices) {
+					HashCombine(result, w);
+				}
+				for (const Vertex& w : v.vertices) {
+					HashCombine(result, (const uint32_t&)w.colour);
+					HashCombine(result, w.position.x);
+					HashCombine(result, w.position.y);
+					HashCombine(result, w.tex_coord.x);
+					HashCombine(result, w.tex_coord.y);
+				}
+			}
+			for (const auto& v : in.border_radius) {
+				HashCombine(result, v);
+			}
+			HashCombine(result, in.texture_dimensions.x);
+			HashCombine(result, in.texture_dimensions.y);
+			HashCombine(result, in.element_offset_in_texture.x);
+			HashCombine(result, in.element_offset_in_texture.y);\
 
-    struct ClipMaskGeometry {
-        ClipMaskOperation operation;
-        Geometry* geometry;
-        Vector2f absolute_offset;
-        const Matrix4f* transform;
-    };
-    inline bool operator==(const ClipMaskGeometry& a, const ClipMaskGeometry& b)
-    {
-        return a.operation == b.operation && a.geometry == b.geometry && a.absolute_offset == b.absolute_offset && a.transform == b.transform;
-    }
-    inline bool operator!=(const ClipMaskGeometry& a, const ClipMaskGeometry& b)
-    {
-        return !(a == b);
-    }
-    using ClipMaskGeometryList = Vector<ClipMaskGeometry>;
+			static const auto fn_hash_render_box = [](const Rml::RenderBox&v) {
+				HashCombine(result, v.GetFillSize().x);
+				HashCombine(result, v.GetFillSize().y);
+				HashCombine(result, v.GetBorderOffset().x);
+				HashCombine(result, v.GetBorderOffset().y);
+				for (const auto& w : v.GetBorderRadius()) {
+					HashCombine(result, w);
+				}
+				for (const auto& w : v.GetBorderWidths()) {
+					HashCombine(result, w);
+				}
+			}
+			for (const auto& v : in.padding_render_boxes) {
+				fn_hash_render_box(v);
+			}
+			for (const auto& v : in.border_render_boxes) {
+				fn_hash_render_box(v);
+			}
+			for (const auto& v : in.shadow_list) {
+				HashCombine(result, v.blur_radius.number);
+				HashCombine(result, v.blur_radius.unit);
+				HashCombine(result, (const uint32_t&)v.color);
+				HashCombine(result, v.inset);
+				HashCombine(result, v.offset_x.number);
+				HashCombine(result, v.offset_x.unit);
+				HashCombine(result, v.offset_y.number);
+				HashCombine(result, v.offset_y.unit);
+				HashCombine(result, v.spread_distance.number);
+				HashCombine(result, v.spread_distance.unit);
+			}
+			return result;
+		}
+	};
 
-    struct RenderState {
-        Rectanglei scissor_region = Rectanglei::MakeInvalid();
-        ClipMaskGeometryList clip_mask_list;
-        Matrix4f transform = Matrix4f::Identity();
-    };
+	struct ClipMaskGeometry {
+		ClipMaskOperation operation;
+		Geometry* geometry;
+		Vector2f absolute_offset;
+		const Matrix4f* transform;
+	};
+	inline bool operator==(const ClipMaskGeometry& a, const ClipMaskGeometry& b)
+	{
+		return a.operation == b.operation && a.geometry == b.geometry && a.absolute_offset == b.absolute_offset && a.transform == b.transform;
+	}
+	inline bool operator!=(const ClipMaskGeometry& a, const ClipMaskGeometry& b)
+	{
+		return !(a == b);
+	}
+	using ClipMaskGeometryList = Vector<ClipMaskGeometry>;
 
-    /**
-        A wrapper over the render interface, which tracks its state and resources.
+	struct RenderState {
+		Rectanglei scissor_region = Rectanglei::MakeInvalid();
+		ClipMaskGeometryList clip_mask_list;
+		Matrix4f transform = Matrix4f::Identity();
+	};
 
-        All operations to be submitted to the render interface should go through this class.
-     */
-    class RMLUICORE_API RenderManager : NonCopyMoveable {
-    public:
-        RenderManager(RenderInterface* render_interface);
-        ~RenderManager();
+	/**
+		A wrapper over the render interface, which tracks its state and resources.
 
-        void PrepareRender(Vector2i dimensions);
-        void SetViewport(Vector2i dimensions);
-        Vector2i GetViewport() const;
+		All operations to be submitted to the render interface should go through this class.
+	 */
+	class RMLUICORE_API RenderManager : NonCopyMoveable {
+	public:
+		RenderManager(RenderInterface* render_interface);
+		~RenderManager();
 
-        void DisableScissorRegion();
-        void SetScissorRegion(Rectanglei region);
-        Rectanglei GetScissorRegion() const;
+		void PrepareRender(Vector2i dimensions);
+		void SetViewport(Vector2i dimensions);
+		Vector2i GetViewport() const;
 
-        void DisableClipMask();
-        void SetClipMask(ClipMaskGeometryList clip_elements);
-        void SetClipMask(ClipMaskOperation operation, Geometry* geometry, Vector2f translation);
+		void DisableScissorRegion();
+		void SetScissorRegion(Rectanglei region);
+		Rectanglei GetScissorRegion() const;
 
-        void SetTransform(const Matrix4f* new_transform);
+		void DisableClipMask();
+		void SetClipMask(ClipMaskGeometryList clip_elements);
+		void SetClipMask(ClipMaskOperation operation, Geometry* geometry, Vector2f translation);
 
-        // Retrieves the cached render state. If setting this state again, ensure the lifetimes of referenced objects are
-        // still valid. Possibly invalidating actions include destroying an element, or altering its transform property.
-        const RenderState& GetState() const { return state; }
-        void SetState(const RenderState& next);
-        void ResetState();
+		void SetTransform(const Matrix4f* new_transform);
 
-        Geometry MakeGeometry(Mesh&& mesh);
+		// Retrieves the cached render state. If setting this state again, ensure the lifetimes of referenced objects are
+		// still valid. Possibly invalidating actions include destroying an element, or altering its transform property.
+		const RenderState& GetState() const { return state; }
+		void SetState(const RenderState& next);
+		void ResetState();
 
-        Texture LoadTexture(const String& source, const String& document_path = String());
-        CallbackTexture MakeCallbackTexture(CallbackTextureFunction callback);
+		Geometry MakeGeometry(Mesh&& mesh);
 
-        CallbackTexture FindOrMakeBoxShadowCallbackTexture(const BoxShadowGeometryInfo& geometry_info, CallbackTextureFunction callback);
+		Texture LoadTexture(const String& source, const String& document_path = String());
+		CallbackTexture MakeCallbackTexture(CallbackTextureFunction callback);
 
-        CompiledFilter CompileFilter(const String& name, const Dictionary& parameters);
-        CompiledShader CompileShader(const String& name, const Dictionary& parameters);
+		CallbackTexture FindOrMakeBoxShadowCallbackTexture(const BoxShadowGeometryInfo& geometry_info, CallbackTextureFunction callback);
 
-        LayerHandle PushLayer();
-        void CompositeLayers(LayerHandle source, LayerHandle destination, BlendMode blend_mode, Span<const CompiledFilterHandle> filters);
-        void PopLayer();
+		CompiledFilter CompileFilter(const String& name, const Dictionary& parameters);
+		CompiledShader CompileShader(const String& name, const Dictionary& parameters);
 
-        LayerHandle GetTopLayer() const;
-        LayerHandle GetNextLayer() const;
+		LayerHandle PushLayer();
+		void CompositeLayers(LayerHandle source, LayerHandle destination, BlendMode blend_mode, Span<const CompiledFilterHandle> filters);
+		void PopLayer();
 
-        CompiledFilter SaveLayerAsMaskImage();
+		LayerHandle GetTopLayer() const;
+		LayerHandle GetNextLayer() const;
 
-    private:
-        void ApplyClipMask(const ClipMaskGeometryList& clip_elements);
+		CompiledFilter SaveLayerAsMaskImage();
 
-        StableVectorIndex InsertGeometry(Mesh&& mesh);
-        CompiledGeometryHandle GetCompiledGeometryHandle(StableVectorIndex index);
+	private:
+		void ApplyClipMask(const ClipMaskGeometryList& clip_elements);
 
-        void Render(const Geometry& geometry, Vector2f translation, Texture texture, const CompiledShader& shader);
+		StableVectorIndex InsertGeometry(Mesh&& mesh);
+		CompiledGeometryHandle GetCompiledGeometryHandle(StableVectorIndex index);
 
-        void GetTextureSourceList(StringList& source_list) const;
-        const Mesh& GetMesh(const Geometry& geometry) const;
+		void Render(const Geometry& geometry, Vector2f translation, Texture texture, const CompiledShader& shader);
 
-        bool ReleaseTexture(const String& texture_source);
-        void ReleaseAllTextures();
-        void ReleaseAllCompiledGeometry();
+		void GetTextureSourceList(StringList& source_list) const;
+		const Mesh& GetMesh(const Geometry& geometry) const;
 
-        void ReleaseResource(const CallbackTexture& texture);
-        Mesh ReleaseResource(const Geometry& geometry);
-        void ReleaseResource(const CompiledFilter& filter);
-        void ReleaseResource(const CompiledShader& shader);
+		bool ReleaseTexture(const String& texture_source);
+		void ReleaseAllTextures();
+		void ReleaseAllCompiledGeometry();
 
-        struct GeometryData {
-            Mesh mesh;
-            CompiledGeometryHandle handle = {};
-        };
+		void ReleaseResource(const CallbackTexture& texture);
+		Mesh ReleaseResource(const Geometry& geometry);
+		void ReleaseResource(const CompiledFilter& filter);
+		void ReleaseResource(const CompiledShader& shader);
 
-        RenderInterface* render_interface = nullptr;
+		struct GeometryData {
+			Mesh mesh;
+			CompiledGeometryHandle handle = {};
+		};
 
-        StableVector<GeometryData> geometry_list;
-        UniquePtr<TextureDatabase> texture_database;
+		RenderInterface* render_interface = nullptr;
 
-        UnorderedMap<BoxShadowGeometryInfo, CallbackTexture> box_shadow_cache;
+		StableVector<GeometryData> geometry_list;
+		UniquePtr<TextureDatabase> texture_database;
 
-        int compiled_filter_count = 0;
-        int compiled_shader_count = 0;
+		UnorderedMap<BoxShadowGeometryInfo, CallbackTexture> box_shadow_cache;
 
-        RenderState state;
-        Vector2i viewport_dimensions;
+		int compiled_filter_count = 0;
+		int compiled_shader_count = 0;
 
-        Vector<LayerHandle> render_stack;
+		RenderState state;
+		Vector2i viewport_dimensions;
 
-        friend class RenderManagerAccess;
-    };
+		Vector<LayerHandle> render_stack;
+
+		friend class RenderManagerAccess;
+	};
 
 } // namespace Rml
 
