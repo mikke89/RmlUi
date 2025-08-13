@@ -32,9 +32,11 @@
 #include "CallbackTexture.h"
 #include "DecorationTypes.h"
 #include "Mesh.h"
+#include "RenderBox.h"
 #include "RenderInterface.h"
 #include "StableVector.h"
 #include "Types.h"
+#include "Utilities.h"
 
 namespace Rml {
 using RenderBoxList = Vector<RenderBox>;
@@ -59,20 +61,12 @@ inline bool operator!=(const BoxShadowGeometryInfo& a, const BoxShadowGeometryIn
 }
 }
 
-// FIXME, shouldn't this be using Rml::Hash<>?
-template<> struct std::hash<Rml::BoxShadowGeometryInfo> {
-private:
-	// TODO is there already a hash combine function? or could this maybe be moved to a utility file?
-	template <typename T>
-	static inline void HashCombine(std::size_t& seed, const T& v)
-	{
-		std::hash<T> hasher;
-		seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-	}
-public:
-	std::size_t operator()(const Rml::BoxShadowGeometryInfo& in) const noexcept {
-		std::size_t result = std::size_t(849128392);
+template<> struct ::std::hash<::Rml::BoxShadowGeometryInfo> {
+	::std::size_t operator()(const ::Rml::BoxShadowGeometryInfo& in) const noexcept {
 		using namespace Rml;
+		using namespace Rml::Utilities;
+		using namespace std;
+		size_t result = size_t(849128392);
 
 		HashCombine(result, reinterpret_cast<const uint32_t&>(in.background_color));
 		for (const auto& v : in.border_colors) {
@@ -87,7 +81,7 @@ public:
 		HashCombine(result, in.element_offset_in_texture.x);
 		HashCombine(result, in.element_offset_in_texture.y);
 
-		static const auto fn_hash_render_box = [](std::size_t& result, const Rml::RenderBox& v) {
+		static const auto fn_hash_render_box = [](size_t& result, const RenderBox& v) {
 			HashCombine(result, v.GetFillSize().x);
 			HashCombine(result, v.GetFillSize().y);
 			HashCombine(result, v.GetBorderOffset().x);
