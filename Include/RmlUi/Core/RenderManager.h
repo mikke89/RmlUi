@@ -61,8 +61,8 @@ inline bool operator!=(const BoxShadowGeometryInfo& a, const BoxShadowGeometryIn
 }
 }
 
-template<> struct ::std::hash<::Rml::BoxShadowGeometryInfo> {
-	::std::size_t operator()(const ::Rml::BoxShadowGeometryInfo& in) const noexcept {
+template<> struct std::hash<Rml::BoxShadowGeometryInfo> {
+	std::size_t operator()(const Rml::BoxShadowGeometryInfo& in) const noexcept {
 		using namespace Rml;
 		using namespace Rml::Utilities;
 		using namespace std;
