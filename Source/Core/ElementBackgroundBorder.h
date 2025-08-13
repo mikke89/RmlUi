@@ -38,7 +38,6 @@ namespace Rml {
 class ElementBackgroundBorder {
 public:
 	ElementBackgroundBorder();
-
 	void Render(Element* element);
 
 	void DirtyBackground();
@@ -50,7 +49,7 @@ private:
 	enum class BackgroundType { BackgroundBorder, BoxShadow, ClipBorder, ClipPadding, ClipContent, Count };
 	struct Background {
 		Geometry geometry;
-		CallbackTexture texture;
+		SharedPtr<CallbackTexture> texture;
 	};
 
 	Background* GetBackground(BackgroundType type);

@@ -42,16 +42,18 @@ class GeometryBoxShadow {
 public:
 	/// Generate the texture and geometry for a box shadow.
 	/// @param[out] out_shadow_geometry The target geometry.
-	/// @param[out] out_shadow_texture The target texture, assumes pointer stability during the lifetime of the shadow geometry.
+	/// @param[out] out_shadow_texture The target texture, assumes pointer stability during the lifetime of the shadow geometry. This may also be shared between
 	/// @param[in] render_manager The render manager to generate the shadow for.
 	/// @param[in] element The element to generate the shadow for.
-	/// @param[in] background_border_geometry The geometry of the background and border, assumed to already have been generated. Assumes pointer
-	/// stability during the lifetime of the shadow geometry.
+	/// @param[in] background_border_geometry The geometry of the background and border. Used to avoid recomputing the mesh from the given render boxes and background/border colours
 	/// @param[in] shadow_list The list of box-shadows to generate.
 	/// @param[in] border_radius The border radius of the element.
+	/// @param[in] background_color The background colour of the element.
+	/// @param[in] border_colors The border colours of the element.
 	/// @param[in] opacity The opacity of the element.
-	static void Generate(Geometry& out_shadow_geometry, CallbackTexture& out_shadow_texture, RenderManager& render_manager, Element* element,
-		Geometry& background_border_geometry, BoxShadowList shadow_list, CornerSizes border_radius, float opacity);
+	static void Generate(Geometry& out_shadow_geometry, SharedPtr<CallbackTexture>& out_shadow_texture, RenderManager& render_manager, 
+		Element* element, const Geometry& background_border_geometry, BoxShadowList shadow_list, CornerSizes border_radius,
+		ColourbPremultiplied background_color, Array<ColourbPremultiplied, 4> border_colors, float opacity);
 };
 
 } // namespace Rml

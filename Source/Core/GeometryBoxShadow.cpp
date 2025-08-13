@@ -39,8 +39,9 @@
 
 namespace Rml {
 
-void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture& out_shadow_texture, RenderManager& render_manager, Element* element,
-	Geometry& background_border_geometry, BoxShadowList shadow_list, const CornerSizes border_radius, const float opacity)
+void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, SharedPtr<CallbackTexture>& out_shadow_texture, RenderManager& render_manager,
+	Element* element, const Geometry& background_border_geometry, BoxShadowList shadow_list, CornerSizes border_radius,
+	ColourbPremultiplied background_color, Array<ColourbPremultiplied, 4> border_colors, float opacity)
 {
 	// Find the box-shadow texture dimension and offset required to cover all box-shadows and element boxes combined.
 	Vector2f element_offset_in_texture;
@@ -89,16 +90,20 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 
 	// Since we can reuse textures across multiple box shadows with the same properties, 
 	// we need to copy the element's box shadow list and the background and border geometry.
-	Vector<RenderBox> padding_render_boxes{};
-	Vector<RenderBox> border_render_boxes{};
+	RenderBoxList padding_render_boxes{};
+	RenderBoxList border_render_boxes{};
 
 	for (int i = 0; i < element->GetNumBoxes(); i++)
 	{
 		padding_render_boxes.push_back(element->GetRenderBox(BoxArea::Padding, i));
 		border_render_boxes.push_back(element->GetRenderBox(BoxArea::Border, i));
 	}
+
+	// Finally, create cache information
+	// We do not need to copy over the Rml::Geometry as the other properties here already implicitly define them.
 	BoxShadowGeometryInfo geometry_info;
-	geometry_info.background_border_mesh = background_border_geometry.GetMesh();
+	geometry_info.background_color = background_color;
+	geometry_info.border_colors = border_colors;
 	geometry_info.border_radius = border_radius;
 	geometry_info.texture_dimensions = texture_dimensions;
 	geometry_info.element_offset_in_texture = element_offset_in_texture;
@@ -106,16 +111,17 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 	geometry_info.border_render_boxes = border_render_boxes;
 	geometry_info.shadow_list = shadow_list;
 
+	Rml::Mesh background_border_mesh = background_border_geometry.GetMesh();
+
 	// Callback for generating the box-shadow texture. Using a callback ensures that the texture can be regenerated at any time, for example if the
 	// device loses its GPU context and the client calls Rml::ReleaseTextures().
-	auto texture_callback = [background_border_mesh = geometry_info.background_border_mesh, border_radius,
-								texture_dimensions, element_offset_in_texture,
+	auto texture_callback = [border_radius, texture_dimensions, element_offset_in_texture, num_boxes = element->GetNumBoxes(),
+								background_border_mesh = std::move(background_border_mesh),
 								padding_render_boxes = std::move(padding_render_boxes),
-								num_boxes = element->GetNumBoxes(),
 								border_render_boxes = std::move(border_render_boxes),
 								shadow_list = std::move(shadow_list)](const CallbackTextureInterface& texture_interface) -> bool {
 		RenderManager& render_manager = texture_interface.GetRenderManager();
-
+		
 		Mesh mesh_padding;        // Render geometry for inner box-shadow.
 		Mesh mesh_padding_border; // Clipping mask for outer box-shadow.
 
@@ -161,8 +167,9 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 		}
 
 		render_manager.PushLayer();
-		Rml::Geometry background_border_geometry = render_manager.MakeGeometry(std::move(background_border_mesh));
+		Rml::Geometry background_border_geometry = render_manager.MakeGeometry(Rml::Mesh(background_border_mesh));
 		background_border_geometry.Render(element_offset_in_texture);
+		background_border_geometry.Release();
 
 		for (int shadow_index = (int)shadow_list.size() - 1; shadow_index >= 0; shadow_index--)
 		{
