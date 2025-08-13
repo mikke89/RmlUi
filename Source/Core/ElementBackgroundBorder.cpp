@@ -58,7 +58,7 @@ void ElementBackgroundBorder::Render(Element* element)
 
 	Background* shadow = GetBackground(BackgroundType::BoxShadow);
 	if (shadow && shadow->geometry)
-		shadow->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border), shadow->texture);
+		shadow->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border), *shadow->texture);
 	else if (Background* background = GetBackground(BackgroundType::BackgroundBorder))
 	{
 		auto offset = element->GetAbsoluteOffset(BoxArea::Border);
@@ -139,7 +139,7 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 	};
 
 	ColourbPremultiplied background_color = ConvertColor(computed.background_color());
-	ColourbPremultiplied border_colors[4] = {
+	Array<ColourbPremultiplied, 4> border_colors = {
 		ConvertColor(computed.border_top_color()),
 		ConvertColor(computed.border_right_color()),
 		ConvertColor(computed.border_bottom_color()),
@@ -151,7 +151,7 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 	Mesh mesh = geometry.Release(Geometry::ReleaseMode::ClearMesh);
 
 	for (int i = 0; i < element->GetNumBoxes(); i++)
-		MeshUtilities::GenerateBackgroundBorder(mesh, element->GetRenderBox(BoxArea::Padding, i), background_color, border_colors);
+		MeshUtilities::GenerateBackgroundBorder(mesh, element->GetRenderBox(BoxArea::Padding, i), background_color, border_colors.data());
 
 	geometry = render_manager->MakeGeometry(std::move(mesh));
 
@@ -166,10 +166,10 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 		// Generate the geometry for the box-shadow texture.
 		Background& shadow_background = GetOrCreateBackground(BackgroundType::BoxShadow);
 		Geometry& shadow_geometry = shadow_background.geometry;
-		CallbackTexture& shadow_texture = shadow_background.texture;
+		SharedPtr<CallbackTexture>& shadow_texture = shadow_background.texture;
 
 		GeometryBoxShadow::Generate(shadow_geometry, shadow_texture, *render_manager, element, background_border_geometry, std::move(shadow_list),
-			border_radius, computed.opacity());
+			border_radius, background_color, border_colors, computed.opacity());
 	}
 }
 
