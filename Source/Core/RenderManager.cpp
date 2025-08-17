@@ -46,6 +46,9 @@ RenderManager::RenderManager(RenderInterface* render_interface) : render_interfa
 
 RenderManager::~RenderManager()
 {
+	// clear cache, since the render manager always has at least 1 reference if the texture hasn't been freed yet.
+	// All references should be equal to 1, if they are more, then they haven't been freed properly
+	CleanupDeadBoxShadowCache();
 	struct ResourceCount {
 		const char* name;
 		int count;

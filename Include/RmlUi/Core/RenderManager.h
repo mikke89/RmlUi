@@ -215,8 +215,8 @@ private:
 	void ReleaseResource(const CompiledShader& shader);
 
 	// TODO: better way to autonomously release the box shadow cache? 
-	// References are needed to texture, and we need to be able to ref count it, so storing a WeakPtr<> will not work 
-	// (cannot create a SharedPtr<> out of it
+	// References are needed to texture, and we need to be able to ref count it.
+	// Another possibility is making a custom SharedPtr<> class and allow us to manually reduce ref counts.
 	void CleanupDeadBoxShadowCache();
 
 	struct GeometryData {
