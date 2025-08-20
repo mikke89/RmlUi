@@ -30,13 +30,92 @@
 #define RMLUI_CORE_RENDERMANAGER_H
 
 #include "CallbackTexture.h"
+#include "DecorationTypes.h"
 #include "Mesh.h"
+#include "RenderBox.h"
 #include "RenderInterface.h"
 #include "StableVector.h"
 #include "Types.h"
+#include "Utilities.h"
 
 namespace Rml {
+using RenderBoxList = Vector<RenderBox>;
+struct BoxShadowGeometryInfo {
+	ColourbPremultiplied background_color;
+	Array<ColourbPremultiplied, 4> border_colors;
+	CornerSizes border_radius;
+	Vector2i texture_dimensions;
+	Vector2f element_offset_in_texture;
+	RenderBoxList padding_render_boxes;
+	RenderBoxList border_render_boxes;
+	BoxShadowList shadow_list;
+};
+inline bool operator==(const BoxShadowGeometryInfo& a, const BoxShadowGeometryInfo& b)
+{
+	return a.background_color == b.background_color && a.border_colors == b.border_colors && a.border_radius == b.border_radius && a.texture_dimensions == b.texture_dimensions && 
+		a.element_offset_in_texture == b.element_offset_in_texture && a.padding_render_boxes == b.padding_render_boxes && a.border_render_boxes == b.border_render_boxes && a.shadow_list == b.shadow_list;
+}
+inline bool operator!=(const BoxShadowGeometryInfo& a, const BoxShadowGeometryInfo& b)
+{
+	return !(a == b);
+}
+}
 
+template<> struct std::hash<Rml::BoxShadowGeometryInfo> {
+	std::size_t operator()(const Rml::BoxShadowGeometryInfo& in) const noexcept {
+		using namespace Rml;
+		using namespace Rml::Utilities;
+		using namespace std;
+		size_t result = size_t(849128392);
+
+		HashCombine(result, reinterpret_cast<const uint32_t&>(in.background_color));
+		for (const auto& v : in.border_colors) {
+			HashCombine(result, reinterpret_cast<const uint32_t&>(v));
+		}
+
+		for (const auto& v : in.border_radius) {
+			HashCombine(result, v);
+		}
+		HashCombine(result, in.texture_dimensions.x);
+		HashCombine(result, in.texture_dimensions.y);
+		HashCombine(result, in.element_offset_in_texture.x);
+		HashCombine(result, in.element_offset_in_texture.y);
+
+		static const auto fn_hash_render_box = [](size_t& result, const RenderBox& v) {
+			HashCombine(result, v.GetFillSize().x);
+			HashCombine(result, v.GetFillSize().y);
+			HashCombine(result, v.GetBorderOffset().x);
+			HashCombine(result, v.GetBorderOffset().y);
+			for (const auto& w : v.GetBorderRadius()) {
+				HashCombine(result, w);
+			}
+			for (const auto& w : v.GetBorderWidths()) {
+				HashCombine(result, w);
+			}
+		};
+		for (const auto& v : in.padding_render_boxes) {
+			fn_hash_render_box(result, v);
+		}
+		for (const auto& v : in.border_render_boxes) {
+			fn_hash_render_box(result, v);
+		}
+		for (const auto& v : in.shadow_list) {
+			HashCombine(result, v.blur_radius.number);
+			HashCombine(result, v.blur_radius.unit);
+			HashCombine(result, reinterpret_cast<const uint32_t&>(v.color));
+			HashCombine(result, v.inset);
+			HashCombine(result, v.offset_x.number);
+			HashCombine(result, v.offset_x.unit);
+			HashCombine(result, v.offset_y.number);
+			HashCombine(result, v.offset_y.unit);
+			HashCombine(result, v.spread_distance.number);
+			HashCombine(result, v.spread_distance.unit);
+		}
+		return result;
+	}
+};
+
+namespace Rml {
 class Geometry;
 class CompiledFilter;
 class CompiledShader;
@@ -67,10 +146,10 @@ struct RenderState {
 };
 
 /**
-    A wrapper over the render interface, which tracks its state and resources.
+	A wrapper over the render interface, which tracks its state and resources.
 
-    All operations to be submitted to the render interface should go through this class.
- */
+	All operations to be submitted to the render interface should go through this class.
+	*/
 class RMLUICORE_API RenderManager : NonCopyMoveable {
 public:
 	RenderManager(RenderInterface* render_interface);
@@ -100,6 +179,8 @@ public:
 
 	Texture LoadTexture(const String& source, const String& document_path = String());
 	CallbackTexture MakeCallbackTexture(CallbackTextureFunction callback);
+
+	SharedPtr<CallbackTexture> FindOrMakeBoxShadowCallbackTexture(const BoxShadowGeometryInfo& geometry_info, CallbackTextureFunction callback);
 
 	CompiledFilter CompileFilter(const String& name, const Dictionary& parameters);
 	CompiledShader CompileShader(const String& name, const Dictionary& parameters);
@@ -133,6 +214,11 @@ private:
 	void ReleaseResource(const CompiledFilter& filter);
 	void ReleaseResource(const CompiledShader& shader);
 
+	// TODO: better way to autonomously release the box shadow cache? 
+	// References are needed to texture, and we need to be able to ref count it.
+	// Another possibility is making a custom SharedPtr<> class and allow us to manually reduce ref counts.
+	void CleanupDeadBoxShadowCache();
+
 	struct GeometryData {
 		Mesh mesh;
 		CompiledGeometryHandle handle = {};
@@ -142,6 +228,8 @@ private:
 
 	StableVector<GeometryData> geometry_list;
 	UniquePtr<TextureDatabase> texture_database;
+
+	UnorderedMap<BoxShadowGeometryInfo, SharedPtr<CallbackTexture>> box_shadow_cache;
 
 	int compiled_filter_count = 0;
 	int compiled_shader_count = 0;
