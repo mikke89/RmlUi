@@ -113,10 +113,16 @@ void ElementTabSet::SetActiveTab(int tab_index)
 		Element* old_window = windows->GetChild(active_tab);
 		Element* new_window = windows->GetChild(tab_index);
 
-		if (old_window)
+        if (old_window)
+            {
+            old_window->SetPseudoClass("selected", false);
 			old_window->SetProperty(PropertyId::Display, Property(Style::Display::None));
+            }
 		if (new_window)
+            {
+            new_window->SetPseudoClass("selected", true);
 			new_window->RemoveProperty(PropertyId::Display);
+            }
 
 		active_tab = tab_index;
 
