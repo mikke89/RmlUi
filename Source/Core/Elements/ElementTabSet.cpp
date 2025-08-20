@@ -188,7 +188,10 @@ void ElementTabSet::OnChildAdd(Element* child)
 
 		// Make the new element visible if its the active tab
 		if (child->GetParentNode()->GetChild(active_tab) == child)
+            {
+			child->SetPseudoClass("selected", true);
 			child->RemoveProperty(PropertyId::Display);
+            }
 	}
 }
 
