@@ -171,12 +171,12 @@ The provided backends on the other hand are not intended to be used directly by 
 ### Backends
 
 | Platform \ Renderer | OpenGL 2       | OpenGL 3      | Vulkan        | SDL GPU      | SDLrenderer          |
-|---------------------|----------------|---------------|---------------|--------------|----------------------|
-| Win32               | ✔️ `Win32_GL2` |               | ✔️ `Win32_VK` |              |                      |
-| X11                 | ✔️ `X11_GL2`   |               |               |              |                      |
-| SFML                | ✔️ `SFML_GL2`  |               |               |              |                      |
-| GLFW                | ✔️ `GLFW_GL2`  | ✔️ `GLFW_GL3` | ✔️ `GLFW_VK`  |              |                      |
-| SDL¹                | ✔️ `SDL_GL2`   | ✔️² `SDL_GL3` | ✔️ `SDL_VK`   | ✔️ `SDL_GPU` | ✔️ `SDL_SDLrenderer` |
+|---------------------|:----------------:|:---------------:|:---------------:|:--------------:|:----------------------:|
+| Win32               | ✔️<br>`Win32_GL2` |               | ✔️<br>`Win32_VK` |              |                      |
+| X11                 | ✔️<br>`X11_GL2`   |               |               |              |                      |
+| SFML                | ✔️<br>`SFML_GL2`  |               |               |              |                      |
+| GLFW                | ✔️<br>`GLFW_GL2`  | ✔️<br>`GLFW_GL3` | ✔️<br>`GLFW_VK`  |              |                      |
+| SDL¹                | ✔️<br>`SDL_GL2`   | ✔️²<br>`SDL_GL3` | ✔️<br>`SDL_VK`   | ✔️<br>`SDL_GPU` | ✔️<br>`SDL_SDLrenderer` |
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
