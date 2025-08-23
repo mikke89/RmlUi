@@ -880,33 +880,31 @@ bool Context::IsMouseInteracting() const
 
 Context::TouchState* Context::LookupTouch(TouchId identifier)
 {
-	auto touch_it = std::find_if(touch_states.begin(), touch_states.end(), 
-		[identifier](const TouchState& t) { return t.identifier == identifier; }
-	);
-	return touch_it != touch_states.end() ? &(*touch_it) : nullptr;
+	auto touch_it = touch_states.find(identifier);
+	return touch_it != touch_states.end() ? &(*touch_it).second : nullptr;
 }
 
-bool Context::ProcessTouchStart(const TouchList& touches, int /*key_modifier_state*/)
+bool Context::ProcessTouchStart(const TouchList& touches, int key_modifier_state)
 {
 	bool result = true;
 	for (const auto& touch : touches)
-		result &= ProcessTouchStart(touch);
+		result &= ProcessTouchStart(touch, key_modifier_state);
 	return result;
 }
 
-bool Context::ProcessTouchMove(const TouchList& touches, int /*key_modifier_state*/)
+bool Context::ProcessTouchMove(const TouchList& touches, int key_modifier_state)
 {
 	bool result = true;
 	for (const auto& touch : touches)
-		result &= ProcessTouchMove(touch);
+		result &= ProcessTouchMove(touch, key_modifier_state);
 	return result;
 }
 
-bool Context::ProcessTouchEnd(const TouchList& touches, int /*key_modifier_state*/)
+bool Context::ProcessTouchEnd(const TouchList& touches, int key_modifier_state)
 {
 	bool result = true;
 	for (const auto& touch : touches)
-		result &= ProcessTouchEnd(touch);
+		result &= ProcessTouchEnd(touch, key_modifier_state);
 	return result;
 }
 
@@ -918,17 +916,11 @@ bool Context::ProcessTouchCancel(const TouchList& touches)
 	return result;
 }
 
-bool Context::ProcessTouchStart(const Touch& touch)
+bool Context::ProcessTouchStart(const Touch& touch, int key_modifier_state)
 {
 	TouchState * state = LookupTouch(touch.identifier);
 	if (!state)
-	{
-		touch_states.push_back({});
-		state = &touch_states.back();
-		state->identifier = touch.identifier;
-
-		RMLUI_ASSERTMSG(touch_states.size() < 100, "Too many different touch identifiers were used.");
-	}
+		state = &(*touch_states.emplace(touch.identifier, TouchState()).first).second;
 
 	state->is_pressed = true;
 	state->start_position = state->last_position = touch.position;
@@ -942,11 +934,13 @@ bool Context::ProcessTouchStart(const Touch& touch)
 	if (state->scroll_container && scroll_controller->GetTarget() == state->scroll_container)
 		scroll_controller->Reset();
 
-	ProcessMouseMove(static_cast<int>(touch.position.x), static_cast<int>(touch.position.y), 0);
-	return ProcessMouseButtonDown(static_cast<int>(std::distance(&touch_states.front(), state)), 0);
+	ProcessMouseMove(static_cast<int>(touch.position.x), static_cast<int>(touch.position.y), key_modifier_state);
+
+	// always assume touch press/release events are handled as left mouse button
+	return ProcessMouseButtonDown(0, key_modifier_state);
 }
 
-bool Context::ProcessTouchMove(const Touch& touch)
+bool Context::ProcessTouchMove(const Touch& touch, int key_modifier_state)
 {
 	TouchState* state = LookupTouch(touch.identifier);
 	if (!state || !state->is_pressed)
@@ -1016,10 +1010,10 @@ bool Context::ProcessTouchMove(const Touch& touch)
 
 	state->last_position = touch.position;
 
-	return ProcessMouseMove(static_cast<int>(touch.position.x), static_cast<int>(touch.position.y), 0);
+	return ProcessMouseMove(static_cast<int>(touch.position.x), static_cast<int>(touch.position.y), key_modifier_state);
 }
 
-bool Context::ProcessTouchEnd(const Touch& touch)
+bool Context::ProcessTouchEnd(const Touch& touch, int key_modifier_state)
 {
 	TouchState* state = LookupTouch(touch.identifier);
 	if (!state)
@@ -1051,8 +1045,10 @@ bool Context::ProcessTouchEnd(const Touch& touch)
 	state->is_pressed = false;
 	state->scroll_container = nullptr;
 
-	ProcessMouseMove(static_cast<int>(touch.position.x), static_cast<int>(touch.position.y), 0);
-	return ProcessMouseButtonUp(static_cast<int>(std::distance(&touch_states.front(), state)), 0);
+	ProcessMouseMove(static_cast<int>(touch.position.x), static_cast<int>(touch.position.y), key_modifier_state);
+
+	// always assume touch press/release events are handled as left mouse button
+	return ProcessMouseButtonUp(0, key_modifier_state);
 }
 
 bool Context::ProcessTouchCancel(const Touch& touch)
@@ -1064,7 +1060,7 @@ bool Context::ProcessTouchCancel(const Touch& touch)
 	state->is_pressed = false;
 	state->scroll_container = nullptr;
 
-	return ProcessMouseButtonUp(static_cast<int>(std::distance(&touch_states.front(), state)), 0);
+	return ProcessMouseButtonUp(0, 0);
 }
 
 void Context::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor)
@@ -1198,10 +1194,10 @@ void Context::OnElementDetach(Element* element)
 
 	// Clear TouchState if we're touching element
 	for (auto& state : touch_states)
-		if (state.scroll_container == element)
+		if (state.second.scroll_container == element)
 		{
-			state.is_pressed = false;
-			state.scroll_container = nullptr;
+			state.second.is_pressed = false;
+			state.second.scroll_container = nullptr;
 		}
 }
 

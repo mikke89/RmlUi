@@ -370,7 +370,6 @@ private:
 	// The current state of Touches, required to implement proper inertia scrolling.
 	struct TouchState
 	{
-		TouchId identifier;
 		bool is_pressed = false;
 		bool scrolling_right = false;
 		bool scrolling_down = false;
@@ -381,7 +380,7 @@ private:
 		double scrolling_start_time_x = 0;
 		double scrolling_start_time_y = 0;
 	};
-	Vector<TouchState> touch_states;
+	SmallUnorderedMap<TouchId, TouchState> touch_states;
 
 	// Controller for various scroll behavior modes.
 	UniquePtr<ScrollController> scroll_controller; // [not-null]
@@ -459,15 +458,15 @@ private:
 	/// Process single touch movement for this context.
 	/// @param[in] touch Touch data: identifier and coordinates.
 	/// @return True if touch point is not interacting with any elements in the context, otherwise false.
-	bool ProcessTouchMove(const Touch& touch);
+	bool ProcessTouchMove(const Touch& touch, int key_modifier_state);
 	/// Process single touch press for this context.
 	/// @param[in] touch Touch data: identifier and coordinates.
 	/// @return True if touch point is not interacting with any elements in the context, otherwise false.
-	bool ProcessTouchStart(const Touch& touch);
+	bool ProcessTouchStart(const Touch& touch, int key_modifier_state);
 	/// Process single touch release for this context.
 	/// @param[in] touch Touch data: identifier and coordinates.
 	/// @return True if touch point is not interacting with any elements in the context, otherwise false.
-	bool ProcessTouchEnd(const Touch& touch);
+	bool ProcessTouchEnd(const Touch& touch, int key_modifier_state);
 	/// Cancel processing touch for this context.
 	/// @param[in] touch Touch data: identifier and coordinates.
 	/// @return True if touch point is not interacting with any elements in the context, otherwise false.
