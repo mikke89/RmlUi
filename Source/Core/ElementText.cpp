@@ -310,6 +310,7 @@ void ElementText::ClearLines()
 	RMLUI_ZoneScoped;
 	lines.clear();
 	generated_decoration = Style::TextDecoration::None;
+	geometry_dirty = true;
 }
 
 void ElementText::AddLine(Vector2f line_position, String line)
