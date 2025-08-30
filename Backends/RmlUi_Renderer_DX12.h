@@ -817,8 +817,8 @@ private:
 	ID3D12Fence* m_p_fence_screenshot;
 	IDXGIAdapter* m_p_adapter;
 
-	ID3D12PipelineState* m_pipelines[22];
-	ID3D12RootSignature* m_root_signatures[22];
+	ID3D12PipelineState* m_pipelines[23];
+	ID3D12RootSignature* m_root_signatures[23];
 
 	ID3D12CommandAllocator* m_p_copy_allocator;
 	ID3D12GraphicsCommandList* m_p_copy_command_list;

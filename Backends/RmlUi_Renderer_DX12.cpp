@@ -766,6 +766,7 @@ enum class ProgramId : int {
 	Passthrough,
 	Passthrough_NoDepthStencil,
 	Passthrough_MSAA,
+	Passthrough_MSAA_Equal,
 	// glBlendFunc(GL_CONSTANT_ALPHA, GL_ZERO);
 	Passthrough_ColorMask,        // todo: probably you should delete it and use just passthrough due to fact that it was outdated
 	Passthrough_NoBlend,          // for MSAA RT
@@ -2806,6 +2807,20 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
+constexpr const char* translate_filtertype(FilterType id)
+{
+	switch (id)
+	{
+	case FilterType::Invalid: return "Invalid";
+	case FilterType::Passthrough: return "Passthrough";
+	case FilterType::Blur: return "Blur";
+	case FilterType::DropShadow: return "DropShadow";
+	case FilterType::ColorMatrix: return "ColorMatrix";
+	case FilterType::MaskImage: return "MaskImage";
+	default: return "UNKNOWN_FITERTYPE";
+	}
+}
+
 void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - RenderFilters");
@@ -2816,8 +2831,8 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 		const FilterType type = filter.type;
 
 	#ifdef RMLUI_DX_DEBUG
-		char marker_name[32];
-		std::sprintf(marker_name, "RenderFilters=%d", static_cast<int>(filter.type));
+		char marker_name[64];
+		std::sprintf(marker_name, "RenderFilters=%s", translate_filtertype(filter.type));
 
 		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, marker_name);
 	#endif
@@ -3191,7 +3206,14 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 	else
 	{
 		// since we use msaa render target we should use appropriate version of pipeline
-		this->UseProgram(ProgramId::Passthrough_MSAA);
+		if (this->m_is_stencil_equal)
+		{
+			this->UseProgram(ProgramId::Passthrough_MSAA_Equal);
+		}
+		else
+		{
+			this->UseProgram(ProgramId::Passthrough_MSAA);
+		}
 	}
 
 	{
@@ -6981,6 +7003,10 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 			IID_PPV_ARGS(&this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA)]));
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateRootSignature");
 
+		status = this->m_p_device->CreateRootSignature(0, p_signature->GetBufferPointer(), p_signature->GetBufferSize(),
+			IID_PPV_ARGS(&this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA_Equal)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateRootSignature");
+
 		if (p_signature)
 		{
 			p_signature->Release();
@@ -7142,14 +7168,26 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 	#endif
 
 		desc_pipeline.SampleDesc = this->m_desc_sample;
+		desc_pipeline.DepthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		desc_pipeline.DepthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 
 		status = this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline,
 			IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]));
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough_MSAA)");
 
+		desc_pipeline.DepthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_EQUAL;
+		desc_pipeline.DepthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_EQUAL;
+		status = this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline,
+			IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA_Equal)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough_MSAA_Equal)");
+
 	#ifdef RMLUI_DX_DEBUG
 		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("rs of Passthrough_MSAA"));
 		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("pipeline Passthrough_MSAA"));
+
+		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA_Equal)]
+			->SetName(TEXT("rs of Passthrough_MSAA_Equal"));
+		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA_Equal)]->SetName(TEXT("pipeline Passthrough_MSAA_Equal"));
 	#endif
 
 		desc_pipeline.SampleDesc.Count = 1;
@@ -7350,12 +7388,12 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_ColorMask()
 
 		desc_depth_stencil.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
 		desc_depth_stencil.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
-		desc_depth_stencil.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_EQUAL;
+		desc_depth_stencil.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 		desc_depth_stencil.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
 
 		desc_depth_stencil.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
 		desc_depth_stencil.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
-		desc_depth_stencil.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_EQUAL;
+		desc_depth_stencil.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 		desc_depth_stencil.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc_pipeline = {};
@@ -8806,6 +8844,17 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 		if (!region.Valid())
 		{
 			this->m_is_scissor_was_set = false;
+
+			if (this->m_p_command_graphics_list)
+			{
+				D3D12_RECT disable_scissor = {};
+				disable_scissor.left = 0;
+				disable_scissor.top = 0;
+				disable_scissor.right = this->m_width;
+				disable_scissor.bottom = this->m_height;
+				this->m_p_command_graphics_list->RSSetScissorRects(1, &disable_scissor);
+			}
+
 			return;
 		}
 	}
@@ -8872,12 +8921,48 @@ void RenderInterface_DX12::SubmitTransformUniform(ConstantBufferType& constant_b
 	}
 }
 
+constexpr const char* translate_programId(ProgramId id)
+{
+	switch (id)
+	{
+	case ProgramId::None: return "None";
+	case ProgramId::Color_Stencil_Always: return "Color_Stencil_Always";
+	case ProgramId::Color_Stencil_Equal: return "Color_Stencil_Equal";
+	case ProgramId::Color_Stencil_Set: return "Color_Stencil_Set";
+	case ProgramId::Color_Stencil_SetInverse: return "Color_Stencil_SetInverse";
+	case ProgramId::Color_Stencil_Intersect: return "Color_Stencil_Intersect";
+	case ProgramId::Color_Stencil_Disabled: return "Color_Stencil_Disabled";
+	case ProgramId::Texture_Stencil_Always: return "Texture_Stencil_Always";
+	case ProgramId::Texture_Stencil_Equal: return "Texture_Stencil_Equal";
+	case ProgramId::Texture_Stencil_Disabled: return "Texture_Stencil_Disabled";
+	case ProgramId::Gradient: return "Gradient";
+	case ProgramId::Creation: return "Creation";
+	case ProgramId::Passthrough: return "Passthrough";
+	case ProgramId::Passthrough_NoDepthStencil: return "Passthrough_NoDepthStencil";
+	case ProgramId::Passthrough_MSAA: return "Passthrough_MSAA";
+	case ProgramId::Passthrough_ColorMask: return "Passthrough_ColorMask        ";
+	case ProgramId::Passthrough_NoBlend: return "Passthrough_NoBlend          ";
+	case ProgramId::Passthrough_NoBlendAndNoMSAA: return "Passthrough_NoBlendAndNoMSAA";
+	case ProgramId::ColorMatrix: return "ColorMatrix";
+	case ProgramId::BlendMask: return "BlendMask";
+	case ProgramId::Blur: return "Blur";
+	case ProgramId::DropShadow: return "DropShadow";
+	case ProgramId::Count: return "Count";
+	default: return "UNKNOWN_PROGRAMID";
+	}
+}
+
 void RenderInterface_DX12::UseProgram(ProgramId pipeline_id)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - UseProgram");
 	RMLUI_ASSERT(pipeline_id < ProgramId::Count && "overflow, too big value for indexing");
 
-	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "UseProgram");
+#ifdef RMLUI_DX_DEBUG
+	char msg[64];
+	std::sprintf(msg, "UseProgram = %s", translate_programId(pipeline_id));
+#endif
+
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, msg);
 	if (pipeline_id != ProgramId::None)
 	{
 		RMLUI_ASSERT(this->m_pipelines[static_cast<int>(pipeline_id)] && "you forgot to initialize or deleted!");
