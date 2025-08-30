@@ -5146,6 +5146,9 @@ void RenderInterface_DX12::Clear_Integration()
 
 void RenderInterface_DX12::SetViewport_Shell(int viewport_width, int viewport_height)
 {
+	if (viewport_width <= 0 || viewport_height <= 0)
+		return;
+
 	if (this->m_width != viewport_width || this->m_height != viewport_height)
 	{
 		this->Flush();
