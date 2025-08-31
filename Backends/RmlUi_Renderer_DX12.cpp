@@ -3206,7 +3206,7 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 	else
 	{
 		// since we use msaa render target we should use appropriate version of pipeline
-		if (this->m_is_stencil_equal)
+		if (this->m_is_stencil_equal && this->m_is_stencil_enabled)
 		{
 			this->UseProgram(ProgramId::Passthrough_MSAA_Equal);
 		}
@@ -8940,8 +8940,9 @@ constexpr const char* translate_programId(ProgramId id)
 	case ProgramId::Passthrough: return "Passthrough";
 	case ProgramId::Passthrough_NoDepthStencil: return "Passthrough_NoDepthStencil";
 	case ProgramId::Passthrough_MSAA: return "Passthrough_MSAA";
-	case ProgramId::Passthrough_ColorMask: return "Passthrough_ColorMask        ";
-	case ProgramId::Passthrough_NoBlend: return "Passthrough_NoBlend          ";
+	case ProgramId::Passthrough_MSAA_Equal: return "Passthrough_MSAA_Equal";
+	case ProgramId::Passthrough_ColorMask: return "Passthrough_ColorMask";
+	case ProgramId::Passthrough_NoBlend: return "Passthrough_NoBlend";
 	case ProgramId::Passthrough_NoBlendAndNoMSAA: return "Passthrough_NoBlendAndNoMSAA";
 	case ProgramId::ColorMatrix: return "ColorMatrix";
 	case ProgramId::BlendMask: return "BlendMask";
