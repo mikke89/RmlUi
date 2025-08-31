@@ -1916,9 +1916,15 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		meta->effects.DirtyEffects();
 	}
 
+	const bool font_changed = (changed_properties.Contains(PropertyId::FontFamily) || changed_properties.Contains(PropertyId::FontStyle) ||
+		changed_properties.Contains(PropertyId::FontWeight) || changed_properties.Contains(PropertyId::FontSize) ||
+		changed_properties.Contains(PropertyId::LetterSpacing));
+
 	// Dirty the effects data when their visual looks may have changed.
 	if (border_radius_changed ||                            //
+		font_changed ||                                     //
 		changed_properties.Contains(PropertyId::Opacity) || //
+		changed_properties.Contains(PropertyId::Color) ||   //
 		changed_properties.Contains(PropertyId::ImageColor))
 	{
 		meta->effects.DirtyEffectsData();
