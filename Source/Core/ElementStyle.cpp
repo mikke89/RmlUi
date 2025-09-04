@@ -310,11 +310,16 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 {
 	Property new_property = property;
 
-	new_property.definition = StyleSheetSpecification::GetProperty(id);
-	if (!new_property.definition)
+	return this->SetProperty(id, std::move(new_property));
+}
+
+bool ElementStyle::SetProperty(PropertyId id, Property&& property)
+{
+	property.definition = StyleSheetSpecification::GetProperty(id);
+	if (!property.definition)
 		return false;
 
-	inline_properties.SetProperty(id, new_property);
+	inline_properties.SetProperty(id, std::move(property));
 	DirtyProperty(id);
 
 	return true;

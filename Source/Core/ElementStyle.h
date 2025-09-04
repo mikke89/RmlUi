@@ -93,6 +93,8 @@ public:
 	/// @param[in] id The ID  of the new property.
 	/// @param[in] property The parsed property to set.
 	bool SetProperty(PropertyId id, const Property& property);
+	bool SetProperty(PropertyId id, Property&& property);
+
 	/// Removes a local property override on the element; its value will revert to that defined in
 	/// the style sheet.
 	/// @param[in] id The ID of the local property definition to remove.
