@@ -36,7 +36,7 @@ PropertyDictionary::PropertyDictionary() {}
 void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 {
 	RMLUI_ASSERT(id != PropertyId::Invalid);
-	properties[id] = property;
+	properties.emplace(id, property);
 }
 
 void PropertyDictionary::RemoveProperty(PropertyId id)
