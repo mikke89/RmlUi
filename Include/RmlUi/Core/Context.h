@@ -370,7 +370,6 @@ private:
 	// The current state of Touches, required to implement proper inertia scrolling.
 	struct TouchState
 	{
-		bool is_pressed = false;
 		bool scrolling_right = false;
 		bool scrolling_down = false;
 		Vector2f start_position;
