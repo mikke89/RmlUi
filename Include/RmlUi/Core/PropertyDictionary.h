@@ -46,6 +46,8 @@ public:
 
 	/// Sets a property on the dictionary. Any existing property with the same id will be overwritten.
 	void SetProperty(PropertyId id, const Property& property);
+	void SetProperty(PropertyId id, Property&& property);
+
 	/// Removes a property from the dictionary, if it exists.
 	void RemoveProperty(PropertyId id);
 	/// Returns the value of the property with the requested id, if one exists.
