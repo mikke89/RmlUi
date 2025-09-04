@@ -629,6 +629,11 @@ bool Element::SetProperty(PropertyId id, const Property& property)
 	return meta->style.SetProperty(id, property);
 }
 
+bool Element::SetProperty(PropertyId id, Property&& property)
+{
+	return meta->style.SetProperty(id, std::move(property));
+}
+
 void Element::RemoveProperty(const String& name)
 {
 	auto property_id = StyleSheetSpecification::GetPropertyId(name);
