@@ -36,13 +36,13 @@ PropertyDictionary::PropertyDictionary() {}
 void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 {
 	RMLUI_ASSERT(id != PropertyId::Invalid);
-	properties.emplace(id, property);
+	properties[id] = property;
 }
 
 void PropertyDictionary::SetProperty(PropertyId id, Property&& property)
 {
 	RMLUI_ASSERT(id != PropertyId::Invalid);
-	properties.emplace(id, std::move(property));
+	properties[id] = std::move(property);
 }
 
 void PropertyDictionary::RemoveProperty(PropertyId id)
