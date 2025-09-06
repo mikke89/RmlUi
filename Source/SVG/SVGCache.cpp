@@ -188,7 +188,7 @@ namespace SVG {
 			}
 
 			// We use a reset-release approach here in case clients use a non-std unique_ptr (lunasvg uses std::unique_ptr)
-			doc.svg_document.reset(lunasvg::Document::loadFromData(svg_data).release());
+			doc.svg_document.reset(lunasvg::Document::loadFromData(svg_data.data(), svg_data.size()).release());
 
 			if (!doc.svg_document)
 			{
