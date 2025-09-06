@@ -142,7 +142,7 @@ namespace SVG {
 			[&](const SVGGeometry& data) { return data.colour == colour; });
 	}
 
-	static const std::string& GetSourceOr(const lunasvg::Document* svg_document, const std::string& default_value)
+	static const String& GetSourceOr(const lunasvg::Document* svg_document, const String& default_value)
 	{
 		const auto& documents = svg_cache_data->documents;
 		auto it = std::find_if(documents.begin(), documents.end(),
