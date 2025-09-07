@@ -221,6 +221,8 @@ enum class EventId : uint16_t {
 	Mouseout,
 	Focus,
 	Blur,
+	FocusIn,
+	FocusOut,
 	Keydown,
 	Keyup,
 	Textinput,

@@ -1047,10 +1047,16 @@ bool Context::OnFocusChange(Element* new_focus, bool focus_visible)
 	Dictionary parameters;
 	SendEvents(old_chain, new_chain, EventId::Blur, parameters);
 
+	if (old_focus)
+		old_focus->DispatchEvent(Rml::EventId::FocusOut, parameters);
+
 	if (focus_visible)
 		parameters["focus_visible"] = true;
 
 	SendEvents(new_chain, old_chain, EventId::Focus, parameters);
+
+	if (new_focus)
+		new_focus->DispatchEvent(Rml::EventId::FocusIn, parameters);
 
 	focus = new_focus;
 

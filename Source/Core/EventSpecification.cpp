@@ -44,6 +44,8 @@ struct EventSpecificationData {
 		{EventId::Mouseout      , "mouseout"      , true  , true  , DefaultActionPhase::Target},
 		{EventId::Focus         , "focus"         , false , false , DefaultActionPhase::Target},
 		{EventId::Blur          , "blur"          , false , false , DefaultActionPhase::Target},
+		{EventId::FocusIn       , "focusin"       , false , true  , DefaultActionPhase::TargetAndBubble},
+		{EventId::FocusOut      , "focusout"      , false , true  , DefaultActionPhase::TargetAndBubble},
 		{EventId::Keydown       , "keydown"       , true  , true  , DefaultActionPhase::TargetAndBubble},
 		{EventId::Keyup         , "keyup"         , true  , true  , DefaultActionPhase::TargetAndBubble},
 		{EventId::Textinput     , "textinput"     , true  , true  , DefaultActionPhase::TargetAndBubble},
