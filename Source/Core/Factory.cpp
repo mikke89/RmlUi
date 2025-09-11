@@ -432,9 +432,9 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 		}
 
 		// Unescape any escaped entities or unicode symbols
-		text = StringUtilities::DecodeRml(text);
+		String decodedText = StringUtilities::DecodeRml(text);
 
-		text_element->SetText(text);
+		text_element->SetText(std::move(decodedText));
 
 		// Add to active node.
 		parent->AppendChild(std::move(element));
