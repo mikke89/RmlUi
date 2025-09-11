@@ -87,6 +87,17 @@ void ElementText::SetText(const String& _text)
 	}
 }
 
+void ElementText::SetText(String&& _text)
+{
+	if (text != _text)
+	{
+		text = std::move(_text);
+
+		if (dirty_layout_on_change)
+			DirtyLayout();
+	}
+}
+
 const String& ElementText::GetText() const
 {
 	return text;
