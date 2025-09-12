@@ -117,7 +117,7 @@ void ElementSVG::UpdateCachedData()
 
 	svg_dirty = false;
 
-	const std::string source = GetAttribute<String>("src", "");
+	const String source = GetAttribute<String>("src", "");
 	if (source.empty())
 	{
 		handle.reset();
