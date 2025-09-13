@@ -2498,10 +2498,15 @@ void Element::UpdateDefinition()
 bool Element::Animate(const String& property_name, const Property& target_value, float duration, Tween tween, int num_iterations,
 	bool alternate_direction, float delay, const Property* start_value)
 {
-	bool result = false;
-	PropertyId property_id = StyleSheetSpecification::GetPropertyId(property_name);
+	return Animate(StyleSheetSpecification::GetPropertyId(property_name), target_value, duration, tween,
+		num_iterations, alternate_direction, delay, start_value);
+}
 
-	auto it_animation = StartAnimation(property_id, start_value, num_iterations, alternate_direction, delay, false);
+bool Element::Animate(PropertyId id, const Property& target_value, float duration, Tween tween, int num_iterations,
+	bool alternate_direction, float delay, const Property* start_value)
+{
+	bool result = false;
+	auto it_animation = StartAnimation(id, start_value, num_iterations, alternate_direction, delay, false);
 	if (it_animation != animations.end())
 	{
 		result = it_animation->AddKey(duration, target_value, *this, tween, true);
@@ -2514,13 +2519,15 @@ bool Element::Animate(const String& property_name, const Property& target_value,
 
 bool Element::AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween)
 {
+	return AddAnimationKey(StyleSheetSpecification::GetPropertyId(property_name), target_value, duration, tween);
+}
+
+bool Element::AddAnimationKey(PropertyId id, const Property& target_value, float duration, Tween tween)
+{
 	ElementAnimation* animation = nullptr;
-
-	PropertyId property_id = StyleSheetSpecification::GetPropertyId(property_name);
-
 	for (auto& existing_animation : animations)
 	{
-		if (existing_animation.GetPropertyId() == property_id)
+		if (existing_animation.GetPropertyId() == id)
 		{
 			animation = &existing_animation;
 			break;
