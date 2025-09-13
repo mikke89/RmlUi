@@ -70,9 +70,9 @@ struct ElementMeta;
 struct StackingContextChild;
 
 /**
-    A generic element in the DOM tree.
+	A generic element in the DOM tree.
 
-    @author Peter Curry
+	@author Peter Curry
  */
 
 class RMLUICORE_API Element : public ScriptInterface, public EnableObserverPtr<Element> {
@@ -270,11 +270,14 @@ public:
 	/// @return True if a new animation was added.
 	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1,
 		bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
+	bool Animate(PropertyId id, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1,
+		bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
 
 	/// Add a key to an animation, extending its duration.
 	/// If no animation exists for the given property name, the call will be ignored.
 	/// @return True if a new animation key was added.
 	bool AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
+	bool AddAnimationKey(PropertyId id, const Property& target_value, float duration, Tween tween = Tween{});
 
 	/// Iterator for the local (non-inherited) properties defined on this element.
 	/// @warning Modifying the element's properties or classes invalidates the iterator.
@@ -584,7 +587,7 @@ public:
 	//@}
 
 	/**
-	    @name Internal Functions
+		@name Internal Functions
 	 */
 	//@{
 	/// Access the event dispatcher for this element.
