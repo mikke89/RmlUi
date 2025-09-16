@@ -211,6 +211,15 @@ void Variant::Set(const int value)
 	type = INT;
 	SET_VARIANT(int);
 }
+<<<<<<< Updated upstream
+=======
+#ifdef __APPLE__
+void Variant::Set(const long value)
+{
+	Set(static_cast<int64_t>(value));
+}
+#endif
+>>>>>>> Stashed changes
 
 void Variant::Set(const int64_t value)
 {
@@ -224,6 +233,16 @@ void Variant::Set(const unsigned int value)
 	SET_VARIANT(unsigned int);
 }
 
+<<<<<<< Updated upstream
+=======
+#ifdef __APPLE__
+void Variant::Set(const unsigned long value)
+{
+	Set(static_cast<uint64_t>(value));
+}
+#endif
+
+>>>>>>> Stashed changes
 void Variant::Set(const uint64_t value)
 {
 	type = UINT64;
