@@ -134,10 +134,6 @@ private:
 	void Set(const float value);
 	void Set(const double value);
 	void Set(const int value);
-<<<<<<< Updated upstream
-	void Set(const int64_t value);
-	void Set(const unsigned int value);
-=======
 #ifdef __APPLE__
 	void Set(const long value);
 #endif
@@ -146,7 +142,6 @@ private:
 #ifdef __APPLE__
 	void Set(const unsigned long value);
 #endif
->>>>>>> Stashed changes
 	void Set(const uint64_t value);
 	void Set(const char* value);
 	void Set(void* value);
