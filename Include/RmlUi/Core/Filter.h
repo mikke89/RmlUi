@@ -55,7 +55,7 @@ public:
 	/// Called to allow extending the area being affected by this filter beyond the border box of the element.
 	/// @param[in] element The element the filter is being rendered on.
 	/// @param[in,out] overflow The ink overflow rectangle determining the clipping region to be applied when filtering the current element.
-	/// @note Modifying the ink overflow rectangle affects rendering of all filters active on the current element.
+	/// @note Modifying the ink overflow rectangle affects the rendering of all filters active on the current element.
 	/// @note Only affects the 'filter' property, not 'backdrop-filter'.
 	virtual void ExtendInkOverflow(Element* element, Rectanglef& overflow) const;
 };

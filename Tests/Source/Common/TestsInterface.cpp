@@ -155,9 +155,12 @@ void TestsRenderInterface::RenderToClipMask(Rml::ClipMaskOperation /*mask_operat
 	counters.render_to_clip_mask += 1;
 }
 
-Rml::TextureHandle TestsRenderInterface::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& /*source*/)
+Rml::TextureHandle TestsRenderInterface::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
 	counters.load_texture += 1;
+	if (source.find("invalid") != Rml::String::npos)
+		return 0;
+
 	texture_dimensions.x = 512;
 	texture_dimensions.y = 256;
 	return 1;

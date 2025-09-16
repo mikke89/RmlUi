@@ -124,6 +124,19 @@ protected:
 	/// Transforms the displayed value of the text box, typically used for password fields.
 	/// @note Only use this for transforming characters, do not modify the length of the string.
 	virtual void TransformValue(String& value);
+	/// Converts a display index to an attribute index.
+	/// @param[in] display_index Absolute index into the displayed value (see GetValue).
+	/// @param[in] attribute_value The attribute value to be considered.
+	/// @return Absolute index into the attribute value (see GetAttributeValue).
+	/// @note All indices stored in this class refer to the displayed value, unless otherwise specified. The display and
+	/// attribute indices are typically identical, but may differ when the transformed value (see TransformValue) has
+	/// modified the contents to be displayed.
+	virtual int DisplayIndexToAttributeIndex(int display_index, const String& attribute_value);
+	/// Converts an attribute index to a display index.
+	/// @param[in] attribute_index Absolute index into the attribute value (see GetAttributeValue).
+	/// @param[in] attribute_value The attribute value to be considered.
+	/// @return Absolute index into the displayed value (see GetValue).
+	virtual int AttributeIndexToDisplayIndex(int attribute_index, const String& attribute_value);
 	/// Called when the user pressed enter.
 	virtual void LineBreak() = 0;
 
@@ -160,7 +173,7 @@ private:
 	/// @return True if selection was changed.
 	bool MoveCursorHorizontal(CursorMovement movement, bool select, bool& out_of_bounds);
 	/// Moves the cursor up and down the text field.
-	/// @param[in] x How far to move the cursor.
+	/// @param[in] distance How far to move the cursor.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
 	/// @param[out] out_of_bounds Set to true if the resulting line position is out of bounds, false if not.
 	/// @return True if selection was changed.
@@ -246,7 +259,6 @@ private:
 	ElementText* text_element;
 	ElementText* selected_text_element;
 	Vector2f internal_dimensions;
-	Vector2f scroll_offset;
 
 	using LineList = Vector<Line>;
 	LineList lines;

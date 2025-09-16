@@ -38,6 +38,7 @@
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "ComputeProperty.h"
+#include "ControlledLifetimeResource.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
 #include <algorithm>
@@ -90,7 +91,7 @@ private:
 	ShorthandId id_rectangle;
 
 public:
-	SpritesheetPropertyParser() : specification(4, 1)
+	SpritesheetPropertyParser() : specification(6, 1)
 	{
 		id_src = specification.RegisterProperty("src", "", false, false).AddParser("string").GetId();
 		id_rx = specification.RegisterProperty("rectangle-x", "", false, false).AddParser("length").GetId();
@@ -158,8 +159,6 @@ public:
 	}
 };
 
-static UniquePtr<SpritesheetPropertyParser> spritesheet_property_parser;
-
 /*
  * Media queries need a special parser because they have unique properties that
  * aren't admissible in other property declaration contexts.
@@ -208,7 +207,13 @@ public:
 	}
 };
 
-static UniquePtr<MediaQueryPropertyParser> media_query_property_parser;
+struct StyleSheetParserData {
+	// The following parsers are reasonably heavy to initialize, so we construct them during library initialization.
+	SpritesheetPropertyParser spritesheet;
+	MediaQueryPropertyParser media_query;
+};
+
+static ControlledLifetimeResource<StyleSheetParserData> style_sheet_property_parsers;
 
 StyleSheetParser::StyleSheetParser()
 {
@@ -221,14 +226,12 @@ StyleSheetParser::~StyleSheetParser() {}
 
 void StyleSheetParser::Initialise()
 {
-	spritesheet_property_parser = MakeUnique<SpritesheetPropertyParser>();
-	media_query_property_parser = MakeUnique<MediaQueryPropertyParser>();
+	style_sheet_property_parsers.Initialize();
 }
 
 void StyleSheetParser::Shutdown()
 {
-	spritesheet_property_parser.reset();
-	media_query_property_parser.reset();
+	style_sheet_property_parsers.Shutdown();
 }
 
 static bool IsValidIdentifier(const String& str)
@@ -399,7 +402,7 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, NamedDecorator
 
 bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDictionary& properties, MediaQueryModifier& modifier)
 {
-	media_query_property_parser->SetTargetProperties(&properties);
+	style_sheet_property_parsers->media_query.SetTargetProperties(&properties);
 
 	enum ParseState { Global, Name, Value };
 	ParseState state = Global;
@@ -429,7 +432,8 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 					// we can only ever see one "not" on the entire global query.
 					if (modifier != MediaQueryModifier::None)
 					{
-						Log::Message(Log::LT_WARNING, "Unexpected '%s' in @media query list at %s:%d.", current_string.c_str(), stream_file_name.c_str(), line_number);
+						Log::Message(Log::LT_WARNING, "Unexpected '%s' in @media query list at %s:%d.", current_string.c_str(),
+							stream_file_name.c_str(), line_number);
 						return false;
 					}
 
@@ -451,8 +455,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
 
 			// allow an empty string to pass through only if we had just parsed a modifier.
-			if (current_string != "and" &&
-				(properties.GetNumProperties() != 0 || !current_string.empty()))
+			if (current_string != "and" && (properties.GetNumProperties() != 0 || !current_string.empty()))
 			{
 				Log::Message(Log::LT_WARNING, "Unexpected '%s' in @media query list at %s:%d. Expected 'and'.", current_string.c_str(),
 					stream_file_name.c_str(), line_number);
@@ -473,7 +476,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 
 			current_string = StringUtilities::StripWhitespace(current_string);
 
-			if (!media_query_property_parser->Parse(name, current_string))
+			if (!style_sheet_property_parsers->media_query.Parse(name, current_string))
 				Log::Message(Log::LT_WARNING, "Syntax error parsing media-query property declaration '%s: %s;' in %s: %d.", name.c_str(),
 					current_string.c_str(), stream_file_name.c_str(), line_number);
 
@@ -629,12 +632,12 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					}
 					else if (at_rule_identifier == "spritesheet")
 					{
-						// The spritesheet parser is reasonably heavy to initialize, so we make it a static global.
-						ReadProperties(*spritesheet_property_parser);
+						auto& spritesheet_property_parser = style_sheet_property_parsers->spritesheet;
+						ReadProperties(spritesheet_property_parser);
 
-						const String& image_source = spritesheet_property_parser->GetImageSource();
-						const SpriteDefinitionList& sprite_definitions = spritesheet_property_parser->GetSpriteDefinitions();
-						const float image_resolution_factor = spritesheet_property_parser->GetImageResolutionFactor();
+						const String& image_source = spritesheet_property_parser.GetImageSource();
+						const SpriteDefinitionList& sprite_definitions = spritesheet_property_parser.GetSpriteDefinitions();
+						const float image_resolution_factor = spritesheet_property_parser.GetImageResolutionFactor();
 
 						if (sprite_definitions.empty())
 						{
@@ -660,7 +663,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 								display_scale, sprite_definitions);
 						}
 
-						spritesheet_property_parser->Clear();
+						spritesheet_property_parser.Clear();
 						at_rule_name.clear();
 						state = State::Global;
 					}

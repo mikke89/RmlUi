@@ -205,20 +205,87 @@ TEST_CASE("animation.decorator")
 
 			"horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f), horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f)",
 		},
+
+		// Standard declaration of linear gradients (consider string conversion a best-effort for now)
+		{
+			"",
+			"",
+
+			"linear-gradient(transparent, transparent)",
+			"linear-gradient(white, white)",
+
+			"linear-gradient(180deg unspecified unspecified unspecified #7d7d7d3f, #7d7d7d3f)",
+		},
+		{
+			"",
+			"",
+
+			"linear-gradient(0deg, transparent, transparent)",
+			"linear-gradient(180deg, white, white)",
+
+			"linear-gradient(45deg unspecified unspecified unspecified #7d7d7d3f, #7d7d7d3f)",
+		},
+		{
+			"",
+			"",
+
+			"linear-gradient(105deg, #000000 0%, #ff0000 100%)",
+			"linear-gradient(105deg, #ffffff 20%, #00ff00 60%)",
+
+			"linear-gradient(105deg unspecified unspecified unspecified #7f7f7f 5%, #dc7f00 90%)",
+		},
+		{
+			"",
+			"",
+
+			"linear-gradient(105deg, #000000 0%, #ff0000 50%, #ff00ff 100%)",
+			"linear-gradient(105deg, #ffffff 0%, #ffffff 10%, #ffffff 100%)",
+
+			"linear-gradient(105deg unspecified unspecified unspecified #7f7f7f 0%, #ff7f7f 40%, #ff7fff 100%)",
+		},
+		{
+			"",
+			"",
+
+			"linear-gradient(to right, transparent, transparent)",
+			"linear-gradient(270deg, transparent, transparent)",
+
+			// We don't really handle mixing direction keywords and angles here, the output will not be what one might expect.
+			"linear-gradient(202.5deg to right unspecified #00000000, #00000000)",
+		},
+		{
+			"",
+			"",
+
+			"linear-gradient(to right, transparent, transparent)",
+			"linear-gradient(to left, transparent, transparent)",
+
+			// This will effectively evaluate to "to right" with angle being ignored, resulting in discrete interpolation. Not ideal.
+			"linear-gradient(180deg to right unspecified #00000000, #00000000)",
+		},
+		{
+			"",
+			"",
+
+			"linear-gradient(#000000 0%, #ffffff 100%)",
+			"repeating-linear-gradient(#000000 0%, #ffffff 100%)",
+
+			"linear-gradient(#000000 0%, #ffffff 100%)",
+		},
 	};
 
 	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
 	Context* context = TestsShell::GetContext();
 
-	for (const char* property_str : {"decorator", "mask-image"})
+	for (const String property_str : {"decorator", "mask-image"})
 	{
 		for (const Test& test : tests)
 		{
 			const double t_final = 0.1;
 
 			system_interface->SetTime(0.0);
-			String document_rml = Rml::CreateString(document_decorator_rml.c_str(), test.from_rule.c_str(), test.to_rule.c_str(), property_str,
-				test.from.c_str(), property_str, test.to.c_str());
+			String document_rml = Rml::CreateString(document_decorator_rml.c_str(), test.from_rule.c_str(), test.to_rule.c_str(),
+				property_str.c_str(), test.from.c_str(), property_str.c_str(), test.to.c_str());
 
 			ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
 			Element* element = document->GetChild(0);
@@ -228,7 +295,11 @@ TEST_CASE("animation.decorator")
 
 			system_interface->SetTime(0.25 * t_final);
 			TestsShell::RenderLoop();
-			CHECK_MESSAGE(element->GetProperty<String>(property_str) == test.expected_25p, property_str, " from: ", test.from, ", to: ", test.to);
+
+			CAPTURE(property_str);
+			CAPTURE(test.from);
+			CAPTURE(test.to);
+			CHECK(element->GetProperty<String>(property_str) == test.expected_25p);
 
 			document->Close();
 		}

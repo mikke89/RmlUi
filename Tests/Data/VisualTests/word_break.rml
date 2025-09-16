@@ -44,10 +44,10 @@
 	<hr/>
 	<h1>Zero-width box</h1>
 	<p>word-break: normal</p>
-	<div class="box zero">A WORD</div>
+	<div class="box zero">€ WORD</div>
 	<p>word-break: break-all</p>
-	<div class="box zero break-all">A WORD</div>
+	<div class="box zero break-all">€ WORD</div>
 	<p>word-break: break-word</p>
-	<div class="box zero break-word">A WORD</div>
+	<div class="box zero break-word">€ WORD</div>
 </body>
 </rml>

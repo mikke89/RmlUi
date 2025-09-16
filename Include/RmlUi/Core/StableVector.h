@@ -40,7 +40,7 @@ namespace Rml {
     A vector-like container that returns stable indices to refer to entries.
 
     The indices are only invalidated when the element is erased. Pointers on the other hand are invalidated just like for a
-    vector. The container is implemented as a vector with a separate bit mask to track free slots.
+    vector. The container is implemented as a vector with a separate list to track free slots.
 
     @note For simplicity, freed slots are simply replaced with value-initialized elements instead of being destroyed.
  */
@@ -51,37 +51,26 @@ public:
 
 	StableVectorIndex insert(T value)
 	{
-		const auto it_free = std::find(free_slots.begin(), free_slots.end(), true);
 		StableVectorIndex index;
-		if (it_free == free_slots.end())
+		if (free_slots.empty())
 		{
 			index = StableVectorIndex(elements.size());
 			elements.push_back(std::move(value));
-			free_slots.push_back(false);
 		}
 		else
 		{
-			const size_t numeric_index = static_cast<size_t>(it_free - free_slots.begin());
+			const uint32_t numeric_index = free_slots.back();
+			free_slots.pop_back();
 			index = static_cast<StableVectorIndex>(numeric_index);
 			elements[numeric_index] = std::move(value);
-			*it_free = false;
 		}
 		return index;
 	}
 
-	bool empty() const { return elements.size() == count_free_slots(); }
-	size_t size() const { return elements.size() - count_free_slots(); }
+	bool empty() const { return elements.size() == free_slots.size(); }
+	size_t size() const { return elements.size() - free_slots.size(); }
 
-	void reserve(size_t reserve_size)
-	{
-		elements.reserve(reserve_size);
-
-#if !defined(__GNUC__) || defined(__llvm__) || (__GNUC__ < 13)
-		// Skipped on GCC 13.1+, as this emits a curious warning in some situations.
-		// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110498
-		free_slots.reserve(reserve_size);
-#endif
-	}
+	void reserve(size_t reserve_size) { elements.reserve(reserve_size); }
 
 	void clear()
 	{
@@ -90,40 +79,46 @@ public:
 	}
 	T erase(StableVectorIndex index)
 	{
-		RMLUI_ASSERT(size_t(index) < elements.size() && !free_slots[size_t(index)]);
-		free_slots[size_t(index)] = true;
+		RMLUI_ASSERT(size_t(index) < elements.size() && std::find(free_slots.begin(), free_slots.end(), uint32_t(index)) == free_slots.end());
+		free_slots.push_back(uint32_t(index));
 		return std::exchange(elements[size_t(index)], T());
 	}
 
 	T& operator[](StableVectorIndex index)
 	{
-		RMLUI_ASSERT(size_t(index) < elements.size() && !free_slots[size_t(index)]);
+		RMLUI_ASSERT(size_t(index) < elements.size() && std::find(free_slots.begin(), free_slots.end(), uint32_t(index)) == free_slots.end());
 		return elements[size_t(index)];
 	}
 	const T& operator[](StableVectorIndex index) const
 	{
-		RMLUI_ASSERT(size_t(index) < elements.size() && !free_slots[size_t(index)]);
+		RMLUI_ASSERT(size_t(index) < elements.size() && std::find(free_slots.begin(), free_slots.end(), uint32_t(index)) == free_slots.end());
 		return elements[size_t(index)];
 	}
 
-	// Iterate over every item in the vector, skipping free slots.
+	// Iterate over every item in the vector, skipping free slots. Complexity: O(n*log(n)) in number of free slots.
 	template <typename Func>
 	void for_each(Func&& func)
 	{
-		for (size_t i = 0; i < elements.size(); i++)
+		std::sort(free_slots.begin(), free_slots.end());
+
+		size_t i_free_slots = 0;
+		for (size_t i_elements = 0; i_elements < elements.size(); ++i_elements)
 		{
-			if (!free_slots[i])
-				func(elements[i]);
+			while (i_free_slots < free_slots.size() && free_slots[i_free_slots] < i_elements)
+				i_free_slots += 1;
+
+			if (i_free_slots < free_slots.size() && free_slots[i_free_slots] == i_elements)
+				continue;
+
+			func(elements[i_elements]);
 		}
 	}
 
 private:
-	size_t count_free_slots() const { return std::count(free_slots.begin(), free_slots.end(), true); }
-
 	// List of all active elements, including any free slots.
 	Vector<T> elements;
-	// Declares free slots in 'elements'.
-	Vector<bool> free_slots;
+	// Free slots as indices into 'elements'.
+	Vector<uint32_t> free_slots;
 };
 
 } // namespace Rml

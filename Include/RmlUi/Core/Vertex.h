@@ -47,6 +47,12 @@ struct RMLUICORE_API Vertex {
 	ColourbPremultiplied colour;
 	/// Texture coordinate for any associated texture.
 	Vector2f tex_coord;
+
+	friend bool operator==(const Vertex& lhs, const Vertex& rhs)
+	{
+		return lhs.position == rhs.position && lhs.colour == rhs.colour && lhs.tex_coord == rhs.tex_coord;
+	}
+	friend bool operator!=(const Vertex& lhs, const Vertex& rhs) { return !(lhs == rhs); }
 };
 
 } // namespace Rml

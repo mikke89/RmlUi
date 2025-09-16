@@ -28,9 +28,8 @@
 
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include <math.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cmath>
+#include <cstdlib>
 
 namespace Rml {
 
@@ -45,52 +44,52 @@ namespace Math {
 
 	RMLUICORE_API float Absolute(float value)
 	{
-		return fabsf(value);
+		return std::abs(value);
 	}
 
 	RMLUICORE_API int Absolute(int value)
 	{
-		return abs(value);
+		return std::abs(value);
 	}
 
 	RMLUICORE_API Vector2f Absolute(Vector2f value)
 	{
-		return {fabsf(value.x), fabsf(value.y)};
+		return {std::abs(value.x), std::abs(value.y)};
 	}
 
 	RMLUICORE_API float Cos(float angle)
 	{
-		return cosf(angle);
+		return std::cos(angle);
 	}
 
 	RMLUICORE_API float ACos(float value)
 	{
-		return acosf(value);
+		return std::acos(value);
 	}
 
 	RMLUICORE_API float Sin(float angle)
 	{
-		return sinf(angle);
+		return std::sin(angle);
 	}
 
-	RMLUICORE_API float ASin(float angle)
+	RMLUICORE_API float ASin(float value)
 	{
-		return asinf(angle);
+		return std::asin(value);
 	}
 
 	RMLUICORE_API float Tan(float angle)
 	{
-		return tanf(angle);
+		return std::tan(angle);
 	}
 
 	RMLUICORE_API float ATan2(float y, float x)
 	{
-		return atan2f(y, x);
+		return std::atan2(y, x);
 	}
 
 	RMLUICORE_API float Exp(float value)
 	{
-		return expf(value);
+		return std::exp(value);
 	}
 
 	RMLUICORE_API int Log2(int value)
@@ -116,7 +115,7 @@ namespace Math {
 
 	RMLUICORE_API float NormaliseAngle(float angle)
 	{
-		float result = fmodf(angle, RMLUI_PI * 2.0f);
+		float result = std::fmod(angle, RMLUI_PI * 2.0f);
 		if (result < 0.f)
 			result += RMLUI_PI * 2.0f;
 		return result;
@@ -124,27 +123,27 @@ namespace Math {
 
 	RMLUICORE_API float SquareRoot(float value)
 	{
-		return sqrtf(value);
+		return std::sqrt(value);
 	}
 
 	RMLUICORE_API float Round(float value)
 	{
-		return roundf(value);
+		return std::floor(value + 0.5f);
 	}
 
 	RMLUICORE_API double Round(double value)
 	{
-		return round(value);
+		return std::floor(value + 0.5);
 	}
 
 	RMLUICORE_API float RoundUp(float value)
 	{
-		return ceilf(value);
+		return std::ceil(value);
 	}
 
 	RMLUICORE_API float RoundDown(float value)
 	{
-		return floorf(value);
+		return std::floor(value);
 	}
 
 	RMLUICORE_API int RoundToInteger(float value)
@@ -157,17 +156,17 @@ namespace Math {
 
 	RMLUICORE_API int RoundUpToInteger(float value)
 	{
-		return int(ceilf(value));
+		return int(std::ceil(value));
 	}
 
 	RMLUICORE_API int RoundDownToInteger(float value)
 	{
-		return int(floorf(value));
+		return int(std::floor(value));
 	}
 
 	RMLUICORE_API float DecomposeFractionalIntegral(float value, float* integral)
 	{
-		return modff(value, integral);
+		return std::modf(value, integral);
 	}
 
 	RMLUICORE_API void SnapToPixelGrid(float& offset, float& width)
@@ -238,12 +237,12 @@ namespace Math {
 
 	RMLUICORE_API float RandomReal(float max_value)
 	{
-		return (rand() / (float)RAND_MAX) * max_value;
+		return (std::rand() / (float)RAND_MAX) * max_value;
 	}
 
 	RMLUICORE_API int RandomInteger(int max_value)
 	{
-		return (rand() % max_value);
+		return (std::rand() % max_value);
 	}
 
 	RMLUICORE_API bool RandomBool()

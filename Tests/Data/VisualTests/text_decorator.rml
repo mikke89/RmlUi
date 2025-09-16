@@ -1,0 +1,107 @@
+<rml>
+<head>
+	<title>Text decorator</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="A variety of text decorators. Hover over the elements to change the decorator."/>
+	<style>
+		body {
+			background: #ddd;
+			color: #333;
+			width: 900dp;
+		}
+		div {
+			margin: 5dp;
+			width: 160dp;
+			height: 60dp;
+			box-sizing: border-box;
+			border: 1dp #bbb;
+			padding: 10px;
+			float: left;
+		}
+		group {
+			margin-left: 1em;
+			display: flow-root;
+			margin-bottom: 1em;
+		}
+
+		group > :nth-child(n):hover { decorator: text("Hello ♥ world!" red); }
+
+		.basic > :nth-child(1) { decorator: text("Hello &#x1F30E; world!"); }
+		.basic > :nth-child(2) { decorator: text("Hello 🌎 world!" #333); }
+		.basic > :nth-child(3) { decorator: text("Hello 🌎 world!" center center); }
+		.basic > :nth-child(4) { decorator: text("Hello 🌎 world!" 50% 50%); }
+
+		.align_top_left > :nth-child(1) { decorator: text("Hello 🌎 world!" top left); }
+		.align_top_left > :nth-child(2) { decorator: text("Hello 🌎 world!" left top); }
+		.align_top_left > :nth-child(3) { decorator: text("Hello 🌎 world!" 0 0); }
+		.align_top_left > :nth-child(4) { decorator: text("Hello 🌎 world!" 0dp 0dp); }
+		.align_top_left > :nth-child(5) { decorator: text("Hello 🌎 world!" 0% 0%); }
+
+		.color > :nth-child(1) { decorator: text("Hello 🌎 world!" blue); }
+		.color > :nth-child(2) { decorator: text("Hello 🌎 world!" #00f); }
+		.color > :nth-child(3) { decorator: text("Hello 🌎 world!"); color: blue; }
+
+		.misc > :nth-child(1) { decorator: text("Hello 🌎 world!" black bottom right); }
+		.misc > :nth-child(2) { decorator: text("Hello 🌎 world!" black bottom right) content-box; }
+		.misc > :nth-child(3) { decorator: text("Helloooo    🌎    woooorld!" black) content-box; }
+		.misc > :nth-child(4) { decorator: text("Hello 🌎 world!" fuchsia 20px 20%); }
+		.misc > :nth-child(5) { decorator: text("Hello 🌎 world!" fuchsia 20px 20%); opacity: 0.5; }
+
+		group.hover > :nth-child(n) { decorator: text("Hello 🌎 world!"); }
+		.hover > :nth-child(1):hover { color: red; }
+		.hover > :nth-child(2):hover { opacity: 0.5; }
+		.hover > :nth-child(3):hover { font-style: italic; }
+		.hover > :nth-child(4):hover { font-weight: bold; }
+		.hover > :nth-child(5):hover { letter-spacing: 3dp; }
+		.hover > :nth-child(6):hover { font-family: "rmlui-debugger-font"; }
+		.hover > :nth-child(7):hover { font-size: 18dp; }
+
+	</style>
+</head>
+
+<body>
+Default properties [equivalent]
+<group class="basic">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Top-left alignment [equivalent]
+<group class="align_top_left">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Blue text [equivalent]
+<group class="color">
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Miscellaneous
+<group class="misc">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Inherit font change on hover
+<group id="hover" class="hover">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+</body>
+</rml>

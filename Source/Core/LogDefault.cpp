@@ -29,7 +29,7 @@
 #include "LogDefault.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 
-#ifdef RMLUI_PLATFORM_WIN32
+#ifdef RMLUI_PLATFORM_WIN32_NATIVE
 	#include <windows.h>
 #else
 	#include <stdio.h>
@@ -37,7 +37,7 @@
 
 namespace Rml {
 
-#ifdef RMLUI_PLATFORM_WIN32
+#if defined RMLUI_PLATFORM_WIN32_NATIVE
 bool LogDefault::LogMessage(Log::Type type, const String& message)
 {
 	#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)

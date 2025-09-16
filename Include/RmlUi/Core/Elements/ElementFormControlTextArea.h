@@ -37,7 +37,7 @@ namespace Rml {
 class WidgetTextInputMultiLine;
 
 /**
-    Default RmlUi implemention of a text area.
+    Default RmlUi implementation of a text area.
 
     @author Peter Curry
  */
@@ -62,7 +62,7 @@ public:
 
 	/// Sets the number of characters visible across the text area. Note that this will only be precise when using
 	/// a fixed-width font.
-	/// @param[in] size The number of visible characters.
+	/// @param[in] num_columns The number of visible columns (characters).
 	void SetNumColumns(int num_columns);
 	/// Returns the approximate number of characters visible at once.
 	/// @return The number of visible characters.
@@ -132,7 +132,7 @@ protected:
 	void GetInnerRML(String& content) const override;
 
 private:
-	/// Sets the necessary properties to display the widget in current word wrap state.
+	/// Sets the necessary properties to display the widget in the current word wrap state.
 	void SetWordWrapProperties();
 
 	UniquePtr<WidgetTextInputMultiLine> widget;

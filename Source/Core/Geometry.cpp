@@ -58,4 +58,10 @@ Mesh Geometry::Release(ReleaseMode mode)
 	return mesh;
 }
 
+const Mesh& Geometry::GetMesh() const
+{
+	RMLUI_ASSERT(resource_handle != StableVectorIndex::Invalid);
+	return RenderManagerAccess::GetMesh(render_manager, *this);
+}
+
 } // namespace Rml

@@ -43,9 +43,9 @@ public:
 	using SplitOption = PropertySpecification::SplitOption;
 	TestPropertySpecification(const PropertySpecification& specification) : specification(specification) {}
 
-	bool ParsePropertyValues(StringList& values_list, const String& values, SplitOption split_option) const
+	void ParsePropertyValues(StringList& values_list, const String& values, SplitOption split_option) const
 	{
-		return specification.ParsePropertyValues(values_list, values, split_option);
+		specification.ParsePropertyValues(values_list, values, split_option);
 	}
 
 private:
@@ -87,12 +87,11 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 
 	auto Parse = [&](const String& test_value, const Expected& expected, SplitOption split = SplitOption::Whitespace) {
 		StringList parsed_values;
-		bool success = specification.ParsePropertyValues(parsed_values, test_value, split);
+		specification.ParsePropertyValues(parsed_values, test_value, split);
 		const String split_str[] = {"none", "whitespace", "comma"};
 
 		INFO("\n\tSplit:     ", split_str[(int)split], "\n\tInput:     ", test_value, "\n\tExpected: ", Stringify(expected.values),
 			"\n\tResult:   ", Stringify(parsed_values));
-		CHECK(success);
 		CHECK(parsed_values == expected.values);
 	};
 
@@ -303,42 +302,42 @@ TEST_CASE("PropertyParser.InvalidShorthands")
 		String value;
 	};
 	Vector<TestCase> tests = {
-		{true, "margin", "10px "},                     //
-		{true, "margin", "10px 20px "},                //
-		{true, "margin", "10px 20px 30px "},           //
-		{true, "margin", "10px 20px 30px 40px"},       //
-		{false, "margin", ""},                         // Too few values
-		{false, "margin", "10px 20px 30px 40px 50px"}, // Too many values
+		{true, "margin", "10px "},                                  //
+		{true, "margin", "10px 20px "},                             //
+		{true, "margin", "10px 20px 30px "},                        //
+		{true, "margin", "10px 20px 30px 40px"},                    //
+		{false, "margin", ""},                                      // Too few values
+		{false, "margin", "10px 20px 30px 40px 50px"},              // Too many values
 
-		{true, "flex", "1 2 3px"},    //
-		{false, "flex", "1 2 3px 4"}, // Too many values
-		{false, "flex", "1px 2 3 4"}, // Wrong order
+		{true, "flex", "1 2 3px"},                                  //
+		{false, "flex", "1 2 3px 4"},                               // Too many values
+		{false, "flex", "1px 2 3 4"},                               // Wrong order
 
-		{true, "perspective-origin", "center center"},         //
-		{true, "perspective-origin", "left top"},              //
-		{false, "perspective-origin", "center center center"}, // Too many values
-		{false, "perspective-origin", "left top 50px"},        // Too many values
-		{false, "perspective-origin", "50px 50px left"},       // Too many values
-		{false, "perspective-origin", "top left"},             // Wrong order
-		{false, "perspective-origin", "50px left"},            // Wrong order
+		{true, "perspective-origin", "center center"},              //
+		{true, "perspective-origin", "left top"},                   //
+		{false, "perspective-origin", "center center center"},      // Too many values
+		{false, "perspective-origin", "left top 50px"},             // Too many values
+		{false, "perspective-origin", "50px 50px left"},            // Too many values
+		{false, "perspective-origin", "top left"},                  // Wrong order
+		{false, "perspective-origin", "50px left"},                 // Wrong order
 
-		{true, "font", "20px arial"},  //
-		{false, "font", "arial 20px"}, // Wrong order
+		{true, "font", "20px arial"},                               //
+		{false, "font", "arial 20px"},                              // Wrong order
 
-		{true, "decorator", "gradient(vertical blue red)"},        //
-		{false, "decorator", "gradient(blue red vertical)"},       // Wrong order
-		{false, "decorator", "gradient(blue vertical red)"},       // Wrong order
-		{false, "decorator", "gradient(vertical blue red green)"}, // Too many values
+		{true, "decorator", "gradient(vertical blue red)"},         //
+		{false, "decorator", "gradient(blue red vertical)"},        // Wrong order
+		{false, "decorator", "gradient(blue vertical red)"},        // Wrong order
+		{false, "decorator", "gradient(vertical blue red green)"},  // Too many values
 
 		{true, "filter", "drop-shadow(blue 10px 20px 30px)"},       //
 		{false, "filter", "drop-shadow(10px 20px 30px blue)"},      // Wrong order
 		{false, "filter", "drop-shadow(10px blue 20px 30px)"},      // Wrong order
 		{false, "filter", "drop-shadow(blue 10px 20px 30px 40px)"}, // Too many values
 
-		{true, "overflow", "hidden"},                //
-		{true, "overflow", "scroll hidden"},         //
-		{false, "overflow", ""},                     // Too few values
-		{false, "overflow", "scroll hidden scroll"}, // Too many values
+		{true, "overflow", "hidden"},                               //
+		{true, "overflow", "scroll hidden"},                        //
+		{false, "overflow", ""},                                    // Too few values
+		{false, "overflow", "scroll hidden scroll"},                // Too many values
 	};
 
 	for (const TestCase& test : tests)

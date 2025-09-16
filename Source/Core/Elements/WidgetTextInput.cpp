@@ -182,8 +182,7 @@ void WidgetTextInputContext::CommitComposition(StringView composition)
 	element->SetValue(value);
 }
 
-WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
-	internal_dimensions(0, 0), scroll_offset(0, 0), cursor_position(0, 0), cursor_size(0, 0)
+WidgetTextInput::WidgetTextInput(ElementFormControl* _parent)
 {
 	keyboard_showed = false;
 
@@ -287,7 +286,6 @@ void WidgetTextInput::SetValue(String value)
 	else
 	{
 		TransformValue(value);
-		RMLUI_ASSERTMSG(value.size() == initial_size, "TransformValue must not change the text length.");
 
 		text_element->SetText(value);
 
@@ -301,6 +299,16 @@ void WidgetTextInput::SetValue(String value)
 }
 
 void WidgetTextInput::TransformValue(String& /*value*/) {}
+
+int WidgetTextInput::DisplayIndexToAttributeIndex(int display_index, const String& /*attribute_value*/)
+{
+	return display_index;
+}
+
+int WidgetTextInput::AttributeIndexToDisplayIndex(int attribute_index, const String& /*attribute_value*/)
+{
+	return attribute_index;
+}
 
 void WidgetTextInput::SetMaxLength(int _max_length)
 {
@@ -487,9 +495,6 @@ void WidgetTextInput::OnLayout()
 		UpdateCursorPosition(true);
 		force_formatting_on_next_layout = false;
 	}
-
-	parent->SetScrollLeft(scroll_offset.x);
-	parent->SetScrollTop(scroll_offset.y);
 }
 
 Element* WidgetTextInput::GetElement() const
@@ -588,7 +593,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 
 		case Input::KI_A:
 		{
-			if (ctrl)
+			if (ctrl && !alt)
 				Select();
 		}
 		break;
@@ -743,9 +748,11 @@ bool WidgetTextInput::AddCharacters(String string)
 		return false;
 
 	String value = GetAttributeValue();
-	value.insert(std::min<size_t>((size_t)absolute_cursor_index, value.size()), string);
+	const int attribute_insert_index = DisplayIndexToAttributeIndex(absolute_cursor_index, value);
+	value.insert(std::min<size_t>((size_t)attribute_insert_index, value.size()), string);
 
-	absolute_cursor_index += (int)string.size();
+	const int new_cursor_attribute_index = AttributeIndexToDisplayIndex(attribute_insert_index + (int)string.size(), value);
+	absolute_cursor_index = new_cursor_attribute_index;
 	parent->SetAttribute("value", value);
 
 	if (UpdateSelection(false))
@@ -1155,9 +1162,6 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 				parent->SetScrollLeft(minimum_scroll_left);
 			else if (parent->GetScrollLeft() > cursor_position.x)
 				parent->SetScrollLeft(cursor_position.x);
-
-			scroll_offset.x = parent->GetScrollLeft();
-			scroll_offset.y = parent->GetScrollTop();
 		}
 
 		SetKeyboardActive(true);
@@ -1511,8 +1515,13 @@ void WidgetTextInput::DeleteSelection()
 	if (selection_length > 0)
 	{
 		String new_value = GetAttributeValue();
-		const size_t selection_begin = std::min((size_t)selection_begin_index, (size_t)new_value.size());
-		new_value.erase(selection_begin, (size_t)selection_length);
+		const int selection_begin_index_attribute = DisplayIndexToAttributeIndex(selection_begin_index, new_value);
+		const int selection_end_index_attribute = DisplayIndexToAttributeIndex(selection_begin_index + selection_length, new_value);
+		RMLUI_ASSERT(selection_end_index_attribute >= selection_begin_index_attribute);
+
+		const size_t selection_begin = std::min((size_t)selection_begin_index_attribute, (size_t)new_value.size());
+		const size_t attribute_selection_length = size_t(selection_end_index_attribute - selection_begin_index_attribute);
+		new_value.erase(selection_begin, (size_t)attribute_selection_length);
 
 		// Move the cursor to the beginning of the old selection.
 		absolute_cursor_index = selection_begin_index;
@@ -1570,7 +1579,7 @@ void WidgetTextInput::SetKeyboardActive(bool active)
 		if (active)
 		{
 			// Activate the keyboard and submit the cursor position and line height to enable clients to adjust the input method editor (IME).
-			const Vector2f element_offset = parent->GetAbsoluteOffset() - scroll_offset;
+			const Vector2f element_offset = parent->GetAbsoluteOffset() - Vector2f{parent->GetScrollLeft(), parent->GetScrollTop()};
 			const Vector2f absolute_cursor_position = element_offset + cursor_position;
 			system->ActivateKeyboard(absolute_cursor_position, cursor_size.y);
 		}

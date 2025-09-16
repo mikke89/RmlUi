@@ -55,6 +55,7 @@ private:
 	static void Render(RenderManager* render_manager, const Geometry& geometry, Vector2f translation, Texture texture, const CompiledShader& shader);
 
 	static void GetTextureSourceList(RenderManager* render_manager, StringList& source_list);
+	static const Mesh& GetMesh(RenderManager* render_manager, const Geometry& geometry);
 
 	static bool ReleaseTexture(RenderManager* render_manager, const String& texture_source);
 	static void ReleaseAllTextures(RenderManager* render_manager);
@@ -70,6 +71,7 @@ private:
 	friend bool Rml::ReleaseTexture(const String&, RenderInterface*);
 	friend void Rml::ReleaseTextures(RenderInterface*);
 	friend void Rml::ReleaseCompiledGeometry(RenderInterface*);
+	friend void Rml::ReleaseRenderManagers();
 };
 
 } // namespace Rml

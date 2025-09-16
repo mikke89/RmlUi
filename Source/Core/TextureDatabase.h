@@ -57,6 +57,7 @@ private:
 		CallbackTextureFunction callback;
 		TextureHandle texture_handle = {};
 		Vector2i dimensions;
+		bool load_failed = false;
 	};
 
 	CallbackTextureEntry& EnsureLoaded(RenderManager* render_manager, RenderInterface* render_interface, StableVectorIndex callback_index);
@@ -69,7 +70,7 @@ public:
 	FileTextureDatabase();
 	~FileTextureDatabase();
 
-	TextureFileIndex LoadTexture(RenderInterface* render_interface, const String& source);
+	TextureFileIndex InsertTexture(const String& source);
 
 	TextureHandle GetHandle(RenderInterface* render_interface, TextureFileIndex index);
 	Vector2i GetDimensions(RenderInterface* render_interface, TextureFileIndex index);
@@ -83,6 +84,7 @@ private:
 	struct FileTextureEntry {
 		TextureHandle texture_handle = {};
 		Vector2i dimensions;
+		bool load_texture_failed = false;
 	};
 
 	FileTextureEntry LoadTextureEntry(RenderInterface* render_interface, const String& source);

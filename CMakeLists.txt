@@ -3,12 +3,12 @@
 cmake_minimum_required(VERSION 3.10...3.27)
 
 project("RmlUi"
-	VERSION "6.0"
+	VERSION "6.2"
 	DESCRIPTION "C++ user interface library based on the HTML and CSS standards"
 	LANGUAGES "C" "CXX"
 )
 
-set(RMLUI_VERSION_RELEASE TRUE)
+set(RMLUI_VERSION_RELEASE FALSE)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	set(RMLUI_IS_ROOT_PROJECT TRUE)
@@ -119,7 +119,7 @@ include("CMake/Utilities.cmake")
 include("CMake/Dependencies.cmake")
 
 include("CMake/RuntimeUtilities.cmake")
-setup_runtime_output_directory()
+setup_binary_output_directories()
 setup_runtime_dependency_set_arg()
 
 add_subdirectory("Source")

@@ -44,18 +44,23 @@ enum class ScrollAlignment {
 	Nearest, // Align with minimal scroll change.
 };
 
+enum class ScrollParentage {
+	All,     // Scroll all ancestor scroll containers as needed.
+	Closest, // Scroll only the closest scroll container.
+};
+
 /**
     Defines behavior of Element::ScrollIntoView.
  */
 struct ScrollIntoViewOptions {
 	ScrollIntoViewOptions(ScrollAlignment vertical = ScrollAlignment::Start, ScrollAlignment horizontal = ScrollAlignment::Nearest,
-		ScrollBehavior behavior = ScrollBehavior::Instant) :
-		vertical(vertical),
-		horizontal(horizontal), behavior(behavior)
+		ScrollBehavior behavior = ScrollBehavior::Instant, ScrollParentage parentage = ScrollParentage::All) :
+		vertical(vertical), horizontal(horizontal), behavior(behavior), parentage(parentage)
 	{}
 	ScrollAlignment vertical;
 	ScrollAlignment horizontal;
 	ScrollBehavior behavior;
+	ScrollParentage parentage;
 };
 
 } // namespace Rml

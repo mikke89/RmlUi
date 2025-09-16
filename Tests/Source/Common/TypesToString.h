@@ -29,9 +29,11 @@
 #ifndef RMLUI_TESTS_COMMON_TYPESTOSTRING_H
 #define RMLUI_TESTS_COMMON_TYPESTOSTRING_H
 
+#include <RmlUi/Core/Mesh.h>
 #include <RmlUi/Core/TypeConverter.h>
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
+#include <RmlUi/Core/Vertex.h>
 #include <doctest.h>
 #include <ostream>
 

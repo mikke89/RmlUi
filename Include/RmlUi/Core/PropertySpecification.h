@@ -137,7 +137,7 @@ private:
 	PropertyIdSet property_ids_forcing_layout;
 
 	enum class SplitOption { None, Whitespace, Comma };
-	bool ParsePropertyValues(StringList& values_list, const String& values, SplitOption split_option) const;
+	void ParsePropertyValues(StringList& values_list, const String& values, SplitOption split_option) const;
 
 	friend class Rml::StyleSheetSpecification;
 	friend class TestPropertySpecification;

@@ -252,6 +252,11 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::UnalignedBlock);
 	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
 
+	if (box.GetSize().x >= 0.f)
+	{
+		return box.GetSize().x;
+	}
+
 	// Currently we don't support shrink-to-fit width for tables. Just return a zero-sized width.
 	const Style::Display display = element->GetDisplay();
 	if (display == Style::Display::Table || display == Style::Display::InlineTable)

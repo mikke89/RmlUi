@@ -104,15 +104,9 @@ protected:
 	void HandleData(const String& data, XMLDataType type) override;
 
 private:
-	// The header of the document being parsed.
 	UniquePtr<DocumentHeader> header;
-
-	// The active node handler.
 	XMLNodeHandler* active_handler;
-
-	// The parser stack.
-	using ParserStack = Stack<ParseFrame>;
-	ParserStack stack;
+	Stack<ParseFrame> stack;
 };
 
 } // namespace Rml

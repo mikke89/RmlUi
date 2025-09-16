@@ -374,7 +374,7 @@ select selectbox option.disabled {
 			<li style="color: red;" data-if="pizza && rating < 70">• You can only have pizza if the rating is satisfactory.</li>
 			<li data-if="pizza && rating >= 70">• Pizza is life!</li>
 			<li data-if="pasta">• Pasta is squiggly good!</li>
-			<li data-if="lasagne">• Lasagne is delicous!</li>
+			<li data-if="lasagne">• Lasagne is delicious!</li>
 		</div>
 		<h2>Subject</h2>
 		<div>

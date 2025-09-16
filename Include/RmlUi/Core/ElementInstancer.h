@@ -117,5 +117,10 @@ public:
 	}
 };
 
+namespace Detail {
+	void InitializeElementInstancerPools();
+	void ShutdownElementInstancerPools();
+} // namespace Detail
+
 } // namespace Rml
 #endif

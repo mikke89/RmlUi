@@ -1,0 +1,18 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<link rel="author" title="Ms2ger" href="mailto:Ms2ger@gmail.com"/>
+	<style>
+		div {
+			width: 87dp;
+			height: 87dp;
+			background-color: green;
+			border: 3dp lime;
+		}
+	</style>
+</head>
+<body>
+<p>You should see no red below, just a green square with a green border.</p>
+<div></div>
+</body>
+</rml>

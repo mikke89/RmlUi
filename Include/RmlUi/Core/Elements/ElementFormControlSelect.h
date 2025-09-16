@@ -59,7 +59,7 @@ public:
 	/// @param[in] value The new value of the form control.
 	void SetValue(const String& value) override;
 
-	/// Sets the index of the selection. If the new index lies outside of the bounds, it will be clamped.
+	/// Sets the index of the selection. If the new index lies outside the bounds, it will be clamped.
 	/// @param[in] selection The new selection index.
 	void SetSelection(int selection);
 	/// Returns the index of the currently selected item.
@@ -67,7 +67,7 @@ public:
 	int GetSelection() const;
 
 	/// Returns one of the select control's option elements.
-	/// @param[in] The index of the desired option.
+	/// @param[in] index The index of the desired option.
 	/// @return The option element or nullptr if the index was out of bounds.
 	Element* GetOption(int index);
 	/// Returns the number of options in the select control.
@@ -77,9 +77,9 @@ public:
 	/// Adds a new option to the select control.
 	/// @param[in] rml The RML content used to represent the option. This is usually a simple string, but can include RML tags.
 	/// @param[in] value The value of the option. This is used to identify the option, but does not necessarily need to be unique.
-	/// @param[in] before The index of the element to insert the new option before. If out of bounds of the control's option list (the default) the
+	/// @param[in] before The index of the element to insert the new option before. If out of bounds of the control's option list (the default), the
 	/// new option will be added at the end of the list.
-	/// @param[in] selectable If true this option can be selected. If false, this option is not selectable.
+	/// @param[in] selectable If true, this option can be selected. If false, this option is not selectable.
 	/// @return The index of the new option.
 	int Add(const String& rml, const String& value, int before = -1, bool selectable = true);
 	/// Adds a new option to the select control.
@@ -93,6 +93,15 @@ public:
 
 	/// Removes all options from the select control.
 	void RemoveAll();
+
+	/// Show the selection box.
+	void ShowSelectBox();
+	/// Hide the selection box.
+	void HideSelectBox();
+	/// Revert to the value selected when the selection box was opened, then hide the box.
+	void CancelSelectBox();
+	/// Check whether the select box is opened or not.
+	bool IsSelectBoxVisible();
 
 protected:
 	/// Moves all children to be under control of the widget.
@@ -114,7 +123,7 @@ protected:
 	/// @return True.
 	bool GetIntrinsicDimensions(Vector2f& intrinsic_dimensions, float& intrinsic_ratio) override;
 
-	/// Respond to changed value attribute.
+	/// Respond to a change to the value attribute.
 	void OnAttributeChange(const ElementAttributes& changed_attributes) override;
 
 	void MoveChildren();

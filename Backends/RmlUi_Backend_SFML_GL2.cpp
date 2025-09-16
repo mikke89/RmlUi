@@ -36,6 +36,13 @@
 #include <RmlUi/Debugger/Debugger.h>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
+#include <cstdint>
+
+#if SFML_VERSION_MAJOR >= 3
+	#define SFML_COORDINATE(x, y) {x, y}
+#else
+	#define SFML_COORDINATE(x, y) x, y
+#endif
 
 /**
     Custom render interface example for the SFML/GL2 backend.
@@ -82,11 +89,11 @@ public:
 		{
 			for (unsigned int y = 0; y < image.getSize().y; y++)
 			{
-				sf::Color color = image.getPixel(x, y);
-				color.r = (sf::Uint8)((color.r * color.a) / 255);
-				color.g = (sf::Uint8)((color.g * color.a) / 255);
-				color.b = (sf::Uint8)((color.b * color.a) / 255);
-				image.setPixel(x, y, color);
+				sf::Color color = image.getPixel(SFML_COORDINATE(x, y));
+				color.r = static_cast<std::uint8_t>((color.r * color.a) / 255);
+				color.g = static_cast<std::uint8_t>((color.g * color.a) / 255);
+				color.b = static_cast<std::uint8_t>((color.b * color.a) / 255);
+				image.setPixel(SFML_COORDINATE(x, y), color);
 			}
 		}
 
@@ -103,19 +110,22 @@ public:
 		return (Rml::TextureHandle)texture;
 	}
 
-	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) override
+	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions_i) override
 	{
-		sf::Texture* texture = new sf::Texture();
-		texture->setSmooth(true);
+		const auto source_dimensions = Rml::Vector2<unsigned int>(source_dimensions_i);
 
+#if SFML_VERSION_MAJOR >= 3
+		sf::Texture* texture = new sf::Texture(sf::Vector2u{source_dimensions.x, source_dimensions.y});
+#else
+		sf::Texture* texture = new sf::Texture();
 		if (!texture->create(source_dimensions.x, source_dimensions.y))
 		{
 			delete texture;
 			return false;
 		}
-
-		texture->update(source.data(), source_dimensions.x, source_dimensions.y, 0, 0);
-
+#endif
+		texture->setSmooth(true);
+		texture->update(source.data(), SFML_COORDINATE(source_dimensions.x, source_dimensions.y), SFML_COORDINATE(0, 0));
 		return (Rml::TextureHandle)texture;
 	}
 
@@ -131,7 +141,7 @@ static void UpdateWindowDimensions(sf::RenderWindow& window, RenderInterface_GL2
 	if (context)
 		context->SetDimensions(Rml::Vector2i(width, height));
 
-	sf::View view(sf::FloatRect(0.f, 0.f, (float)width, (float)height));
+	sf::View view(sf::FloatRect(SFML_COORDINATE(0.f, 0.f), SFML_COORDINATE((float)width, (float)height)));
 	window.setView(view);
 
 	render_interface.SetViewport(width, height);
@@ -156,17 +166,23 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	data = Rml::MakeUnique<BackendData>();
 
+	const std::uint32_t style = (allow_resize ? sf::Style::Default : (sf::Style::Titlebar | sf::Style::Close));
+	constexpr unsigned int anti_aliasing_level = 2;
+
 	// Create the window.
 	sf::RenderWindow out_window;
 	sf::ContextSettings context_settings;
 	context_settings.stencilBits = 8;
-	context_settings.antialiasingLevel = 2;
 
-	const sf::Uint32 style = (allow_resize ? sf::Style::Default : (sf::Style::Titlebar | sf::Style::Close));
-
+#if SFML_VERSION_MAJOR >= 3
+	context_settings.antiAliasingLevel = anti_aliasing_level;
+	data->window.create(sf::VideoMode({(unsigned int)width, (unsigned int)height}), window_name, style, sf::State::Windowed, context_settings);
+#else
+	context_settings.antialiasingLevel = anti_aliasing_level;
 	data->window.create(sf::VideoMode(width, height), window_name, style, context_settings);
-	data->window.setVerticalSyncEnabled(true);
+#endif
 
+	data->window.setVerticalSyncEnabled(true);
 	if (!data->window.isOpen())
 	{
 		data.reset();
@@ -209,34 +225,57 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	bool result = data->running;
 	data->running = true;
 
+	auto handle_key_pressed = [&](const sf::Event& ev, sf::Keyboard::Key key_pressed_code) {
+		const Rml::Input::KeyIdentifier key = RmlSFML::ConvertKey(key_pressed_code);
+		const int key_modifier = RmlSFML::GetKeyModifierState();
+		const float native_dp_ratio = 1.f;
+
+		// See if we have any global shortcuts that take priority over the context.
+		if (key_down_callback && !key_down_callback(context, key, key_modifier, native_dp_ratio, true))
+			return;
+		// Otherwise, hand the event over to the context by calling the input handler as normal.
+		if (!RmlSFML::InputHandler(context, ev))
+			return;
+		// The key was not consumed by the context either, try keyboard shortcuts of lower priority.
+		if (key_down_callback && !key_down_callback(context, key, key_modifier, native_dp_ratio, false))
+			return;
+	};
+
+#if SFML_VERSION_MAJOR >= 3
+	while (const std::optional ev = data->window.pollEvent())
+	{
+		if (ev->is<sf::Event::Resized>())
+		{
+			UpdateWindowDimensions(data->window, data->render_interface, context);
+		}
+		else if (auto key_pressed = ev->getIf<sf::Event::KeyPressed>())
+		{
+			handle_key_pressed(*ev, key_pressed->code);
+		}
+		else if (ev->is<sf::Event::Closed>())
+		{
+			result = false;
+		}
+		else
+		{
+			RmlSFML::InputHandler(context, *ev);
+		}
+	}
+
+#else
+
 	sf::Event ev;
 	while (data->window.pollEvent(ev))
 	{
 		switch (ev.type)
 		{
 		case sf::Event::Resized: UpdateWindowDimensions(data->window, data->render_interface, context); break;
-		case sf::Event::KeyPressed:
-		{
-			const Rml::Input::KeyIdentifier key = RmlSFML::ConvertKey(ev.key.code);
-			const int key_modifier = RmlSFML::GetKeyModifierState();
-			const float native_dp_ratio = 1.f;
-
-			// See if we have any global shortcuts that take priority over the context.
-			if (key_down_callback && !key_down_callback(context, key, key_modifier, native_dp_ratio, true))
-				break;
-			// Otherwise, hand the event over to the context by calling the input handler as normal.
-			if (!RmlSFML::InputHandler(context, ev))
-				break;
-			// The key was not consumed by the context either, try keyboard shortcuts of lower priority.
-			if (key_down_callback && !key_down_callback(context, key, key_modifier, native_dp_ratio, false))
-				break;
-		}
-		break;
+		case sf::Event::KeyPressed: handle_key_pressed(ev, ev.key.code); break;
 		case sf::Event::Closed: result = false; break;
 		default: RmlSFML::InputHandler(context, ev); break;
 		}
 	}
-
+#endif
 	return result;
 }
 

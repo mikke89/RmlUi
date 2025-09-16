@@ -27,31 +27,75 @@
  */
 
 #include "PropertyParserColour.h"
+#include "ControlledLifetimeResource.h"
+#include <algorithm>
+#include <cmath>
 #include <string.h>
 
 namespace Rml {
 
-const PropertyParserColour::ColourMap PropertyParserColour::html_colours = {
-	{"black", Colourb(0, 0, 0)},
-	{"silver", Colourb(192, 192, 192)},
-	{"gray", Colourb(128, 128, 128)},
-	{"grey", Colourb(128, 128, 128)},
-	{"white", Colourb(255, 255, 255)},
-	{"maroon", Colourb(128, 0, 0)},
-	{"red", Colourb(255, 0, 0)},
-	{"orange", Colourb(255, 165, 0)},
-	{"purple", Colourb(128, 0, 128)},
-	{"fuchsia", Colourb(255, 0, 255)},
-	{"green", Colourb(0, 128, 0)},
-	{"lime", Colourb(0, 255, 0)},
-	{"olive", Colourb(128, 128, 0)},
-	{"yellow", Colourb(255, 255, 0)},
-	{"navy", Colourb(0, 0, 128)},
-	{"blue", Colourb(0, 0, 255)},
-	{"teal", Colourb(0, 128, 128)},
-	{"aqua", Colourb(0, 255, 255)},
-	{"transparent", Colourb(0, 0, 0, 0)},
+// Helper function for hsl->rgb conversion.
+static float HSL_f(float h, float s, float l, float n)
+{
+	float k = std::fmod((n + h * (1.0f / 30.0f)), 12.0f);
+	float a = s * std::min(l, 1.0f - l);
+	return l - a * std::max(-1.0f, std::min({k - 3.0f, 9.0f - k, 1.0f}));
+}
+
+// Ref: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
+static void HSLAToRGBA(Array<float, 4>& vals)
+{
+	if (vals[1] == 0.0f)
+	{
+		vals[0] = vals[1] = vals[2];
+	}
+	else
+	{
+		float h = std::fmod(vals[0], 360.0f);
+		if (h < 0)
+			h += 360.0f;
+		float s = vals[1];
+		float l = vals[2];
+		vals[0] = HSL_f(h, s, l, 0.0f);
+		vals[1] = HSL_f(h, s, l, 8.0f);
+		vals[2] = HSL_f(h, s, l, 4.0f);
+	}
+}
+
+struct PropertyParserColourData {
+	const UnorderedMap<String, Colourb> html_colours = {
+		{"black", Colourb(0, 0, 0)},
+		{"silver", Colourb(192, 192, 192)},
+		{"gray", Colourb(128, 128, 128)},
+		{"grey", Colourb(128, 128, 128)},
+		{"white", Colourb(255, 255, 255)},
+		{"maroon", Colourb(128, 0, 0)},
+		{"red", Colourb(255, 0, 0)},
+		{"orange", Colourb(255, 165, 0)},
+		{"purple", Colourb(128, 0, 128)},
+		{"fuchsia", Colourb(255, 0, 255)},
+		{"green", Colourb(0, 128, 0)},
+		{"lime", Colourb(0, 255, 0)},
+		{"olive", Colourb(128, 128, 0)},
+		{"yellow", Colourb(255, 255, 0)},
+		{"navy", Colourb(0, 0, 128)},
+		{"blue", Colourb(0, 0, 255)},
+		{"teal", Colourb(0, 128, 128)},
+		{"aqua", Colourb(0, 255, 255)},
+		{"transparent", Colourb(0, 0, 0, 0)},
+	};
 };
+
+ControlledLifetimeResource<PropertyParserColourData> PropertyParserColour::parser_data;
+
+void PropertyParserColour::Initialize()
+{
+	parser_data.Initialize();
+}
+void PropertyParserColour::Shutdown()
+{
+	parser_data.Shutdown();
+}
 
 PropertyParserColour::PropertyParserColour() {}
 
@@ -116,7 +160,7 @@ bool PropertyParserColour::ParseColour(Colourb& colour, const String& value)
 			colour[i] = (byte)(tens * 16 + ones);
 		}
 	}
-	else if (value.substr(0, 3) == "rgb")
+	else if (value.substr(0, 3) == "rgb" || value.substr(0, 3) == "hsl")
 	{
 		StringList values;
 		values.reserve(4);
@@ -129,43 +173,80 @@ bool PropertyParserColour::ParseColour(Colourb& colour, const String& value)
 
 		StringUtilities::ExpandString(values, value.substr(begin_values, value.rfind(')') - begin_values), ',');
 
-		// Check if we're parsing an 'rgba' or 'rgb' colour declaration.
-		if (value.size() > 3 && value[3] == 'a')
+		if (value.substr(0, 3) == "rgb")
 		{
-			if (values.size() != 4)
-				return false;
+			// Check if we're parsing an 'rgba' or 'rgb' colour declaration.
+			if (value.size() > 3 && value[3] == 'a')
+			{
+				if (values.size() != 4)
+					return false;
+			}
+			else
+			{
+				if (values.size() != 3)
+					return false;
+
+				values.push_back("255");
+			}
+
+			// Parse the RGBA values.
+			for (int i = 0; i < 4; ++i)
+			{
+				int component;
+
+				// We're parsing a percentage value.
+				if (values[i].size() > 0 && values[i][values[i].size() - 1] == '%')
+					component = int((float)atof(values[i].substr(0, values[i].size() - 1).c_str()) * (255.0f / 100.0f));
+				// We're parsing a 0 -> 255 integer value.
+				else
+					component = atoi(values[i].c_str());
+
+				colour[i] = (byte)(Math::Clamp(component, 0, 255));
+			}
 		}
 		else
 		{
-			if (values.size() != 3)
-				return false;
-
-			values.push_back("255");
-		}
-
-		// Parse the three RGB values.
-		for (int i = 0; i < 4; ++i)
-		{
-			int component;
-
-			// We're parsing a percentage value.
-			if (values[i].size() > 0 && values[i][values[i].size() - 1] == '%')
-				component = int((float)atof(values[i].substr(0, values[i].size() - 1).c_str()) * (255.0f / 100.0f));
-			// We're parsing a 0 -> 255 integer value.
+			// Check if we're parsing an 'hsla' or 'hsl' colour declaration.
+			if (value.size() > 3 && value[3] == 'a')
+			{
+				if (values.size() != 4)
+					return false;
+			}
 			else
-				component = atoi(values[i].c_str());
+			{
+				if (values.size() != 3)
+					return false;
 
-			colour[i] = (byte)(Math::Clamp(component, 0, 255));
+				values.push_back("1.0");
+			}
+
+			// Parse the HSLA values.
+			Array<float, 4> vals;
+			// H is a number in degrees, A is a number between 0.0 and 1.0.
+			for (int i : {0, 3})
+				vals[i] = (float)atof(values[i].c_str());
+			// S and L are percentage values.
+			for (int i : {1, 2})
+				if (values[i].size() > 0 && values[i][values[i].size() - 1] == '%')
+					vals[i] = (float)atof(values[i].substr(0, values[i].size() - 1).c_str()) * (1.0f / 100.0f);
+				else
+					return false;
+
+			HSLAToRGBA(vals);
+			for (int i = 0; i < 4; ++i)
+			{
+				colour[i] = (byte)(Math::Clamp((int)(vals[i] * 255.0f), 0, 255));
+			}
 		}
 	}
 	else
 	{
 		// Check for the specification of an HTML colour.
-		ColourMap::const_iterator iterator = html_colours.find(StringUtilities::ToLower(value));
-		if (iterator == html_colours.end())
+		auto it = parser_data->html_colours.find(StringUtilities::ToLower(value));
+		if (it == parser_data->html_colours.end())
 			return false;
 		else
-			colour = (*iterator).second;
+			colour = it->second;
 	}
 
 	return true;

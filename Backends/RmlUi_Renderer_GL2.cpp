@@ -309,6 +309,8 @@ Rml::TextureHandle RenderInterface_GL2::LoadTexture(Rml::Vector2i& texture_dimen
 
 Rml::TextureHandle RenderInterface_GL2::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions)
 {
+	RMLUI_ASSERT(source.data() && source.size() == size_t(source_dimensions.x * source_dimensions.y * 4));
+
 	GLuint texture_id = 0;
 	glGenTextures(1, &texture_id);
 	if (texture_id == 0)

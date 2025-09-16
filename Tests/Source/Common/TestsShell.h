@@ -49,7 +49,7 @@ void PresentFrame();
 // Applies only when compiled with the shell backend.
 void RenderLoop();
 
-void ShutdownShell();
+void ShutdownShell(bool reset_tests_render_interface = true);
 
 // Set the number of expected warnings and errors logged by RmlUi until the next call to this function
 // or until 'ShutdownShell()'.
@@ -60,6 +60,7 @@ Rml::String GetRenderStats();
 
 // Returns nullptr if the dummy renderer is not being used.
 TestsRenderInterface* GetTestsRenderInterface();
+void ResetTestsRenderInterface();
 TestsSystemInterface* GetTestsSystemInterface();
 
 } // namespace TestsShell

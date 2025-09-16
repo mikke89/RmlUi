@@ -31,6 +31,7 @@
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 #include "../../Include/RmlUi/Core/Types.h"
+#include "ControlledLifetimeResource.h"
 
 namespace Rml {
 
@@ -55,9 +56,11 @@ public:
 	/// Parse a colour directly.
 	static bool ParseColour(Colourb& colour, const String& value);
 
+	static void Initialize();
+	static void Shutdown();
+
 private:
-	using ColourMap = UnorderedMap<String, Colourb>;
-	static const ColourMap html_colours;
+	static ControlledLifetimeResource<struct PropertyParserColourData> parser_data;
 };
 
 } // namespace Rml

@@ -63,6 +63,8 @@ private:
 	void StartTestSuiteIteration(IterationState iteration_state);
 	void StopTestSuiteIteration();
 
+	void StartGoTo();
+	void CancelGoTo();
 	void UpdateGoToText(bool out_of_bounds = false);
 
 	void ShowReference(ReferenceState new_reference_state);

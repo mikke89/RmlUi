@@ -1,0 +1,217 @@
+<rml>
+<head>
+	<title>Flex 06 - Player list</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="match" href="reference/flex_06-ref.rml"/>
+	<link rel="help" href="https://drafts.csswg.org/css-flexbox/" />
+	<link rel="#658" href="https://github.com/mikke89/RmlUi/issues/658" />
+	<meta name="Description" content="Flex container in column mode with an auto-sized header and footer. Their automatic minimum size should exactly fit their contents. The players list in the middle has auto overflow, and thus should not have automatic minimum sizing applied." />
+	<style>
+		body {
+			box-sizing: border-box;
+			height: 50%;
+			top: 20%;
+			left: 12dp;
+			min-width: 450dp;
+			min-height: 250dp;
+			padding: 30dp 0 0 0;
+			border: 1px #a0a0a0;
+		}
+
+		scrollbarvertical sliderbar, scrollbarvertical slidertrack {
+			border-width: 0;
+		}
+
+		handle#title {
+			width: auto;
+			height: auto;
+			display: block;
+			top: 0;
+			right: 0;
+			left: 0;
+			bottom: auto;
+			cursor: move;
+			background-color: #a0a0a0;
+			padding: 5dp 20dp;
+			font-weight: bold;
+			font-size: 1.25em;
+		}
+
+		handle#resizer {
+			width: 12dp;
+			height: 12dp;
+			background: #a0a0a0;
+		}
+
+		input.text {
+			box-sizing: border-box;
+			width: 100%;
+			padding: 10dp;
+			border: 1dp #bbb;
+			border-radius: 3dp;
+			font-size: 1.1em;
+			line-height: 1.4;
+			cursor: text;
+		}
+
+		#contents {
+			display: flex;
+			flex-direction: column;
+			box-sizing: border-box;
+			height: 100%;
+			padding: 20dp;
+		}
+
+		#panel_info {
+			/*flex: none;*/
+			display: flex;
+			justify-content: space-between;
+			font-size: .95em;
+		}
+
+		#players {
+			/*flex: 1;*/
+			margin: 15dp 0;
+			overflow: auto;
+			border: 1px #bbb;
+		}
+
+		#footer {
+			/*flex: none;*/
+		}
+
+		table thead tr {
+			font-weight: bold;
+			padding-bottom: 1dp;
+		}
+
+		table td {
+			padding: 14dp 4dp;
+		}
+
+		table td.data_column {
+			width: 70dp;
+			text-align: center;
+		}
+
+		table tbody td.data_column {
+			font-size: .9em;
+		}
+
+		table td.tag_column {
+			width: 90dp;
+		}
+	</style>
+</head>
+
+<body>
+<handle id="title" move_target="#document">Player List</handle>
+
+<div id="contents">
+	<div id="panel_info">
+		<div>Server: Europe #56763</div>
+		<div>Players: 99</div>
+	</div>
+
+	<div id="players">
+		<table>
+			<thead>
+			<tr>
+				<td class="data_column">ID</td>
+				<td class="tag_column">Player Tag</td>
+				<td></td>
+				<td class="data_column">Ping</td>
+				<td class="data_column">Score</td>
+			</tr>
+			</thead>
+
+			<tbody>
+			<tr>
+				<td class="data_column">10</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			<tr>
+				<td class="data_column">11</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			<tr>
+				<td class="data_column">12</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			<tr>
+				<td class="data_column">13</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			<tr>
+				<td class="data_column">14</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			<tr>
+				<td class="data_column">15</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			<tr>
+				<td class="data_column">16</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			<tr>
+				<td class="data_column">17</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			<tr>
+				<td class="data_column">18</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			<tr>
+				<td class="data_column">19</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			<tr>
+				<td class="data_column">20</td>
+				<td>tag</td>
+				<td>Player name</td>
+				<td class="data_column">55 ms</td>
+				<td class="data_column">108</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<div id="footer">
+		<input type="text"/>
+	</div>
+</div>
+
+<handle size_target="#document" id="resizer"/>
+</body>
+</rml>

@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   Linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
       BUILD_TYPE: Release
@@ -34,7 +34,7 @@ jobs:
     - name: Install Dependencies
       run: |-
         sudo apt-get update
-        sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libharfbuzz-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev libglfw3-dev
+        sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libharfbuzz-dev liblua5.2-dev libsfml-dev librlottie-dev libglfw3-dev
 
     - name: Configure CMake
       run: >-
@@ -51,7 +51,7 @@ jobs:
 
 
   Linux-legacy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     env:
       BUILD_TYPE: Release
@@ -77,7 +77,7 @@ jobs:
       - name: Install Dependencies
         run: |-
           sudo apt-get update
-          sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libharfbuzz-dev libglew-dev liblua5.2-dev libglfw3-dev
+          sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libharfbuzz-dev liblua5.2-dev libglfw3-dev
 
       - name: Configure CMake
         run: >-
@@ -163,7 +163,7 @@ jobs:
         run: |-
           C:\msys64\usr\bin\bash -lc ("pacman --needed --noconfirm --sync " +
             "mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-freetype mingw-w64-x86_64-lua " +
-            "mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-glew")
+            "mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image")
 
       - name: Configure CMake
         run: |-
@@ -179,7 +179,7 @@ jobs:
 
 
   Emscripten:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
 
@@ -198,7 +198,8 @@ jobs:
         source emsdk-master/emsdk_env.sh
         emcmake cmake -B Build --preset samples -Wdev -Werror=dev -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=OFF -DRMLUI_WARNINGS_AS_ERRORS=ON \
-        -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/CMake/Modules/Emscripten
+        -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/CMake/Modules/Emscripten \
+        -DRMLUI_SDL_VERSION_MAJOR=2
 
     - name: Build
       run: |-

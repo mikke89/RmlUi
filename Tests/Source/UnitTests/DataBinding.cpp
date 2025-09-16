@@ -38,7 +38,7 @@ using namespace Rml;
 
 namespace {
 
-static const String document_rml = R"(
+static const String data_binding_rml = R"(
 <rml>
 <head>
 	<title>Test</title>
@@ -79,8 +79,10 @@ static const String document_rml = R"(
 <p>{{ s3.val }}</p>
 <p>{{ s4.val }}</p>
 <p>{{ s5.val }}</p>
-<p>{{ simple }}</p>
-<p>{{ scoped }}</p>
+<p id="simple">{{ simple }}</p>
+<p id="simple_custom">{{ simple_custom }}</p>
+<p id="scoped">{{ scoped }}</p>
+<p id="scoped_custom">{{ scoped_custom }}</p>
 
 <h1>Basic</h1>
 <p>{{ basic.a }}</p>
@@ -210,7 +212,11 @@ struct StringWrap {
 
 enum SimpleEnum { Simple_Zero = 0, Simple_One, Simple_Two };
 
+enum SimpleEnumCustom { Simple_Zero_Custom, Simple_One_Custom, Simple_Two_Custom };
+
 enum class ScopedEnum : uint64_t { Zero = 0, One, Two };
+
+enum class ScopedEnumCustom { Zero, One, Two };
 
 struct Globals {
 	int i0 = 0;
@@ -219,7 +225,9 @@ struct Globals {
 	SharedPtr<int> i3 = MakeShared<int>(3);
 
 	SimpleEnum simple = Simple_One;
+	SimpleEnumCustom simple_custom = Simple_One_Custom;
 	ScopedEnum scoped = ScopedEnum::One;
+	ScopedEnumCustom scoped_custom = ScopedEnumCustom::One;
 
 	String s0 = "s0";
 	String* s1 = new String("s1");
@@ -371,6 +379,84 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("val", &StringWrap::val);
 	}
 
+	constructor.RegisterScalar<SimpleEnumCustom>(
+		[](const SimpleEnumCustom& value, Rml::Variant& variant) {
+			if (value == Simple_Zero_Custom)
+			{
+				variant = "Zero";
+			}
+			else if (value == Simple_One_Custom)
+			{
+				variant = "One";
+			}
+			else if (value == Simple_Two_Custom)
+			{
+				variant = "Two";
+			}
+			else
+			{
+				Rml::Log::Message(Rml::Log::LT_ERROR, "Invalid value for SimpleEnumCustom type.");
+			}
+		},
+		[](SimpleEnumCustom& value, const Rml::Variant& variant) {
+			Rml::String str = variant.Get<Rml::String>();
+			if (str == "Zero")
+			{
+				value = Simple_Zero_Custom;
+			}
+			else if (str == "One")
+			{
+				value = Simple_One_Custom;
+			}
+			else if (str == "Two")
+			{
+				value = Simple_Two_Custom;
+			}
+			else
+			{
+				Rml::Log::Message(Rml::Log::LT_ERROR, "Can't convert '%s' to SimpleEnumCustom.", str.c_str());
+			}
+		});
+
+	constructor.RegisterScalar<ScopedEnumCustom>(
+		[](const ScopedEnumCustom& value, Rml::Variant& variant) {
+			if (value == ScopedEnumCustom::Zero)
+			{
+				variant = "Zero";
+			}
+			else if (value == ScopedEnumCustom::One)
+			{
+				variant = "One";
+			}
+			else if (value == ScopedEnumCustom::Two)
+			{
+				variant = "Two";
+			}
+			else
+			{
+				Rml::Log::Message(Rml::Log::LT_ERROR, "Invalid value for ScopedEnumCustom type.");
+			}
+		},
+		[](ScopedEnumCustom& value, const Rml::Variant& variant) {
+			Rml::String str = variant.Get<Rml::String>();
+			if (str == "Zero")
+			{
+				value = ScopedEnumCustom::Zero;
+			}
+			else if (str == "One")
+			{
+				value = ScopedEnumCustom::One;
+			}
+			else if (str == "Two")
+			{
+				value = ScopedEnumCustom::Two;
+			}
+			else
+			{
+				Rml::Log::Message(Rml::Log::LT_ERROR, "Can't convert '%s' to ScopedEnumCustom.", str.c_str());
+			}
+		});
+
 	{
 		// Globals
 		constructor.Bind("i0", &globals.i0);
@@ -386,7 +472,9 @@ bool InitializeDataBindings(Context* context)
 		constructor.Bind("s5", &globals.s5);
 
 		constructor.Bind("simple", &globals.simple);
+		constructor.Bind("simple_custom", &globals.simple_custom);
 		constructor.Bind("scoped", &globals.scoped);
+		constructor.Bind("scoped_custom", &globals.scoped_custom);
 		// Invalid: Each of the following should give a compile-time failure.
 		// constructor.Bind("x0", &globals.x0);
 		// constructor.Bind("x1", &globals.x1);
@@ -476,11 +564,23 @@ TEST_CASE("data_binding")
 
 	REQUIRE(InitializeDataBindings(context));
 
-	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	ElementDocument* document = context->LoadDocumentFromMemory(data_binding_rml);
 	REQUIRE(document);
 	document->Show();
 
 	TestsShell::RenderLoop();
+
+	Element* element = document->GetElementById("simple");
+	CHECK(element->GetInnerRML() == "1");
+
+	element = document->GetElementById("simple_custom");
+	CHECK(element->GetInnerRML() == "One");
+
+	element = document->GetElementById("scoped");
+	CHECK(element->GetInnerRML() == "1");
+
+	element = document->GetElementById("scoped_custom");
+	CHECK(element->GetInnerRML() == "One");
 
 	document->Close();
 
@@ -606,6 +706,87 @@ TEST_CASE("data_binding.set_enum")
 
 	CHECK(globals.simple == Simple_Two);
 	CHECK(element->GetInnerRML() == "2");
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+static const String data_model_on_body_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<link type="text/rcss" href="/assets/invader.rcss"/>
+	<link type="text/template" href="/assets/window.rml"/>
+	<style>
+		body {
+			width: 500px;
+			height: 400px;
+			background: #ccc;
+			color: #333;
+		}
+	</style>
+</head>
+<body BODY_ATTRIBUTE>
+	<div DIV_ATTRIBUTE>
+		<div id="simple">{{ simple }}</div>
+		<div id="s2_val">{{ s2.val }}</div>
+		<div id="array_size">{{ arrays.a.size }}</div>
+		<div id="array_empty" data-attr-empty="arrays.a.size == 0"></div>
+		<div data-for="value, i : arrays.a">{{ i }}: {{ value }}</div>
+	</div>
+</body>
+</rml>
+)";
+
+TEST_CASE("data_binding.data_model_on_body")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	REQUIRE(InitializeDataBindings(context));
+
+	const String data_model_attribute = R"( data-model="basics")";
+	const String template_attribute = R"( template="window")";
+
+	String document_rml;
+	SUBCASE("data_model_on_div")
+	{
+		document_rml = StringUtilities::Replace(data_model_on_body_rml, "BODY_ATTRIBUTE", "");
+		document_rml = StringUtilities::Replace(document_rml, "DIV_ATTRIBUTE", data_model_attribute);
+	}
+	SUBCASE("data_model_on_body")
+	{
+		document_rml = StringUtilities::Replace(data_model_on_body_rml, "BODY_ATTRIBUTE", data_model_attribute);
+		document_rml = StringUtilities::Replace(document_rml, "DIV_ATTRIBUTE", "");
+	}
+	SUBCASE("data_model_on_body_with_template")
+	{
+		document_rml = StringUtilities::Replace(data_model_on_body_rml, "BODY_ATTRIBUTE", data_model_attribute + template_attribute);
+		document_rml = StringUtilities::Replace(document_rml, "DIV_ATTRIBUTE", "");
+	}
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	CHECK(document->GetElementById("simple")->GetInnerRML() == Rml::ToString(int(globals.simple)));
+	CHECK(document->GetElementById("s2_val")->GetInnerRML() == globals.s2.val);
+
+	const Vector<int> array = Arrays{}.a;
+	CHECK(document->GetElementById("array_size")->GetInnerRML() == Rml::ToString(array.size()));
+	CHECK(document->GetElementById("array_empty")->GetAttribute<bool>("empty", true) == array.empty());
+
+	Element* element = document->GetElementById("array_empty")->GetNextSibling();
+	size_t i = 0;
+	for (; i < array.size() && element; ++i)
+	{
+		CHECK(element->GetInnerRML() == Rml::CreateString("%zu: %d", i, array[i]));
+		element = element->GetNextSibling();
+	}
+	CHECK(i == array.size());
 
 	document->Close();
 	TestsShell::ShutdownShell();

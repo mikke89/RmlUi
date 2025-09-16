@@ -23,33 +23,73 @@ endfunction()
 #[[
 	Stop execution and print an error message for the dependency.
 	Arguments:
-		- friendly_name: Friendly name of the target
+		- friendly_name: Friendly name of the dependency
+		- package_name: Name of the package to search for
 		- target_name: Name of the CMake target the project will link against
 ]]
-function(report_dependency_not_found friendly_name target_name)
+function(report_dependency_not_found friendly_name package_name target_name)
 	message(FATAL_ERROR
 		"${friendly_name} could not be found.\n"
 		"Please ensure that ${friendly_name} can be found by CMake, or linked to using \"${target_name}\" as its "
-		"target name. If you are consuming RmlUi from another CMake project, you can create an ALIAS target to "
-		"offer an alternative name for a CMake target."
+		"target name. The location of the build directory of the dependency can be provided by setting the "
+		"\"${package_name}_ROOT\" CMake variable. If you are consuming RmlUi from another CMake project, you can "
+		"create an ALIAS target to offer an alternative name for a CMake target."
 	)
+endfunction()
+
+#[[
+	Print a message for the dependency after being found.
+	Arguments:
+		- package_name: Name of the package to search for
+		- target_name: Name of the CMake target the project will link against
+		- success_message: Message to show when the target exists (optional)
+	Note: The name and signature of this function should match the macro in `RmlUiConfig.cmake.in`.
+]]
+function(report_dependency_found package_name target_name)
+	set(message "")
+	if(DEFINED ${package_name}_VERSION AND NOT ${package_name}_VERSION STREQUAL "UNKNOWN")
+		set(message " v${${package_name}_VERSION}")
+	endif()
+	if(ARGC GREATER "2" AND ARGV2)
+		set(message "${message} - ${ARGV2}")
+	endif()
+	message(STATUS "Found ${target_name}${message}")
 endfunction()
 
 #[[
 	Verify that the target is found and print a message, otherwise stop execution.
 	Arguments:
-		- friendly_name: Friendly name of the target
+		- friendly_name: Friendly name of the dependency
+		- package_name: Name of the package to search for
 		- target_name: Name of the CMake target the project will link against
-		- success_message: Message to show when the target exists (optional)
+		- success_message [optional]: Message to show when the target exists
+	Note: The name and signature of this function should match the macro in `RmlUiConfig.cmake.in`.
 ]]
-function(report_dependency_found_or_error friendly_name target_name)
+function(report_dependency_found_or_error friendly_name package_name target_name)
 	if(NOT TARGET ${target_name})
-		report_dependency_not_found(${friendly_name} ${target_name})
+		report_dependency_not_found(${friendly_name} ${package_name} ${target_name})
 	endif()
-	if(ARGC GREATER "2" AND ARGV2)
-		set(success_message " - ${ARGV2}")
+	set(success_message "")
+	if(ARGC GREATER "3" AND ARGV3)
+		set(success_message "${ARGV3}")
 	endif()
-	message(STATUS "Found ${target_name}${success_message}")
+	report_dependency_found(${package_name} ${target_name} ${success_message})
+endfunction()
+
+#[[
+	Returns a list of data directories for the current target.
+	Arguments:
+		- target: Name of the target
+		- out_var: Name of the returned variable
+]]
+function(get_data_dirs target out_var)
+	set(data_dirs "")
+	foreach(dir IN ITEMS "data" "lua")
+		if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}")
+			list(APPEND data_dirs "${dir}")
+		endif()
+	endforeach()
+	set(${out_var} ${data_dirs} PARENT_SCOPE)
 endfunction()
 
 #[[
@@ -107,6 +147,7 @@ function(set_common_target_options target)
 		file(GLOB asset_files "${PROJECT_SOURCE_DIR}/${common_assets_dir}/*")
 
 		# Add sample-specific assets.
+		get_data_dirs(${target} data_dirs)
 		foreach(source_relative_dir IN LISTS data_dirs)
 			set(abs_dir "${CMAKE_CURRENT_SOURCE_DIR}/${source_relative_dir}")
 			file(RELATIVE_PATH root_relative_dir "${PROJECT_SOURCE_DIR}" "${abs_dir}")
@@ -149,12 +190,7 @@ endfunction()
 		- target: The name of the target
 ]]
 function(install_sample_target target)
-	set(data_dirs "")
-	foreach(dir IN ITEMS "data" "lua")
-		if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}")
-			list(APPEND data_dirs "${dir}")
-		endif()
-	endforeach()
+	get_data_dirs(${target} data_dirs)
 	file(RELATIVE_PATH sample_path ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 	install(TARGETS ${TARGET_NAME}
 		${RMLUI_RUNTIME_DEPENDENCY_SET_ARG}

@@ -39,7 +39,7 @@
 namespace Rml {
 
 void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture& out_shadow_texture, RenderManager& render_manager, Element* element,
-	Geometry& background_border_geometry, BoxShadowList shadow_list, const Vector4f border_radius, const float opacity)
+	Geometry& background_border_geometry, BoxShadowList shadow_list, const CornerSizes border_radius, const float opacity)
 {
 	// Find the box-shadow texture dimension and offset required to cover all box-shadows and element boxes combined.
 	Vector2f element_offset_in_texture;
@@ -75,9 +75,8 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 		// Extend the render-texture further to cover all the element's boxes.
 		for (int i = 0; i < element->GetNumBoxes(); i++)
 		{
-			Vector2f offset;
-			const Box& box = element->GetBox(i, offset);
-			texture_region = texture_region.Join(Rectanglef::FromPositionSize(offset, box.GetSize(BoxArea::Border)));
+			const RenderBox box = element->GetRenderBox(BoxArea::Border, i);
+			texture_region = texture_region.Join(Rectanglef::FromPositionSize(box.GetBorderOffset(), box.GetFillSize()));
 		}
 
 		texture_region = texture_region.Extend(-extend_min, extend_max);
@@ -109,14 +108,11 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 		// Generate the geometry for all the element's boxes and extend the render-texture further to cover all of them.
 		for (int i = 0; i < element->GetNumBoxes(); i++)
 		{
-			Vector2f offset;
-			const Box& box = element->GetBox(i, offset);
 			ColourbPremultiplied white(255);
-
 			if (has_inner_shadow)
-				MeshUtilities::GenerateBackground(mesh_padding, box, offset, border_radius, white, BoxArea::Padding);
+				MeshUtilities::GenerateBackground(mesh_padding, element->GetRenderBox(BoxArea::Padding, i), white);
 			if (has_outer_shadow)
-				MeshUtilities::GenerateBackground(mesh_padding_border, box, offset, border_radius, white, BoxArea::Border);
+				MeshUtilities::GenerateBackground(mesh_padding_border, element->GetRenderBox(BoxArea::Border, i), white);
 		}
 
 		const RenderState initial_render_state = render_manager.GetState();
@@ -152,7 +148,7 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 			const float spread_distance = shadow.spread_distance.number;
 			const float blur_radius = shadow.blur_radius.number;
 
-			Vector4f spread_radii = border_radius;
+			CornerSizes spread_radii = border_radius;
 			for (int i = 0; i < 4; i++)
 			{
 				float& radius = spread_radii[i];
@@ -167,22 +163,15 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 
 			Mesh mesh_shadow;
 
-			// Generate the shadow geometry. For outer box-shadows it is rendered normally, while for inner box-shadows it is used as a clipping mask.
+			// Generate the shadow geometry. For outer box-shadows it is rendered normally, while for inset box-shadows it is used as a clipping mask.
 			for (int i = 0; i < element->GetNumBoxes(); i++)
 			{
-				Vector2f offset;
-				Box box = element->GetBox(i, offset);
 				const float signed_spread_distance = (inset ? -spread_distance : spread_distance);
-				offset -= Vector2f(signed_spread_distance);
-
-				for (int j = 0; j < Box::num_edges; j++)
-				{
-					BoxEdge edge = (BoxEdge)j;
-					const float new_size = box.GetEdge(BoxArea::Padding, edge) + signed_spread_distance;
-					box.SetEdge(BoxArea::Padding, edge, new_size);
-				}
-
-				MeshUtilities::GenerateBackground(mesh_shadow, box, offset, spread_radii, shadow.color, inset ? BoxArea::Padding : BoxArea::Border);
+				RenderBox render_box = element->GetRenderBox(inset ? BoxArea::Padding : BoxArea::Border, i);
+				render_box.SetFillSize(Math::Max(render_box.GetFillSize() + Vector2f(2.f * signed_spread_distance), Vector2f{0.001f}));
+				render_box.SetBorderRadius(spread_radii);
+				render_box.SetBorderOffset(render_box.GetBorderOffset() - Vector2f(signed_spread_distance));
+				MeshUtilities::GenerateBackground(mesh_shadow, render_box, shadow.color);
 			}
 
 			CompiledFilter blur;

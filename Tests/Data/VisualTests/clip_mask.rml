@@ -16,6 +16,7 @@
 			height: auto;
 			display: block;
 			position: relative;
+			cursor: move;
 		}
 		.box {
 			margin: 20dp auto;
@@ -51,16 +52,16 @@
 <body>
 <div class="box clip">
 	Duck aloft
-	<handle move_target="#self" class="A">
+	<handle move_target="#self" class="A" edge_margin="-70%">
 			A
 	</handle>
 	X
 </div>
 <div class="box clip">
 	Y
-	<handle move_target="#self" class="B clip">
+	<handle move_target="#self" class="B clip" edge_margin="-70%">
 			C
-		<handle move_target="#self" class="C clip">
+		<handle move_target="#self" class="C clip" edge_margin="-70%">
 				Some long text
 		</handle>
 			Z

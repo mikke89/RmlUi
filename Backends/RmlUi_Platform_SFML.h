@@ -58,24 +58,27 @@ private:
 	sf::Clock timer;
 	sf::RenderWindow* window = nullptr;
 
-	bool cursors_valid = false;
-	sf::Cursor cursor_default;
-	sf::Cursor cursor_move;
-	sf::Cursor cursor_pointer;
-	sf::Cursor cursor_resize;
-	sf::Cursor cursor_cross;
-	sf::Cursor cursor_text;
-	sf::Cursor cursor_unavailable;
+	struct Cursors {
+		Cursors();
+		sf::Cursor cursor_default;
+		sf::Cursor cursor_move;
+		sf::Cursor cursor_pointer;
+		sf::Cursor cursor_resize;
+		sf::Cursor cursor_cross;
+		sf::Cursor cursor_text;
+		sf::Cursor cursor_unavailable;
+	};
+	Rml::UniquePtr<Cursors> cursors;
 };
 
 /**
-    Optional helper functions for the SFML plaform.
+    Optional helper functions for the SFML platform.
  */
 namespace RmlSFML {
 
 // Applies input on the context based on the given SFML event.
 // @return True if the event is still propagating, false if it was handled by the context.
-bool InputHandler(Rml::Context* context, sf::Event& ev);
+bool InputHandler(Rml::Context* context, const sf::Event& ev);
 
 // Converts the SFML key to RmlUi key.
 Rml::Input::KeyIdentifier ConvertKey(sf::Keyboard::Key sfml_key);

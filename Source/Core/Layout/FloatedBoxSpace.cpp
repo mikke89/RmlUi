@@ -149,7 +149,7 @@ Vector2f FloatedBoxSpace::NextBoxPosition(const BlockContainer* parent, float& m
 
 			// Were we pushed out of our containing box? If so, try again at the next cursor position.
 			if (box_position.x < parent_edge_left || box_position.x + dimensions.x > parent_edge_right)
-				return NextBoxPosition(parent, maximum_box_width, next_cursor + 0.01f, dimensions, nowrap, float_property);
+				return NextBoxPosition(parent, maximum_box_width, next_cursor, dimensions, nowrap, float_property);
 		}
 	}
 
@@ -185,7 +185,7 @@ Vector2f FloatedBoxSpace::NextBoxPosition(const BlockContainer* parent, float& m
 		if (collision && !nowrap)
 		{
 			next_cursor = Math::Min(next_cursor, fixed_box.offset.y + fixed_box.dimensions.y);
-			return NextBoxPosition(parent, maximum_box_width, next_cursor + 0.01f, dimensions, nowrap, float_property);
+			return NextBoxPosition(parent, maximum_box_width, next_cursor, dimensions, nowrap, float_property);
 		}
 	}
 
@@ -218,7 +218,7 @@ Vector2f FloatedBoxSpace::NextBoxPosition(const BlockContainer* parent, float& m
 			// D'oh! We hit this box. Ah well; we'll try again lower down the page, at the highest bottom-edge of any
 			// of the boxes we've been pushed around by so far.
 			next_cursor = Math::Min(next_cursor, fixed_box.offset.y + fixed_box.dimensions.y);
-			return NextBoxPosition(parent, maximum_box_width, next_cursor + 0.01f, dimensions, nowrap, float_property);
+			return NextBoxPosition(parent, maximum_box_width, next_cursor, dimensions, nowrap, float_property);
 		}
 	}
 

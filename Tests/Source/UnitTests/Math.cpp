@@ -154,3 +154,31 @@ TEST_CASE("Math.Max")
 	CHECK(Math::Max<Vector2f>({2, 2}, {1, 1}) == Vector2f(2, 2));
 	CHECK(Math::Max<Vector2f>({2, 1}, {1, 2}) == Vector2f(2, 2));
 }
+
+TEST_CASE("Math.Round")
+{
+	CHECK(Math::Round(-1.0f) == -1.f);
+	CHECK(Math::Round(0.0f) == 0.f);
+	CHECK(Math::Round(1.0f) == 1.f);
+
+	CHECK(Math::Round(0.49f) == 0.f);
+	CHECK(Math::Round(0.50f) == 1.f);
+	CHECK(Math::Round(0.51f) == 1.f);
+	CHECK(Math::Round(-0.49f) == 0.f);
+	CHECK(Math::Round(-0.50f) == 0.f); // Always round half up, see commit message.
+	CHECK(Math::Round(-0.51f) == -1.f);
+
+	CHECK(Math::Round(1000.49f) == 1000.f);
+	CHECK(Math::Round(1000.50f) == 1001.f);
+	CHECK(Math::Round(1000.51f) == 1001.f);
+	CHECK(Math::Round(-1000.49f) == -1000.f);
+	CHECK(Math::Round(-1000.50f) == -1000.f);
+	CHECK(Math::Round(-1000.51f) == -1001.f);
+
+	CHECK(Math::Round(100000.49f) == 100000.f);
+	CHECK(Math::Round(100000.50f) == 100001.f);
+	CHECK(Math::Round(100000.51f) == 100001.f);
+	CHECK(Math::Round(-100000.49f) == -100000.f);
+	CHECK(Math::Round(-100000.50f) == -100000.f);
+	CHECK(Math::Round(-100000.51f) == -100001.f);
+}

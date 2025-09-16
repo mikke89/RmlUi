@@ -30,7 +30,14 @@
 #define RMLUI_BACKENDS_RENDERER_SDL_H
 
 #include <RmlUi/Core/RenderInterface.h>
-#include <SDL.h>
+
+#if RMLUI_SDL_VERSION_MAJOR == 3
+	#include <SDL3/SDL.h>
+#elif RMLUI_SDL_VERSION_MAJOR == 2
+	#include <SDL.h>
+#else
+	#error "Unspecified RMLUI_SDL_VERSION_MAJOR. Please set this definition to the major version of the SDL library being linked to."
+#endif
 
 class RenderInterface_SDL : public Rml::RenderInterface {
 public:

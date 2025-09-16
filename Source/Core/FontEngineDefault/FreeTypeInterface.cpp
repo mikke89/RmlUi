@@ -78,12 +78,12 @@ void FreeType::Shutdown()
 	}
 }
 
-bool FreeType::GetFaceVariations(Span<const byte> data, Vector<FaceVariation>& out_face_variations)
+bool FreeType::GetFaceVariations(Span<const byte> data, Vector<FaceVariation>& out_face_variations, int face_index)
 {
 	RMLUI_ASSERT(ft_library);
 
 	FT_Face face = nullptr;
-	FT_Error error = FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()), 0, &face);
+	FT_Error error = FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()), face_index, &face);
 	if (error)
 		return false;
 
@@ -133,13 +133,13 @@ bool FreeType::GetFaceVariations(Span<const byte> data, Vector<FaceVariation>& o
 	return true;
 }
 
-FontFaceHandleFreetype FreeType::LoadFace(Span<const byte> data, const String& source, int named_style_index)
+FontFaceHandleFreetype FreeType::LoadFace(Span<const byte> data, const String& source, int face_index, int named_style_index)
 {
 	RMLUI_ASSERT(ft_library);
 
 	FT_Face face = nullptr;
 	FT_Error error =
-		FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()), (named_style_index << 16), &face);
+		FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()), (named_style_index << 16) | face_index, &face);
 
 	if (error)
 	{
@@ -280,10 +280,9 @@ static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const
 	if (it == glyphs.end())
 	{
 		FontGlyph glyph;
-		glyph.dimensions = {size / 3, (size * 2) / 3};
-		glyph.bitmap_dimensions = glyph.dimensions;
-		glyph.advance = glyph.dimensions.x + 2;
-		glyph.bearing = {1, glyph.dimensions.y};
+		glyph.bitmap_dimensions = {size / 3, (size * 2) / 3};
+		glyph.advance = glyph.bitmap_dimensions.x + 2;
+		glyph.bearing = {1, glyph.bitmap_dimensions.y};
 
 		glyph.bitmap_owned_data.reset(new byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y]);
 		glyph.bitmap_data = glyph.bitmap_owned_data.get();
@@ -337,18 +336,9 @@ static bool BuildGlyph(FT_Face ft_face, const Character character, FontGlyphMap&
 
 	FT_GlyphSlot ft_glyph = ft_face->glyph;
 
-	// Set the glyph's dimensions.
-	glyph.dimensions.x = ft_glyph->metrics.width >> 6;
-	glyph.dimensions.y = ft_glyph->metrics.height >> 6;
-
-	// Set the glyph's bearing.
-	glyph.bearing.x = ft_glyph->metrics.horiBearingX >> 6;
-	glyph.bearing.y = ft_glyph->metrics.horiBearingY >> 6;
-
-	// Set the glyph's advance.
+	glyph.bearing.x = ft_glyph->bitmap_left;
+	glyph.bearing.y = ft_glyph->bitmap_top;
 	glyph.advance = ft_glyph->metrics.horiAdvance >> 6;
-
-	// Set the glyph's bitmap dimensions.
 	glyph.bitmap_dimensions.x = ft_glyph->bitmap.width;
 	glyph.bitmap_dimensions.y = ft_glyph->bitmap.rows;
 
@@ -356,7 +346,6 @@ static bool BuildGlyph(FT_Face ft_face, const Character character, FontGlyphMap&
 	const bool scale_bitmap = (bitmap_scaling_factor < 1.f);
 	if (scale_bitmap)
 	{
-		glyph.dimensions = Vector2i(Vector2f(glyph.dimensions) * bitmap_scaling_factor);
 		glyph.bearing = Vector2i(Vector2f(glyph.bearing) * bitmap_scaling_factor);
 		glyph.advance = int(float(glyph.advance) * bitmap_scaling_factor);
 		glyph.bitmap_dimensions = Vector2i(Vector2f(glyph.bitmap_dimensions) * bitmap_scaling_factor);

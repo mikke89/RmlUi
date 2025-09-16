@@ -50,7 +50,6 @@ class DataParser;
     The abstract machine has three registers:
         R  Typically results and right-hand side arguments.
         L  Typically left-hand side arguments.
-        C  Typically center arguments (eg. in ternary operator).
 
     And a stack:
         S  The program stack.
@@ -64,9 +63,9 @@ class DataParser;
 */
 enum class Instruction {
 	// clang-format off
-	// Assignment (register/stack) = Read (register R/L/C, instruction data D, or stack)
+	// Assignment (register/stack) = Read (register R/L, instruction data D, or stack)
 	Push            = 'P',     //      S+ = R
-	Pop             = 'o',     // <R/L/C> = S-  (D determines R/L/C)
+	Pop             = 'o',     //   <R/L> = S-  (D determines R/L)
 	Literal         = 'D',     //       R = D
 	Variable        = 'V',     //       R = DataModel.GetVariable(D)  (D is an index into the variable address list)
 	Add             = '+',     //       R = L + R
@@ -82,20 +81,20 @@ enum class Instruction {
 	GreaterEq       = 'G',     //       R = L >= R
 	Equal           = '=',     //       R = L == R
 	NotEqual        = 'N',     //       R = L != R
-	Ternary         = '?',     //       R = L ? C : R
 	NumArguments    = '#',     //       R = D  (Contains the num. arguments currently on the stack, immediately followed by a 'T' or 'E' instruction)
 	TransformFnc    = 'T',     //       R = DataModel.Execute(D, A) where A = S[TOP - R, TOP]; S -= R;  (D determines function name, input R the num. arguments, A the arguments)
 	EventFnc        = 'E',     //       DataModel.EventCallback(D, A); S -= R;
 	Assign          = 'A',     //       DataModel.SetVariable(D, R)
 	DynamicVariable = 'Y',     //       DataModel.GetVariable(DataModel.ParseAddress(R)) (Looks up a variable by path in R)
-	CastToInt       = 'I'      //       R = (int)R
+	CastToInt       = 'I',     //       R = (int)R
+	Jump            = 'J',     //       Jumps to instruction index D
+	JumpIfZero      = 'Z',     //       If R is false, jumps to instruction index D
 	// clang-format on
 };
 
 enum class Register {
 	R,
 	L,
-	C,
 };
 
 struct InstructionData {
@@ -256,6 +255,8 @@ public:
 	}
 	void Variable(const String& data_address) { VariableGetSet(data_address, false); }
 	void Assign(const String& data_address) { VariableGetSet(data_address, true); }
+	size_t InstructionIndex() const { return program.size(); }
+	void PatchInstruction(size_t index, InstructionData data) { program[index] = data; }
 
 	ProgramState GetProgramState() { return ProgramState{program.size(), program_stack_size}; }
 
@@ -844,16 +845,23 @@ namespace Parse {
 
 	static void Ternary(DataParser& parser)
 	{
+		size_t jump_false_branch = parser.InstructionIndex();
+		parser.Emit(Instruction::JumpIfZero);
+
 		parser.Match('?');
-		parser.Push();
 		Expression(parser);
-		parser.Push();
+		size_t jump_end = parser.InstructionIndex();
+		parser.Emit(Instruction::Jump);
+
 		parser.Match(':');
+		size_t false_branch = parser.InstructionIndex();
 		Expression(parser);
-		parser.Pop(Register::C);
-		parser.Pop(Register::L);
-		parser.Emit(Instruction::Ternary);
+
+		size_t end = parser.InstructionIndex();
+		parser.PatchInstruction(jump_false_branch, InstructionData{Instruction::JumpIfZero, Variant((uint64_t)false_branch)});
+		parser.PatchInstruction(jump_end, InstructionData{Instruction::Jump, Variant((uint64_t)end)});
 	}
+
 	static void Function(DataParser& parser, Instruction function_type, String&& func_name, bool first_argument_piped)
 	{
 		RMLUI_ASSERT(function_type == Instruction::TransformFnc || function_type == Instruction::EventFnc);
@@ -928,13 +936,16 @@ public:
 	bool Run()
 	{
 		bool success = true;
-		for (size_t i = 0; i < program.size(); i++)
+		size_t i = 0;
+		while (i < program.size())
 		{
-			if (!Execute(program[i].instruction, program[i].data))
+			size_t next_instruction = i + 1;
+			if (!Execute(program[i].instruction, program[i].data, next_instruction))
 			{
 				success = false;
 				break;
 			}
+			i = next_instruction;
 		}
 
 		if (success && !stack.empty())
@@ -954,14 +965,14 @@ public:
 	Variant Result() const { return R; }
 
 private:
-	Variant R, L, C;
+	Variant R, L;
 	Vector<Variant> stack;
 
 	const Program& program;
 	const AddressList& addresses;
 	DataExpressionInterface expression_interface;
 
-	bool Execute(const Instruction instruction, const Variant& data)
+	bool Execute(const Instruction instruction, const Variant& data, size_t& next_instruction)
 	{
 		auto AnyString = [](const Variant& v1, const Variant& v2) { return v1.GetType() == Variant::STRING || v2.GetType() == Variant::STRING; };
 
@@ -984,7 +995,6 @@ private:
 				// clang-format off
 			case Register::R:  R = stack.back(); stack.pop_back(); break;
 			case Register::L:  L = stack.back(); stack.pop_back(); break;
-			case Register::C:  C = stack.back(); stack.pop_back(); break;
 				// clang-format on
 			default: return Error(CreateString("Invalid register %d.", int(reg)));
 			}
@@ -1049,12 +1059,6 @@ private:
 				R = Variant(L.Get<double>() != R.Get<double>());
 		}
 		break;
-		case Instruction::Ternary:
-		{
-			if (L.Get<bool>())
-				R = C;
-		}
-		break;
 		case Instruction::NumArguments:
 		{
 			const int num_arguments = data.Get<int>(-1);
@@ -1105,6 +1109,17 @@ private:
 				return Error("Could not cast value to int.");
 			else
 				R = tmp;
+		}
+		break;
+		case Instruction::JumpIfZero:
+		{
+			if (!R.Get<bool>())
+				next_instruction = data.Get<size_t>(0);
+		}
+		break;
+		case Instruction::Jump:
+		{
+			next_instruction = data.Get<size_t>(0);
 		}
 		break;
 		default: RMLUI_ERRORMSG("Instruction not implemented."); break;
