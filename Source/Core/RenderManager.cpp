@@ -46,9 +46,6 @@ RenderManager::RenderManager(RenderInterface* render_interface) : render_interfa
 
 RenderManager::~RenderManager()
 {
-	// clear cache, since the render manager always has at least 1 reference if the texture hasn't been freed yet.
-	// All references should be equal to 1, if they are more, then they haven't been freed properly
-	CleanupDeadBoxShadowCache();
 	struct ResourceCount {
 		const char* name;
 		int count;
@@ -83,9 +80,6 @@ void RenderManager::PrepareRender(Vector2i dimensions)
 #endif
 
 	SetViewport(dimensions);
-
-	// is this a good place to call cleanup?
-	CleanupDeadBoxShadowCache();
 }
 
 void RenderManager::SetViewport(Vector2i dimensions)
@@ -118,21 +112,6 @@ CallbackTexture RenderManager::MakeCallbackTexture(CallbackTextureFunction callb
 {
 	return CallbackTexture(this, texture_database->callback_database.CreateTexture(std::move(callback)));
 }
-
-SharedPtr<CallbackTexture> RenderManager::FindOrMakeBoxShadowCallbackTexture(const BoxShadowGeometryInfo& geometry_info, CallbackTextureFunction callback)
-{
-	{
-		auto it = box_shadow_cache.find(geometry_info);
-		if (it != box_shadow_cache.end()) {
-			auto& ref_tex = it->second;
-			return ref_tex;
-		}
-	}
-	SharedPtr<CallbackTexture>& ref_tex = box_shadow_cache[geometry_info];
-	ref_tex = SharedPtr<CallbackTexture>(new CallbackTexture(this, texture_database->callback_database.CreateTexture(std::move(callback))));
-	return ref_tex;
-}
-
 
 void RenderManager::DisableScissorRegion()
 {
@@ -415,21 +394,5 @@ void RenderManager::ReleaseResource(const CompiledShader& shader)
 	render_interface->ReleaseShader(shader.resource_handle);
 	compiled_shader_count -= 1;
 }
-
-void RenderManager::CleanupDeadBoxShadowCache() 
-{
-	Vector<BoxShadowGeometryInfo> destroyGeometries(0);
-	for (auto& kv : box_shadow_cache) {
-		RMLUI_ASSERT(kv.second && "This should never be null!");
-		if (kv.second.unique()) {
-			kv.second->Release();
-			destroyGeometries.emplace_back(std::move(kv.first));
-		}
-	}
-	for (auto& info : destroyGeometries) {
-		box_shadow_cache.erase(info);
-	}
-}
-
 
 } // namespace Rml
