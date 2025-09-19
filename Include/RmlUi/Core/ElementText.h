@@ -78,6 +78,19 @@ public:
 	/// Prevents the element from dirtying its document's layout when its text is changed.
 	void SuppressAutoLayout();
 
+	// Used to store the position and length of each line we have geometry for.
+	struct Line {
+		Line(String text, Vector2f position) : text(std::move(text)), position(position), width(0) {}
+		String text;
+		Vector2f position;
+		int width;
+	};
+
+	using LineList = Vector<Line>;
+
+	// Returns the current list of lines.
+	const LineList &GetLines() const { return lines; }
+
 protected:
 	void OnRender() override;
 
@@ -89,14 +102,6 @@ private:
 	// Prepares the font effects this element uses for its font.
 	bool UpdateFontEffects();
 
-	// Used to store the position and length of each line we have geometry for.
-	struct Line {
-		Line(String text, Vector2f position) : text(std::move(text)), position(position), width(0) {}
-		String text;
-		Vector2f position;
-		int width;
-	};
-
 	// Clears and regenerates all of the text's geometry.
 	void GenerateGeometry(RenderManager& render_manager, FontFaceHandle font_face_handle);
 	// Generates any geometry necessary for rendering decoration (underline, strike-through, etc).
@@ -104,7 +109,6 @@ private:
 
 	String text;
 
-	using LineList = Vector<Line>;
 	LineList lines;
 
 	struct TexturedGeometry {
