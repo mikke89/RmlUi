@@ -193,6 +193,39 @@ struct hash<::Rml::FamilyId> {
 		return h(static_cast<utype>(t));
 	}
 };
+template <>
+struct hash<::Rml::Vector2i> {
+	size_t operator()(const ::Rml::Vector2i& v) const noexcept
+	{
+		size_t h1 = std::hash<int>{}(v.x);
+		size_t h2 = std::hash<int>{}(v.y);
+		return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+	}
+};
+template <>
+struct hash<::Rml::Vector2f> {
+	size_t operator()(const ::Rml::Vector2f& v) const noexcept
+	{
+		size_t h1 = hash<float>{}(v.x);
+		size_t h2 = hash<float>{}(v.y);
+		return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+	}
+};
+template <>
+struct hash<::Rml::Colourb> {
+	size_t operator()(const ::Rml::Colourb& v) const noexcept
+	{
+		return static_cast<size_t>(hash<uint32_t>{}(reinterpret_cast<const uint32_t&>(v)));
+	}
+};
+template <>
+struct hash<::Rml::ColourbPremultiplied> {
+	size_t operator()(const ::Rml::ColourbPremultiplied& v) const noexcept
+	{
+		return static_cast<size_t>(hash<uint32_t>{}(reinterpret_cast<const uint32_t&>(v)));
+	}
+};
+
 } // namespace std
 
 #endif

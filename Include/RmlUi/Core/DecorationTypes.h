@@ -31,6 +31,7 @@
 
 #include "NumericValue.h"
 #include "Types.h"
+#include "Utilities.h"
 
 namespace Rml {
 
@@ -65,4 +66,24 @@ inline bool operator!=(const BoxShadow& a, const BoxShadow& b)
 }
 
 } // namespace Rml
+
+namespace std {
+template <>
+struct hash<::Rml::BoxShadow> {
+	size_t operator()(const ::Rml::BoxShadow& s) const noexcept
+	{
+		using namespace ::Rml;
+		using namespace ::Rml::Utilities;
+		size_t seed = std::hash<ColourbPremultiplied>{}(s.color);
+
+		HashCombine(seed, s.offset_x);
+		HashCombine(seed, s.offset_y);
+		HashCombine(seed, s.blur_radius);
+		HashCombine(seed, s.spread_distance);
+		HashCombine(seed, s.inset);
+		return seed;
+	}
+};
+
+} // namespace std
 #endif
