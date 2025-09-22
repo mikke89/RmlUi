@@ -12,6 +12,21 @@ target_sources(rmlui_backend_common_headers INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend.cpp"
 )
 
+if(RMLUI_BACKEND_SIMULATE_TOUCH)
+	set(RMLUI_BACKEND_SIMULATE_TOUCH_SUPPORTED
+		"SDL_GL2"
+		"SDL_GL3"
+		"SDL_VK"
+		"SDL_SDLrenderer"
+		"SDL_GPU"
+	)
+	if(NOT RMLUI_BACKEND IN_LIST RMLUI_BACKEND_SIMULATE_TOUCH_SUPPORTED)
+		message(WARNING "RMLUI_BACKEND_SIMULATE_TOUCH enabled but not supported on selected backend ${RMLUI_BACKEND}")
+	else()
+		target_compile_definitions(rmlui_backend_common_headers INTERFACE "RMLUI_BACKEND_SIMULATE_TOUCH")
+	endif()
+endif()
+
 add_library(rmlui_backend_Win32_GL2 INTERFACE)
 target_sources(rmlui_backend_Win32_GL2 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Win32.cpp"
