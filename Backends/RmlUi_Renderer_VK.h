@@ -502,8 +502,8 @@ private:
 	void CreateSwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
 
 	// This method is called in Views, so don't call it manually
-	void CreateSwapchainImages() noexcept;
-	void CreateSwapchainImageViews() noexcept;
+	void Create_SwapchainImages() noexcept;
+	void Create_SwapchainImageViews() noexcept;
 
 	void Create_DepthStencilImage() noexcept;
 	void Create_DepthStencilImageViews() noexcept;

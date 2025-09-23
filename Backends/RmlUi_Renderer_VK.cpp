@@ -2179,7 +2179,7 @@ void RenderInterface_VK::CreateSwapchainFrameBuffers(const VkExtent2D& real_rend
 	RMLUI_VK_ASSERTMSG(m_p_render_pass, "you must create a VkRenderPass before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_device, "you must have a valid VkDevice here");
 
-	CreateSwapchainImageViews();
+	Create_SwapchainImageViews();
 	Create_DepthStencilImage();
 	Create_DepthStencilImageViews();
 
@@ -2214,7 +2214,7 @@ void RenderInterface_VK::CreateSwapchainFrameBuffers(const VkExtent2D& real_rend
 	}
 }
 
-void RenderInterface_VK::CreateSwapchainImages() noexcept
+void RenderInterface_VK::Create_SwapchainImages() noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_swapchain, "[Vulkan] you must initialize VkSwapchainKHR before calling this method");
@@ -2231,9 +2231,9 @@ void RenderInterface_VK::CreateSwapchainImages() noexcept
 	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "[Vulkan] failed to vkGetSwapchainImagesKHR (filling vector)");
 }
 
-void RenderInterface_VK::CreateSwapchainImageViews() noexcept
+void RenderInterface_VK::Create_SwapchainImageViews() noexcept
 {
-	CreateSwapchainImages();
+	Create_SwapchainImages();
 
 	m_swapchain_image_views.resize(m_swapchain_images.size());
 
