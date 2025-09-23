@@ -783,7 +783,7 @@ void RenderInterface_VK::SetViewport(int width, int height)
 	m_height = window_extent.height;
 
 	Initialize_Swapchain(window_extent);
-	CreateResourcesDependentOnSize(window_extent);
+	Create_ResourcesDependentOnSize(window_extent);
 }
 
 bool RenderInterface_VK::IsSwapchainValid()
@@ -1180,11 +1180,11 @@ void RenderInterface_VK::Initialize_Resources(const VkPhysicalDeviceProperties& 
 	m_upload_manager.Initialize(m_p_device, m_p_queue_graphics, m_queue_index_graphics);
 	m_manager_descriptors.Initialize(m_p_device, 100, 100, 10, 10);
 
-	CreateShaders();
-	CreateDescriptorSetLayout();
-	CreatePipelineLayout();
-	CreateSamplers();
-	CreateDescriptorSets();
+	Create_Shaders();
+	Create_DescriptorSetLayout();
+	Create_PipelineLayout();
+	Create_Samplers();
+	Create_DescriptorSets();
 }
 
 void RenderInterface_VK::Initialize_Allocator() noexcept
@@ -1824,7 +1824,7 @@ VkSurfaceCapabilitiesKHR RenderInterface_VK::GetSurfaceCapabilities() noexcept
 	return result;
 }
 
-void RenderInterface_VK::CreateShaders() noexcept
+void RenderInterface_VK::Create_Shaders() noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 
@@ -1856,7 +1856,7 @@ void RenderInterface_VK::CreateShaders() noexcept
 	}
 }
 
-void RenderInterface_VK::CreateDescriptorSetLayout() noexcept
+void RenderInterface_VK::Create_DescriptorSetLayout() noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 	RMLUI_VK_ASSERTMSG(!m_p_descriptor_set_layout_vertex_transform && !m_p_descriptor_set_layout_texture, "[Vulkan] Already initialized");
@@ -1894,7 +1894,7 @@ void RenderInterface_VK::CreateDescriptorSetLayout() noexcept
 	}
 }
 
-void RenderInterface_VK::CreatePipelineLayout() noexcept
+void RenderInterface_VK::Create_PipelineLayout() noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_descriptor_set_layout_vertex_transform, "[Vulkan] You must initialize VkDescriptorSetLayout before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_descriptor_set_layout_texture,
@@ -1915,7 +1915,7 @@ void RenderInterface_VK::CreatePipelineLayout() noexcept
 	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "[Vulkan] failed to vkCreatePipelineLayout");
 }
 
-void RenderInterface_VK::CreateDescriptorSets() noexcept
+void RenderInterface_VK::Create_DescriptorSets() noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_device, "[Vulkan] you have to initialize your VkDevice before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_descriptor_set_layout_vertex_transform,
@@ -1925,7 +1925,7 @@ void RenderInterface_VK::CreateDescriptorSets() noexcept
 	m_memory_pool.SetDescriptorSet(1, sizeof(shader_vertex_user_data_t), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, m_p_descriptor_set);
 }
 
-void RenderInterface_VK::CreateSamplers() noexcept
+void RenderInterface_VK::Create_Samplers() noexcept
 {
 	VkSamplerCreateInfo info = {};
 
@@ -2174,7 +2174,7 @@ void RenderInterface_VK::Create_Pipelines() noexcept
 #endif
 }
 
-void RenderInterface_VK::CreateSwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept
+void RenderInterface_VK::Create_SwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_render_pass, "you must create a VkRenderPass before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_device, "you must have a valid VkDevice here");
@@ -2334,7 +2334,7 @@ void RenderInterface_VK::Create_DepthStencilImageViews() noexcept
 	m_texture_depthstencil.m_p_vk_image_view = p_image_view;
 }
 
-void RenderInterface_VK::CreateResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept
+void RenderInterface_VK::Create_ResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept
 {
 	m_viewport.height = static_cast<float>(real_render_image_size.height);
 	m_viewport.width = static_cast<float>(real_render_image_size.width);
@@ -2361,8 +2361,8 @@ void RenderInterface_VK::CreateResourcesDependentOnSize(const VkExtent2D& real_r
 
 	SetTransform(nullptr);
 
-	CreateRenderPass();
-	CreateSwapchainFrameBuffers(real_render_image_size);
+	Create_RenderPass();
+	Create_SwapchainFrameBuffers(real_render_image_size);
 	Create_Pipelines();
 }
 
@@ -2514,7 +2514,7 @@ void RenderInterface_VK::DestroySamplers() noexcept
 	vkDestroySampler(m_p_device, m_p_sampler_linear, nullptr);
 }
 
-void RenderInterface_VK::CreateRenderPass() noexcept
+void RenderInterface_VK::Create_RenderPass() noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_device, "you must have a valid VkDevice here");
 

@@ -491,15 +491,15 @@ private:
 
 	VkExtent2D GetValidSurfaceExtent() noexcept;
 
-	void CreateShaders() noexcept;
-	void CreateDescriptorSetLayout() noexcept;
-	void CreatePipelineLayout() noexcept;
-	void CreateDescriptorSets() noexcept;
-	void CreateSamplers() noexcept;
+	void Create_Shaders() noexcept;
+	void Create_DescriptorSetLayout() noexcept;
+	void Create_PipelineLayout() noexcept;
+	void Create_DescriptorSets() noexcept;
+	void Create_Samplers() noexcept;
 	void Create_Pipelines() noexcept;
-	void CreateRenderPass() noexcept;
+	void Create_RenderPass() noexcept;
 
-	void CreateSwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
+	void Create_SwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
 
 	// This method is called in Views, so don't call it manually
 	void Create_SwapchainImages() noexcept;
@@ -508,7 +508,7 @@ private:
 	void Create_DepthStencilImage() noexcept;
 	void Create_DepthStencilImageViews() noexcept;
 
-	void CreateResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept;
+	void Create_ResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept;
 
 	buffer_data_t CreateResource_StagingBuffer(VkDeviceSize size, VkBufferUsageFlags flags) noexcept;
 	void DestroyResource_StagingBuffer(const buffer_data_t& data) noexcept;
