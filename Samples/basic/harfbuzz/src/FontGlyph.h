@@ -31,14 +31,29 @@
 
 #include <RmlUi/Core.h>
 
+using FontGlyphIndex = uint32_t;
+
 struct FontGlyphData
 {
 	Rml::FontGlyph bitmap;
 	Rml::Character character;
 };
 
-using FontGlyphIndex = uint32_t;
+struct FontClusterGlyphData
+{
+	FontGlyphIndex glyph_index;
+	FontGlyphData glyph_data;
+};
+
 using FontGlyphMap = Rml::UnorderedMap<FontGlyphIndex, FontGlyphData>;
 using FallbackFontGlyphMap = Rml::UnorderedMap<Rml::Character, Rml::FontGlyph>;
+using FallbackFontClusterGlyphMap = Rml::UnorderedMap<Rml::String, FontClusterGlyphData>;
+
+struct FontGlyphMaps
+{
+	const FontGlyphMap* glyphs;
+	const FallbackFontGlyphMap* fallback_glyphs;
+	const FallbackFontClusterGlyphMap* fallback_cluster_glyphs;
+};
 
 #endif

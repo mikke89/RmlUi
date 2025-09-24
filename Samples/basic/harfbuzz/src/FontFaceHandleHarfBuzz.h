@@ -71,6 +71,7 @@ public:
 
 	const FontGlyphMap& GetGlyphs() const;
 	const FallbackFontGlyphMap& GetFallbackGlyphs() const;
+	const FallbackFontClusterGlyphMap& GetFallbackClusterGlyphs() const;
 
 	/// Returns the width a string will take up if rendered with this handle.
 	/// @param[in] string The string to measure.
@@ -131,6 +132,19 @@ private:
 	/// @return The fallback font glyph for character.
 	const FontGlyph* GetOrAppendFallbackGlyph(Character character);
 
+	// Build and append fallback cluster glyph to 'fallback_cluster_glyphs'.
+	bool AppendFallbackClusterGlyph(StringView cluster, const TextShapingContext& text_shaping_context,
+		const LanguageDataMap& registered_languages);
+
+	/// Retrieve a fallback cluster glyph from the given cluster and text-shaping/language data, building and appending a new fallback cluster glyph if not already built.
+	/// @param[in] cluster  The cluster.
+	/// @param[in] text_shaping_context  Extra parameters that provide context for text shaping.
+	/// @param[in] registered_languages  A list of languages registered in the font engine interface.
+	/// @param[out] glyph_index  The glyph index of the cluster.
+	/// @return The fallback font glyph for cluster.
+	const FontGlyph* GetOrAppendFallbackClusterGlyph(const String& cluster, const TextShapingContext& text_shaping_context,
+		const LanguageDataMap& registered_languages, FontGlyphIndex& glyph_index);
+
 	// Regenerate layers if dirty, such as after adding new glyphs.
 	bool UpdateLayersOnDirty();
 
@@ -140,12 +154,28 @@ private:
 	// (Re-)generate a layer in this font face handle.
 	bool GenerateLayer(FontFaceLayer* layer);
 
-	// Configure internal text shaping buffer values with context.
+	/// Configure internal text shaping buffer values with context.
+	/// @param[in] shaping_buffer  The shaping buffer to be configured.
+	/// @param[in] string  The string currently being measured/rendered.
+	/// @param[in] text_shaping_context  Extra parameters that provide context for text shaping.
+	/// @param[in] registered_languages  A list of languages registered in the font engine interface.
 	void ConfigureTextShapingBuffer(struct hb_buffer_t* shaping_buffer, StringView string, const TextShapingContext& text_shaping_context,
-		const LanguageDataMap& registered_languages);
+		const LanguageDataMap& registered_languages) const;
+
+	/// Creates a cluster string from shaped glyph info and index.
+	/// @param[in] glyph_info  The shaped glyph info list (supplied by HarfBuzz).
+	/// @param[in] glyph_count  The number of shaped glyphs in glyph_info.
+	/// @param[in] glyph_index  The current glyph index.
+	/// @param[in] first_character  The first character of the cluster.
+	/// @param[in] string  The string currently being measured/rendered.
+	/// @param[out] cluster_codepoint_count  The number of codepoints in the cluster (which may differ from the length of the returned string).
+	/// @return A UTF8 string built from all codepoints in the current glyph cluster.
+	String GetCurrentClusterString(const struct hb_glyph_info_t* glyph_info, int glyph_count, int glyph_index, Character first_character,
+		StringView string, int& cluster_codepoint_count) const;
 
 	FontGlyphMap glyphs;
 	FallbackFontGlyphMap fallback_glyphs;
+	FallbackFontClusterGlyphMap fallback_cluster_glyphs;
 
 	struct EffectLayerPair {
 		const FontEffect* font_effect;

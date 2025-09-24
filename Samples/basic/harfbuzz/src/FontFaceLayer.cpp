@@ -54,6 +54,7 @@ bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFac
 
 	const FontGlyphMap& glyphs = handle->GetGlyphs();
 	const FallbackFontGlyphMap& fallback_glyphs = handle->GetFallbackGlyphs();
+	const FallbackFontClusterGlyphMap& fallback_cluster_glyphs = handle->GetFallbackClusterGlyphs();
 
 	// Generate the new layout.
 	if (clone)
@@ -83,12 +84,20 @@ bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFac
 
 				CloneTextureBox(glyph, 0, glyph_character);
 			}
+
+			for (auto& pair : fallback_cluster_glyphs)
+			{
+				const Character glyph_character = pair.second.glyph_data.character;
+				const FontGlyph& glyph = pair.second.glyph_data.bitmap;
+
+				CloneTextureBox(glyph, pair.second.glyph_index, glyph_character);
+			}
 		}
 	}
 	else
 	{
 		// Initialise the texture layout for the glyphs.
-		character_boxes.reserve(glyphs.size() + fallback_glyphs.size());
+		character_boxes.reserve(glyphs.size() + fallback_glyphs.size() + fallback_cluster_glyphs.size());
 		for (auto& pair : glyphs)
 		{
 			FontGlyphIndex glyph_index = pair.first;
@@ -104,6 +113,14 @@ bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFac
 			const FontGlyph& glyph = pair.second;
 
 			CreateTextureLayout(glyph, 0, glyph_character);
+		}
+
+		for (auto& pair : fallback_cluster_glyphs)
+		{
+			const Character glyph_character = pair.second.glyph_data.character;
+			const FontGlyph& glyph = pair.second.glyph_data.bitmap;
+
+			CreateTextureLayout(glyph, pair.second.glyph_index, glyph_character);
 		}
 
 		constexpr int max_texture_dimensions = 1024;
@@ -162,8 +179,7 @@ bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFac
 	return true;
 }
 
-bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs,
-	const FallbackFontGlyphMap& fallback_glyphs)
+bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMaps& glyph_maps)
 {
 	if (texture_id < 0 || texture_id > texture_layout.GetNumTextures())
 		return false;
@@ -188,21 +204,38 @@ bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& textur
 		Rml::Character glyph_character = GetCharacterCodepointFromID(font_glyph_id);
 
 		// Get the glyph bitmap by looking it up with the glyph index.
-		auto it = glyphs.find(glyph_index);
-		if (it == glyphs.end() || glyph_index == 0)
+		RMLUI_ASSERT(glyph_maps.glyphs != nullptr);
+		auto it = glyph_maps.glyphs->find(glyph_index);
+		if (it == glyph_maps.glyphs->end() || glyph_index == 0)
 		{
-			// Glyph was not found; attempt to find it in the fallback glyphs.
-			auto fallback_it = fallback_glyphs.find(glyph_character);
-			if (fallback_it == fallback_glyphs.end())
-				if (it != glyphs.end())
+			// Glyph was not found; attempt to find it in the fallback cluster glyphs.
+			if (glyph_maps.fallback_cluster_glyphs)
+				for (auto& pair : *glyph_maps.fallback_cluster_glyphs)
+				{
+					if (pair.second.glyph_index == glyph_index && pair.second.glyph_data.character == glyph_character)
+					{
+						glyph = &pair.second.glyph_data.bitmap;
+					}
+				}
+
+			// Glyph was still not found; attempt to find it in the fallback glyphs.
+			if (!glyph && glyph_maps.fallback_glyphs)
+			{
+				auto fallback_it = glyph_maps.fallback_glyphs->find(glyph_character);
+				if (fallback_it != glyph_maps.fallback_glyphs->end())
+					// Fallback glyph was found.
+					glyph = &fallback_it->second;
+			}
+
+			if (!glyph)
+			{
+				if (it != glyph_maps.glyphs->end())
 					// Fallback glyph was not found, but replacement glyph bitmap exists, so use it instead.
 					glyph = &it->second.bitmap;
 				else
 					// No fallback glyph nor replacement glyph bitmap was found; ignore this glyph.
 					continue;
-			else
-				// Fallback glyph was found.
-				glyph = &fallback_it->second;
+			}
 		}
 		else
 			// Glyph was found.
