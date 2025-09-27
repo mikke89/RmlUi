@@ -43,6 +43,11 @@ void FontEngineInterfaceDefault::Shutdown()
 	FontProvider::Shutdown();
 }
 
+void FontEngineInterfaceDefault::OnBeginFrame()
+{
+	FontProvider::OnBeginFrame();
+}
+
 bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name, int face_index, bool fallback_face, Style::FontWeight weight)
 {
 	return FontProvider::LoadFontFace(file_name, face_index, fallback_face, weight);
@@ -86,6 +91,12 @@ int FontEngineInterfaceDefault::GenerateString(RenderManager& render_manager, Fo
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
 	return handle_default->GenerateString(render_manager, mesh_list, string, position, colour, opacity, text_shaping_context.letter_spacing,
 		(int)font_effects_handle);
+}
+
+bool FontEngineInterfaceDefault::EnsureGlyphs(FontFaceHandle handle, StringView string)
+{
+	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
+	return handle_default->EnsureGlyphs(string);
 }
 
 int FontEngineInterfaceDefault::GetVersion(FontFaceHandle handle)

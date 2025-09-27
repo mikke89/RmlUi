@@ -86,6 +86,12 @@ FontFace* FontFamily::AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle s
 	return result;
 }
 
+void FontFamily::OnBeginFrame()
+{
+	for (auto &font_face : font_faces)
+		font_face.face->OnBeginFrame();
+}
+
 void FontFamily::ReleaseFontResources()
 {
 	for (auto& entry : font_faces)
