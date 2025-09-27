@@ -103,6 +103,8 @@ namespace StringUtilities {
 
 	/// Returns true if the string starts with the given value.
 	RMLUICORE_API bool StartsWith(StringView string, StringView start);
+	/// Returns true if the string ends with the given value.
+	RMLUICORE_API bool EndsWith(StringView string, StringView end);
 
 	/// Case insensitive string comparison. Returns true if they compare equal.
 	RMLUICORE_API bool StringCompareCaseInsensitive(StringView lhs, StringView rhs);

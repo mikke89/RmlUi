@@ -212,28 +212,18 @@ static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Charac
 
 				if (glyph.color_format == Rml::ColorFormat::RGBA8)
 				{
-					// Swizzle channels (BGRA -> RGBA) and un-premultiply alpha.
+					// Swizzle channels (BGRA -> RGBA)
 					destination_bitmap = glyph.bitmap_owned_data.get();
 
 					for (int k = 0; k < glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y * num_bytes_per_pixel; k += 4)
 					{
-						Rml::byte b = destination_bitmap[k];
-						Rml::byte g = destination_bitmap[k + 1];
-						Rml::byte r = destination_bitmap[k + 2];
+						std::swap(destination_bitmap[k], destination_bitmap[k + 2]);
+#ifdef RMLUI_DEBUG
 						const Rml::byte alpha = destination_bitmap[k + 3];
-						RMLUI_ASSERTMSG(b <= alpha && g <= alpha && r <= alpha, "Assumption of glyph data being premultiplied is broken.");
-
-						if (alpha > 0 && alpha < 255)
-						{
-							b = Rml::byte((b * 255) / alpha);
-							g = Rml::byte((g * 255) / alpha);
-							r = Rml::byte((r * 255) / alpha);
-						}
-
-						destination_bitmap[k] = r;
-						destination_bitmap[k + 1] = g;
-						destination_bitmap[k + 2] = b;
-						destination_bitmap[k + 3] = alpha;
+						for (int c = 0; c < 3; c++)
+							RMLUI_ASSERTMSG(destination_bitmap[k + c] <= alpha,
+								"Glyph data is assumed to be encoded in premultiplied alpha, but that is not the case.");
+#endif
 					}
 				}
 			}
