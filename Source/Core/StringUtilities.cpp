@@ -418,6 +418,15 @@ bool StringUtilities::StartsWith(StringView string, StringView start)
 	return substring == start;
 }
 
+bool StringUtilities::EndsWith(StringView string, StringView end)
+{
+	if (string.size() < end.size())
+		return false;
+
+	StringView substring(string.end() - end.size(), string.end());
+	return substring == end;
+}
+
 bool StringUtilities::StringCompareCaseInsensitive(const StringView lhs, const StringView rhs)
 {
 	if (lhs.size() != rhs.size())
