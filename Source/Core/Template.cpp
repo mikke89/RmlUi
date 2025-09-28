@@ -27,6 +27,7 @@
  */
 
 #include "Template.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/XMLParser.h"
 #include "XMLParseTools.h"
