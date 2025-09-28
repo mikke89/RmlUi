@@ -1710,16 +1710,18 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		}
 		else if (attribute.size() > 2 && attribute[0] == 'o' && attribute[1] == 'n')
 		{
-			static constexpr bool IN_CAPTURE_PHASE = false;
-
+			static constexpr size_t on_length = 2;
+			static constexpr size_t capture_length = 7;
+			const bool in_capture_phase = StringUtilities::EndsWith(attribute, "capture");
 			auto& attribute_event_listeners = meta->attribute_event_listeners;
 			auto& event_dispatcher = meta->event_dispatcher;
-			const auto event_id = EventSpecificationInterface::GetIdOrInsert(attribute.substr(2));
-			const auto remove_event_listener_if_exists = [&attribute_event_listeners, &event_dispatcher, event_id]() {
+			const size_t event_name_length = attribute.size() - on_length - (in_capture_phase ? capture_length : 0);
+			const auto event_id = EventSpecificationInterface::GetIdOrInsert(attribute.substr(on_length, event_name_length));
+			const auto remove_event_listener_if_exists = [&attribute_event_listeners, &event_dispatcher, event_id, in_capture_phase]() {
 				const auto listener_it = attribute_event_listeners.find(event_id);
 				if (listener_it != attribute_event_listeners.cend())
 				{
-					event_dispatcher.DetachEvent(event_id, listener_it->second, IN_CAPTURE_PHASE);
+					event_dispatcher.DetachEvent(event_id, listener_it->second, in_capture_phase);
 					attribute_event_listeners.erase(listener_it);
 				}
 			};
@@ -1731,7 +1733,7 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 				const auto value_as_string = value.Get<String>();
 				auto insertion_result = attribute_event_listeners.emplace(event_id, Factory::InstanceEventListener(value_as_string, this));
 				if (auto* listener = insertion_result.first->second)
-					event_dispatcher.AttachEvent(event_id, listener, IN_CAPTURE_PHASE);
+					event_dispatcher.AttachEvent(event_id, listener, in_capture_phase);
 			}
 			else if (value.GetType() == Variant::Type::NONE)
 				remove_event_listener_if_exists();
@@ -2498,12 +2500,12 @@ void Element::UpdateDefinition()
 bool Element::Animate(const String& property_name, const Property& target_value, float duration, Tween tween, int num_iterations,
 	bool alternate_direction, float delay, const Property* start_value)
 {
-	return Animate(StyleSheetSpecification::GetPropertyId(property_name), target_value, duration, tween,
-		num_iterations, alternate_direction, delay, start_value);
+	return Animate(StyleSheetSpecification::GetPropertyId(property_name), target_value, duration, tween, num_iterations, alternate_direction, delay,
+		start_value);
 }
 
-bool Element::Animate(PropertyId id, const Property& target_value, float duration, Tween tween, int num_iterations,
-	bool alternate_direction, float delay, const Property* start_value)
+bool Element::Animate(PropertyId id, const Property& target_value, float duration, Tween tween, int num_iterations, bool alternate_direction,
+	float delay, const Property* start_value)
 {
 	bool result = false;
 	auto it_animation = StartAnimation(id, start_value, num_iterations, alternate_direction, delay, false);
