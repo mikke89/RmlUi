@@ -35,7 +35,9 @@
 
 using namespace Rml;
 
-static const String document_body_template_rml = R"(
+TEST_CASE("template.body")
+{
+	static const String document_rml = R"(
 <rml>
 <head>
 	<link type="text/template" href="/assets/window.rml"/>
@@ -56,9 +58,30 @@ static const String document_body_template_rml = R"(
 </rml>
 )";
 
-static const String p_address_body_template = "p#p < div#content < div#window < body#body.window < #root#main";
+	static const String p_address = "p#p < div#content < div#window < body#body.window < #root#main";
 
-static const String document_body_and_inline_template_rml = R"(
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	INFO("Expected warning: Body 'class' attribute overridden by template.");
+	TestsShell::SetNumExpectedWarnings(1);
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	TestsShell::SetNumExpectedWarnings(0);
+
+	document->Show();
+	TestsShell::RenderLoop();
+
+	Element* el_p = document->GetElementById("p");
+	REQUIRE(el_p);
+	CHECK(el_p->GetAddress() == p_address);
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("template.body+inline")
+{
+	static const String document_rml = R"(
 <rml>
 <head>
 	<link type="text/template" href="/assets/window.rml"/>
@@ -85,9 +108,30 @@ static const String document_body_and_inline_template_rml = R"(
 </rml>
 )";
 
-static const String span_address_body_template = "span#span < p#text < div#basic_wrapper < div#content < div#window < body#body.window < #root#main";
+	static const String p_address = "p#p < div#content < div#window < body#body.window < #root#main";
+	static const String span_address = "span#span < p#text < div#basic_wrapper < div#content < div#window < body#body.window < #root#main";
 
-static const String document_inline_template_rml = R"(
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	Element* el_p = document->GetElementById("p");
+	Element* el_span = document->GetElementById("span");
+	REQUIRE(el_p);
+	REQUIRE(el_span);
+	CHECK(el_p->GetAddress() == p_address);
+	CHECK(el_span->GetAddress() == span_address);
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("template.inline")
+{
+	static const String document_rml = R"(
 <rml>
 <head>
 	<link type="text/template" href="/assets/window.rml"/>
@@ -113,9 +157,26 @@ static const String document_inline_template_rml = R"(
 </rml>
 )";
 
-static const String p_address_inline_template = "p#p < div#content < div#window < div#template_parent < body#body.inline < #root#main";
+	static const String p_address = "p#p < div#content < div#window < div#template_parent < body#body.inline < #root#main";
 
-static const String document_double_inline_template_rml = R"(
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	Element* el_p = document->GetElementById("p");
+	REQUIRE(el_p);
+	CHECK(el_p->GetAddress() == p_address);
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("template.inline+inline")
+{
+	static const String document_rml = R"(
 <rml>
 <head>
 	<link type="text/template" href="/assets/window.rml"/>
@@ -147,74 +208,23 @@ static const String document_double_inline_template_rml = R"(
 </rml>
 )";
 
-static const String span_address_inline_template = "span#span < p#text < div#basic_wrapper < div#template_parent < body#body.inline < #root#main";
+	static const String p_address = "p#p < div#content < div#window < div#template_parent < body#body.inline < #root#main";
+	static const String span_address = "span#span < p#text < div#basic_wrapper < div#template_parent < body#body.inline < #root#main";
 
-TEST_CASE("template")
-{
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	SUBCASE("body")
-	{
-		INFO("Expected warning: Body 'class' attribute overridden by template.");
-		TestsShell::SetNumExpectedWarnings(1);
-		ElementDocument* document = context->LoadDocumentFromMemory(document_body_template_rml);
-		TestsShell::SetNumExpectedWarnings(0);
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	document->Show();
+	TestsShell::RenderLoop();
 
-		document->Show();
-		TestsShell::RenderLoop();
+	Element* el_p = document->GetElementById("p");
+	Element* el_span = document->GetElementById("span");
+	REQUIRE(el_p);
+	REQUIRE(el_span);
+	CHECK(el_p->GetAddress() == p_address);
+	CHECK(el_span->GetAddress() == span_address);
 
-		Element* el_p = document->GetElementById("p");
-		REQUIRE(el_p);
-		CHECK(el_p->GetAddress() == p_address_body_template);
-
-		document->Close();
-	}
-
-	SUBCASE("body+inline")
-	{
-		ElementDocument* document = context->LoadDocumentFromMemory(document_body_and_inline_template_rml);
-		document->Show();
-		TestsShell::RenderLoop();
-
-		Element* el_p = document->GetElementById("p");
-		Element* el_span = document->GetElementById("span");
-		REQUIRE(el_p);
-		REQUIRE(el_span);
-		CHECK(el_p->GetAddress() == p_address_body_template);
-		CHECK(el_span->GetAddress() == span_address_body_template);
-
-		document->Close();
-	}
-
-	SUBCASE("inline")
-	{
-		ElementDocument* document = context->LoadDocumentFromMemory(document_inline_template_rml);
-		document->Show();
-		TestsShell::RenderLoop();
-
-		Element* el_p = document->GetElementById("p");
-		REQUIRE(el_p);
-		CHECK(el_p->GetAddress() == p_address_inline_template);
-
-		document->Close();
-	}
-
-	SUBCASE("inline+inline")
-	{
-		ElementDocument* document = context->LoadDocumentFromMemory(document_double_inline_template_rml);
-		document->Show();
-		TestsShell::RenderLoop();
-
-		Element* el_p = document->GetElementById("p");
-		Element* el_span = document->GetElementById("span");
-		REQUIRE(el_p);
-		REQUIRE(el_span);
-		CHECK(el_p->GetAddress() == p_address_inline_template);
-		CHECK(el_span->GetAddress() == span_address_inline_template);
-
-		document->Close();
-	}
-
+	document->Close();
 	TestsShell::ShutdownShell();
 }
