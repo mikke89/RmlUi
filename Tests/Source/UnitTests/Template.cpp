@@ -174,7 +174,7 @@ TEST_CASE("template.inline")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("template.inline+inline")
+TEST_CASE("template.inline+inline.unique")
 {
 	static const String document_rml = R"(
 <rml>
@@ -224,6 +224,113 @@ TEST_CASE("template.inline+inline")
 	REQUIRE(el_span);
 	CHECK(el_p->GetAddress() == p_address);
 	CHECK(el_span->GetAddress() == span_address);
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("template.inline+inline.identical.wrapped")
+{
+	static const String document_rml = R"(
+<rml>
+<head>
+	<link type="text/template" href="/assets/window.rml"/>
+	<link type="text/template" href="/../Tests/Data/UnitTests/template_basic.rml"/>
+	<style>
+		body
+		{
+			top: 100px;
+			left: 200px;
+			width: 600px;
+			height: 450px;
+		}
+		p {
+			border: 1px aqua;
+			padding: 5px;
+			margin: 10px;
+		}
+	</style>
+</head>
+
+<body id="body" class="inline">
+<div id="wrap_t1">
+	<template src="basic">
+		Enable<span id="s1">X</span>
+	</template>
+</div>
+<div id="wrap_t2">
+	<template src="basic">
+		Disable<span id="s2">Y</span>
+	</template>
+</div>
+</body>
+</rml>
+)";
+
+	static const String s1_address = "span#s1 < p#text < div#wrap_t1 < body#body.inline < #root#main";
+	static const String s2_address = "span#s2 < p#text < div#wrap_t2 < body#body.inline < #root#main";
+
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	CHECK(document->GetElementById("s1")->GetAddress() == s1_address);
+	CHECK(document->GetElementById("s2")->GetAddress() == s2_address);
+	CHECK(StringUtilities::StripWhitespace(document->QuerySelector("#wrap_t1 p#text")->GetInnerRML()) == R"(Enable<span id="s1">X</span>)");
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("template.inline+inline.identical.siblings")
+{
+	static const String document_rml = R"(
+<rml>
+<head>
+	<link type="text/template" href="/assets/window.rml"/>
+	<link type="text/template" href="/../Tests/Data/UnitTests/template_basic.rml"/>
+	<style>
+		body
+		{
+			top: 100px;
+			left: 200px;
+			width: 600px;
+			height: 450px;
+		}
+		p {
+			border: 1px aqua;
+			padding: 5px;
+			margin: 10px;
+		}
+	</style>
+</head>
+
+<body id="body" class="inline">
+<template src="basic">
+	Enable<span id="s1">X</span>
+</template>
+<template src="basic">
+	Disable<span id="s2">Y</span>
+</template>
+</body>
+</rml>
+)";
+
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	ElementList p_elements;
+	document->GetElementsByTagName(p_elements, "p");
+	REQUIRE(p_elements.size() == 2);
+	CHECK(StringUtilities::StripWhitespace(p_elements[0]->GetInnerRML()) == R"(Enable<span id="s1">X</span>)");
+	CHECK(StringUtilities::StripWhitespace(p_elements[1]->GetInnerRML()) == R"(Disable<span id="s2">Y</span>)");
 
 	document->Close();
 	TestsShell::ShutdownShell();
