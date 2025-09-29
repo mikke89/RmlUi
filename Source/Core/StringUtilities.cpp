@@ -494,6 +494,25 @@ Character StringUtilities::ToCharacter(const char* p, const char* p_end)
 	return static_cast<Character>(code);
 }
 
+size_t StringUtilities::BytesUTF8(Character character)
+{
+	char32_t c = (char32_t)character;
+
+	if (c < 0x80)
+		return 1;
+	else if (c < 0x800)
+		return 2;
+	else if (c < 0x10000)
+		return 3;
+	else if (c <= 0x10FFFF)
+		return 4;
+	else
+	{
+		// Invalid character.
+		return 0;
+	}
+}
+
 String StringUtilities::ToUTF8(Character character)
 {
 	return ToUTF8(&character, 1);

@@ -118,21 +118,21 @@ int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingC
 
 	for (int g = 0; g < (int)glyph_count; ++g)
 	{
-		// Don't render control characters.
 		Character character = Rml::StringUtilities::ToCharacter(string.begin() + glyph_info[g].cluster, string.end());
+
+		// Don't render control characters.
 		if (IsControlCharacter(character))
 			continue;
 
 		FontGlyphIndex glyph_index = glyph_info[g].codepoint;
 		const FontGlyph* glyph = nullptr;
-
 		int extra_glyph_index_offset = 0;
 
 		if (glyph_index == 0)
 		{
 			// Check to see if the glyph is the start of an unsupported multi-character cluster.
 			int cluster_codepoint_count = 0;
-			String cluster_string = GetCurrentClusterString(glyph_info, glyph_count, g, character, string, cluster_codepoint_count);
+			StringView cluster_string = GetCurrentClusterString(glyph_info, glyph_count, g, character, string, cluster_codepoint_count);
 
 			if (cluster_codepoint_count > 1)
 			{
@@ -323,7 +323,7 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 			{
 				// Check to see if the glyph is the start of an unsupported multi-character cluster.
 				int cluster_codepoint_count = 0;
-				String cluster_string = GetCurrentClusterString(glyph_info, glyph_count, g, character, string, cluster_codepoint_count);
+				StringView cluster_string = GetCurrentClusterString(glyph_info, glyph_count, g, character, string, cluster_codepoint_count);
 
 				if (cluster_codepoint_count > 1)
 				{
@@ -517,8 +517,8 @@ bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyph(StringView cluster, cons
 		unsigned int glyph_count = 0;
 		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(shaping_buffer, &glyph_count);
 
-		// Ensure that the cluster was condensed into a single glyph and is supported by the font face.
-		if (glyph_count != 1 || glyph_info[0].codepoint == 0)
+		RMLUI_ASSERT(glyph_count != 0);
+		if (glyph_info[0].codepoint == 0)
 			continue;
 
 		// Create the cluster glyph using the fallback font.
@@ -539,10 +539,11 @@ bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyph(StringView cluster, cons
 	return false;
 }
 
-const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendFallbackClusterGlyph(const String& cluster, const TextShapingContext& text_shaping_context,
+const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendFallbackClusterGlyph(StringView cluster, const TextShapingContext& text_shaping_context,
 	const LanguageDataMap& registered_languages, FontGlyphIndex& glyph_index)
 {
-	auto fallback_cluster_glyph_location = fallback_cluster_glyphs.find(cluster);
+	String cluster_string(cluster);
+	auto fallback_cluster_glyph_location = fallback_cluster_glyphs.find(cluster_string);
 	if (fallback_cluster_glyph_location != fallback_cluster_glyphs.cend())
 	{
 		glyph_index = fallback_cluster_glyph_location->second.glyph_index;
@@ -553,7 +554,7 @@ const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendFallbackClusterGlyph(const S
 
 	if (result)
 	{
-		fallback_cluster_glyph_location = fallback_cluster_glyphs.find(cluster);
+		fallback_cluster_glyph_location = fallback_cluster_glyphs.find(cluster_string);
 		if (fallback_cluster_glyph_location == fallback_cluster_glyphs.cend())
 		{
 			RMLUI_ERROR;
@@ -697,24 +698,24 @@ void FontFaceHandleHarfBuzz::ConfigureTextShapingBuffer(hb_buffer_t* shaping_buf
 	hb_buffer_set_flags(shaping_buffer, (hb_buffer_flags_t)buffer_flags);
 }
 
-String FontFaceHandleHarfBuzz::GetCurrentClusterString(const hb_glyph_info_t* glyph_info, int glyph_count, int glyph_index,
+StringView FontFaceHandleHarfBuzz::GetCurrentClusterString(const hb_glyph_info_t* glyph_info, int glyph_count, int glyph_index,
 	Character first_character, StringView string, int& cluster_codepoint_count) const
 {
 	unsigned int cluster_index = glyph_info[glyph_index].cluster;
 	cluster_codepoint_count = 1;
 	int cluster_offset = glyph_index + 1;
-	String cluster_string = Rml::StringUtilities::ToUTF8(first_character);
+	int cluster_string_size = (int)Rml::StringUtilities::BytesUTF8(first_character);
 
 	// Continue counting characters that are part of the same cluster.
 	while (cluster_offset < (int)glyph_count && glyph_info[cluster_offset].cluster == cluster_index)
 	{
 		Character current_cluster_character =
-			Rml::StringUtilities::ToCharacter(string.begin() + glyph_info[glyph_index].cluster + cluster_string.size(), string.end());
-		cluster_string += Rml::StringUtilities::ToUTF8(current_cluster_character);
+			Rml::StringUtilities::ToCharacter(string.begin() + glyph_info[glyph_index].cluster + cluster_string_size, string.end());
+		cluster_string_size += (int)Rml::StringUtilities::BytesUTF8(current_cluster_character);
 
 		++cluster_codepoint_count;
 		++cluster_offset;
 	}
 
-	return cluster_string;
+	return StringView(string.begin() + glyph_info[glyph_index].cluster, string.begin() + glyph_info[glyph_index].cluster + cluster_string_size);
 }

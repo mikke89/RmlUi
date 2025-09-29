@@ -142,7 +142,7 @@ private:
 	/// @param[in] registered_languages  A list of languages registered in the font engine interface.
 	/// @param[out] glyph_index  The glyph index of the cluster.
 	/// @return The fallback font glyph for cluster.
-	const FontGlyph* GetOrAppendFallbackClusterGlyph(const String& cluster, const TextShapingContext& text_shaping_context,
+	const FontGlyph* GetOrAppendFallbackClusterGlyph(StringView cluster, const TextShapingContext& text_shaping_context,
 		const LanguageDataMap& registered_languages, FontGlyphIndex& glyph_index);
 
 	// Regenerate layers if dirty, such as after adding new glyphs.
@@ -170,7 +170,7 @@ private:
 	/// @param[in] string  The string currently being measured/rendered.
 	/// @param[out] cluster_codepoint_count  The number of codepoints in the cluster (which may differ from the length of the returned string).
 	/// @return A UTF8 string built from all codepoints in the current glyph cluster.
-	String GetCurrentClusterString(const struct hb_glyph_info_t* glyph_info, int glyph_count, int glyph_index, Character first_character,
+	StringView GetCurrentClusterString(const struct hb_glyph_info_t* glyph_info, int glyph_count, int glyph_index, Character first_character,
 		StringView string, int& cluster_codepoint_count) const;
 
 	FontGlyphMap glyphs;

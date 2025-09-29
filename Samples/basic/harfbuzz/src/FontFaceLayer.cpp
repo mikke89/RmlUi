@@ -211,12 +211,12 @@ bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& textur
 			// Glyph was not found; attempt to find it in the fallback cluster glyphs.
 			if (glyph_maps.fallback_cluster_glyphs)
 				for (auto& pair : *glyph_maps.fallback_cluster_glyphs)
-				{
 					if (pair.second.glyph_index == glyph_index && pair.second.glyph_data.character == glyph_character)
 					{
 						glyph = &pair.second.glyph_data.bitmap;
+
+						break;
 					}
-				}
 
 			// Glyph was still not found; attempt to find it in the fallback glyphs.
 			if (!glyph && glyph_maps.fallback_glyphs)
