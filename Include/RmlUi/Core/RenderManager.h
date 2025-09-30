@@ -30,13 +30,15 @@
 #define RMLUI_CORE_RENDERMANAGER_H
 
 #include "CallbackTexture.h"
+#include "DecorationTypes.h"
 #include "Mesh.h"
+#include "RenderBox.h"
 #include "RenderInterface.h"
 #include "StableVector.h"
 #include "Types.h"
+#include "Utilities.h"
 
 namespace Rml {
-
 class Geometry;
 class CompiledFilter;
 class CompiledShader;
@@ -67,10 +69,10 @@ struct RenderState {
 };
 
 /**
-    A wrapper over the render interface, which tracks its state and resources.
+	A wrapper over the render interface, which tracks its state and resources.
 
-    All operations to be submitted to the render interface should go through this class.
- */
+	All operations to be submitted to the render interface should go through this class.
+	*/
 class RMLUICORE_API RenderManager : NonCopyMoveable {
 public:
 	RenderManager(RenderInterface* render_interface);

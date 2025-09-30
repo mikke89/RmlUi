@@ -33,6 +33,68 @@
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
+using RenderBoxList = Vector<RenderBox>;
+struct BoxShadowGeometryInfo {
+	ColourbPremultiplied background_color;
+	Array<ColourbPremultiplied, 4> border_colors;
+	CornerSizes border_radius;
+	Vector2i texture_dimensions;
+	Vector2f element_offset_in_texture;
+	RenderBoxList padding_render_boxes;
+	RenderBoxList border_render_boxes;
+	BoxShadowList shadow_list;
+};
+inline bool operator==(const BoxShadowGeometryInfo& a, const BoxShadowGeometryInfo& b)
+{
+	return a.background_color == b.background_color && a.border_colors == b.border_colors && a.border_radius == b.border_radius &&
+		a.texture_dimensions == b.texture_dimensions && a.element_offset_in_texture == b.element_offset_in_texture &&
+		a.padding_render_boxes == b.padding_render_boxes && a.border_render_boxes == b.border_render_boxes && a.shadow_list == b.shadow_list;
+}
+inline bool operator!=(const BoxShadowGeometryInfo& a, const BoxShadowGeometryInfo& b)
+{
+	return !(a == b);
+}
+} // namespace Rml
+
+namespace std {
+template <>
+struct hash<::Rml::BoxShadowGeometryInfo> {
+	size_t operator()(const ::Rml::BoxShadowGeometryInfo& in) const noexcept
+	{
+		using namespace ::Rml::Utilities;
+		size_t seed = size_t(849128392);
+
+		HashCombine(seed, in.background_color);
+		for (const auto& v : in.border_colors)
+		{
+			HashCombine(seed, v);
+		}
+
+		for (const auto& v : in.border_radius)
+		{
+			HashCombine(seed, v);
+		}
+
+		HashCombine(seed, in.texture_dimensions);
+		HashCombine(seed, in.element_offset_in_texture);
+
+		for (const auto& v : in.padding_render_boxes)
+		{
+			HashCombine(seed, v);
+		}
+		for (const auto& v : in.border_render_boxes)
+		{
+			HashCombine(seed, v);
+		}
+		for (const auto& v : in.shadow_list)
+		{
+			HashCombine(seed, v);
+		}
+		return seed;
+	}
+};
+} // namespace std
+namespace Rml {
 
 class Geometry;
 class CallbackTexture;
@@ -41,17 +103,21 @@ class RenderManager;
 class GeometryBoxShadow {
 public:
 	/// Generate the texture and geometry for a box shadow.
-	/// @param[out] out_shadow_geometry The target geometry.
-	/// @param[out] out_shadow_texture The target texture, assumes pointer stability during the lifetime of the shadow geometry.
-	/// @param[in] render_manager The render manager to generate the shadow for.
-	/// @param[in] element The element to generate the shadow for.
-	/// @param[in] background_border_geometry The geometry of the background and border, assumed to already have been generated. Assumes pointer
-	/// stability during the lifetime of the shadow geometry.
+	/// @param[in] element The element to resolve.
 	/// @param[in] shadow_list The list of box-shadows to generate.
 	/// @param[in] border_radius The border radius of the element.
-	/// @param[in] opacity The opacity of the element.
-	static void Generate(Geometry& out_shadow_geometry, CallbackTexture& out_shadow_texture, RenderManager& render_manager, Element* element,
-		Geometry& background_border_geometry, BoxShadowList shadow_list, CornerSizes border_radius, float opacity);
+	/// @param[in] background_color The background colour of the element.
+	/// @param[in] border_colors The border colours of the element.
+	static BoxShadowGeometryInfo Resolve(Element* element, BoxShadowList shadow_list, const CornerSizes& border_radius, 
+		ColourbPremultiplied background_color, const Array<ColourbPremultiplied, 4>& border_colors);
+
+	/// Generate the texture and geometry for a box shadow.
+	/// @param[out] out_shadow_texture The target texture, assumes pointer stability during the lifetime of the shadow geometry.
+	/// @param[in] render_manager The render manager to generate the shadow for.
+	/// @param[in] shadow_geometry_info The resolved box shadow geometry of a given element.
+	///	@see GeometryBoxShadow::Resolve() 
+	static void GenerateTexture(CallbackTexture& out_shadow_texture, RenderManager& render_manager,
+		const BoxShadowGeometryInfo& shadow_geometry_info);
 };
 
 } // namespace Rml
