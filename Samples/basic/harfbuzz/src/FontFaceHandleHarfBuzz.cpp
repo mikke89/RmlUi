@@ -108,7 +108,7 @@ int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingC
 	// Apply text shaping.
 	hb_buffer_t* shaping_buffer = hb_buffer_create();
 	RMLUI_ASSERT(shaping_buffer != nullptr);
-	ConfigureTextShapingBuffer(shaping_buffer, string, text_shaping_context, registered_languages);
+	ConfigureTextShapingBuffer(shaping_buffer, string, text_shaping_context, registered_languages, nullptr);
 	hb_buffer_add_utf8(shaping_buffer, string.begin(), (int)string.size(), 0, (int)string.size());
 	hb_shape(hb_font, shaping_buffer, nullptr, 0);
 
@@ -296,7 +296,7 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 
 		// Set up and apply text shaping.
 		hb_buffer_clear_contents(shaping_buffer);
-		ConfigureTextShapingBuffer(shaping_buffer, string, text_shaping_context, registered_languages);
+		ConfigureTextShapingBuffer(shaping_buffer, string, text_shaping_context, registered_languages, nullptr);
 		hb_buffer_add_utf8(shaping_buffer, string.begin(), (int)string.size(), 0, (int)string.size());
 		hb_shape(hb_font, shaping_buffer, nullptr, 0);
 
@@ -318,6 +318,7 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 			FontGlyphIndex glyph_index = glyph_info[g].codepoint;
 			const FontGlyph* glyph = nullptr;
 			int extra_glyph_index_offset = 0;
+			bool is_cluster = false;
 
 			if (glyph_index == 0)
 			{
@@ -330,6 +331,8 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 					// Unsupported cluster detected; use fallback cluster glyph if one is available.
 					glyph = GetOrAppendFallbackClusterGlyph(cluster_string, text_shaping_context, registered_languages, glyph_index);
 					extra_glyph_index_offset = cluster_codepoint_count - 1;
+					if (glyph)
+						is_cluster = true;
 				}
 			}
 
@@ -346,7 +349,7 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 
 			Vector2f glyph_offset = {float(glyph_positions[g].x_offset >> 6), float(glyph_positions[g].y_offset >> 6)};
 			Vector2f glyph_geometry_position = Vector2f{position.x + line_width, position.y} + glyph_offset;
-			layer->GenerateGeometry(&mesh_list[geometry_index], glyph_index, character, glyph_geometry_position, glyph_color);
+			layer->GenerateGeometry(&mesh_list[geometry_index], glyph_index, character, is_cluster, glyph_geometry_position, glyph_color);
 
 			// Adjust the cursor for this character's advance.
 			if (glyph_info[g].codepoint != 0)
@@ -509,26 +512,30 @@ bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyph(StringView cluster, cons
 			continue;
 
 		// Insert the cluster into a shaping buffer and perform text shaping.
+		TextFlowDirection text_flow_direction = TextFlowDirection::LeftToRight;
 		hb_buffer_clear_contents(shaping_buffer);
-		ConfigureTextShapingBuffer(shaping_buffer, cluster, text_shaping_context, registered_languages);
+		ConfigureTextShapingBuffer(shaping_buffer, cluster, text_shaping_context, registered_languages, &text_flow_direction);
 		hb_buffer_add_utf8(shaping_buffer, cluster.begin(), (int)cluster.size(), 0, (int)cluster.size());
 		hb_shape(fallback_face->hb_font, shaping_buffer, nullptr, 0);
 
 		unsigned int glyph_count = 0;
 		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(shaping_buffer, &glyph_count);
 
+		// Use the first glyph of the cluster if text direction is left-to-right, and last glyph if the text direction is right-to-left.
+		int glyph_info_index = text_flow_direction == TextFlowDirection::LeftToRight ? 0 : glyph_count - 1;
+
 		RMLUI_ASSERT(glyph_count != 0);
-		if (glyph_info[0].codepoint == 0)
+		if (glyph_info[glyph_info_index].codepoint == 0)
 			continue;
 
 		// Create the cluster glyph using the fallback font.
 		Character character = Rml::StringUtilities::ToCharacter(cluster.begin(), cluster.end());
-		const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(glyph_info[0].codepoint, character, false);
+		const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(glyph_info[glyph_info_index].codepoint, character, false);
 		if (glyph)
 		{
 			// Insert the new cluster glyph into our own set of fallback cluster glyphs
-			auto pair =
-				fallback_cluster_glyphs.emplace(cluster, FontClusterGlyphData{glyph_info[0].codepoint, FontGlyphData{glyph->WeakCopy(), character}});
+			auto pair = fallback_cluster_glyphs.emplace(cluster,
+				FontClusterGlyphData{glyph_info[glyph_info_index].codepoint, FontGlyphData{glyph->WeakCopy(), character}});
 			if (pair.second)
 				is_layers_dirty = true;
 
@@ -633,7 +640,7 @@ bool FontFaceHandleHarfBuzz::GenerateLayer(FontFaceLayer* layer)
 }
 
 void FontFaceHandleHarfBuzz::ConfigureTextShapingBuffer(hb_buffer_t* shaping_buffer, StringView string,
-	const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages) const
+	const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages, TextFlowDirection* determined_text_direction) const
 {
 	// Set the buffer's language based on the value of the element's 'lang' attribute.
 	hb_buffer_set_language(shaping_buffer, hb_language_from_string(text_shaping_context.language.c_str(), -1));
@@ -658,6 +665,7 @@ void FontFaceHandleHarfBuzz::ConfigureTextShapingBuffer(hb_buffer_t* shaping_buf
 	hb_buffer_set_script(shaping_buffer, script);
 
 	// Set the buffer's text-flow direction based on the value of the element's 'dir' attribute.
+	hb_direction_t text_direction = HB_DIRECTION_LTR;
 	switch (text_shaping_context.text_direction)
 	{
 	case Rml::Style::Direction::Auto:
@@ -665,24 +673,27 @@ void FontFaceHandleHarfBuzz::ConfigureTextShapingBuffer(hb_buffer_t* shaping_buf
 			// Automatically determine the text-flow direction from the registered language.
 			switch (registered_language_location->second.text_flow_direction)
 			{
-			case TextFlowDirection::LeftToRight: hb_buffer_set_direction(shaping_buffer, HB_DIRECTION_LTR); break;
-			case TextFlowDirection::RightToLeft: hb_buffer_set_direction(shaping_buffer, HB_DIRECTION_RTL); break;
+			case TextFlowDirection::LeftToRight: text_direction = HB_DIRECTION_LTR; break;
+			case TextFlowDirection::RightToLeft: text_direction = HB_DIRECTION_RTL; break;
 			}
 		else
 		{
 			// Language not registered; determine best text-flow direction based on script.
-			hb_direction_t text_direction = hb_script_get_horizontal_direction(script);
+			text_direction = hb_script_get_horizontal_direction(script);
 			if (text_direction == HB_DIRECTION_INVALID)
 				// Some scripts support both horizontal directions of text flow; default to left-to-right.
 				text_direction = HB_DIRECTION_LTR;
-
-			hb_buffer_set_direction(shaping_buffer, text_direction);
 		}
 		break;
 
-	case Rml::Style::Direction::Ltr: hb_buffer_set_direction(shaping_buffer, HB_DIRECTION_LTR); break;
-	case Rml::Style::Direction::Rtl: hb_buffer_set_direction(shaping_buffer, HB_DIRECTION_RTL); break;
+	case Rml::Style::Direction::Ltr: text_direction = HB_DIRECTION_LTR; break;
+	case Rml::Style::Direction::Rtl: text_direction = HB_DIRECTION_RTL; break;
 	}
+
+	RMLUI_ASSERT(text_direction == HB_DIRECTION_LTR || text_direction == HB_DIRECTION_RTL);
+	hb_buffer_set_direction(shaping_buffer, text_direction);
+	if (determined_text_direction)
+		*determined_text_direction = text_direction == HB_DIRECTION_LTR ? TextFlowDirection::LeftToRight : TextFlowDirection::RightToLeft;
 
 	// Set buffer flags for additional text-shaping configuration.
 	int buffer_flags = HB_BUFFER_FLAG_DEFAULT | HB_BUFFER_FLAG_BOT | HB_BUFFER_FLAG_EOT;

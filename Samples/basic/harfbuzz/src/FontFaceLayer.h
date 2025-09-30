@@ -90,10 +90,10 @@ public:
 	/// @param[in] character_code The character to generate geometry for.
 	/// @param[in] position The position of the baseline.
 	/// @param[in] colour The colour of the string.
-	inline void GenerateGeometry(TexturedMesh* mesh_list, const FontGlyphIndex glyph_index, const Character character_code, const Vector2f position,
-		const ColourbPremultiplied colour) const
+	inline void GenerateGeometry(TexturedMesh* mesh_list, const FontGlyphIndex glyph_index, const Character character_code, bool is_cluster,
+		const Vector2f position, const ColourbPremultiplied colour) const
 	{
-		auto it = character_boxes.find(CreateFontGlyphID(glyph_index, character_code));
+		auto it = character_boxes.find(CreateFontGlyphID(glyph_index, character_code, is_cluster));
 		if (it == character_boxes.end())
 			return;
 
@@ -120,7 +120,7 @@ public:
 
 private:
 	/// Creates an ID for a font glyph from a glyph index and character codepoint.
-	uint64_t CreateFontGlyphID(const FontGlyphIndex glyph_index, const Character character_code) const;
+	uint64_t CreateFontGlyphID(const FontGlyphIndex glyph_index, const Character character_code, bool is_cluster) const;
 
 	/// Retrieves the font glyph index from a font glyph ID.
 	FontGlyphIndex GetFontGlyphIndexFromID(const uint64_t glyph_id) const;
@@ -128,11 +128,14 @@ private:
 	/// Retrieves the character from a font glyph ID.
 	Character GetCharacterCodepointFromID(const uint64_t glyph_id) const;
 
+	/// Determines if a font glyph ID is part of a cluster instead of a single glyph.
+	bool IsFontGlyphIDPartOfCluster(const uint64_t glyph_id) const;
+
 	/// Creates a texture layout from the given glyph bitmap and data.
-	void CreateTextureLayout(const FontGlyph& glyph, FontGlyphIndex glyph_index, Character glyph_character);
+	void CreateTextureLayout(const FontGlyph& glyph, FontGlyphIndex glyph_index, Character glyph_character, bool is_cluster);
 
 	/// Clones the given glyph bitmap and data into a texture box.
-	void CloneTextureBox(const FontGlyph& glyph, FontGlyphIndex glyph_index, Character glyph_character);
+	void CloneTextureBox(const FontGlyph& glyph, FontGlyphIndex glyph_index, Character glyph_character, bool is_cluster);
 
 	struct TextureBox {
 		// The offset, in pixels, of the baseline from the start of this character's geometry.
@@ -148,6 +151,8 @@ private:
 
 	using CharacterMap = UnorderedMap<uint64_t, TextureBox>;
 	using TextureList = Vector<CallbackTextureSource>;
+
+	static constexpr uint64_t font_glyph_id_cluster_bit_mask = 1ull << 31ull;
 
 	SharedPtr<const FontEffect> effect;
 

@@ -159,8 +159,9 @@ private:
 	/// @param[in] string  The string currently being measured/rendered.
 	/// @param[in] text_shaping_context  Extra parameters that provide context for text shaping.
 	/// @param[in] registered_languages  A list of languages registered in the font engine interface.
+	/// @param[out]  determined_text_direction  The text direction that was used to shape the buffer.
 	void ConfigureTextShapingBuffer(struct hb_buffer_t* shaping_buffer, StringView string, const TextShapingContext& text_shaping_context,
-		const LanguageDataMap& registered_languages) const;
+		const LanguageDataMap& registered_languages, TextFlowDirection* determined_text_direction) const;
 
 	/// Creates a cluster string from shaped glyph info and index.
 	/// @param[in] glyph_info  The shaped glyph info list (supplied by HarfBuzz).

@@ -507,10 +507,8 @@ size_t StringUtilities::BytesUTF8(Character character)
 	else if (c <= 0x10FFFF)
 		return 4;
 	else
-	{
 		// Invalid character.
 		return 0;
-	}
 }
 
 String StringUtilities::ToUTF8(Character character)
