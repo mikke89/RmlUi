@@ -88,6 +88,7 @@ public:
 	/// Generates the geometry required to render a single character.
 	/// @param[out] mesh_list An array of meshes this layer will write to. It must be at least as big as the number of textures in this layer.
 	/// @param[in] character_code The character to generate geometry for.
+	/// @param[in] is_cluster Whether the glyph is part of a cluster or not.
 	/// @param[in] position The position of the baseline.
 	/// @param[in] colour The colour of the string.
 	inline void GenerateGeometry(TexturedMesh* mesh_list, const FontGlyphIndex glyph_index, const Character character_code, bool is_cluster,
