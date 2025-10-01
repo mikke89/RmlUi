@@ -37,6 +37,7 @@
 #include <hb-ft.h>
 #include <hb.h>
 #include <numeric>
+#include <utility>
 
 static bool IsControlCharacter(Character c)
 {
@@ -116,6 +117,8 @@ int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingC
 	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(shaping_buffer, &glyph_count);
 	hb_glyph_position_t* glyph_positions = hb_buffer_get_glyph_positions(shaping_buffer, &glyph_count);
 
+	Queue<Pair<FontGlyphIndex, const FontGlyph*>> glyph_queue;
+
 	for (int g = 0; g < (int)glyph_count; ++g)
 	{
 		Character character = Rml::StringUtilities::ToCharacter(string.begin() + glyph_info[g].cluster, string.end());
@@ -124,8 +127,7 @@ int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingC
 		if (IsControlCharacter(character))
 			continue;
 
-		FontGlyphIndex glyph_index = glyph_info[g].codepoint;
-		const FontGlyph* glyph = nullptr;
+		const FontGlyphIndex glyph_index = glyph_info[g].codepoint;
 		int extra_glyph_index_offset = 0;
 
 		if (glyph_index == 0)
@@ -137,25 +139,41 @@ int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingC
 			if (cluster_codepoint_count > 1)
 			{
 				// Unsupported cluster detected; use fallback cluster glyph if one is available.
-				glyph = GetOrAppendFallbackClusterGlyph(cluster_string, text_shaping_context, registered_languages, glyph_index);
-				extra_glyph_index_offset = cluster_codepoint_count - 1;
+				const Vector<FontClusterGlyphData>* cluster_glyphs =
+					GetOrAppendFallbackClusterGlyphs(cluster_string, text_shaping_context, registered_languages);
+
+				if (cluster_glyphs)
+				{
+					extra_glyph_index_offset = cluster_codepoint_count - 1;
+					for (const auto& cluster_glyph : *cluster_glyphs)
+						glyph_queue.emplace(cluster_glyph.glyph_index, &cluster_glyph.glyph_data.bitmap);
+				}
 			}
 		}
 
-		if (!glyph)
-			glyph = GetOrAppendGlyph(glyph_index, character);
+		if (glyph_queue.empty())
+		{
+			const FontGlyph* glyph = GetOrAppendGlyph(glyph_index, character);
+			if (glyph)
+				glyph_queue.emplace(glyph_index, glyph);
+		}
 
-		if (!glyph)
-			continue;
+		while (!glyph_queue.empty())
+		{
+			auto& glyph_pair = glyph_queue.front();
 
-		// Adjust the cursor for this character's advance.
-		if (glyph_info[g].codepoint != 0)
-			width += glyph_positions[g].x_advance >> 6;
-		else
-			// Use the unshaped advance for unsupported characters.
-			width += glyph->advance;
+			// Adjust the cursor for this character's advance.
+			if (glyph_info[g].codepoint != 0)
+				width += glyph_positions[g].x_advance >> 6;
+			else
+				// Use the unshaped advance for unsupported characters.
+				width += glyph_pair.second->advance;
 
-		width += (int)text_shaping_context.letter_spacing;
+			width += (int)text_shaping_context.letter_spacing;
+
+			glyph_queue.pop();
+		}
+		
 		g += extra_glyph_index_offset;
 	}
 
@@ -245,7 +263,7 @@ bool FontFaceHandleHarfBuzz::GenerateLayerTexture(Vector<byte>& texture_data, Ve
 	}
 
 	return it->layer->GenerateTexture(texture_data, texture_dimensions, texture_id,
-		FontGlyphMaps{&glyphs, &fallback_glyphs, &fallback_cluster_glyphs});
+		FontGlyphMaps{&glyphs, &fallback_glyphs, &fallback_cluster_glyphs_lookup});
 }
 
 int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, StringView string, const Vector2f position,
@@ -307,6 +325,8 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 		mesh_list[geometry_index].mesh.indices.reserve(string.size() * 6);
 		mesh_list[geometry_index].mesh.vertices.reserve(string.size() * 4);
 
+		Queue<Pair<FontGlyphIndex, FontGlyphReference>> glyph_queue;
+
 		for (int g = 0; g < (int)glyph_count; ++g)
 		{
 			Character character = Rml::StringUtilities::ToCharacter(string.begin() + glyph_info[g].cluster, string.end());
@@ -315,8 +335,7 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 			if (IsControlCharacter(character))
 				continue;
 
-			FontGlyphIndex glyph_index = glyph_info[g].codepoint;
-			const FontGlyph* glyph = nullptr;
+			const FontGlyphIndex glyph_index = glyph_info[g].codepoint;
 			int extra_glyph_index_offset = 0;
 			bool is_cluster = false;
 
@@ -329,36 +348,52 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 				if (cluster_codepoint_count > 1)
 				{
 					// Unsupported cluster detected; use fallback cluster glyph if one is available.
-					glyph = GetOrAppendFallbackClusterGlyph(cluster_string, text_shaping_context, registered_languages, glyph_index);
-					extra_glyph_index_offset = cluster_codepoint_count - 1;
-					if (glyph)
+					const Vector<FontClusterGlyphData>* cluster_glyphs = GetOrAppendFallbackClusterGlyphs(cluster_string, text_shaping_context, registered_languages);
+					
+					if (cluster_glyphs)
+					{
+						extra_glyph_index_offset = cluster_codepoint_count - 1;
 						is_cluster = true;
+
+						for (const auto& cluster_glyph : *cluster_glyphs)
+							glyph_queue.emplace(cluster_glyph.glyph_index, FontGlyphReference{&cluster_glyph.glyph_data.bitmap, cluster_glyph.glyph_data.character});
+					}
 				}
 			}
 
-			if (!glyph)
-				glyph = GetOrAppendGlyph(glyph_index, character);
+			if (glyph_queue.empty())
+			{
+				const FontGlyph* glyph = GetOrAppendGlyph(glyph_index, character);
+				if (glyph)
+					glyph_queue.emplace(glyph_index, FontGlyphReference{glyph, character});
+			}
 
-			if (!glyph)
-				continue;
+			while (!glyph_queue.empty())
+			{
+				auto& glyph_pair = glyph_queue.front();
 
-			ColourbPremultiplied glyph_color = layer_colour;
-			// Use white vertex colors on RGB glyphs.
-			if (layer == base_layer && glyph->color_format == ColorFormat::RGBA8)
-				glyph_color = ColourbPremultiplied(layer_colour.alpha, layer_colour.alpha);
+				ColourbPremultiplied glyph_color = layer_colour;
+				// Use white vertex colors on RGB glyphs.
+				if (layer == base_layer && glyph_pair.second.bitmap->color_format == ColorFormat::RGBA8)
+					glyph_color = ColourbPremultiplied(layer_colour.alpha, layer_colour.alpha);
 
-			Vector2f glyph_offset = {float(glyph_positions[g].x_offset >> 6), float(glyph_positions[g].y_offset >> 6)};
-			Vector2f glyph_geometry_position = Vector2f{position.x + line_width, position.y} + glyph_offset;
-			layer->GenerateGeometry(&mesh_list[geometry_index], glyph_index, character, is_cluster, glyph_geometry_position, glyph_color);
+				Vector2f glyph_offset = {0.0f, 0.0f};
+				glyph_offset += Vector2f{float(glyph_positions[g].x_offset >> 6), float(glyph_positions[g].y_offset >> 6)};
+				Vector2f glyph_geometry_position = Vector2f{position.x + line_width, position.y} + glyph_offset;
+				layer->GenerateGeometry(&mesh_list[geometry_index], glyph_pair.first, glyph_pair.second.character, is_cluster, glyph_geometry_position, glyph_color);
 
-			// Adjust the cursor for this character's advance.
-			if (glyph_info[g].codepoint != 0)
-				line_width += glyph_positions[g].x_advance >> 6;
-			else
-				// Use the unshaped advance for unsupported characters.
-				line_width += glyph->advance;
+				// Adjust the cursor for this character's advance.
+				if (glyph_info[g].codepoint != 0)
+					line_width += glyph_positions[g].x_advance >> 6;
+				else
+					// Use the unshaped advance for unsupported characters.
+					line_width += glyph_pair.second.bitmap->advance;
 
-			line_width += (int)text_shaping_context.letter_spacing;
+				line_width += (int)text_shaping_context.letter_spacing;
+
+				glyph_queue.pop();
+			}
+
 			g += extra_glyph_index_offset;
 		}
 
@@ -405,7 +440,7 @@ bool FontFaceHandleHarfBuzz::AppendGlyph(FontGlyphIndex glyph_index, Character c
 	return result;
 }
 
-bool FontFaceHandleHarfBuzz::AppendFallbackGlyph(Character character)
+bool FontFaceHandleHarfBuzz::AppendFallbackGlyph(Character& character)
 {
 	const int num_fallback_faces = FontProvider::CountFallbackFontFaces();
 	for (int i = 0; i < num_fallback_faces; i++)
@@ -466,12 +501,14 @@ const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendGlyph(FontGlyphIndex glyph_i
 
 	if (glyph_index == 0)
 		character = Character::Replacement;
+	else if (character != glyph_location->second.character)
+		character = glyph_location->second.character;
 
 	const FontGlyph* glyph = &glyph_location->second.bitmap;
 	return glyph;
 }
 
-const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendFallbackGlyph(Character character)
+const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendFallbackGlyph(Character& character)
 {
 	auto fallback_glyph_location = fallback_glyphs.find(character);
 	if (fallback_glyph_location != fallback_glyphs.cend())
@@ -497,11 +534,13 @@ const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendFallbackGlyph(Character char
 	return fallback_glyph;
 }
 
-bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyph(StringView cluster, const TextShapingContext& text_shaping_context,
+bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyphs(StringView cluster, const TextShapingContext& text_shaping_context,
 	const LanguageDataMap& registered_languages)
 {
 	hb_buffer_t* shaping_buffer = hb_buffer_create();
 	RMLUI_ASSERT(shaping_buffer != nullptr);
+
+	TextFlowDirection text_direction = TextFlowDirection::LeftToRight;
 
 	// Iterate through all available fallback font faces.
 	const int num_fallback_faces = FontProvider::CountFallbackFontFaces();
@@ -512,57 +551,84 @@ bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyph(StringView cluster, cons
 			continue;
 
 		// Insert the cluster into a shaping buffer and perform text shaping.
-		TextFlowDirection text_flow_direction = TextFlowDirection::LeftToRight;
 		hb_buffer_clear_contents(shaping_buffer);
-		ConfigureTextShapingBuffer(shaping_buffer, cluster, text_shaping_context, registered_languages, &text_flow_direction);
+		ConfigureTextShapingBuffer(shaping_buffer, cluster, text_shaping_context, registered_languages, &text_direction);
 		hb_buffer_add_utf8(shaping_buffer, cluster.begin(), (int)cluster.size(), 0, (int)cluster.size());
 		hb_shape(fallback_face->hb_font, shaping_buffer, nullptr, 0);
 
 		unsigned int glyph_count = 0;
 		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(shaping_buffer, &glyph_count);
-
-		// Use the first glyph of the cluster if text direction is left-to-right, and last glyph if the text direction is right-to-left.
-		int glyph_info_index = text_flow_direction == TextFlowDirection::LeftToRight ? 0 : glyph_count - 1;
-
-		RMLUI_ASSERT(glyph_count != 0);
-		if (glyph_info[glyph_info_index].codepoint == 0)
+		if (glyph_count == 0)
 			continue;
 
-		// Create the cluster glyph using the fallback font.
-		Character character = Rml::StringUtilities::ToCharacter(cluster.begin(), cluster.end());
-		const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(glyph_info[glyph_info_index].codepoint, character, false);
-		if (glyph)
-		{
-			// Insert the new cluster glyph into our own set of fallback cluster glyphs
-			auto pair = fallback_cluster_glyphs.emplace(cluster,
-				FontClusterGlyphData{glyph_info[glyph_info_index].codepoint, FontGlyphData{glyph->WeakCopy(), character}});
-			if (pair.second)
-				is_layers_dirty = true;
+		Vector<FontClusterGlyphData> cluster_glyphs;
+		cluster_glyphs.reserve((size_t)glyph_count);
 
-			return true;
+		int glyph_info_index_offset = text_direction == TextFlowDirection::RightToLeft ? (int)glyph_count - 1 : 0;
+		int cluster_string_offset = 0;
+		bool has_nonzero_codepoint = false;
+
+		// Create the cluster glyphs.
+		for (int g = 0; g < (int)glyph_count; ++g)
+		{
+			int glyph_info_index = g + glyph_info_index_offset;
+			RMLUI_ASSERT(glyph_info_index < (int)glyph_count);
+
+			// Reverse the order of the glyphs in right-to-left text.
+			if (text_direction == TextFlowDirection::RightToLeft)
+				glyph_info_index_offset -= 2;
+
+			if (!has_nonzero_codepoint && glyph_info[glyph_info_index].codepoint != 0)
+				has_nonzero_codepoint = true;
+
+			Character character = Rml::StringUtilities::ToCharacter(cluster.begin() + cluster_string_offset, cluster.end());
+			const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(glyph_info[glyph_info_index].codepoint, character, false);
+			if (glyph && glyph->bitmap_data)
+				cluster_glyphs.push_back(FontClusterGlyphData{glyph_info[glyph_info_index].codepoint, FontGlyphData{glyph->WeakCopy(), character}});
+
+			cluster_string_offset += (int)Rml::StringUtilities::BytesUTF8(character);
+			RMLUI_ASSERT(cluster_string_offset <= (int)cluster.size());
 		}
+
+		if (cluster_glyphs.empty() || !has_nonzero_codepoint)
+			continue;
+
+		// Insert the cluster glyphs into our own set of fallback cluster glyphs.
+		auto pair = fallback_cluster_glyphs.emplace(cluster, std::move(cluster_glyphs));
+		if (pair.second)
+		{
+			is_layers_dirty = true;
+
+			// Populate quick-lookup glyph map to glyph search times during rendering.
+			for (const auto& cluster_glyph : pair.first->second)
+			{
+				uint64_t cluster_glyph_id = GetFallbackFontClusterGlyphLookupID(cluster_glyph.glyph_index, cluster_glyph.glyph_data.character);
+				fallback_cluster_glyphs_lookup.emplace(cluster_glyph_id, &cluster_glyph.glyph_data.bitmap);
+			}
+		}
+
+		return true;
 	}
 
 	return false;
 }
 
-const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendFallbackClusterGlyph(StringView cluster, const TextShapingContext& text_shaping_context,
-	const LanguageDataMap& registered_languages, FontGlyphIndex& glyph_index)
+const Vector<FontClusterGlyphData>* FontFaceHandleHarfBuzz::GetOrAppendFallbackClusterGlyphs(StringView cluster,
+	const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages)
 {
 	String cluster_string(cluster);
-	auto fallback_cluster_glyph_location = fallback_cluster_glyphs.find(cluster_string);
-	if (fallback_cluster_glyph_location != fallback_cluster_glyphs.cend())
+	auto fallback_cluster_glyphs_location = fallback_cluster_glyphs.find(cluster_string);
+	if (fallback_cluster_glyphs_location != fallback_cluster_glyphs.cend())
 	{
-		glyph_index = fallback_cluster_glyph_location->second.glyph_index;
-		return &fallback_cluster_glyph_location->second.glyph_data.bitmap;
+		return &fallback_cluster_glyphs_location->second;
 	}
 
-	bool result = AppendFallbackClusterGlyph(cluster, text_shaping_context, registered_languages);
+	bool result = AppendFallbackClusterGlyphs(cluster, text_shaping_context, registered_languages);
 
 	if (result)
 	{
-		fallback_cluster_glyph_location = fallback_cluster_glyphs.find(cluster_string);
-		if (fallback_cluster_glyph_location == fallback_cluster_glyphs.cend())
+		fallback_cluster_glyphs_location = fallback_cluster_glyphs.find(cluster_string);
+		if (fallback_cluster_glyphs_location == fallback_cluster_glyphs.cend())
 		{
 			RMLUI_ERROR;
 			return nullptr;
@@ -573,9 +639,8 @@ const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendFallbackClusterGlyph(StringV
 	else
 		return nullptr;
 
-	glyph_index = fallback_cluster_glyph_location->second.glyph_index;
-	const FontGlyph* fallback_cluster_glyph = &fallback_cluster_glyph_location->second.glyph_data.bitmap;
-	return fallback_cluster_glyph;
+	const Vector<FontClusterGlyphData>* fallback_cluster_glyphs = &fallback_cluster_glyphs_location->second;
+	return fallback_cluster_glyphs;
 }
 
 FontFaceLayer* FontFaceHandleHarfBuzz::GetOrCreateLayer(const SharedPtr<const FontEffect>& font_effect)

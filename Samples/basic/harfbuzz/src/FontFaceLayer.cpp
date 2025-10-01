@@ -86,12 +86,13 @@ bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFac
 			}
 
 			for (auto& pair : fallback_cluster_glyphs)
-			{
-				const Character glyph_character = pair.second.glyph_data.character;
-				const FontGlyph& glyph = pair.second.glyph_data.bitmap;
+				for (auto& cluster_glyph : pair.second)
+				{
+					const Character glyph_character = cluster_glyph.glyph_data.character;
+					const FontGlyph& glyph = cluster_glyph.glyph_data.bitmap;
 
-				CloneTextureBox(glyph, pair.second.glyph_index, glyph_character, true);
-			}
+					CloneTextureBox(glyph, cluster_glyph.glyph_index, glyph_character, true);
+				}
 		}
 	}
 	else
@@ -116,12 +117,13 @@ bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFac
 		}
 
 		for (auto& pair : fallback_cluster_glyphs)
-		{
-			const Character glyph_character = pair.second.glyph_data.character;
-			const FontGlyph& glyph = pair.second.glyph_data.bitmap;
+			for (auto& cluster_glyph : pair.second)
+			{
+				const Character glyph_character = cluster_glyph.glyph_data.character;
+				const FontGlyph& glyph = cluster_glyph.glyph_data.bitmap;
 
-			CreateTextureLayout(glyph, pair.second.glyph_index, glyph_character, true);
-		}
+				CreateTextureLayout(glyph, cluster_glyph.glyph_index, glyph_character, true);
+			}
 
 		constexpr int max_texture_dimensions = 1024;
 
@@ -211,12 +213,12 @@ bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& textur
 		{
 			// Glyph was not found; attempt to find it in the fallback cluster glyphs.
 			if (is_cluster && glyph_maps.fallback_cluster_glyphs)
-				for (auto& pair : *glyph_maps.fallback_cluster_glyphs)
-					if (pair.second.glyph_index == glyph_index && pair.second.glyph_data.character == glyph_character)
-					{
-						glyph = &pair.second.glyph_data.bitmap;
-						break;
-					}
+			{
+				uint64_t cluster_glyph_lookup_id = GetFallbackFontClusterGlyphLookupID(glyph_index, glyph_character);
+				auto cluster_glyph_it = glyph_maps.fallback_cluster_glyphs->find(cluster_glyph_lookup_id);
+				if (cluster_glyph_it != glyph_maps.fallback_cluster_glyphs->end())
+					glyph = cluster_glyph_it->second;
+			}
 
 			// Glyph was still not found; attempt to find it in the fallback glyphs.
 			if (!glyph && !is_cluster && glyph_maps.fallback_glyphs)
@@ -275,9 +277,7 @@ bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& textur
 			}
 		}
 		else
-		{
 			effect->GenerateGlyphTexture(rectangle.GetTextureData(), Vector2i(box.dimensions), rectangle.GetTextureStride(), *glyph);
-		}
 	}
 
 	return true;
@@ -313,13 +313,17 @@ uint64_t FontFaceLayer::CreateFontGlyphID(const FontGlyphIndex glyph_index, cons
 	// 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
 	// | <---------- glyph_index ----------> | ^| <-------- character_code --------> |
 	//                                         |
-	//                                         `--- is_cluster
+	//                                     is_cluster
+	// 
+	// The maximum valid Unicode codepoint is U+10FFFF (slightly larger than 2^20),
+	// so dedicating the 32nd bit of 'character_code' to 'is_cluster' shouldn't cause any issues.
 
-	uint64_t font_glyph_id =
-		(static_cast<uint64_t>(glyph_index) << (sizeof(Character) * 8)) | static_cast<uint64_t>(std::underlying_type_t<Character>(character_code));
+	uint64_t font_glyph_id = (static_cast<uint64_t>(glyph_index) << (sizeof(Character) * 8)) | static_cast<uint64_t>(character_code);
 
 	if (is_cluster)
 		font_glyph_id |= font_glyph_id_cluster_bit_mask;
+	else
+		font_glyph_id &= ~font_glyph_id_cluster_bit_mask;
 
 	return font_glyph_id;
 }
