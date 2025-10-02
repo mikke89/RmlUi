@@ -53,7 +53,7 @@ struct FontClusterGlyphData
 
 using FontGlyphMap = Rml::UnorderedMap<FontGlyphIndex, FontGlyphData>;
 using FallbackFontGlyphMap = Rml::UnorderedMap<Rml::Character, Rml::FontGlyph>;
-using FallbackFontClusterGlyphMap = Rml::UnorderedMap<Rml::String, Rml::Vector<FontClusterGlyphData>>;
+using FallbackFontClusterGlyphsMap = Rml::UnorderedMap<Rml::String, Rml::Vector<FontClusterGlyphData>>;
 using FallbackFontClusterGlyphLookupMap = Rml::UnorderedMap<uint64_t, const Rml::FontGlyph*>;
 
 struct FontGlyphMaps {

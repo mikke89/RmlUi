@@ -73,7 +73,7 @@ public:
 
 	const FontGlyphMap& GetGlyphs() const;
 	const FallbackFontGlyphMap& GetFallbackGlyphs() const;
-	const FallbackFontClusterGlyphMap& GetFallbackClusterGlyphs() const;
+	const FallbackFontClusterGlyphsMap& GetFallbackClusterGlyphs() const;
 
 	/// Returns the width a string will take up if rendered with this handle.
 	/// @param[in] string The string to measure.
@@ -178,7 +178,7 @@ private:
 	FontGlyphMap glyphs;
 	FallbackFontGlyphMap fallback_glyphs;
 
-	FallbackFontClusterGlyphMap fallback_cluster_glyphs;
+	FallbackFontClusterGlyphsMap fallback_cluster_glyphs;
 	FallbackFontClusterGlyphLookupMap fallback_cluster_glyphs_lookup;
 
 	struct EffectLayerPair {

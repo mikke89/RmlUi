@@ -96,7 +96,7 @@ const FallbackFontGlyphMap& FontFaceHandleHarfBuzz::GetFallbackGlyphs() const
 	return fallback_glyphs;
 }
 
-const FallbackFontClusterGlyphMap& FontFaceHandleHarfBuzz::GetFallbackClusterGlyphs() const
+const FallbackFontClusterGlyphsMap& FontFaceHandleHarfBuzz::GetFallbackClusterGlyphs() const
 {
 	return fallback_cluster_glyphs;
 }

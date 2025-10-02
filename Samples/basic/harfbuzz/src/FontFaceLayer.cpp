@@ -54,7 +54,7 @@ bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFac
 
 	const FontGlyphMap& glyphs = handle->GetGlyphs();
 	const FallbackFontGlyphMap& fallback_glyphs = handle->GetFallbackGlyphs();
-	const FallbackFontClusterGlyphMap& fallback_cluster_glyphs = handle->GetFallbackClusterGlyphs();
+	const FallbackFontClusterGlyphsMap& fallback_cluster_glyphs = handle->GetFallbackClusterGlyphs();
 
 	// Generate the new layout.
 	if (clone)
