@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2025 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -491,24 +491,24 @@ private:
 
 	VkExtent2D GetValidSurfaceExtent() noexcept;
 
-	void CreateShaders() noexcept;
-	void CreateDescriptorSetLayout() noexcept;
-	void CreatePipelineLayout() noexcept;
-	void CreateDescriptorSets() noexcept;
-	void CreateSamplers() noexcept;
+	void Create_Shaders() noexcept;
+	void Create_DescriptorSetLayout() noexcept;
+	void Create_PipelineLayout() noexcept;
+	void Create_DescriptorSets() noexcept;
+	void Create_Samplers() noexcept;
 	void Create_Pipelines() noexcept;
-	void CreateRenderPass() noexcept;
+	void Create_RenderPass() noexcept;
 
-	void CreateSwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
+	void Create_SwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
 
 	// This method is called in Views, so don't call it manually
-	void CreateSwapchainImages() noexcept;
-	void CreateSwapchainImageViews() noexcept;
+	void Create_SwapchainImages() noexcept;
+	void Create_SwapchainImageViews() noexcept;
 
 	void Create_DepthStencilImage() noexcept;
 	void Create_DepthStencilImageViews() noexcept;
 
-	void CreateResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept;
+	void Create_ResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept;
 
 	buffer_data_t CreateResource_StagingBuffer(VkDeviceSize size, VkBufferUsageFlags flags) noexcept;
 	void DestroyResource_StagingBuffer(const buffer_data_t& data) noexcept;
