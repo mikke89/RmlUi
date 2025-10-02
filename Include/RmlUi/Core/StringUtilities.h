@@ -112,6 +112,9 @@ namespace StringUtilities {
 	// Decode the first code point in a zero-terminated UTF-8 string.
 	RMLUICORE_API Character ToCharacter(const char* p, const char* p_end);
 
+	/// Returns number of bytes in a UTF-8 character.
+	RMLUICORE_API size_t BytesUTF8(Character character);
+
 	// Encode a single code point as a UTF-8 string.
 	RMLUICORE_API String ToUTF8(Character character);
 
