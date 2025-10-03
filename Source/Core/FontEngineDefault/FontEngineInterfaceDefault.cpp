@@ -76,7 +76,7 @@ int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, StringView
 	Character prior_character)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
-	return handle_default->GetStringWidth(string, text_shaping_context.letter_spacing, prior_character);
+	return handle_default->GetStringWidth(string, text_shaping_context, prior_character);
 }
 
 int FontEngineInterfaceDefault::GenerateString(RenderManager& render_manager, FontFaceHandle handle, FontEffectsHandle font_effects_handle,
@@ -84,7 +84,7 @@ int FontEngineInterfaceDefault::GenerateString(RenderManager& render_manager, Fo
 	TexturedMeshList& mesh_list)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
-	return handle_default->GenerateString(render_manager, mesh_list, string, position, colour, opacity, text_shaping_context.letter_spacing,
+	return handle_default->GenerateString(render_manager, mesh_list, string, position, colour, opacity, text_shaping_context,
 		(int)font_effects_handle);
 }
 

@@ -48,6 +48,7 @@ using Rml::Queue;
 using Rml::RenderManager;
 using Rml::SharedPtr;
 using Rml::SmallUnorderedMap;
+using Rml::Span;
 using Rml::String;
 using Rml::StringView;
 using Rml::TextShapingContext;
@@ -109,7 +110,7 @@ public:
 	/// @param[in] registered_languages A list of languages registered in the font engine interface.
 	/// @param[in] layer_configuration Face configuration index to use for generating string.
 	/// @return The width, in pixels, of the string geometry.
-	int GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, StringView, Vector2f position, ColourbPremultiplied colour,
+	int GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, StringView string, Vector2f position, ColourbPremultiplied colour,
 		float opacity, const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages, int layer_configuration = 0);
 
 	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
@@ -136,15 +137,16 @@ private:
 
 	// Build and append fallback cluster glyph to 'fallback_cluster_glyphs'.
 	bool AppendFallbackClusterGlyphs(StringView cluster, const TextShapingContext& text_shaping_context,
-		const LanguageDataMap& registered_languages);
+		const LanguageDataMap& registered_languages, Span<struct hb_feature_t> text_shaping_features);
 
 	/// Retrieve a fallback cluster glyph from the given cluster and text-shaping/language data, building and appending a new fallback cluster glyph if not already built.
 	/// @param[in] cluster  The cluster.
 	/// @param[in] text_shaping_context  Extra parameters that provide context for text shaping.
 	/// @param[in] registered_languages  A list of languages registered in the font engine interface.
+	/// @param[in] text_shaping_features  A list of OpenType feature settings used for text shaping.
 	/// @return The fallback glyphs of the cluster.
 	const Vector<FontClusterGlyphData>* GetOrAppendFallbackClusterGlyphs(StringView cluster, const TextShapingContext& text_shaping_context,
-		const LanguageDataMap& registered_languages);
+		const LanguageDataMap& registered_languages, Span<struct hb_feature_t> text_shaping_features);
 
 	// Regenerate layers if dirty, such as after adding new glyphs.
 	bool UpdateLayersOnDirty();

@@ -129,6 +129,7 @@ namespace Style {
 		Colourb color = Colourb(255, 255, 255);
 
 		FontWeight font_weight : 10;
+		FontKerning font_kerning : 2;
 		uint16_t has_letter_spacing : 1;
 
 		FontStyle font_style : 1;
@@ -259,6 +260,7 @@ namespace Style {
 		bool           has_font_effect()  const { return inherited.has_font_effect; }
 		FontStyle      font_style()       const { return inherited.font_style; }
 		FontWeight     font_weight()      const { return inherited.font_weight; }
+		FontKerning    font_kerning()     const { return inherited.font_kerning; }
 		PointerEvents  pointer_events()   const { return inherited.pointer_events; }
 		Focus          focus()            const { return inherited.focus; }
 		TextAlign      text_align()       const { return inherited.text_align; }
@@ -359,6 +361,7 @@ namespace Style {
 		void has_font_effect   (bool value)           { inherited.has_font_effect    = value; }
 		void font_style        (FontStyle value)      { inherited.font_style         = value; }
 		void font_weight       (FontWeight value)     { inherited.font_weight        = value; }
+		void font_kerning      (FontKerning value)    { inherited.font_kerning       = value; }
 		void pointer_events    (PointerEvents value)  { inherited.pointer_events     = value; }
 		void focus             (Focus value)          { inherited.focus              = value; }
 		void text_align        (TextAlign value)      { inherited.text_align         = value; }

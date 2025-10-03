@@ -44,6 +44,32 @@ static bool IsControlCharacter(Character c)
 	return (char32_t)c < U' ' || ((char32_t)c >= U'\x7F' && (char32_t)c <= U'\x9F');
 }
 
+bool IsKerningEnabled(const TextShapingContext& text_shaping_context, const int font_size)
+{
+	static constexpr int minimum_font_size_to_enable_kerning = 14;
+
+	switch (text_shaping_context.font_kerning)
+	{
+	case Style::FontKerning::Normal: return true;
+	case Style::FontKerning::None: return false;
+	default: return font_size >= minimum_font_size_to_enable_kerning;
+	}
+}
+
+static Vector<hb_feature_t> GetTextShapingFeatures(const TextShapingContext& text_shaping_context, const int font_size)
+{
+	Vector<hb_feature_t> shaping_features;
+
+	if (!IsKerningEnabled(text_shaping_context, font_size))
+	{
+		// Kerning is enabled by default in HarfBuzz, so we need to explicitly disable it.
+		shaping_features.emplace_back();
+		hb_feature_from_string("kern=0", -1, &shaping_features.back());
+	}
+
+	return shaping_features;
+}
+
 FontFaceHandleHarfBuzz::FontFaceHandleHarfBuzz()
 {
 	base_layer = nullptr;
@@ -111,7 +137,10 @@ int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingC
 	RMLUI_ASSERT(shaping_buffer != nullptr);
 	ConfigureTextShapingBuffer(shaping_buffer, string, text_shaping_context, registered_languages, nullptr);
 	hb_buffer_add_utf8(shaping_buffer, string.begin(), (int)string.size(), 0, (int)string.size());
-	hb_shape(hb_font, shaping_buffer, nullptr, 0);
+
+	Vector<hb_feature_t> shaping_features = GetTextShapingFeatures(text_shaping_context, metrics.size);
+	const hb_feature_t* shaping_features_pointer = !shaping_features.empty() ? shaping_features.data() : nullptr;
+	hb_shape(hb_font, shaping_buffer, shaping_features_pointer, (unsigned int)shaping_features.size());
 
 	unsigned int glyph_count = 0;
 	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(shaping_buffer, &glyph_count);
@@ -140,7 +169,7 @@ int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingC
 			{
 				// Unsupported cluster detected; use fallback cluster glyph if one is available.
 				const Vector<FontClusterGlyphData>* cluster_glyphs =
-					GetOrAppendFallbackClusterGlyphs(cluster_string, text_shaping_context, registered_languages);
+					GetOrAppendFallbackClusterGlyphs(cluster_string, text_shaping_context, registered_languages, shaping_features);
 
 				if (cluster_glyphs)
 				{
@@ -289,6 +318,8 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 
 	hb_buffer_t* shaping_buffer = hb_buffer_create();
 	RMLUI_ASSERT(shaping_buffer != nullptr);
+	Vector<hb_feature_t> shaping_features = GetTextShapingFeatures(text_shaping_context, metrics.size);
+	const hb_feature_t* shaping_features_pointer = !shaping_features.empty() ? shaping_features.data() : nullptr;
 
 	for (size_t layer_index = 0; layer_index < layer_configuration.size(); ++layer_index)
 	{
@@ -316,7 +347,7 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 		hb_buffer_clear_contents(shaping_buffer);
 		ConfigureTextShapingBuffer(shaping_buffer, string, text_shaping_context, registered_languages, nullptr);
 		hb_buffer_add_utf8(shaping_buffer, string.begin(), (int)string.size(), 0, (int)string.size());
-		hb_shape(hb_font, shaping_buffer, nullptr, 0);
+		hb_shape(hb_font, shaping_buffer, shaping_features_pointer, (unsigned int)shaping_features.size());
 
 		unsigned int glyph_count = 0;
 		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(shaping_buffer, &glyph_count);
@@ -348,7 +379,8 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 				if (cluster_codepoint_count > 1)
 				{
 					// Unsupported cluster detected; use fallback cluster glyph if one is available.
-					const Vector<FontClusterGlyphData>* cluster_glyphs = GetOrAppendFallbackClusterGlyphs(cluster_string, text_shaping_context, registered_languages);
+					const Vector<FontClusterGlyphData>* cluster_glyphs =
+						GetOrAppendFallbackClusterGlyphs(cluster_string, text_shaping_context, registered_languages, shaping_features);
 					
 					if (cluster_glyphs)
 					{
@@ -535,8 +567,9 @@ const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendFallbackGlyph(Character& cha
 }
 
 bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyphs(StringView cluster, const TextShapingContext& text_shaping_context,
-	const LanguageDataMap& registered_languages)
+	const LanguageDataMap& registered_languages, Span<struct hb_feature_t> text_shaping_features)
 {
+	const hb_feature_t* shaping_features_pointer = !text_shaping_features.empty() ? text_shaping_features.data() : nullptr;
 	hb_buffer_t* shaping_buffer = hb_buffer_create();
 	RMLUI_ASSERT(shaping_buffer != nullptr);
 
@@ -554,7 +587,7 @@ bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyphs(StringView cluster, con
 		hb_buffer_clear_contents(shaping_buffer);
 		ConfigureTextShapingBuffer(shaping_buffer, cluster, text_shaping_context, registered_languages, &text_direction);
 		hb_buffer_add_utf8(shaping_buffer, cluster.begin(), (int)cluster.size(), 0, (int)cluster.size());
-		hb_shape(fallback_face->hb_font, shaping_buffer, nullptr, 0);
+		hb_shape(fallback_face->hb_font, shaping_buffer, shaping_features_pointer, (unsigned int)text_shaping_features.size());
 
 		unsigned int glyph_count = 0;
 		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(shaping_buffer, &glyph_count);
@@ -614,7 +647,7 @@ bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyphs(StringView cluster, con
 }
 
 const Vector<FontClusterGlyphData>* FontFaceHandleHarfBuzz::GetOrAppendFallbackClusterGlyphs(StringView cluster,
-	const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages)
+	const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages, Span<struct hb_feature_t> text_shaping_features)
 {
 	String cluster_string(cluster);
 	auto fallback_cluster_glyphs_location = fallback_cluster_glyphs.find(cluster_string);
@@ -623,7 +656,7 @@ const Vector<FontClusterGlyphData>* FontFaceHandleHarfBuzz::GetOrAppendFallbackC
 		return &fallback_cluster_glyphs_location->second;
 	}
 
-	bool result = AppendFallbackClusterGlyphs(cluster, text_shaping_context, registered_languages);
+	bool result = AppendFallbackClusterGlyphs(cluster, text_shaping_context, registered_languages, text_shaping_features);
 
 	if (result)
 	{
