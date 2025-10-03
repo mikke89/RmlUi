@@ -341,7 +341,7 @@ def process_file(in_file):
 			return False
 
 		if match := re.search(r'(^|[^a-z\-])((direction:[^;]*[;"])|(content:[^;]*[;"])|(outline:[^;]*[;"])|(quote:[^;]*[;"])|(border-spacing:[^;]*[;"])|(border-collapse:[^;]*[;"])|(background:[^;]*[;"]))', line, flags = re.IGNORECASE)\
-			or re.search(r'\b((font-variant:[^;]*[;"])|(font-kerning:[^;]*[;"])|(font-feature-settings:[^;]*[;"])|(background-image:[^;]*[;"])|(caption-side:[^;]*[;"])|(clip:[^;]*[;"])|(page-break-inside:[^;]*[;"])|(word-spacing:[^;]*[;"]))', line, flags = re.IGNORECASE)\
+			or re.search(r'\b((font-variant:[^;]*[;"])|(font-feature-settings:[^;]*[;"])|(background-image:[^;]*[;"])|(caption-side:[^;]*[;"])|(clip:[^;]*[;"])|(page-break-inside:[^;]*[;"])|(word-spacing:[^;]*[;"]))', line, flags = re.IGNORECASE)\
 			or re.search(r'\b((writing-mode:[^;]*[;"])|(text-orientation:[^;]*[;"])|(text-indent:[^;]*[;"])|(page-break-after:[^;]*[;"])|(page-break-before:[^;]*[;"])|(column(?!-gap)[a-z\- ]*:[^;]*[;"])|(empty-cells:[^;]*[;"]))', line, flags = re.IGNORECASE)\
 			or re.search(r'\b((aspect-ratio:[^;]*[;"])|(place-items:[^;]*[;"])|(flex-flow:[^;]*[;"])|(order:[^;]*[;"])|([a-z\-]+:\s*calc\([^;]*[;"])|([a-z\-]+:\s*safe\b[^;]*[;"])|([a-z\-]+:\s*(min-|max-)?content\s*[;"]))', line, flags = re.IGNORECASE):
 			substring_max = lambda s, max_length: s[:max_length - 3] + '...' if len(s) > max_length else s

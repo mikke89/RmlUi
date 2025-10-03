@@ -212,7 +212,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	bool break_at_endline =
 		white_space_property == WhiteSpace::Pre || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline;
 
-	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.letter_spacing()};
+	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.font_kerning(), computed.letter_spacing()};
 	TextTransform text_transform_property = computed.text_transform();
 	WordBreak word_break = computed.word_break();
 
@@ -362,6 +362,7 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		changed_properties.Contains(PropertyId::FontWeight) ||     //
 		changed_properties.Contains(PropertyId::FontStyle) ||      //
 		changed_properties.Contains(PropertyId::FontSize) ||       //
+		changed_properties.Contains(PropertyId::FontKerning) ||    //
 		changed_properties.Contains(PropertyId::LetterSpacing) ||  //
 		changed_properties.Contains(PropertyId::RmlUi_Language) || //
 		changed_properties.Contains(PropertyId::RmlUi_Direction))
@@ -452,7 +453,7 @@ void ElementText::GenerateGeometry(RenderManager& render_manager, const FontFace
 	RMLUI_ZoneScopedC(0xD2691E);
 
 	const auto& computed = GetComputedValues();
-	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.letter_spacing()};
+	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.font_kerning(), computed.letter_spacing()};
 
 	TexturedMeshList mesh_list;
 	mesh_list.reserve(geometry.size());
