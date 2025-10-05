@@ -54,6 +54,30 @@ inline bool operator!=(const BoxShadowGeometryInfo& a, const BoxShadowGeometryIn
 {
 	return !(a == b);
 }
+
+class Geometry;
+class CallbackTexture;
+class RenderManager;
+
+class GeometryBoxShadow {
+public:
+	/// Generate the texture and geometry for a box shadow.
+	/// @param[in] element The element to resolve.
+	/// @param[in] border_radius The border radius of the element.
+	/// @param[in] background_color The background colour of the element.
+	/// @param[in] border_colors The border colours of the element.
+	static BoxShadowGeometryInfo Resolve(Element* element, const CornerSizes& border_radius,
+		ColourbPremultiplied background_color, const Array<ColourbPremultiplied, 4>& border_colors);
+
+	/// Generate the texture and geometry for a box shadow.
+	/// @param[out] out_shadow_texture The target texture, assumes pointer stability during the lifetime of the shadow geometry.
+	/// @param[in] render_manager The render manager to generate the shadow for.
+	/// @param[in] shadow_geometry_info The resolved box shadow geometry of a given element.
+	///	@see GeometryBoxShadow::Resolve()
+	static void GenerateTexture(CallbackTexture& out_shadow_texture, RenderManager& render_manager,
+		const BoxShadowGeometryInfo& shadow_geometry_info);
+};
+
 } // namespace Rml
 
 namespace std {
@@ -94,31 +118,4 @@ struct hash<::Rml::BoxShadowGeometryInfo> {
 	}
 };
 } // namespace std
-namespace Rml {
-
-class Geometry;
-class CallbackTexture;
-class RenderManager;
-
-class GeometryBoxShadow {
-public:
-	/// Generate the texture and geometry for a box shadow.
-	/// @param[in] element The element to resolve.
-	/// @param[in] shadow_list The list of box-shadows to generate.
-	/// @param[in] border_radius The border radius of the element.
-	/// @param[in] background_color The background colour of the element.
-	/// @param[in] border_colors The border colours of the element.
-	static BoxShadowGeometryInfo Resolve(Element* element, BoxShadowList shadow_list, const CornerSizes& border_radius, 
-		ColourbPremultiplied background_color, const Array<ColourbPremultiplied, 4>& border_colors);
-
-	/// Generate the texture and geometry for a box shadow.
-	/// @param[out] out_shadow_texture The target texture, assumes pointer stability during the lifetime of the shadow geometry.
-	/// @param[in] render_manager The render manager to generate the shadow for.
-	/// @param[in] shadow_geometry_info The resolved box shadow geometry of a given element.
-	///	@see GeometryBoxShadow::Resolve() 
-	static void GenerateTexture(CallbackTexture& out_shadow_texture, RenderManager& render_manager,
-		const BoxShadowGeometryInfo& shadow_geometry_info);
-};
-
-} // namespace Rml
 #endif

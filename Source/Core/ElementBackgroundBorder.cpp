@@ -58,8 +58,8 @@ void ElementBackgroundBorder::Render(Element* element)
 	}
 
 	Background* shadow = GetBackground(BackgroundType::BoxShadow);
-	if (shadow && shadow->geometry)
-		shadow->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border), shadow->texture);
+	if (shadow && box_shadow_cache)
+		box_shadow_cache->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border), shadow->texture);
 	else if (Background* background = GetBackground(BackgroundType::BackgroundBorder))
 	{
 		auto offset = element->GetAbsoluteOffset(BoxArea::Border);
@@ -158,12 +158,9 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 
 	if (has_box_shadow)
 	{
-		Geometry& background_border_geometry = geometry;
-
 		// Generate the geometry for the box-shadow texture.
 		Background& shadow_background = GetOrCreateBackground(BackgroundType::BoxShadow);
-		Geometry& shadow_geometry = shadow_background.geometry;
-		box_shadow_cache = BoxShadowCache::GetHandle(element);
+		box_shadow_cache = BoxShadowCache::GetHandle(element, geometry);
 		shadow_background.texture = box_shadow_cache->texture;
 	}
 }

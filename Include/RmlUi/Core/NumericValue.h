@@ -55,8 +55,6 @@ inline bool operator!=(const NumericValue& a, const NumericValue& b)
 namespace std {
 template <>
 struct hash<::Rml::NumericValue> {
-	// FIXME: should the hash function NumericValue not care about unit (as long as resolved unit is the same?)
-	// Or should it be a regular hash combine?
 	size_t operator()(const ::Rml::NumericValue& v) const noexcept
 	{
 		using namespace ::Rml;

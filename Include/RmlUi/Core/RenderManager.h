@@ -36,7 +36,6 @@
 #include "RenderInterface.h"
 #include "StableVector.h"
 #include "Types.h"
-#include "Utilities.h"
 
 namespace Rml {
 class Geometry;

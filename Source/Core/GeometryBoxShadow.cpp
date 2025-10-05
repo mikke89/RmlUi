@@ -38,12 +38,16 @@
 #include "ElementBackgroundBorder.h"
 
 namespace Rml {
-BoxShadowGeometryInfo GeometryBoxShadow::Resolve(Element* element, BoxShadowList shadow_list, const CornerSizes& border_radius,
+BoxShadowGeometryInfo GeometryBoxShadow::Resolve(Element* element, const CornerSizes& border_radius,
 	ColourbPremultiplied background_color, const Array<ColourbPremultiplied, 4>& border_colors)
 {
 	// Find the box-shadow texture dimension and offset required to cover all box-shadows and element boxes combined.
 	Vector2f element_offset_in_texture;
 	Vector2i texture_dimensions;
+
+	const Property* p_box_shadow = element->GetLocalProperty(PropertyId::BoxShadow);
+	RMLUI_ASSERT(p_box_shadow->value.GetType() == Variant::BOXSHADOWLIST);
+	BoxShadowList shadow_list = p_box_shadow->value.Get<BoxShadowList>();
 
 	// Resolve all lengths to px units.
 	for (BoxShadow& shadow : shadow_list)
@@ -253,5 +257,4 @@ void GeometryBoxShadow::GenerateTexture(CallbackTexture& out_shadow_texture, Ren
 	};
 	out_shadow_texture = render_manager.MakeCallbackTexture(std::move(texture_callback));
 }
-
 } // namespace Rml
