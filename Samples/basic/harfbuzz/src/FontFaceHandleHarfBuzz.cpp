@@ -566,7 +566,7 @@ bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyphs(StringView cluster, con
 
 		int glyph_info_index_offset = text_direction == TextFlowDirection::RightToLeft ? (int)glyph_count - 1 : 0;
 		int cluster_string_offset = 0;
-		bool has_nonzero_codepoint = false;
+		bool has_supported_glyph = false;
 
 		// Create the cluster glyphs.
 		for (int g = 0; g < (int)glyph_count; ++g)
@@ -578,19 +578,20 @@ bool FontFaceHandleHarfBuzz::AppendFallbackClusterGlyphs(StringView cluster, con
 			if (text_direction == TextFlowDirection::RightToLeft)
 				glyph_info_index_offset -= 2;
 
-			if (!has_nonzero_codepoint && glyph_info[glyph_info_index].codepoint != 0)
-				has_nonzero_codepoint = true;
-
 			Character character = Rml::StringUtilities::ToCharacter(cluster.begin() + cluster_string_offset, cluster.end());
 			const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(glyph_info[glyph_info_index].codepoint, character, false);
-			if (glyph && glyph->bitmap_data)
+			if (glyph && glyph->bitmap_data && glyph->bitmap_dimensions.x > 0 && glyph->bitmap_dimensions.y > 0)
+			{
 				cluster_glyphs.push_back(FontClusterGlyphData{glyph_info[glyph_info_index].codepoint, FontGlyphData{glyph->WeakCopy(), character}});
+				if (!has_supported_glyph && glyph_info[glyph_info_index].codepoint != 0)
+					has_supported_glyph = true;
+			}
 
 			cluster_string_offset += (int)Rml::StringUtilities::BytesUTF8(character);
 			RMLUI_ASSERT(cluster_string_offset <= (int)cluster.size());
 		}
 
-		if (cluster_glyphs.empty() || !has_nonzero_codepoint)
+		if (cluster_glyphs.empty() || !has_supported_glyph)
 			continue;
 
 		// Insert the cluster glyphs into our own set of fallback cluster glyphs.
