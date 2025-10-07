@@ -44,7 +44,7 @@ static bool IsControlCharacter(Character c)
 	return (char32_t)c < U' ' || ((char32_t)c >= U'\x7F' && (char32_t)c <= U'\x9F');
 }
 
-static bool IsKerningEnabled(const TextShapingContext& text_shaping_context, const int font_size)
+static bool IsKerningEnabled(const TextShapingContext& text_shaping_context, int font_size)
 {
 	static constexpr int minimum_font_size_to_enable_kerning = 14;
 
@@ -56,7 +56,7 @@ static bool IsKerningEnabled(const TextShapingContext& text_shaping_context, con
 	}
 }
 
-static Vector<hb_feature_t> GetTextShapingFeatures(const TextShapingContext& text_shaping_context, const int font_size)
+static Vector<hb_feature_t> GetTextShapingFeatures(const TextShapingContext& text_shaping_context, int font_size)
 {
 	Vector<hb_feature_t> shaping_features;
 
