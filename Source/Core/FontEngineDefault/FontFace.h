@@ -54,6 +54,8 @@ public:
 	/// @return The font handle.
 	FontFaceHandleDefault* GetHandle(int size, bool load_default_glyphs);
 
+	void OnBeginFrame();
+
 	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
 	void ReleaseFontResources();
 

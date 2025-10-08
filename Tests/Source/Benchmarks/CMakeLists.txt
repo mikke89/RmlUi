@@ -1,17 +1,18 @@
 set(TARGET_NAME "rmlui_benchmarks")
 
 add_executable(${TARGET_NAME}
+	BackgroundBorder.cpp
+	DataBinding.cpp
 	DataExpression.cpp
 	Element.cpp
-	BackgroundBorder.cpp
 	ElementDocument.cpp
-	Table.cpp
-	Selectors.cpp
-	main.cpp
-	DataBinding.cpp
 	Flexbox.cpp
 	FontEffect.cpp
+	FontTextureAtlas.cpp
+	Selectors.cpp
+	Table.cpp
 	WidgetTextInput.cpp
+	main.cpp
 )
 
 set_common_target_options(${TARGET_NAME})
