@@ -365,14 +365,7 @@ int FontFaceHandleDefault::GetKerning(Character lhs, Character rhs, bool& has_se
 
 bool FontFaceHandleDefault::IsKerningEnabled(const TextShapingContext& text_shaping_context) const
 {
-	static constexpr int minimum_font_size_to_enable_kerning = 14;
-
-	switch (text_shaping_context.font_kerning)
-	{
-	case Style::FontKerning::Normal: return true;
-	case Style::FontKerning::None: return false;
-	default: return metrics.size >= minimum_font_size_to_enable_kerning;
-	}
+	return text_shaping_context.font_kerning != Style::FontKerning::None;
 }
 
 const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, bool look_in_fallback_fonts)
