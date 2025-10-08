@@ -126,6 +126,7 @@ enum class PropertyId : uint8_t {
 	FontStyle,
 	FontWeight,
 	FontSize,
+	FontKerning,
 	LetterSpacing,
 	TextAlign,
 	TextDecoration,
