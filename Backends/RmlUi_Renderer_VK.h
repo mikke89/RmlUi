@@ -180,9 +180,13 @@ private:
 		};
 
 	public:
-		UploadResourceManager() : m_p_device{}, m_p_fence{}, m_p_command_buffer{}, m_p_command_pool{}, m_p_graphics_queue{}, m_upload_buffer{} 
-		{
-		}
+		UploadResourceManager() :
+			m_p_device{}, m_p_fence{}, m_p_command_buffer{}, m_p_command_pool{}, m_p_graphics_queue{}
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+			,
+			m_upload_buffer{}
+#endif
+		{}
 		~UploadResourceManager() {}
 
 		void Initialize(VkDevice p_device, VkQueue p_queue, VmaAllocator p_allocator, uint32_t queue_family_index, size_t staging_buffer_size)
@@ -205,6 +209,7 @@ private:
 			vkDestroyFence(m_p_device, m_p_fence, nullptr);
 			vkDestroyCommandPool(m_p_device, m_p_command_pool, nullptr);
 
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
 			if (p_allocator)
 			{
 				if (m_upload_buffer.vk_buffer.m_p_vk_buffer && m_upload_buffer.vk_buffer.m_p_vma_allocation)
@@ -216,6 +221,7 @@ private:
 					m_upload_buffer.vk_buffer.m_p_vma_allocation = nullptr;
 				}
 			}
+#endif
 		}
 
 		template <typename Func>
@@ -244,9 +250,11 @@ private:
 			Wait();
 		}
 
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
 		const buffer_data_t& Get_UploadBuffer() const noexcept { return m_upload_buffer.vk_buffer; }
 		buffer_data_t& Get_UploadBuffer() noexcept { return m_upload_buffer.vk_buffer; }
 		size_t Get_UploadBufferSize() const noexcept { return m_upload_buffer.creation_size; }
+#endif
 
 	private:
 		void Create_Fence() noexcept
@@ -332,7 +340,9 @@ private:
 			Create_Fence();
 			Create_CommandPool(queue_family_index);
 			Create_CommandBuffer();
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
 			Create_StagingBuffer(p_allocator, staging_buffer_size, &m_upload_buffer);
+#endif
 		}
 
 		void Wait() noexcept
@@ -369,10 +379,13 @@ private:
 		VkCommandBuffer m_p_command_buffer;
 		VkCommandPool m_p_command_pool;
 		VkQueue m_p_graphics_queue;
+
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
 		// system talks with these buffers when we want to upload texture
 		// we avoid reallocation, but if the requested resource is bigger than upload buffer we temporarely create that staging temp buffer and then
 		// delete, but this buffer we don't delete until session of RenderInterface_VK instance is not ended
 		upload_buffer_data_t m_upload_buffer;
+#endif
 	};
 
 	// @ main manager for "allocating" vertex, index, uniform stuff

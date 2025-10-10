@@ -575,17 +575,26 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 
 	// since it is only pointers & pod we can construct on stack the instance
 	unsigned char temp_mem[sizeof(buffer_data_t)];
+
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
 	bool is_used_from_upload_manager = true;
+#else
+	bool is_used_from_upload_manager = false;
+#endif
 
 	buffer_data_t* p_selected_cpu_buffer = nullptr;
 
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
 	if (image_size > m_upload_manager.Get_UploadBufferSize())
+#endif
 	{
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
 		Rml::Log::Message(Rml::Log::Type::LT_WARNING,
 			"! [Vulkan]: you are trying to upload huge texture = %zu bytes (%d Mb), so if you can't optimize its size for loading then ignore this "
 			"message, otherwise we "
 			"expect you to upload using staging buffer from UploadResourceManager instance",
 			image_size, image_size / (1024 * 1024));
+#endif
 
 		p_selected_cpu_buffer = new (temp_mem) buffer_data_t();
 
@@ -596,6 +605,7 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 
 		is_used_from_upload_manager = false;
 	}
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
 	else
 	{
 		// probably we don't need to clear cpu buffer like memset(0) because if we needed it gives some overhead if uploading buffer is bigger than
@@ -604,6 +614,7 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 		// (because I don't do memset(0))  report to @wh1t3lord please, describe your driver and gpu card and platform os
 		p_selected_cpu_buffer = &m_upload_manager.Get_UploadBuffer();
 	}
+#endif
 
 	RMLUI_ASSERT(p_selected_cpu_buffer && "expected to be true otherwise fatal error");
 
