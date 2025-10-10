@@ -52,7 +52,7 @@ VkValidationFeatureEnableEXT debug_validation_features_ext_requested[] = {
 };
 
 #ifdef RMLUI_VK_DEBUG
-static Rml::String FormatByteSize(VkDeviceSize size) noexcept
+inline Rml::String FormatByteSize(VkDeviceSize size) noexcept
 {
 	constexpr VkDeviceSize K = VkDeviceSize(1024);
 	if (size < K)
@@ -392,6 +392,49 @@ void RenderInterface_VK::SetScissorRegion(Rml::Rectanglei region)
 	}
 }
 
+void RenderInterface_VK::EnableClipMask(bool enable) {}
+
+void RenderInterface_VK::RenderToClipMask(Rml::ClipMaskOperation mask_op, Rml::CompiledGeometryHandle geom, Rml::Vector2f translation) {}
+
+Rml::LayerHandle RenderInterface_VK::PushLayer()
+{
+	return Rml::LayerHandle();
+}
+
+void RenderInterface_VK::CompositeLayers(Rml::LayerHandle src, Rml::LayerHandle dest, Rml::BlendMode blend,
+	Rml::Span<const Rml::CompiledFilterHandle> filters)
+{}
+
+void RenderInterface_VK::PopLayer() {}
+
+Rml::TextureHandle RenderInterface_VK::SaveLayerAsTexture()
+{
+	return Rml::TextureHandle();
+}
+
+Rml::CompiledFilterHandle RenderInterface_VK::SaveLayerAsMaskImage()
+{
+	return Rml::CompiledFilterHandle();
+}
+
+Rml::CompiledFilterHandle RenderInterface_VK::CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters)
+{
+	return Rml::CompiledFilterHandle();
+}
+
+void RenderInterface_VK::ReleaseFilter(Rml::CompiledFilterHandle filter) {}
+
+Rml::CompiledShaderHandle RenderInterface_VK::CompileShader(const Rml::String& name, const Rml::Dictionary& parameters)
+{
+	return Rml::CompiledShaderHandle();
+}
+
+void RenderInterface_VK::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle, Rml::Vector2f translation,
+	Rml::TextureHandle texture)
+{}
+
+void RenderInterface_VK::ReleaseShader(Rml::CompiledShaderHandle effect_handle) {}
+
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
 #pragma pack(1)
 struct TGAHeader {
@@ -555,6 +598,7 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 	info.samples = VK_SAMPLE_COUNT_1_BIT;
 	info.tiling = VK_IMAGE_TILING_OPTIMAL;
 	info.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 	VmaAllocationCreateInfo info_allocation = {};
 	info_allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -1184,7 +1228,8 @@ void RenderInterface_VK::Initialize_Resources(const VkPhysicalDeviceProperties& 
 	const VkDeviceSize min_buffer_alignment = physical_device_properties.limits.minUniformBufferOffsetAlignment;
 	m_memory_pool.Initialize(kVideoMemoryForAllocation, min_buffer_alignment, m_p_allocator, m_p_device);
 
-	m_upload_manager.Initialize(m_p_device, m_p_queue_graphics, m_queue_index_graphics);
+	m_upload_manager.Initialize(m_p_device, m_p_queue_graphics, m_p_allocator, m_queue_index_graphics,
+		RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_SIZE);
 	m_manager_descriptors.Initialize(m_p_device, 100, 100, 10, 10);
 
 	Create_Shaders();
@@ -1260,7 +1305,7 @@ void RenderInterface_VK::Destroy_SyncPrimitives() noexcept
 void RenderInterface_VK::Destroy_Resources() noexcept
 {
 	m_command_buffer_ring.Shutdown();
-	m_upload_manager.Shutdown();
+	m_upload_manager.Shutdown(m_p_allocator);
 
 	if (m_p_descriptor_set)
 	{
@@ -3049,3 +3094,148 @@ void RenderInterface_VK::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geometry
 #define GLAD_VULKAN_IMPLEMENTATION
 #define VMA_IMPLEMENTATION
 #include "RmlUi_Include_Vulkan.h"
+
+namespace Gfx {
+struct FramebufferData {};
+} // namespace Gfx
+
+RenderInterface_VK::RenderLayerStack::RenderLayerStack() : m_msaa_sample_count{RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT}, m_layers_size{}, m_width
+{}, m_height{},
+m_p_owner{}, m_p_shared_depth_stencil_for_layers{}
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::RenderLayerStack");
+
+	this->m_fb_postprocess.resize(4);
+
+	// in order to prevent calling dtor when doing push_back on m_fb_layers
+	// we need to reserve memory, like how much we do expect elements in array (vector)
+	// otherwise you will get validation assert in dtor of FramebufferData struct and
+	// that validation supposed to be for memory leaks or wrong resource handling (like you forgot to delete resource somehow)
+	// if you didn't get it check this: https://en.cppreference.com/w/cpp/container/vector/reserve
+
+	// otherwise if your default implementation requires more layers by default, thus we have a field at compile-time (or at runtime as dynamic
+	// extension) RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
+	this->m_fb_layers.resize(RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS);
+
+	this->m_p_shared_depth_stencil_for_layers = new Gfx::FramebufferData();
+}
+
+RenderInterface_VK::RenderLayerStack::~RenderLayerStack()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::Destructor");
+
+	this->m_p_owner = nullptr;
+
+	if (this->m_p_shared_depth_stencil_for_layers)
+	{
+		delete this->m_p_shared_depth_stencil_for_layers;
+		this->m_p_shared_depth_stencil_for_layers = nullptr;
+	}
+}
+
+void RenderInterface_VK::RenderLayerStack::Initialize(RenderInterface_VK* p_owner)
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::Initialize");
+
+	RMLUI_ASSERT(p_owner && "you must pass a valid pointer of backend!");
+
+#ifdef RMLUI_DEBUG
+	Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[RenderLayerStack]: msaa sample count = %d", int(m_msaa_sample_count));
+#endif
+}
+
+void RenderInterface_VK::RenderLayerStack::Shutdown()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::Shutdown");
+
+	this->DestroyFramebuffers();
+}
+
+Rml::LayerHandle RenderInterface_VK::RenderLayerStack::PushLayer()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::PushLayer");
+	RMLUI_ASSERT(this->m_layers_size <= static_cast<int>(this->m_fb_layers.size()) && "overflow of layers!");
+
+	return Rml::LayerHandle();
+}
+
+void RenderInterface_VK::RenderLayerStack::PopLayer()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::PopLayer");
+	RMLUI_ASSERT(this->m_layers_size > 0 && "calculations are wrong, debug your code please!");
+
+	this->m_layers_size -= 1;
+}
+
+const Gfx::FramebufferData& RenderInterface_VK::RenderLayerStack::GetLayer(Rml::LayerHandle layer) const
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::GetLayer");
+	RMLUI_ASSERT(static_cast<size_t>(layer) < static_cast<size_t>(this->m_layers_size) &&
+		"overflow or not correct calculation or something is broken, debug the code!");
+
+	return this->m_fb_layers.at(static_cast<size_t>(layer));
+}
+
+const Gfx::FramebufferData& RenderInterface_VK::RenderLayerStack::GetTopLayer() const
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::GetTopLayer");
+	RMLUI_ASSERT(this->m_layers_size > 0 && "early calling!");
+
+	return this->m_fb_layers[this->m_layers_size - 1];
+}
+
+const Gfx::FramebufferData& RenderInterface_VK::RenderLayerStack::Get_SharedDepthStencil_Layers()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::Get_SharedDepthStencil_Layers");
+	RMLUI_ASSERT(this->m_p_shared_depth_stencil_for_layers && "early calling!");
+	return *this->m_p_shared_depth_stencil_for_layers;
+}
+
+Rml::LayerHandle RenderInterface_VK::RenderLayerStack::GetTopLayerHandle() const
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::GetTopLayerHandle");
+	RMLUI_ASSERT(m_layers_size > 0 && "early calling or something is broken!");
+	return static_cast<Rml::LayerHandle>(m_layers_size - 1);
+}
+
+void RenderInterface_VK::RenderLayerStack::SwapPostprocessPrimarySecondary() 
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::SwapPostprocessPrimarySecondary");
+
+	std::swap(this->m_fb_postprocess[0], this->m_fb_postprocess[1]);
+}
+
+void RenderInterface_VK::RenderLayerStack::BeginFrame(int new_width, int new_height)
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::BeginFrame");
+
+	RMLUI_ASSERT(this->m_layers_size == 0 && "something is wrong and you forgot to clear/delete something!");
+
+	if (this->m_width != new_width || this->m_height != new_height)
+	{
+		this->m_width = new_width;
+		this->m_height = new_height;
+
+		this->DestroyFramebuffers();
+	}
+
+	this->PushLayer();
+}
+
+void RenderInterface_VK::RenderLayerStack::EndFrame() 
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::EndFrame");
+
+	RMLUI_ASSERT(this->m_layers_size == 1 && "order is wrong or something is broken!");
+	this->PopLayer();
+}
+
+void RenderInterface_VK::RenderLayerStack::DestroyFramebuffers() 
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::DestroyFramebuffers");
+}
+
+const Gfx::FramebufferData& RenderInterface_VK::RenderLayerStack::EnsureFramebufferPostprocess(int index)
+{
+	return Gfx::FramebufferData();
+}

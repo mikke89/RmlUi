@@ -30,3 +30,32 @@
 #elif defined __clang__
 	#pragma clang diagnostic pop
 #endif
+
+
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
+	#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
+#else
+	#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT 2
+#endif
+
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
+	// system field (it is not supposed to specify by initialization structure)
+    // on some render backend implementations (Vulkan/DirectX-12) we have to check memory leaks but
+    // if we don't reserve memory for a field that contains layers (it is vector)
+    // at runtime we will get a called dtor of move-to-copy object (because of reallocation)
+    // and for that matter we will get a false-positive trigger of assert and it is not right generally
+	#define RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
+#else
+	// system field (it is not supposed to specify by initialization structure)
+    // on some render backend implementations (Vulkan/DirectX-12) we have to check memory leaks but
+    // if we don't reserve memory for a field that contains layers (it is vector)
+    // at runtime we will get a called dtor of move-to-copy object (because of reallocation)
+    // and for that matter we will get a false-positive trigger of assert and it is not right generally
+	#define RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS 6
+#endif
+
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_STAGING_BUFFER_SIZE
+	#define RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_SIZE RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_STAGING_BUFFER_SIZE
+#else
+	#define RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_SIZE 1024*1024*8
+#endif
