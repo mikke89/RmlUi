@@ -418,7 +418,7 @@ bool TestNavigator::CaptureCurrentView()
 {
 	const Rml::String filename = GetImageFilenameFromCurrentTest();
 
-	bool result = CaptureScreenshot(filename, 1060);
+	bool result = CaptureScreenshot(render_interface, filename, 1060);
 
 	return result;
 }
