@@ -7185,8 +7185,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("rs of Passthrough_MSAA"));
 		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("pipeline Passthrough_MSAA"));
 
-		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA_Equal)]
-			->SetName(TEXT("rs of Passthrough_MSAA_Equal"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA_Equal)]->SetName(TEXT("rs of Passthrough_MSAA_Equal"));
 		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA_Equal)]->SetName(TEXT("pipeline Passthrough_MSAA_Equal"));
 	#endif
 
@@ -9909,6 +9908,39 @@ void RenderInterface_DX12::TextureMemoryManager::Initialize(D3D12MA::Allocator* 
 
 		RMLUI_DX_ASSERTMSG(status, "failed to D3D12MA::CreateVirtualBlock (for dsv descriptor heap, texture manager)");
 	}
+
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+	if (this->m_p_allocator)
+	{
+		D3D12MA::Allocation* p_allocation = nullptr;
+
+		ID3D12Resource* p_upload_buffer{};
+
+		D3D12_RESOURCE_DESC buffer_desc;
+
+		buffer_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+		buffer_desc.Alignment = 0;
+		buffer_desc.Width = RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_SIZE;
+		buffer_desc.Height = 1;
+		buffer_desc.DepthOrArraySize = 1;
+		buffer_desc.MipLevels = 1;
+		buffer_desc.Format = DXGI_FORMAT_UNKNOWN;
+		buffer_desc.SampleDesc.Count = 1;
+		buffer_desc.SampleDesc.Quality = 0;
+		buffer_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		buffer_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+		D3D12MA::ALLOCATION_DESC desc_alloc{};
+		desc_alloc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+
+		auto status = this->m_p_allocator->CreateResource(&desc_alloc, &buffer_desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, &p_allocation,
+			IID_PPV_ARGS(&p_upload_buffer));
+
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateResource (upload buffer for texture)");
+
+		this->m_p_upload_buffer = p_allocation;
+	}
+#endif
 }
 
 void RenderInterface_DX12::TextureMemoryManager::Shutdown()
@@ -9955,6 +9987,19 @@ void RenderInterface_DX12::TextureMemoryManager::Shutdown()
 
 	this->m_blocks.clear();
 	this->m_heaps_placed.clear();
+
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+	if (this->m_p_upload_buffer)
+	{
+		if (this->m_p_upload_buffer->GetResource())
+		{
+			this->m_p_upload_buffer->GetResource()->Release();
+		}
+
+		auto ref_count = this->m_p_upload_buffer->Release();
+		RMLUI_ASSERT(ref_count == 0 && "leak!");
+	}
+#endif
 
 	this->m_p_allocator = nullptr;
 	this->m_p_device = nullptr;
@@ -10614,11 +10659,61 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 
 	auto upload_size = GetRequiredIntermediateSize(p_resource, 0, 1);
 
-	D3D12MA::ALLOCATION_DESC desc_alloc{};
-	desc_alloc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-
 	D3D12MA::Allocation* p_allocation{};
 
+	HRESULT status = S_OK;
+
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+	RMLUI_ASSERT(this->m_p_upload_buffer && "must be valid and initialized");
+
+	p_allocation = this->m_p_upload_buffer;
+
+	bool was_allocated_temp = false;
+
+	RMLUI_ASSERT(this->m_p_upload_buffer->GetResource() && "must be initialized");
+	if (p_allocation->GetResource())
+	{
+		if (p_allocation->GetResource()->GetDesc().Width < upload_size)
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_WARNING,
+				"! [DirectX 12]: you are trying to upload huge texture = %zu bytes (%d Mb), so if you can't optimize its size for loading then "
+			    "ignore "
+				"this "
+				"message, otherwise we "
+				"expect you to upload using staging buffer from UploadResourceManager instance",
+				upload_size, upload_size / (1024 * 1024));
+
+			p_allocation = nullptr;
+
+			ID3D12Resource* p_upload_buffer{};
+
+			D3D12_RESOURCE_DESC buffer_desc;
+
+			buffer_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+			buffer_desc.Alignment = 0;
+			buffer_desc.Width = upload_size;
+			buffer_desc.Height = 1;
+			buffer_desc.DepthOrArraySize = 1;
+			buffer_desc.MipLevels = 1;
+			buffer_desc.Format = DXGI_FORMAT_UNKNOWN;
+			buffer_desc.SampleDesc.Count = 1;
+			buffer_desc.SampleDesc.Quality = 0;
+			buffer_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+			buffer_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+			D3D12MA::ALLOCATION_DESC desc_alloc{};
+			desc_alloc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+
+			status = this->m_p_allocator->CreateResource(&desc_alloc, &buffer_desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, &p_allocation,
+				IID_PPV_ARGS(&p_upload_buffer));
+
+			RMLUI_DX_ASSERTMSG(status, "failed to CreateResource (upload buffer for texture)");
+
+			was_allocated_temp = true;
+		}
+	}
+
+#else
 	ID3D12Resource* p_upload_buffer{};
 
 	D3D12_RESOURCE_DESC buffer_desc;
@@ -10635,17 +10730,21 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 	buffer_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	buffer_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	auto status = this->m_p_allocator->CreateResource(&desc_alloc, &buffer_desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, &p_allocation,
+	D3D12MA::ALLOCATION_DESC desc_alloc{};
+	desc_alloc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+
+	status = this->m_p_allocator->CreateResource(&desc_alloc, &buffer_desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, &p_allocation,
 		IID_PPV_ARGS(&p_upload_buffer));
 
 	RMLUI_DX_ASSERTMSG(status, "failed to CreateResource (upload buffer for texture)");
+#endif
 
 	D3D12_SUBRESOURCE_DATA desc_data{};
 	desc_data.pData = p_data;
 	desc_data.RowPitch = desc.Width * this->BytesPerPixel(desc.Format);
 	desc_data.SlicePitch = desc_data.RowPitch * desc.Height;
 
-	auto allocated_size = UpdateSubresources<1>(this->m_p_command_list, p_resource, p_upload_buffer, 0, 0, 1, &desc_data);
+	auto allocated_size = UpdateSubresources<1>(this->m_p_command_list, p_resource, p_allocation->GetResource(), 0, 0, 1, &desc_data);
 
 #ifdef RMLUI_DX_DEBUG
 	constexpr const char* p_committed = "committed";
@@ -10701,6 +10800,21 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 		}
 	}
 
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+	if (was_allocated_temp)
+	{
+		if (p_allocation)
+		{
+			if (p_allocation->GetResource())
+			{
+				p_allocation->GetResource()->Release();
+			}
+
+			auto ref_count = p_allocation->Release();
+			RMLUI_ASSERT(ref_count == 0 && "leak!");
+		}
+	}
+#else
 	if (p_allocation)
 	{
 		if (p_allocation->GetResource())
@@ -10711,6 +10825,7 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 		auto ref_count = p_allocation->Release();
 		RMLUI_ASSERT(ref_count == 0 && "leak!");
 	}
+#endif
 }
 
 size_t RenderInterface_DX12::TextureMemoryManager::BytesPerPixel(DXGI_FORMAT format)
