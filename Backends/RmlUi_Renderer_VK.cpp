@@ -573,12 +573,44 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 	VkDeviceSize image_size = source.size();
 	VkFormat format = VkFormat::VK_FORMAT_R8G8B8A8_UNORM;
 
-	buffer_data_t cpu_buffer = CreateResource_StagingBuffer(image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+	// since it is only pointers & pod we can construct on stack the instance
+	unsigned char temp_mem[sizeof(buffer_data_t)];
+	bool is_used_from_upload_manager = true;
+
+	buffer_data_t* p_selected_cpu_buffer = nullptr;
+
+	if (image_size > m_upload_manager.Get_UploadBufferSize())
+	{
+		Rml::Log::Message(Rml::Log::Type::LT_WARNING,
+			"! [Vulkan]: you are trying to upload huge texture = %zu bytes (%d Mb), so if you can't optimize its size for loading then ignore this "
+			"message, otherwise we "
+			"expect you to upload using staging buffer from UploadResourceManager instance",
+			image_size, image_size / (1024 * 1024));
+
+		p_selected_cpu_buffer = new (temp_mem) buffer_data_t();
+
+		buffer_data_t cpu_buffer = CreateResource_StagingBuffer(image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+
+		p_selected_cpu_buffer->m_p_vk_buffer = cpu_buffer.m_p_vk_buffer;
+		p_selected_cpu_buffer->m_p_vma_allocation = cpu_buffer.m_p_vma_allocation;
+
+		is_used_from_upload_manager = false;
+	}
+	else
+	{
+		// probably we don't need to clear cpu buffer like memset(0) because if we needed it gives some overhead if uploading buffer is bigger than
+		// 2x2K texture size since 2048 * 2048 * 8 and fast upload requests might reduce some performance, but generally saying we don't need to do
+		// that since we have extent and our memory representation is linear, but again if on some driver implementations the behaviour differs
+		// (because I don't do memset(0))  report to @wh1t3lord please, describe your driver and gpu card and platform os
+		p_selected_cpu_buffer = &m_upload_manager.Get_UploadBuffer();
+	}
+
+	RMLUI_ASSERT(p_selected_cpu_buffer && "expected to be true otherwise fatal error");
 
 	void* data;
-	vmaMapMemory(m_p_allocator, cpu_buffer.m_p_vma_allocation, &data);
+	vmaMapMemory(m_p_allocator, p_selected_cpu_buffer->m_p_vma_allocation, &data);
 	memcpy(data, source.data(), static_cast<size_t>(image_size));
-	vmaUnmapMemory(m_p_allocator, cpu_buffer.m_p_vma_allocation);
+	vmaUnmapMemory(m_p_allocator, p_selected_cpu_buffer->m_p_vma_allocation);
 
 	VkExtent3D extent_image = {};
 	extent_image.width = static_cast<uint32_t>(width);
@@ -650,7 +682,7 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 	 * In our case we want to see in our pixel shader so we need to change transfer into this flag VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, because we
 	 * want to copy so it means some transfer thing, but after we say it goes to pixel after our copying operation
 	 */
-	m_upload_manager.UploadToGPU([p_image, extent_image, cpu_buffer](VkCommandBuffer p_cmd) {
+	m_upload_manager.UploadToGPU([p_image, extent_image, p_selected_cpu_buffer](VkCommandBuffer p_cmd) {
 		VkImageSubresourceRange range = {};
 		range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		range.baseMipLevel = 0;
@@ -680,7 +712,7 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 		region.imageSubresource.layerCount = 1;
 		region.imageExtent = extent_image;
 
-		vkCmdCopyBufferToImage(p_cmd, cpu_buffer.m_p_vk_buffer, p_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+		vkCmdCopyBufferToImage(p_cmd, p_selected_cpu_buffer->m_p_vk_buffer, p_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 		VkImageMemoryBarrier info_barrier_shader_read = {};
 		info_barrier_shader_read.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -696,7 +728,10 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 			&info_barrier_shader_read);
 	});
 
-	DestroyResource_StagingBuffer(cpu_buffer);
+	if (is_used_from_upload_manager == false)
+	{
+		DestroyResource_StagingBuffer(*p_selected_cpu_buffer);
+	}
 
 	VkImageViewCreateInfo info_image_view = {};
 	info_image_view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -3099,9 +3134,9 @@ namespace Gfx {
 struct FramebufferData {};
 } // namespace Gfx
 
-RenderInterface_VK::RenderLayerStack::RenderLayerStack() : m_msaa_sample_count{RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT}, m_layers_size{}, m_width
-{}, m_height{},
-m_p_owner{}, m_p_shared_depth_stencil_for_layers{}
+RenderInterface_VK::RenderLayerStack::RenderLayerStack() :
+	m_msaa_sample_count{RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT}, m_layers_size{}, m_width{}, m_height{}, m_p_owner{},
+	m_p_shared_depth_stencil_for_layers{}
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::RenderLayerStack");
 
@@ -3198,7 +3233,7 @@ Rml::LayerHandle RenderInterface_VK::RenderLayerStack::GetTopLayerHandle() const
 	return static_cast<Rml::LayerHandle>(m_layers_size - 1);
 }
 
-void RenderInterface_VK::RenderLayerStack::SwapPostprocessPrimarySecondary() 
+void RenderInterface_VK::RenderLayerStack::SwapPostprocessPrimarySecondary()
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::SwapPostprocessPrimarySecondary");
 
@@ -3222,7 +3257,7 @@ void RenderInterface_VK::RenderLayerStack::BeginFrame(int new_width, int new_hei
 	this->PushLayer();
 }
 
-void RenderInterface_VK::RenderLayerStack::EndFrame() 
+void RenderInterface_VK::RenderLayerStack::EndFrame()
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::EndFrame");
 
@@ -3230,7 +3265,7 @@ void RenderInterface_VK::RenderLayerStack::EndFrame()
 	this->PopLayer();
 }
 
-void RenderInterface_VK::RenderLayerStack::DestroyFramebuffers() 
+void RenderInterface_VK::RenderLayerStack::DestroyFramebuffers()
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::DestroyFramebuffers");
 }

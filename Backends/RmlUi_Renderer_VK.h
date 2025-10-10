@@ -245,6 +245,7 @@ private:
 		}
 
 		const buffer_data_t& Get_UploadBuffer() const noexcept { return m_upload_buffer.vk_buffer; }
+		buffer_data_t& Get_UploadBuffer() noexcept { return m_upload_buffer.vk_buffer; }
 		size_t Get_UploadBufferSize() const noexcept { return m_upload_buffer.creation_size; }
 
 	private:
