@@ -29,6 +29,7 @@
 #include "FontFaceHandleDefault.h"
 #include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
+#include "../../../Include/RmlUi/Core/StyleTypes.h"
 #include "../TextureLayout.h"
 #include "FontFaceLayer.h"
 #include "FontProvider.h"
@@ -83,11 +84,12 @@ const FontGlyphMap& FontFaceHandleDefault::GetGlyphs() const
 	return glyphs;
 }
 
-int FontFaceHandleDefault::GetStringWidth(StringView string, float letter_spacing, Character prior_character)
+int FontFaceHandleDefault::GetStringWidth(StringView string, const TextShapingContext& text_shaping_context, Character prior_character)
 {
 	RMLUI_ZoneScoped;
 
 	bool has_set_size = false;
+	bool is_kerning_enabled = IsKerningEnabled(text_shaping_context);
 	int width = 0;
 	for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 	{
@@ -98,11 +100,12 @@ int FontFaceHandleDefault::GetStringWidth(StringView string, float letter_spacin
 			continue;
 
 		// Adjust the cursor for the kerning between this character and the previous one.
-		width += GetKerning(prior_character, character, has_set_size);
+		if (is_kerning_enabled)
+			width += GetKerning(prior_character, character, has_set_size);
 
 		// Adjust the cursor for this character's advance.
 		width += glyph->advance;
-		width += (int)letter_spacing;
+		width += (int)text_shaping_context.letter_spacing;
 
 		prior_character = character;
 	}
@@ -194,7 +197,7 @@ bool FontFaceHandleDefault::GenerateLayerTexture(Vector<byte>& texture_data, Vec
 }
 
 int FontFaceHandleDefault::GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, StringView string, const Vector2f position,
-	const ColourbPremultiplied colour, const float opacity, const float letter_spacing, const int layer_configuration_index)
+	const ColourbPremultiplied colour, const float opacity, const TextShapingContext& text_shaping_context, const int layer_configuration_index)
 {
 	RMLUI_ASSERT(layer_configuration_index >= 0);
 	RMLUI_ASSERT(layer_configuration_index < (int)layer_configurations.size());
@@ -202,6 +205,7 @@ int FontFaceHandleDefault::GenerateString(RenderManager& render_manager, Texture
 	int geometry_index = 0;
 	int line_width = 0;
 	bool has_set_size = false;
+	bool is_kerning_enabled = IsKerningEnabled(text_shaping_context);
 
 	UpdateLayersOnDirty();
 
@@ -249,7 +253,8 @@ int FontFaceHandleDefault::GenerateString(RenderManager& render_manager, Texture
 				continue;
 
 			// Adjust the cursor for the kerning between this character and the previous one.
-			line_width += GetKerning(prior_character, character, has_set_size);
+			if (is_kerning_enabled)
+				line_width += GetKerning(prior_character, character, has_set_size);
 
 			ColourbPremultiplied glyph_color = layer_colour;
 			// Use white vertex colors on RGB glyphs.
@@ -259,7 +264,7 @@ int FontFaceHandleDefault::GenerateString(RenderManager& render_manager, Texture
 			layer->GenerateGeometry(&mesh_list[geometry_index], character, Vector2f(position.x + line_width, position.y), glyph_color);
 
 			line_width += glyph->advance;
-			line_width += (int)letter_spacing;
+			line_width += (int)text_shaping_context.letter_spacing;
 			prior_character = character;
 		}
 
@@ -356,6 +361,11 @@ int FontFaceHandleDefault::GetKerning(Character lhs, Character rhs, bool& has_se
 	has_set_size = true;
 
 	return result;
+}
+
+bool FontFaceHandleDefault::IsKerningEnabled(const TextShapingContext& text_shaping_context) const
+{
+	return text_shaping_context.font_kerning != Style::FontKerning::None;
 }
 
 const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, bool look_in_fallback_fonts)
