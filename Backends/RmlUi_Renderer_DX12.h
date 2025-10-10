@@ -501,6 +501,9 @@ public:
 		D3D12MA::VirtualBlock* m_p_virtual_block_for_depth_stencil_heap_allocations;
 		ID3D12DescriptorHeap* m_p_descriptor_heap_rtv;
 		ID3D12DescriptorHeap* m_p_descriptor_heap_dsv;
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+		D3D12MA::Allocation* m_p_upload_buffer;
+#endif
 		Rml::Vector<D3D12MA::VirtualBlock*> m_blocks;
 		Rml::Vector<ID3D12Heap*> m_heaps_placed;
 	};
