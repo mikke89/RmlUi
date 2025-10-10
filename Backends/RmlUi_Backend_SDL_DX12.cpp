@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2025 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,20 +28,14 @@
 
 #include "RmlUi_Backend.h"
 #include "RmlUi_Platform_SDL.h"
-#include "RmlUi_Renderer_VK.h"
+#include "RmlUi_Renderer_DX12.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
 
-#if SDL_MAJOR_VERSION == 2 && !(SDL_VIDEO_VULKAN)
+#if SDL_MAJOR_VERSION == 2 && !defined(_WIN32)
 	#error "Only the Vulkan SDL backend is supported."
-#endif
-
-#if SDL_MAJOR_VERSION >= 3
-	#include <SDL3/SDL_vulkan.h>
-#else
-	#include <SDL2/SDL_vulkan.h>
 #endif
 
 /**
@@ -51,8 +45,8 @@
  */
 struct BackendData {
 	SystemInterface_SDL system_interface;
-	RenderInterface_VK render_interface;
-
+	RenderInterface_DX12* render_interface = nullptr;
+	Backend::RmlRenderInitInfo* p_default_pointer = nullptr;
 	SDL_Window* window = nullptr;
 
 	bool running = true;
@@ -62,7 +56,10 @@ static Rml::UniquePtr<BackendData> data;
 bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize, RmlRenderInitInfo* p_info)
 {
 	RMLUI_ASSERT(!data);
-	if (p_info) { p_info = nullptr; }
+	if (p_info)
+	{
+		p_info = nullptr;
+	}
 #if SDL_MAJOR_VERSION >= 3
 	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 		return false;
@@ -73,13 +70,6 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	// Submit click events when focusing the window.
 	SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
-	// Touch events are handled natively, no need to generate synthetic mouse events for touch devices.
-	SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
-
-#if defined RMLUI_BACKEND_SIMULATE_TOUCH
-	// Simulate touch events from mouse events for testing touch behavior on a desktop machine.
-	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
-#endif
 
 #if SDL_MAJOR_VERSION >= 3
 	const float window_size_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
@@ -89,22 +79,16 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, int(width * window_size_scale));
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, int(height * window_size_scale));
-	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
+	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, false);
 	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, allow_resize);
 	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, true);
 	SDL_Window* window = SDL_CreateWindowWithProperties(props);
 	SDL_DestroyProperties(props);
-	auto CreateSurface = [](VkInstance instance, VkSurfaceKHR* out_surface) {
-		return SDL_Vulkan_CreateSurface(data->window, instance, nullptr, out_surface);
-	};
 #else
-	const Uint32 window_flags = (SDL_WINDOW_VULKAN | (allow_resize ? SDL_WINDOW_RESIZABLE : 0));
+	const Uint32 window_flags = ((allow_resize ? SDL_WINDOW_RESIZABLE : 0));
 	SDL_Window* window = SDL_CreateWindow(window_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
 	// SDL2 implicitly activates text input on window creation. Turn it off for now, it will be activated again e.g. when focusing a text input field.
 	SDL_StopTextInput();
-	auto CreateSurface = [](VkInstance instance, VkSurfaceKHR* out_surface) {
-		return (bool)SDL_Vulkan_CreateSurface(data->window, instance, out_surface);
-	};
 #endif
 
 	if (!window)
@@ -116,47 +100,74 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	data = Rml::MakeUnique<BackendData>();
 	data->window = window;
 
-	Rml::Vector<const char*> extensions;
+	if (!p_info)
 	{
-		unsigned int count;
-#if SDL_MAJOR_VERSION >= 3
-		const char* const* extensions_list = SDL_Vulkan_GetInstanceExtensions(&count);
-		if (!extensions_list)
+		HWND window_handle{};
+#if SDL_MAJOR_VERSION == 2
+		SDL_SysWMinfo wmInfo;
+		SDL_VERSION(&wmInfo.version);
+		if (!SDL_GetWindowWMInfo(window, &wmInfo))
 		{
-			data.reset();
-			Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to get required vulkan extensions");
+			// Handle error (e.g., print SDL_GetError() and exit)
+			const char* error = SDL_GetError();
+			SDL_Log("SDL_GetWindowWMInfo failed: %s", error);
+			// Handle failure appropriately
 			return false;
 		}
-		extensions.resize(count);
-		for (unsigned int i = 0; i < count; i++)
-			extensions[i] = extensions_list[i];
-#else
 
-		if (!SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr))
+		if (wnInfo.info.win.window == nullptr)
 		{
-			data.reset();
-			Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to get required vulkan extensions");
+			SDL_Log("invalid win32 handle! failed to initialize renderer dx12 on sdl!");
+			// Handle failure appropriately
 			return false;
 		}
-		extensions.resize(count);
-		if (!SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()))
+
+		window_handle = wmInfo.info.win.window;
+#elif SDL_MAJOR_VERSION == 3
+		SDL_PropertiesID props = SDL_GetWindowProperties(window);
+
+		if (props == 0)
 		{
-			data.reset();
-			Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to get required vulkan extensions");
+			const char* error = SDL_GetError();
+			SDL_Log("SDL_GetWindowProperties failed: [%s]. Failed to initialize renderer dx12 on sdl", error);
 			return false;
 		}
+
+		void* p_not_casted_hwnd = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+
+		if (p_not_casted_hwnd == nullptr)
+		{
+			const char* error = SDL_GetError();
+			SDL_Log("SDL_GetPointerProperty failed to obtained win32 hwnd: [%s]. Failed to initialize renderer dx12 on sdl", error);
+			return false;
+		}
+
+		window_handle = reinterpret_cast<HWND>(p_not_casted_hwnd);
 #endif
+
+		p_info = new RmlRenderInitInfo(window_handle, true);
+		p_info->Get_Settings().vsync = false;
+
+		RMLUI_ASSERT(data->p_default_pointer == nullptr && "must be not initialized! probably you forgot to call backend::shutdown");
+		data->p_default_pointer = p_info;
 	}
 
-	if (!data->render_interface.Initialize(std::move(extensions), CreateSurface))
+	data->render_interface = RmlDX12::Initialize(nullptr, p_info);
+
+	if (!data->render_interface)
 	{
+#ifdef _WIN32
+		MessageBoxA(NULL, "failed to create render interface dx12", "FATAL", 0);
+#endif
+		SDL_DestroyWindow(data->window);
 		data.reset();
+		SDL_Quit();
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to initialize Vulkan render interface");
 		return false;
 	}
 
 	data->system_interface.SetWindow(window);
-	data->render_interface.SetViewport(width, height);
+	data->render_interface->SetViewport(width, height);
 
 	return true;
 }
@@ -164,8 +175,21 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 void Backend::Shutdown()
 {
 	RMLUI_ASSERT(data);
+	RMLUI_ASSERT(data->render_interface);
 
-	data->render_interface.Shutdown();
+	if (data->p_default_pointer)
+	{
+		delete data->p_default_pointer;
+		data->p_default_pointer = nullptr;
+	}
+
+	RmlDX12::Shutdown(data->render_interface);
+
+	if (data->render_interface)
+	{
+		delete data->render_interface;	
+		data->render_interface=nullptr;
+	}
 
 	SDL_DestroyWindow(data->window);
 
@@ -183,7 +207,7 @@ Rml::SystemInterface* Backend::GetSystemInterface()
 Rml::RenderInterface* Backend::GetRenderInterface()
 {
 	RMLUI_ASSERT(data);
-	return &data->render_interface;
+	return data->render_interface;
 }
 
 static bool WaitForValidSwapchain()
@@ -199,7 +223,7 @@ static bool WaitForValidSwapchain()
 	// In some situations the swapchain may become invalid, such as when the window is minimized. In this state the renderer cannot accept any render
 	// calls. Since we don't have full control over the main loop here we may risk calls to Context::Render if we were to return. Instead, we keep the
 	// application inside this loop until we are able to recreate the swapchain and render again.
-	while (!data->render_interface.IsSwapchainValid())
+	while (!data->render_interface->IsSwapchainValid())
 	{
 		SDL_Event ev;
 		while (SDL_PollEvent(&ev))
@@ -212,7 +236,7 @@ static bool WaitForValidSwapchain()
 			}
 		}
 		SDL_Delay(10);
-		data->render_interface.RecreateSwapchain();
+		data->render_interface->RecreateSwapchain();
 	}
 
 	return result;
@@ -293,7 +317,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 		case event_window_size_changed:
 		{
 			Rml::Vector2i dimensions = {ev.window.data1, ev.window.data2};
-			data->render_interface.SetViewport(dimensions.x, dimensions.y);
+			data->render_interface->SetViewport(dimensions.x, dimensions.y);
 		}
 		break;
 
@@ -323,11 +347,14 @@ void Backend::RequestExit()
 void Backend::BeginFrame()
 {
 	RMLUI_ASSERT(data);
-	data->render_interface.BeginFrame();
+	RMLUI_ASSERT(data->render_interface);
+	data->render_interface->BeginFrame();
+	data->render_interface->Clear();
 }
 
 void Backend::PresentFrame()
 {
 	RMLUI_ASSERT(data);
-	data->render_interface.EndFrame();
+	RMLUI_ASSERT(data->render_interface);
+	data->render_interface->EndFrame();
 }
