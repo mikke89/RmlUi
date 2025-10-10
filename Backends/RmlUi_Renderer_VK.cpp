@@ -98,7 +98,14 @@ RenderInterface_VK::RenderInterface_VK() :
 	m_debug_messenger{},
 #endif
 	m_swapchain_format{}, m_texture_depthstencil{}, m_pending_for_deletion_textures_by_frames{}
-{}
+{
+	for (unsigned char i = 0; i < kSwapchainBackBufferCount; ++i)
+	{
+		m_pending_for_deletion_textures_by_frames[i].reserve(128);
+	}
+
+	m_pending_for_deletion_geometries.reserve(128);
+}
 
 RenderInterface_VK::~RenderInterface_VK() {}
 
