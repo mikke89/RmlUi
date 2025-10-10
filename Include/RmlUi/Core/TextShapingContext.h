@@ -40,6 +40,7 @@ namespace Rml {
 struct TextShapingContext {
 	const String& language;
 	Style::Direction text_direction = Style::Direction::Auto;
+	Style::FontKerning font_kerning = Style::FontKerning::Auto;
 	float letter_spacing = 0.0f; // Measured in pixels.
 };
 

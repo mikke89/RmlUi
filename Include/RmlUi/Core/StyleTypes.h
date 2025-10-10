@@ -131,6 +131,7 @@ namespace Style {
 
 	enum class FontStyle : uint8_t { Normal, Italic };
 	enum class FontWeight : uint16_t { Auto = 0, Normal = 400, Bold = 700 }; // Any definite value in the range [1,1000] is valid.
+	enum class FontKerning : uint8_t { Auto, Normal, None };
 
 	enum class TextAlign : uint8_t { Left, Right, Center, Justify };
 	enum class TextDecoration : uint8_t { None, Underline, Overline, LineThrough };
