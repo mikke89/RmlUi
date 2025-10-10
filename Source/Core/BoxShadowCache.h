@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,42 +26,34 @@
  *
  */
 
-#ifndef RMLUI_CORE_NUMERICVALUE_H
-#define RMLUI_CORE_NUMERICVALUE_H
+#ifndef RMLUI_CORE_BOXSHADOWCACHE_H
+#define RMLUI_CORE_BOXSHADOWCACHE_H
 
-#include "Unit.h"
+#include "../../Include/RmlUi/Core/RenderBox.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
+struct BoxShadowGeometryInfo;
 
-/**
-    A numeric value is a number combined with a unit.
- */
-struct NumericValue {
-	NumericValue() noexcept : number(0.f), unit(Unit::UNKNOWN) {}
-	NumericValue(float number, Unit unit) noexcept : number(number), unit(unit) {}
-	float number;
-	Unit unit;
+struct BoxShadowData : NonCopyMoveable {
+	BoxShadowData(CallbackTexture&& texture, Geometry&& geometry, const BoxShadowGeometryInfo& geometry_info);
+	~BoxShadowData();
+
+	CallbackTexture texture;
+	Geometry geometry;
+	const BoxShadowGeometryInfo& cache_key;
 };
-inline bool operator==(const NumericValue& a, const NumericValue& b)
-{
-	return a.number == b.number && a.unit == b.unit;
-}
-inline bool operator!=(const NumericValue& a, const NumericValue& b)
-{
-	return !(a == b);
-}
+
+class BoxShadowCache {
+public:
+	static void Initialize();
+	static void Shutdown();
+
+	/// Returns a handle to BoxShadow data matching the parameters - creates new data if none is found.
+	/// @param[in] element Element for which to calculate and cache the box shadow
+	/// @return A handle to the BoxShadow data, with automatic reference counting.
+	static SharedPtr<BoxShadowData> GetHandle(Element* element, Geometry& background_border_geometry);
+};
 
 } // namespace Rml
-namespace std {
-template <>
-struct hash<::Rml::NumericValue> {
-	size_t operator()(const ::Rml::NumericValue& v) const noexcept
-	{
-		using namespace ::Rml;
-		size_t h1 = hash<float>{}(v.number);
-		size_t h2 = hash<Unit>{}(v.unit);
-		return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
-	}
-};
-} // namespace std
 #endif
