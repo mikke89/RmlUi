@@ -61,6 +61,21 @@ public:
 
 private:
 	static ControlledLifetimeResource<struct PropertyParserColourData> parser_data;
+
+	// Parse a colour in hex-code form (e.g. #FF00FF or #00FF00FF).
+	static bool ParseHexColour(Colourb& colour, const String& value);
+
+	// Parse a colour in RGB form (e.g. rgb(255, 0, 255) or rgba(0, 255, 0, 255)).
+	static bool ParseRGBColour(Colourb& colour, const String& value);
+
+	// Parse a colour in HSL form (e.g. hsl(0, 100%, 50%) or hsla(0, 100%, 50%, 1.0)).
+	static bool ParseHSLColour(Colourb& colour, const String& value);
+
+	// Parse a colour in Oklab form (e.g. oklab(1.0 0.0 0.0) or oklab(0.5 -0.2 0.2 / 0.5))
+	//     or Oklch form (e.g. oklch(1.0 0.0 30) or oklch(1.0 0.0 60 / 0.5)).
+	static bool ParseOklabColour(Colourb& colour, const String& value);
+
+	static bool GetColourFunctionValues(StringList& values, const String& value, bool isCommaSeparated);
 };
 
 } // namespace Rml
