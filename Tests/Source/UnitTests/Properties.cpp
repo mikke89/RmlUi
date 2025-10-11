@@ -152,6 +152,24 @@ TEST_CASE("Properties")
 				},
 			},
 			{
+				"oklab(85% -50% 70%), oklab(0.2 0.4 -0.4) 50%, oklab(100% none 0.4 / 0.25) 10dp",
+				"#98ed00, #6600c1 50%, #ffde003f 10dp",
+				{
+					ColorStop{ColourbPremultiplied(152, 237, 0), NumericValue{}},
+					ColorStop{ColourbPremultiplied(102, 0, 193), NumericValue{50.f, Unit::PERCENT}},
+					ColorStop{ColourbPremultiplied(63, 55, 0, 63), NumericValue{10.f, Unit::DP}},
+				},
+			},
+			{
+				"oklch(75% 100% 30.0), oklch(0.5 0.2 270) 50%, oklch(1.0 0.1 none / 0.5) 10dp",
+				"#ff0000, #3a50d2 50%, #ffe2fa7f 10dp",
+				{
+					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{}},
+					ColorStop{ColourbPremultiplied(58, 80, 210), NumericValue{50.f, Unit::PERCENT}},
+					ColorStop{ColourbPremultiplied(127, 113, 125, 127), NumericValue{10.f, Unit::DP}},
+				},
+			},
+			{
 				"red 50px 20%, blue 10in",
 				"#ff0000 50px, #ff0000 20%, #0000ff 10in",
 				{
