@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string.h>
+#include <utility>
 
 namespace Rml {
 
@@ -89,15 +90,15 @@ static void OklabToRGBA(Array<float, 4>& values)
 	float m = m_prime * m_prime * m_prime;
 	float s = s_prime * s_prime * s_prime;
 
-	static constexpr Array<Array<float, 3>, 3> lms_prime_to_srgb_matrix{
+	static constexpr Array<Array<float, 3>, 3> lms_to_srgb_matrix{
 		Array<float, 3>{+4.0767416621f, -3.3077115913f, +0.2309699292f},
 		Array<float, 3>{-1.2684380046f, +2.6097574011f, -0.3413193965f},
 		Array<float, 3>{-0.0041960863f, -0.7034186147f, +1.7076147010f},
 	};
 
-	float r = lms_prime_to_srgb_matrix[0][0] * l + lms_prime_to_srgb_matrix[0][1] * m + lms_prime_to_srgb_matrix[0][2] * s;
-	float g = lms_prime_to_srgb_matrix[1][0] * l + lms_prime_to_srgb_matrix[1][1] * m + lms_prime_to_srgb_matrix[1][2] * s;
-	float b = lms_prime_to_srgb_matrix[2][0] * l + lms_prime_to_srgb_matrix[2][1] * m + lms_prime_to_srgb_matrix[2][2] * s;
+	float r = lms_to_srgb_matrix[0][0] * l + lms_to_srgb_matrix[0][1] * m + lms_to_srgb_matrix[0][2] * s;
+	float g = lms_to_srgb_matrix[1][0] * l + lms_to_srgb_matrix[1][1] * m + lms_to_srgb_matrix[1][2] * s;
+	float b = lms_to_srgb_matrix[2][0] * l + lms_to_srgb_matrix[2][1] * m + lms_to_srgb_matrix[2][2] * s;
 
 	values[0] = Math::Clamp(InverseSRGBNonlinearTransfer(r), 0.0f, 1.0f);
 	values[1] = Math::Clamp(InverseSRGBNonlinearTransfer(g), 0.0f, 1.0f);
@@ -329,7 +330,7 @@ bool PropertyParserColour::ParseOklabColour(Colourb& colour, const String& value
 		if (values[3] != "/")
 			return false;
 
-		values[3] = values[4];
+		values[3] = std::move(values[4]);
 		values.pop_back();
 	}
 	else
