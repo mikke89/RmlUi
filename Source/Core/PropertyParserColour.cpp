@@ -69,6 +69,41 @@ static float InverseSRGBNonlinearTransfer(float channel)
 	return channel > 0.0031308f ? 1.055f * std::pow(channel, 1.0f / 2.4f) - 0.055f : 12.92f * channel;
 }
 
+// Reference: https://en.wikipedia.org/wiki/CIELAB_color_space#Converting_between_CIELAB_and_CIE_XYZ_coordinates
+static void CIELABToRGBA(Array<float, 4>& values)
+{
+	float y_double_prime = (values[0] + 16.0f) / 116.0f;
+	float x_double_prime = (values[1] / 500.0f) + y_double_prime;
+	float z_double_prime = y_double_prime - (values[2] / 200.0f);
+
+	float x_prime = (x_double_prime * x_double_prime * x_double_prime) > 0.008856f ? (x_double_prime * x_double_prime * x_double_prime)
+																				   : (x_double_prime - (16.0f / 116.0f)) / 7.787f;
+	float y_prime = (y_double_prime * y_double_prime * y_double_prime) > 0.008856f ? (y_double_prime * y_double_prime * y_double_prime)
+																				   : (y_double_prime - (16.0f / 116.0f)) / 7.787f;
+	float z_prime = (z_double_prime * z_double_prime * z_double_prime) > 0.008856f ? (z_double_prime * z_double_prime * z_double_prime)
+																				   : (z_double_prime - (16.0f / 116.0f)) / 7.787f;
+
+	static const Vector3f illuminant_d65_multiplicands(0.95047f, 1.0f, 1.08883f);
+
+	float x = x_prime * illuminant_d65_multiplicands.x;
+	float y = y_prime * illuminant_d65_multiplicands.y;
+	float z = z_prime * illuminant_d65_multiplicands.z;
+
+	static constexpr Array<Array<float, 3>, 3> xyz_to_srgb_matrix{
+		Array<float, 3>{+3.2404548f, -1.5371389f, -0.4985315f},
+		Array<float, 3>{-0.9692664f, +1.8760109f, +0.0415561f},
+		Array<float, 3>{+0.0556434f, -0.2040259f, +1.0572252f},
+	};
+
+	float r = xyz_to_srgb_matrix[0][0] * x + xyz_to_srgb_matrix[0][1] * y + xyz_to_srgb_matrix[0][2] * z;
+	float g = xyz_to_srgb_matrix[1][0] * x + xyz_to_srgb_matrix[1][1] * y + xyz_to_srgb_matrix[1][2] * z;
+	float b = xyz_to_srgb_matrix[2][0] * x + xyz_to_srgb_matrix[2][1] * y + xyz_to_srgb_matrix[2][2] * z;
+
+	values[0] = Math::Clamp(InverseSRGBNonlinearTransfer(r), 0.0f, 1.0f);
+	values[1] = Math::Clamp(InverseSRGBNonlinearTransfer(g), 0.0f, 1.0f);
+	values[2] = Math::Clamp(InverseSRGBNonlinearTransfer(b), 0.0f, 1.0f);
+}
+
 // References: https://en.wikipedia.org/wiki/Oklab_color_space#Conversions_between_color_spaces and https://bottosson.github.io/posts/oklab/
 static void OklabToRGBA(Array<float, 4>& values)
 {
@@ -176,6 +211,11 @@ bool PropertyParserColour::ParseColour(Colourb& colour, const String& value)
 	else if (value.substr(0, 3) == "hsl")
 	{
 		if (!ParseHSLColour(colour, value))
+			return false;
+	}
+	else if (value.substr(0, 3) == "lab" || value.substr(0, 3) == "lch")
+	{
+		if (!ParseCIELABColour(colour, value))
 			return false;
 	}
 	else if (value.substr(0, 5) == "oklab" || value.substr(0, 5) == "oklch")
@@ -313,6 +353,114 @@ bool PropertyParserColour::ParseHSLColour(Colourb& colour, const String& value)
 	HSLAToRGBA(vals);
 	for (int i = 0; i < 4; ++i)
 		colour[i] = (byte)(Math::Clamp((int)(vals[i] * 255.0f), 0, 255));
+
+	return true;
+}
+
+bool PropertyParserColour::ParseCIELABColour(Colourb& colour, const String& value)
+{
+	StringList values;
+	values.reserve(5);
+	if (!GetColourFunctionValues(values, value, false))
+		return false;
+
+	// Check if we have an alpha component.
+	if (values.size() == 5)
+	{
+		if (values[3] != "/")
+			return false;
+
+		values[3] = std::move(values[4]);
+		values.pop_back();
+	}
+	else
+	{
+		if (values.size() != 3)
+			return false;
+
+		values.push_back("1.0");
+	}
+
+	Array<float, 4> lab_values;
+
+	// Parse lightness and alpha (same for both lab and lch).
+	for (int i : {0, 3})
+	{
+		// Value can either be 'none' (representing 0.0), a percentage between 0% and 100%, or a number (between 0.0 and 100.0 for lightness and between 0.0 and 1.0 for alpha).
+		if (values[i] == "none")
+			lab_values[i] = 0.0f;
+		else if (values[i][values[i].size() - 1] == '%')
+		{
+			lab_values[i] = (float)atof(values[i].substr(0, values[i].size() - 1).c_str());
+			if (i == 3)
+				lab_values[i] /= 100.0f;
+		}
+		else
+			lab_values[i] = (float)atof(values[i].c_str());
+
+		lab_values[i] = Math::Clamp(lab_values[i], 0.0f, i == 0 ? 100.0f : 1.0f);
+	}
+
+	// Determine if colour is in CIELAB or CIELCh space.
+	if (value.substr(0, 3) == "lab")
+	{
+		// Parse A-axis (green-to-red) and B-axis (blue-to-yellow).
+		for (int i : {1, 2})
+		{
+			// Value can either be 'none' (representing 0.0), a percentage between -100% and +100% (representing -125.0 to +125.0), or a number.
+			if (values[i] == "none")
+				lab_values[i] = 0.0f;
+			else if (values[i][values[i].size() - 1] == '%')
+			{
+				static constexpr float cielab_axis_percentage_bound = 125.0f;
+				lab_values[i] = (float)atof(values[i].substr(0, values[i].size() - 1).c_str()) / 100.0f * cielab_axis_percentage_bound;
+			}
+			else
+				lab_values[i] = (float)atof(values[i].c_str());
+
+			// Whilst the axis values are theoretically unbounded, in practice, they only exist between -160.0 and +160.0.
+			static constexpr float cielab_axis_bound_limit = 160.0f;
+			lab_values[i] = Math::Clamp(lab_values[i], -cielab_axis_bound_limit, +cielab_axis_bound_limit);
+		}
+	}
+	else
+	{
+		// Parse chroma; value can either be 'none' (representing 0.0), a percentage between 0% and 100% (representing 0.0 to 150.0), or a number.
+		float chroma = 0.0f;
+		if (values[1] == "none")
+			chroma = 0.0f;
+		else if (values[1][values[1].size() - 1] == '%')
+		{
+			static constexpr float cielch_maximum_percentage_chroma = 150.0f;
+			chroma = (float)atof(values[1].substr(0, values[1].size() - 1).c_str()) / 100.0f * cielch_maximum_percentage_chroma;
+		}
+		else
+			chroma = (float)atof(values[1].c_str());
+
+		// Whilst the chroma is theoretically unbounded, in practice, it does not exceed 230.0.
+		static constexpr float cielch_maximum_chroma = 230.0f;
+		chroma = Math::Clamp(chroma, 0.0f, cielch_maximum_chroma);
+
+		// Parse hue; value can either be 'none' (representing 0.0), or an angle.
+		float hue = 0.0f;
+		if (values[2] == "none")
+			hue = 0.0f;
+		else
+			hue = (float)atof(values[2].c_str());
+
+		// Clamp hue between 0.0 and 360.0 degrees.
+		hue = std::fmod(hue, 360.0f);
+		if (hue < 0)
+			hue += 360.0f;
+
+		// Convert LCh polar coordinates to LAB Cartesian coordinates.
+		lab_values[1] = chroma * Math::Cos(Math::DegreesToRadians(hue));
+		lab_values[2] = chroma * Math::Sin(Math::DegreesToRadians(hue));
+	}
+
+	CIELABToRGBA(lab_values);
+	for (int i = 0; i < 4; ++i)
+		colour[i] = (byte)(Math::Clamp((int)(lab_values[i] * 255.0f), 0, 255));
 
 	return true;
 }
