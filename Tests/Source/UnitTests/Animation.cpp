@@ -828,3 +828,116 @@ TEST_CASE("animation.multiple_overlapping")
 	system_interface->SetTime(0.0);
 	TestsShell::ShutdownShell();
 }
+
+TEST_CASE("transition.display_and_visibility")
+{
+	// Display and visibility properties have special behavior that make them visible throughout the interpolation duration.
+	const String document_rml_template = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			inset: 0;
+		}
+		div {
+			background-color: #c66;
+			width: 300dp;
+			height: 300dp;
+			margin: auto;
+			transition: opacity display visibility 1s;
+		}
+		.hide {
+			%s;
+			opacity: 0;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="hide" id="div"/>
+</body>
+</rml>
+)";
+
+	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
+	Context* context = TestsShell::GetContext();
+
+	String document_rml;
+
+	SUBCASE("display: none")
+	{
+		document_rml = CreateString(document_rml_template.c_str(), "display: none");
+	}
+	SUBCASE("visibility")
+	{
+		document_rml = CreateString(document_rml_template.c_str(), "visibility: hidden");
+	}
+
+	const double dt = 1.0 / 60.0;
+	const double t_delta = 0.1;
+	const double t_fadein0 = 1;
+	const double t_fadein1 = 2;
+	const double t_fadeout0 = 4;
+	const double t_fadeout1 = 5;
+
+	enum class Action { None, Show, Hide };
+
+	struct TestCase {
+		double time;
+		float opacity;
+		bool is_visible;
+		Action action = Action::None;
+	};
+	const std::vector<TestCase> tests = {
+		{t_fadein0 - t_delta, 0.f, false},
+		{t_fadein0, 0.f, false, Action::Show},
+		{t_fadein0 + t_delta, 0.1f, true},
+		{t_fadein1 - t_delta, 0.9f, true},
+		{t_fadein1, 1.f, true},
+		{t_fadein1 + t_delta, 1.f, true},
+		{t_fadeout0 - t_delta, 1.f, true},
+		{t_fadeout0, 1.f, true, Action::Hide},
+		{t_fadeout0 + t_delta, 0.9f, true},
+		{t_fadeout1 - t_delta, 0.1f, true},
+		{t_fadeout1 + dt, 0.f, false}, // Due to floating-point precision, the animation may end slightly after the exact endtime.
+		{t_fadeout1 + t_delta, 0.f, false},
+	};
+
+	{
+		system_interface->SetTime(0.0);
+
+		ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
+		Element* element = document->GetChild(0);
+
+		document->Show();
+
+		double t = 0.f;
+		for (const auto& test : tests)
+		{
+			while (t < test.time)
+			{
+				t = Math::Min(t + dt, test.time);
+				system_interface->SetTime(t);
+				TestsShell::RenderLoop(false);
+			}
+
+			if (test.action == Action::Show)
+				element->SetClass("hide", false);
+			else if (test.action == Action::Hide)
+				element->SetClass("hide", true);
+
+			context->Update();
+
+			INFO("Time: ", test.time);
+			CHECK(element->GetProperty<float>("opacity") == doctest::Approx(test.opacity));
+			CHECK(element->IsVisible() == test.is_visible);
+		}
+
+		document->Close();
+	}
+
+	system_interface->SetTime(0.0);
+	TestsShell::ShutdownShell();
+}
