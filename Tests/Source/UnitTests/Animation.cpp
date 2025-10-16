@@ -435,6 +435,183 @@ TEST_CASE("animation.filter")
 	TestsShell::ShutdownShell();
 }
 
+TEST_CASE("animation.case_sensitivity")
+{
+	static const String document_rml_template = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+		}
+		@keyframes %s {
+			to { visibility: visible; }
+		}
+		div {
+			width: 300dp;
+			height: 300dp;
+			visibility: hidden;
+			background-color: #666;
+			animation: 1.5s %s;
+		}
+	</style>
+</head>
+
+<body>
+	<div/>
+</body>
+</rml>
+)";
+
+	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
+	Context* context = TestsShell::GetContext();
+
+	struct TestCase {
+		String keyframe_name;
+		String animation_name;
+		bool expected_visible_end;
+	};
+
+	const Vector<TestCase> test_cases = {
+		// TODO: Make name-lookups case sensitive:
+		{"mix", "Mix", false},
+		{"Mix", "mix", false},
+
+		{"show", "show", true},
+		{"Show", "Show", true},
+	};
+
+	for (const auto& test_case : test_cases)
+	{
+		system_interface->SetTime(0.0);
+		INFO("@keyframes: ", test_case.keyframe_name);
+		INFO("animation: ", test_case.animation_name);
+
+		const String document_rml = CreateString(document_rml_template.c_str(), test_case.keyframe_name.c_str(), test_case.animation_name.c_str());
+		ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
+		Element* element = document->GetChild(0);
+		document->Show();
+		REQUIRE(element->IsVisible() == false);
+
+		constexpr double t_end = 1.0;
+		constexpr double dt = 0.1;
+		double t = 0;
+		while (t < t_end)
+		{
+			t += dt;
+			system_interface->SetTime(t);
+			context->Update();
+		}
+
+		CHECK(element->IsVisible() == test_case.expected_visible_end);
+
+		document->Close();
+	}
+
+	system_interface->SetTime(0.0);
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("animation.case_sensitive_distinct_keyframes")
+{
+	static const String document_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+		}
+		@keyframes show {
+			50%, 100% { opacity: 0.25; }
+		}
+		@keyframes Show {
+			50%, 100% { opacity: 0.5; }
+		}
+		@keyframes SHOW {
+			0%, 25% { opacity: 0.75; }
+			75%, 100% { opacity: 1.0; }
+		}
+		div {
+			width: 300dp;
+			height: 300dp;
+			opacity: 0.0;
+			background-color: #666;
+		}
+		.show-lower {
+			animation: 2s show;
+		}
+		.show-upper {
+			animation: 2s Show;
+		}
+		.show-infinite {
+			animation: 0.5s infinite alternate SHOW;
+		}
+		.show-infinite-upper-keywords {
+			animation: 0.5s INFINITE ALTERNATE SHOW;
+		}
+	</style>
+</head>
+
+<body>
+	<div/>
+</body>
+</rml>
+)";
+
+	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
+	Context* context = TestsShell::GetContext();
+
+	struct TestCase {
+		String class_name;
+		float expected_opacity_end;
+	};
+
+	const Vector<TestCase> test_cases = {
+		{"show-lower", 0.25f},
+		{"show-upper", 0.5f},
+		{"show-infinite", 0.75f},
+		{"show-infinite-upper-keywords", 0.75f},
+	};
+
+	for (const auto& test_case : test_cases)
+	{
+		INFO("Class name: ", test_case.class_name);
+		system_interface->SetTime(0.0);
+		ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
+		Element* element = document->GetChild(0);
+		element->SetClass(test_case.class_name, true);
+		document->Show();
+		REQUIRE(element->GetProperty<float>("opacity") == 0.f);
+
+		constexpr double t_end = 1.0;
+		constexpr double dt = 0.1;
+		double t = 0;
+		while (t < t_end)
+		{
+			t += dt;
+			system_interface->SetTime(t);
+			context->Update();
+		}
+
+		CHECK(element->GetProperty<float>("opacity") == test_case.expected_opacity_end);
+
+		document->Close();
+	}
+
+	system_interface->SetTime(0.0);
+	TestsShell::ShutdownShell();
+}
+
 static const String document_multiple_values_rml = R"(
 <rml>
 <head>
