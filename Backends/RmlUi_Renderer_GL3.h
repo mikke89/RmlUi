@@ -105,6 +105,8 @@ public:
 	const Rml::Matrix4f& GetTransform() const;
 	void ResetProgram();
 
+	bool CaptureScreen(int& width, int& height, int& num_components, int& row_pitch, Rml::byte*& raw_pixels, size_t& pixels_count) override;
+
 private:
 	void UseProgram(ProgramId program_id);
 	int GetUniformLocation(UniformId uniform_id) const;
