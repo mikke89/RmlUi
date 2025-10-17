@@ -42,12 +42,24 @@
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
 #include "TransformState.h"
+#include <limits>
 
 namespace Rml {
 
 static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space,
 	bool break_at_endline, Style::TextTransform text_transformation, bool decode_escape_characters);
 static bool LastToken(const char* token_begin, const char* string_end, bool collapse_white_space, bool break_at_endline);
+
+static int RoundDownToIntegerClamped(float value)
+{
+	constexpr int clamp = (1 << std::numeric_limits<float>::digits);
+	constexpr float clamp_f = float{clamp};
+	if (value >= clamp_f)
+		return clamp;
+	if (value <= -clamp_f)
+		return -clamp;
+	return static_cast<int>(value);
+}
 
 void LogMissingFontFace(Element* element)
 {
@@ -184,8 +196,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	bool trim_whitespace_prefix, bool decode_escape_characters, bool allow_empty)
 {
 	RMLUI_ZoneScoped;
-	RMLUI_ASSERT(
-		maximum_line_width >= 0.f); // TODO: Check all callers for conformance, check break at line condition below. Possibly check for FLT_MAX.
+	RMLUI_ASSERT(maximum_line_width >= 0.f);
 
 	FontFaceHandle font_face_handle = GetFontFaceHandle();
 
@@ -204,13 +215,13 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	// Determine how we are processing white-space while formatting the text.
 	using namespace Style;
 	const auto& computed = GetComputedValues();
-	WhiteSpace white_space_property = computed.white_space();
-	bool collapse_white_space =
-		white_space_property == WhiteSpace::Normal || white_space_property == WhiteSpace::Nowrap || white_space_property == WhiteSpace::Preline;
-	bool break_at_line = (maximum_line_width >= 0) &&
+	const WhiteSpace white_space_property = computed.white_space();
+	const bool collapse_white_space =
+		(white_space_property == WhiteSpace::Normal || white_space_property == WhiteSpace::Nowrap || white_space_property == WhiteSpace::Preline);
+	const bool break_at_line =
 		(white_space_property == WhiteSpace::Normal || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline);
-	bool break_at_endline =
-		white_space_property == WhiteSpace::Pre || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline;
+	const bool break_at_endline =
+		(white_space_property == WhiteSpace::Pre || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline);
 
 	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.font_kerning(), computed.letter_spacing()};
 	TextTransform text_transform_property = computed.text_transform();
@@ -241,14 +252,14 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 		if (break_at_line)
 		{
 			const bool is_last_token = LastToken(next_token_begin, string_end, collapse_white_space, break_at_endline);
-			int max_token_width = int(maximum_line_width - (is_last_token ? line_width + right_spacing_width : line_width));
+			int max_token_width = RoundDownToIntegerClamped(maximum_line_width - (is_last_token ? line_width + right_spacing_width : line_width));
 
 			if (token_width > max_token_width)
 			{
 				if (word_break == WordBreak::BreakAll || (word_break == WordBreak::BreakWord && line.empty()))
 				{
 					// Try to break up the word
-					max_token_width = int(maximum_line_width - line_width);
+					max_token_width = RoundDownToIntegerClamped(maximum_line_width - line_width);
 					const int token_max_size = int(next_token_begin - token_begin);
 					const char* partial_string_end = token_begin + token_max_size;
 
