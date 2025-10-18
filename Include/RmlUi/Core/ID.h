@@ -119,6 +119,7 @@ enum class PropertyId : uint8_t {
 	OverflowY,
 	Clip,
 	Visibility,
+	TextOverflow,
 	BackgroundColor,
 	Color,
 	CaretColor,

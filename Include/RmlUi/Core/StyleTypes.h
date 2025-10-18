@@ -128,6 +128,7 @@ namespace Style {
 	};
 
 	enum class Visibility : uint8_t { Visible, Hidden };
+	enum class TextOverflow : uint8_t { Clip, Ellipsis, String };
 
 	enum class FontStyle : uint8_t { Normal, Italic };
 	enum class FontWeight : uint16_t { Auto = 0, Normal = 400, Bold = 700 }; // Any definite value in the range [1,1000] is valid.

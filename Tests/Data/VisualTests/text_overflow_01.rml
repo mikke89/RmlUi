@@ -1,0 +1,96 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>Text overflow 01</title>
+	<link href="https://drafts.csswg.org/css-overflow/#example-cb85f151" rel="source"/>
+	<link href="https://drafts.csswg.org/css-overflow/#text-overflow" rel="help"/>
+	<meta name="Description" content="The 'text-overflow' property can be used in combination with the 'overflow' property to render an ellipsis or other text when it overflows its line. This property should not affect layouting, only text rendering."/>
+	<meta name="Assert" content="Hovering over any lines with ellipsis should remove the ellipsis (except for the scrolling container), without changing the layout."/>
+	<style>
+		.group > div {
+			line-height: 1.1;
+			width: 3.1em;
+			padding: 0.2em;
+			border:  1px #000;
+			margin: 0.5em 0;
+		}
+		.group p { margin: 0.5em 0.3em;}
+		.ellipsis {
+			text-overflow: ellipsis;
+		}
+		.ellipsis:hover:not(.scroll-overflow) {
+		  text-overflow: clip;
+		}
+		.overflow-hidden {
+			overflow: hidden;
+		}
+		.scroll-overflow.scroll-overflow {
+			overflow: auto;
+			width: 300px;
+			height: 3em;
+		}
+		.nowrap {
+			white-space: nowrap;
+		}
+		.break-word {
+			word-break: break-word;
+		}
+		div.narrow1 { width: 30px; }
+		div.narrow2 { width: 20px; }
+		div.narrow3 { width: 15px; }
+		div.narrow4 { width: 10px; }
+		div.narrow5 { width: 3px; }
+		div.narrow6 { width: 1px; }
+		div.narrowest { width: 0px; }
+	</style>
+</head>
+
+<body>
+<div class="group">
+	<div>Is that guacamole, chef?</div>
+	<div class="ellipsis">Is that guacamole, chef?</div>
+	<div class="overflow-hidden">Is that guacamole, chef?</div>
+	<div class="overflow-hidden ellipsis">Is that guacamole, chef?</div>
+	<div class="overflow-hidden ellipsis">
+		NESTED
+		<p>PARAGRAPH</p>
+		WON'T ELLIPSE.
+	</div>
+</div>
+
+<hr/>
+Narrowing width.
+<div class="group nowrap">
+	<div class="overflow-hidden ellipsis narrow1">ABCDEF</div>
+	<div class="overflow-hidden ellipsis narrow2">ABCDEF</div>
+	<div class="overflow-hidden ellipsis narrow3">ABCDEF</div>
+	<div class="overflow-hidden ellipsis narrow4">ABCDEF</div>
+	<div class="overflow-hidden ellipsis narrow5">ABCDEF</div>
+	<div class="overflow-hidden ellipsis narrow6">ABCDEF</div>
+	<div class="overflow-hidden ellipsis narrowest">ABCDEF</div>
+	<div class="overflow-hidden ellipsis narrowest"></div>
+	<div class="overflow-hidden ellipsis narrowest">A</div>
+	<div class="overflow-hidden ellipsis narrowest">🌍</div>
+</div>
+
+<hr/>
+Scrolling container.
+<div class="group nowrap">
+	<div class="scroll-overflow ellipsis">Once upon a time, there was a chef with guacamole. He disturbed the guacamole from its blissful sleep, giving off a bittersweet taste.</div>
+</div>
+
+<hr/>
+With 'word-break: break-word' no text should overflow, thus no ellipsis should be visible.
+<div class="group break-word">
+	<div>Is that guacamole, chef?</div>
+	<div class="ellipsis">Is that guacamole, chef?</div>
+	<div class="overflow-hidden">Is that guacamole, chef?</div>
+	<div class="overflow-hidden ellipsis">Is that guacamole, chef?</div>
+	<div class="overflow-hidden ellipsis">
+		NESTED
+		<p>PARAGRAPH</p>
+		WON'T ELLIPSE.
+	</div>
+</div>
+</body>
+</rml>

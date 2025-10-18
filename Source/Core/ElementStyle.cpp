@@ -744,6 +744,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::Visibility:
 			values.visibility((Visibility)p->Get< int >());
 			break;
+		case PropertyId::TextOverflow:
+			values.text_overflow(p->unit == Unit::KEYWORD ? p->Get<TextOverflow>() : TextOverflow::String);
+			break;
 
 		case PropertyId::BackgroundColor:
 			values.background_color(p->Get<Colourb>());
@@ -921,6 +924,11 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 	// Next, pass inheritable dirty properties onto our children
 	PropertyIdSet dirty_inherited_properties = (dirty_properties & StyleSheetSpecification::GetRegisteredInheritedProperties());
+
+	// Special case for text-overflow: It's not really inherited, but the value is used by the element's children. Insert
+	// it here so they are notified of a change.
+	if (dirty_properties.Contains(PropertyId::TextOverflow))
+		dirty_inherited_properties.Insert(PropertyId::TextOverflow);
 
 	if (!dirty_inherited_properties.Empty())
 	{

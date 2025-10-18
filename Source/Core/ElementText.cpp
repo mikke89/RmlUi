@@ -61,6 +61,51 @@ static int RoundDownToIntegerClamped(float value)
 	return static_cast<int>(value);
 }
 
+struct TextOverflowResolved {
+	bool enabled = false;
+	float overflow_width = 0.f;
+	String overflow_text;
+};
+
+static TextOverflowResolved ResolveTextOverflow(Element* parent, FontFaceHandle font_face_handle)
+{
+	if (!parent)
+		return {};
+
+	const auto& parent_computed = parent->GetComputedValues();
+	if (parent_computed.overflow_x() == Style::Overflow::Visible && parent_computed.overflow_y() == Style::Overflow::Visible)
+		return {};
+
+	const Style::TextOverflow text_overflow = parent_computed.text_overflow();
+	if (text_overflow == Style::TextOverflow::Clip)
+		return {};
+
+	const Box& box = parent->GetBox();
+	const BoxArea clip_area = parent->GetClipArea();
+
+	auto AccumulateRightSideEdgesUpTo = [](const Box& box, BoxArea up_to_area) -> float {
+		float result = 0;
+		for (int i = (int)up_to_area; i < int(BoxArea::Content); i++)
+			result += box.GetEdge((BoxArea)i, BoxEdge::Right);
+		return result;
+	};
+
+	const float overflow_width = parent->GetScrollLeft() + box.GetSize().x + AccumulateRightSideEdgesUpTo(box, clip_area);
+
+	constexpr char ellipsis_chars[] = "\xE2\x80\xA6"; // U+2026
+	constexpr char dots_chars[] = "...";
+
+	String overflow_text = (text_overflow == Style::TextOverflow::String
+			? parent->GetComputedValues().text_overflow_string()
+			: (GetFontEngineInterface()->GetFontMetrics(font_face_handle).has_ellipsis ? ellipsis_chars : dots_chars));
+
+	return TextOverflowResolved{
+		true,
+		overflow_width,
+		std::move(overflow_text),
+	};
+}
+
 void LogMissingFontFace(Element* element)
 {
 	const String font_family_property = element->GetProperty<String>("font-family");
@@ -369,14 +414,15 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		}
 	}
 
-	if (changed_properties.Contains(PropertyId::FontFamily) ||     //
-		changed_properties.Contains(PropertyId::FontWeight) ||     //
-		changed_properties.Contains(PropertyId::FontStyle) ||      //
-		changed_properties.Contains(PropertyId::FontSize) ||       //
-		changed_properties.Contains(PropertyId::FontKerning) ||    //
-		changed_properties.Contains(PropertyId::LetterSpacing) ||  //
-		changed_properties.Contains(PropertyId::RmlUi_Language) || //
-		changed_properties.Contains(PropertyId::RmlUi_Direction))
+	if (changed_properties.Contains(PropertyId::FontFamily) ||      //
+		changed_properties.Contains(PropertyId::FontWeight) ||      //
+		changed_properties.Contains(PropertyId::FontStyle) ||       //
+		changed_properties.Contains(PropertyId::FontSize) ||        //
+		changed_properties.Contains(PropertyId::FontKerning) ||     //
+		changed_properties.Contains(PropertyId::LetterSpacing) ||   //
+		changed_properties.Contains(PropertyId::RmlUi_Language) ||  //
+		changed_properties.Contains(PropertyId::RmlUi_Direction) || //
+		changed_properties.Contains(PropertyId::TextOverflow))
 	{
 		font_face_changed = true;
 		geometry_dirty = true;
@@ -463,17 +509,50 @@ void ElementText::GenerateGeometry(RenderManager& render_manager, const FontFace
 {
 	RMLUI_ZoneScopedC(0xD2691E);
 
+	const TextOverflowResolved text_overflow = ResolveTextOverflow(GetParentNode(), font_face_handle);
+
 	const auto& computed = GetComputedValues();
 	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.font_kerning(), computed.letter_spacing()};
 
 	TexturedMeshList mesh_list;
 	mesh_list.reserve(geometry.size());
 
-	// Generate the new geometry, one line at a time.
-	for (size_t i = 0; i < lines.size(); ++i)
+	for (Line& line : lines)
 	{
-		lines[i].width = GetFontEngineInterface()->GenerateString(render_manager, font_face_handle, font_effects_handle, lines[i].text,
-			lines[i].position, colour, opacity, text_shaping_context, mesh_list);
+		line.width = GetFontEngineInterface()->GenerateString(render_manager, font_face_handle, font_effects_handle, line.text, line.position, colour,
+			opacity, text_shaping_context, mesh_list);
+	}
+
+	const auto text_overflows_on_line = [&](const Line& line) { return line.position.x + line.width > text_overflow.overflow_width; };
+	if (text_overflow.enabled && std::any_of(lines.begin(), lines.end(), text_overflows_on_line))
+	{
+		mesh_list.clear();
+
+		for (Line& line : lines)
+		{
+			if (line.text.empty())
+				continue;
+
+			String abbreviated_text;
+			StringView text_submit_view = line.text;
+			StringIteratorU8 view(line.text, line.text.size());
+			--view;
+
+			// If we have text overflow, reduce the string one character at a time, append the ellipsis or custom
+			// string, and try again until it fits. @performance Can be improved by e.g. logarithmic search. Consider
+			// combining it with the word-breaking algorithm of 'GenerateLine'.
+			for (; text_overflows_on_line(line) && view && view.get() != line.text.c_str(); --view)
+			{
+				abbreviated_text.reserve(line.text.size() + text_overflow.overflow_text.size());
+				abbreviated_text.assign(line.text.c_str(), view.get());
+				abbreviated_text.append(text_overflow.overflow_text);
+				line.width = GetFontEngineInterface()->GetStringWidth(font_face_handle, abbreviated_text, text_shaping_context);
+				text_submit_view = abbreviated_text;
+			}
+
+			line.width = GetFontEngineInterface()->GenerateString(render_manager, font_face_handle, font_effects_handle, text_submit_view,
+				line.position, colour, opacity, text_shaping_context, mesh_list);
+		}
 	}
 
 	// Apply the new geometry and textures. Reuse the old geometry if the mesh matches, which can be relatively common

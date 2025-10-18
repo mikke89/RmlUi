@@ -297,6 +297,9 @@ static void GenerateMetrics(FT_Face ft_face, FontMetrics& metrics, float bitmap_
 		metrics.x_height = ft_face->glyph->metrics.height * bitmap_scaling_factor / float(1 << 6);
 	else
 		metrics.x_height = 0.5f * metrics.line_spacing;
+
+	FT_UInt ellipsis_index = FT_Get_Char_Index(ft_face, 0x2026);
+	metrics.has_ellipsis = (ellipsis_index != 0);
 }
 
 static bool SetFontSize(FT_Face ft_face, int font_size, float& out_bitmap_scaling_factor)

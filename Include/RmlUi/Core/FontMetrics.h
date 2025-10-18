@@ -43,6 +43,8 @@ struct FontMetrics {
 
 	float underline_position;  // Position of the underline relative to the baseline [px, positive below baseline].
 	float underline_thickness; // Width of underline [px].
+
+	bool has_ellipsis;         // True if the ellipsis character (U+2026) is available in this font.
 };
 
 } // namespace Rml

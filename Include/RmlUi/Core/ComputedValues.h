@@ -113,10 +113,10 @@ namespace Style {
 
 	struct InheritedValues {
 		InheritedValues() :
-			font_weight(FontWeight::Normal), font_kerning(FontKerning::Auto), has_letter_spacing(0), font_style(FontStyle::Normal), has_font_effect(false),
-			pointer_events(PointerEvents::Auto), focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None),
-			text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal), direction(Direction::Auto),
-			line_height_inherit_type(LineHeight::Number)
+			font_weight(FontWeight::Normal), font_kerning(FontKerning::Auto), has_letter_spacing(0), font_style(FontStyle::Normal),
+			has_font_effect(false), pointer_events(PointerEvents::Auto), focus(Focus::Auto), text_align(TextAlign::Left),
+			text_decoration(TextDecoration::None), text_transform(TextTransform::None), white_space(WhiteSpace::Normal),
+			word_break(WordBreak::Normal), direction(Direction::Auto), line_height_inherit_type(LineHeight::Number)
 		{}
 
 		// Font face used to render text and resolve ex properties. Does not represent a true property
@@ -165,7 +165,7 @@ namespace Style {
 
 			vertical_align_type(VerticalAlign::Baseline), drag(Drag::None), tab_index(TabIndex::None), overscroll_behavior(OverscrollBehavior::Auto),
 
-			has_mask_image(false), has_filter(false), has_backdrop_filter(false), has_box_shadow(false)
+			has_mask_image(false), has_filter(false), has_backdrop_filter(false), has_box_shadow(false), text_overflow(TextOverflow::Clip)
 		{}
 
 		LengthPercentage::Type min_width_type : 1, max_width_type : 1;
@@ -187,6 +187,8 @@ namespace Style {
 		bool has_filter : 1;
 		bool has_backdrop_filter : 1;
 		bool has_box_shadow : 1;
+
+		TextOverflow text_overflow : 2;
 
 		Clip clip;
 
@@ -306,6 +308,8 @@ namespace Style {
 		float             border_bottom_left_radius()  const { return (float)rare.border_bottom_left_radius; }
 		CornerSizes       border_radius()              const { return {(float)rare.border_top_left_radius,     (float)rare.border_top_right_radius,
 		                                                               (float)rare.border_bottom_right_radius, (float)rare.border_bottom_left_radius}; }
+		TextOverflow      text_overflow()              const { return rare.text_overflow; }
+		String            text_overflow_string()       const { return GetLocalProperty(PropertyId::TextOverflow, String());; }
 		Clip              clip()                       const { return rare.clip; }
 		Drag              drag()                       const { return rare.drag; }
 		TabIndex          tab_index()                  const { return rare.tab_index; }
@@ -395,6 +399,7 @@ namespace Style {
 		void border_top_right_radius   (float value)             { rare.border_top_right_radius    = (int16_t)value; }
 		void border_bottom_right_radius(float value)             { rare.border_bottom_right_radius = (int16_t)value; }
 		void border_bottom_left_radius (float value)             { rare.border_bottom_left_radius  = (int16_t)value; }
+		void text_overflow             (TextOverflow value)      { rare.text_overflow              = value; }
 		void clip                      (Clip value)              { rare.clip                       = value; }
 		void drag                      (Drag value)              { rare.drag                       = value; }
 		void tab_index                 (TabIndex value)          { rare.tab_index                  = value; }
