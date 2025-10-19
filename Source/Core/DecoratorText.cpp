@@ -92,7 +92,7 @@ bool DecoratorText::GenerateGeometry(Element* element, ElementData& element_data
 		return true;
 
 	const auto& computed = element->GetComputedValues();
-	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.letter_spacing()};
+	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.font_kerning(), computed.letter_spacing()};
 
 	const int string_width = font_engine_interface->GetStringWidth(font_face_handle, text, text_shaping_context);
 

@@ -774,6 +774,10 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			// (font-size computed above)
 			dirty_font_face_handle = true;
 			break;
+		case PropertyId::FontKerning:
+			values.font_kerning((FontKerning)p->Get<int>());
+			dirty_font_face_handle = true;
+			break;
 		case PropertyId::LetterSpacing:
 			values.has_letter_spacing(p->unit != Unit::KEYWORD);
 			dirty_font_face_handle = true;

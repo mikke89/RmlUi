@@ -144,6 +144,7 @@ The provided backends on the other hand are not intended to be used directly by 
 | OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |    ❌    |    ❌    | Uncompressed TGA                                                  |
 | OpenGL 3 (GL3)    |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
 | Vulkan (VK)       |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Uncompressed TGA                                                  |
+| SDL GPU           |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 | SDLrenderer       |       ✔️        |     ❌     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2D layouts.\
@@ -155,32 +156,33 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Platforms
 
-| Platform support | Basic windowing | Clipboard | High DPI | Comments  |
-|------------------|:---------------:|:---------:|:--------:|-----------|
-| Win32            |       ✔️        |    ✔️     |    ✔️    | High DPI only supported on Windows 10 and newer. |
-| X11              |       ✔️        |    ✔️     |    ❌     |  |
-| SFML             |       ✔️        |    ⚠️     |    ❌     | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
-| GLFW             |       ✔️        |    ✔️     |    ✔️    |  |
-| SDL              |       ✔️        |    ✔️     |    ✔️    | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3. |
+| Platform | Basic windowing | Clipboard | High DPI | Touch | Comments                                                                      |
+|----------|:---------------:|:---------:|:--------:|:-----:|-------------------------------------------------------------------------------|
+| Win32    |       ✔️        |    ✔️     |    ✔️    |   ❌   | High DPI only supported on Windows 10 and newer.                              |
+| X11      |       ✔️        |    ✔️     |    ❌     |   ❌   |                                                                               |
+| SFML     |       ✔️        |    ⚠️     |    ❌     |   ❌   | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
+| GLFW     |       ✔️        |    ✔️     |    ✔️    |   ❌   |                                                                               |
+| SDL      |       ✔️        |    ✔️     |    ✔️    |  ✔️   | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3.                   |
 
 **Basic windowing**: Open windows, react to resize events, submit inputs to the RmlUi context.\
 **Clipboard**: Read from and write to the system clipboard.\
-**High DPI**: Scale the [dp-ratio](https://mikke89.github.io/RmlUiDoc/pages/rcss/syntax#dp-unit) of RmlUi contexts based on the monitor's DPI settings. React to DPI-changes, either because of changed settings or when moving the window to another monitor.
+**High DPI**: Scale the [dp-ratio](https://mikke89.github.io/RmlUiDoc/pages/rcss/syntax#dp-unit) of RmlUi contexts based on the monitor's DPI settings. React to DPI-changes, either because of changed settings or when moving the window to another monitor. \
+**Touch**: Process touch events, enable dragging and inertial scrolling with touch movement.
 
 ### Backends
 
-| Platform \ Renderer | OpenGL 2 (GL2) | OpenGL 3 (GL3) | Vulkan (VK) | SDLrenderer |
-|---------------------|:--------------:|:--------------:|:-----------:|:-----------:|
-| Win32               |       ✔️       |                |     ✔️      |             |
-| X11                 |       ✔️       |                |             |             |
-| SFML                |       ✔️       |                |             |             |
-| GLFW                |       ✔️       |       ✔️       |     ✔️      |             |
-| SDL¹                |       ✔️       |      ✔️²       |     ✔️      |     ✔️      |
+| Platform \ Renderer | OpenGL 2       | OpenGL 3      | Vulkan        | SDL GPU      | SDLrenderer          |
+|---------------------|:----------------:|:---------------:|:---------------:|:--------------:|:----------------------:|
+| Win32               | ✔️<br>`Win32_GL2` |               | ✔️<br>`Win32_VK` |              |                      |
+| X11                 | ✔️<br>`X11_GL2`   |               |               |              |                      |
+| SFML                | ✔️<br>`SFML_GL2`  |               |               |              |                      |
+| GLFW                | ✔️<br>`GLFW_GL2`  | ✔️<br>`GLFW_GL3` | ✔️<br>`GLFW_VK`  |              |                      |
+| SDL¹                | ✔️<br>`SDL_GL2`   | ✔️²<br>`SDL_GL3` | ✔️<br>`SDL_VK`   | ✔️<br>`SDL_GPU` | ✔️<br>`SDL_SDLrenderer` |
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
 
-When building the samples, the backend can be selected by setting the CMake option `RMLUI_BACKEND` to `<Platform>_<RendererShorthand>` for any of the above supported combinations of platforms and renderers, such as `SDL_GL3`.
+When building the samples, the backend can be selected by setting the CMake option `RMLUI_BACKEND` to a combination of a platform and renderer, according to the above table.
 
 
 ## Example document
@@ -483,7 +485,11 @@ See
 
 #### Library included with the Vulkan backend *(in Backends/RmlUi_Vulkan/)*
 
-See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT licensed.
+See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT license.
+
+#### Library included with the SDL GPU backend *(in Backends/RmlUi_SDL_GPU/)*
+
+See [Backends/RmlUi_SDL_GPU/LICENSE.txt](Backends/RmlUi_SDL_GPU/LICENSE.txt) - Zlib license.
 
 #### Libraries included with the test suite *(in Tests/Dependencies/)*
 

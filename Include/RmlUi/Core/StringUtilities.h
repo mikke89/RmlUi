@@ -103,12 +103,17 @@ namespace StringUtilities {
 
 	/// Returns true if the string starts with the given value.
 	RMLUICORE_API bool StartsWith(StringView string, StringView start);
+	/// Returns true if the string ends with the given value.
+	RMLUICORE_API bool EndsWith(StringView string, StringView end);
 
 	/// Case insensitive string comparison. Returns true if they compare equal.
 	RMLUICORE_API bool StringCompareCaseInsensitive(StringView lhs, StringView rhs);
 
 	// Decode the first code point in a zero-terminated UTF-8 string.
 	RMLUICORE_API Character ToCharacter(const char* p, const char* p_end);
+
+	/// Returns number of bytes in a UTF-8 character.
+	RMLUICORE_API size_t BytesUTF8(Character character);
 
 	// Encode a single code point as a UTF-8 string.
 	RMLUICORE_API String ToUTF8(Character character);

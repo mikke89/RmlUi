@@ -55,6 +55,10 @@ static constexpr float DOUBLE_CLICK_TIME = 0.5f;    // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f; // [dp]
 static constexpr float UNIT_SCROLL_LENGTH = 80.f;   // [dp]
 
+// If the user stops scrolling for this amount of time in seconds before touch/click release, don't apply inertia.
+static constexpr float SCROLL_INERTIA_DELAY = 0.1f;
+static constexpr float TOUCH_MOVEMENT_DECAY_RATE = 5.0f;
+
 static void DebugVerifyLocaleSetting()
 {
 #ifdef RMLUI_DEBUG
@@ -875,6 +879,192 @@ bool Context::IsMouseInteracting() const
 	return (hover && hover != root.get()) || (active && active != root.get()) || scroll_controller->GetMode() == ScrollController::Mode::Autoscroll;
 }
 
+Context::TouchState* Context::LookupTouch(TouchId identifier)
+{
+	auto touch_it = touch_states.find(identifier);
+	return touch_it != touch_states.end() ? &touch_it->second : nullptr;
+}
+
+bool Context::ProcessTouchStart(const TouchList& touches, int key_modifier_state)
+{
+	bool result = true;
+	for (const auto& touch : touches)
+		result &= ProcessTouchStart(touch, key_modifier_state);
+	return result;
+}
+
+bool Context::ProcessTouchMove(const TouchList& touches, int key_modifier_state)
+{
+	bool result = true;
+	for (const auto& touch : touches)
+		result &= ProcessTouchMove(touch, key_modifier_state);
+	return result;
+}
+
+bool Context::ProcessTouchEnd(const TouchList& touches, int key_modifier_state)
+{
+	bool result = true;
+	for (const auto& touch : touches)
+		result &= ProcessTouchEnd(touch, key_modifier_state);
+	return result;
+}
+
+bool Context::ProcessTouchCancel(const TouchList& touches)
+{
+	bool result = true;
+	for (const auto& touch : touches)
+		result &= ProcessTouchCancel(touch);
+	return result;
+}
+
+bool Context::ProcessTouchStart(const Touch& touch, int key_modifier_state)
+{
+	TouchState * state = LookupTouch(touch.identifier);
+	RMLUI_ASSERTMSG(state == nullptr, "Receiving touch start event for an already started touch.");
+	if (!state)
+	{
+		auto it_inserted = touch_states.emplace(touch.identifier, TouchState()).first;
+		state = &it_inserted->second;
+	}
+
+	state->start_position = state->last_position = touch.position;
+	state->scrolling_start_time_x = state->scrolling_start_time_y = 0;
+	state->scrolling_last_time = GetSystemInterface()->GetElapsedTime();
+
+	Element* touch_element = GetElementAtPoint(touch.position);
+	state->scroll_container = touch_element ? touch_element->GetClosestScrollableContainer() : nullptr;
+
+	// reset any scrolling when we touch the element
+	if (state->scroll_container && scroll_controller->GetTarget() == state->scroll_container)
+		scroll_controller->Reset();
+
+	ProcessMouseMove(static_cast<int>(touch.position.x), static_cast<int>(touch.position.y), key_modifier_state);
+
+	// always assume touch press/release events are handled as left mouse button
+	return ProcessMouseButtonDown(0, key_modifier_state);
+}
+
+bool Context::ProcessTouchMove(const Touch& touch, int key_modifier_state)
+{
+	TouchState* state = LookupTouch(touch.identifier);
+	if (!state)
+		return true;
+
+	state->scrolling_last_time = GetSystemInterface()->GetElapsedTime();
+
+	if (state->scroll_container)
+	{
+		if (drag)
+		{
+			// Don't scroll and reset scrolling state when dragging any element (scrollbars and others)
+			state->start_position = state->last_position = touch.position;
+			state->scrolling_start_time_x = state->scrolling_start_time_y = 0;
+		}
+		else
+		{
+			Vector2f delta = touch.position - state->last_position;
+			if (delta.x != 0 || delta.y != 0)
+			{
+				// use instant scrolling when touch is pressed even when default scroll behavior is smooth
+				scroll_controller->InstantScrollOnTarget(state->scroll_container, -delta);
+
+				double current_time = GetSystemInterface()->GetElapsedTime();
+
+				// If the user changes direction, reset the start time and position.
+				bool going_right = (delta.x > 0);
+				if (delta.x != 0 && (going_right != state->scrolling_right ||
+						state->scrolling_start_time_x == 0)) // time set to 0 means no touch move events happened before and direction is unclear
+				{
+					state->start_position.x = touch.position.x;
+					state->scrolling_right = going_right;
+					state->scrolling_start_time_x = state->scrolling_last_time;
+				}
+				else
+				{
+					// move starting position towards end position with a weight of e^-kt to better capture 
+					// and calculate velocity of the very last touch movements before touch release
+					float elapsed_time_x = static_cast<float>(current_time - state->scrolling_start_time_x);
+					float weight = Math::Exp(-elapsed_time_x * TOUCH_MOVEMENT_DECAY_RATE);
+
+					state->start_position.x = touch.position.x - (touch.position.x - state->start_position.x) * weight;
+					state->scrolling_start_time_x = current_time - (current_time - state->scrolling_start_time_x) * weight;
+				}
+
+				bool going_down = (delta.y > 0);
+				if (delta.y != 0 && (going_down != state->scrolling_down ||
+						state->scrolling_start_time_y == 0)) // time set to 0 means no touch move events happened before and direction is unclear
+				{
+					state->start_position.y = touch.position.y;
+					state->scrolling_down = going_down;
+					state->scrolling_start_time_y = state->scrolling_last_time;
+				}
+				else
+				{
+					// move starting position towards end position with a weight of e^-kt to better capture
+					// and calculate velocity of the very last touch movements before touch release
+					float elapsed_time_y = static_cast<float>(current_time - state->scrolling_start_time_y);
+					float weight = Math::Exp(-elapsed_time_y * TOUCH_MOVEMENT_DECAY_RATE);
+
+					state->start_position.y = touch.position.y - (touch.position.y - state->start_position.y) * weight;
+					state->scrolling_start_time_y = current_time - (current_time - state->scrolling_start_time_y) * weight;
+				}	
+			}
+		}
+	}
+
+	state->last_position = touch.position;
+
+	return ProcessMouseMove(static_cast<int>(touch.position.x), static_cast<int>(touch.position.y), key_modifier_state);
+}
+
+bool Context::ProcessTouchEnd(const Touch& touch, int key_modifier_state)
+{
+	TouchState* state = LookupTouch(touch.identifier);
+	if (!state)
+		return true;
+
+	if (state->scroll_container)
+	{
+		double current_time = GetSystemInterface()->GetElapsedTime();
+		double time_since_last_move = current_time - state->scrolling_last_time;
+		if (time_since_last_move < SCROLL_INERTIA_DELAY)
+		{
+			// apply scrolling inertia
+			Vector2f delta = touch.position - state->start_position;
+
+			Vector2f velocity(-delta);
+
+			float elapsed_time_x = static_cast<float>(current_time - state->scrolling_start_time_x);
+			float elapsed_time_y = static_cast<float>(current_time - state->scrolling_start_time_y);
+
+			if (elapsed_time_x > 0)
+				velocity.x /= elapsed_time_x;
+			if (elapsed_time_y > 0)
+				velocity.y /= elapsed_time_y;
+
+			scroll_controller->ApplyScrollInertia(state->scroll_container, velocity);
+		}
+	}
+
+	touch_states.erase(touch.identifier);
+
+	ProcessMouseMove(static_cast<int>(touch.position.x), static_cast<int>(touch.position.y), key_modifier_state);
+
+	// always assume touch press/release events are handled as left mouse button
+	return ProcessMouseButtonUp(0, key_modifier_state);
+}
+
+bool Context::ProcessTouchCancel(const Touch& touch)
+{
+	TouchState* state = LookupTouch(touch.identifier);
+	if (!state)
+		return false;
+
+	touch_states.erase(touch.identifier);
+
+	return ProcessMouseButtonUp(0, 0);
+}
+
 void Context::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor)
 {
 	scroll_controller->SetDefaultScrollBehavior(scroll_behavior, speed_factor);
@@ -1003,6 +1193,15 @@ void Context::OnElementDetach(Element* element)
 
 	if (scroll_controller->GetTarget() == element)
 		scroll_controller->Reset();
+
+	// Clear TouchState if we're touching element
+	for (auto touch_it = touch_states.begin(); touch_it != touch_states.end();)
+	{
+		if (touch_it->second.scroll_container == element)
+			touch_it = touch_states.erase(touch_it);
+		else
+			++touch_it;
+	}
 }
 
 bool Context::OnFocusChange(Element* new_focus, bool focus_visible)

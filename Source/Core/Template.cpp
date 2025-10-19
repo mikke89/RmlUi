@@ -27,6 +27,7 @@
  */
 
 #include "Template.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/XMLParser.h"
 #include "XMLParseTools.h"
@@ -111,16 +112,26 @@ Element* Template::ParseTemplate(Element* element)
 {
 	body->Seek(0, SEEK_SET);
 
+	const int num_children_before = element->GetNumChildren();
+
 	XMLParser parser(element);
 	parser.Parse(body.get());
 
-	// If theres an inject attribute on the template,
-	// attempt to find the required element
+	// If there's an inject attribute on the template, attempt to find the required element.
 	if (!content.empty())
 	{
-		Element* content_element = ElementUtilities::GetElementById(element, content);
-		if (content_element)
-			element = content_element;
+		const int num_children_after = element->GetNumChildren();
+
+		// We look through the newly added elements (and only those), and look for the desired id.
+		for (int i = num_children_before; i < num_children_after; ++i)
+		{
+			Element* content_element = ElementUtilities::GetElementById(element->GetChild(i), content);
+			if (content_element)
+			{
+				element = content_element;
+				break;
+			}
+		}
 	}
 
 	return element;

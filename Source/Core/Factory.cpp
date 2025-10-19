@@ -163,8 +163,7 @@ struct FactoryData {
 	UnorderedMap<String, FontEffectInstancer*> font_effect_instancers;
 	UnorderedMap<String, DataViewInstancer*> data_view_instancers;
 	UnorderedMap<String, DataControllerInstancer*> data_controller_instancers;
-	SmallUnorderedMap<String, DataViewInstancer*> structural_data_view_instancers;
-	StringList structural_data_view_attribute_names;
+	SmallUnorderedSet<String> structural_data_view_attribute_names;
 };
 
 static ControlledLifetimeResource<FactoryData> factory_data;
@@ -591,20 +590,14 @@ EventListener* Factory::InstanceEventListener(const String& value, Element* elem
 
 void Factory::RegisterDataViewInstancer(DataViewInstancer* instancer, const String& name, bool is_structural_view)
 {
-	bool inserted = false;
-	if (is_structural_view)
-	{
-		inserted = factory_data->structural_data_view_instancers.emplace(name, instancer).second;
-		if (inserted)
-			factory_data->structural_data_view_attribute_names.push_back(String("data-") + name);
-	}
-	else
-	{
-		inserted = factory_data->data_view_instancers.emplace(name, instancer).second;
-	}
-
+	const bool inserted = factory_data->data_view_instancers.emplace(name, instancer).second;
 	if (!inserted)
+	{
 		Log::Message(Log::LT_WARNING, "Could not register data view instancer '%s'. The given name is already registered.", name.c_str());
+		return;
+	}
+	if (is_structural_view)
+		factory_data->structural_data_view_attribute_names.emplace("data-" + name);
 }
 
 void Factory::RegisterDataControllerInstancer(DataControllerInstancer* instancer, const String& name)
@@ -614,39 +607,30 @@ void Factory::RegisterDataControllerInstancer(DataControllerInstancer* instancer
 		Log::Message(Log::LT_WARNING, "Could not register data controller instancer '%s'. The given name is already registered.", name.c_str());
 }
 
-DataViewPtr Factory::InstanceDataView(const String& type_name, Element* element, bool is_structural_view)
+DataViewPtr Factory::InstanceDataView(const String& type_name, Element* element)
 {
 	RMLUI_ASSERT(element);
-
-	if (is_structural_view)
-	{
-		auto it = factory_data->structural_data_view_instancers.find(type_name);
-		if (it != factory_data->structural_data_view_instancers.end())
-			return it->second->InstanceView(element);
-	}
-	else
-	{
-		auto it = factory_data->data_view_instancers.find(type_name);
-		if (it != factory_data->data_view_instancers.end())
-			return it->second->InstanceView(element);
-	}
+	const auto it = factory_data->data_view_instancers.find(type_name);
+	if (it != factory_data->data_view_instancers.end())
+		return it->second->InstanceView(element);
 	return nullptr;
 }
 
 DataControllerPtr Factory::InstanceDataController(const String& type_name, Element* element)
 {
-	auto it = factory_data->data_controller_instancers.find(type_name);
+	const auto it = factory_data->data_controller_instancers.find(type_name);
 	if (it != factory_data->data_controller_instancers.end())
 		return it->second->InstanceController(element);
-	return DataControllerPtr();
+	return nullptr;
 }
 
 bool Factory::IsStructuralDataView(const String& type_name)
 {
-	return factory_data->structural_data_view_instancers.find(type_name) != factory_data->structural_data_view_instancers.end();
+	const String attribute = "data-" + type_name;
+	return factory_data->structural_data_view_attribute_names.find(attribute) != factory_data->structural_data_view_attribute_names.end();
 }
 
-const StringList& Factory::GetStructuralDataViewAttributeNames()
+const SmallUnorderedSet<String>& Factory::GetStructuralDataViewAttributeNames()
 {
 	return factory_data->structural_data_view_attribute_names;
 }

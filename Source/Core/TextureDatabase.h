@@ -57,6 +57,7 @@ private:
 		CallbackTextureFunction callback;
 		TextureHandle texture_handle = {};
 		Vector2i dimensions;
+		bool load_failed = false;
 	};
 
 	CallbackTextureEntry& EnsureLoaded(RenderManager* render_manager, RenderInterface* render_interface, StableVectorIndex callback_index);
