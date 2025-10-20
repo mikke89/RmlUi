@@ -34,11 +34,10 @@
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
-
+struct BoxShadowData;
 class ElementBackgroundBorder {
 public:
 	ElementBackgroundBorder();
-
 	void Render(Element* element);
 
 	void DirtyBackground();
@@ -50,7 +49,7 @@ private:
 	enum class BackgroundType { BackgroundBorder, BoxShadow, ClipBorder, ClipPadding, ClipContent, Count };
 	struct Background {
 		Geometry geometry;
-		CallbackTexture texture;
+		Texture texture;
 	};
 
 	Background* GetBackground(BackgroundType type);
@@ -62,6 +61,7 @@ private:
 	bool border_dirty = false;
 
 	StableMap<BackgroundType, Background> backgrounds;
+	SharedPtr<BoxShadowData> box_shadow_cache;
 };
 
 } // namespace Rml

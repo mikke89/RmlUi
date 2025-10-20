@@ -4,6 +4,8 @@
 add_library(rmlui_core
 	BaseXMLParser.cpp
 	Box.cpp
+	BoxShadowCache.h
+	BoxShadowCache.cpp
 	CallbackTexture.cpp
 	Clock.cpp
 	Clock.h
