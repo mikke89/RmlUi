@@ -31,6 +31,40 @@
 #include <RmlUi_Backend.h>
 #include <Shell.h>
 
+class ButtonClickEventListener final : public Rml::EventListener {
+public:
+	void ProcessEvent(Rml::Event& event) override;
+};
+
+static ButtonClickEventListener click_listener;
+
+void ButtonClickEventListener::ProcessEvent(Rml::Event& event)
+{
+	if (event == Rml::EventId::Click)
+	{
+		Rml::Element* current_element = event.GetCurrentElement();
+		Rml::ElementDocument* document = current_element->GetOwnerDocument();
+		if (document)
+		{
+			Rml::ElementList elements;
+			document->GetElementsByTagName(elements, "svg");
+			for (size_t i = 0; i < elements.size(); i++)
+			{
+				if (elements[i]->GetAttribute<std::string>("_toggle", "").empty())
+				{
+					elements[i]->SetInnerRML("<circle cx=\"25\" cy=\"25\" r=\"20\" stroke=\"yellow\" stroke-width=\"3\" fill=\"green\" />");
+					elements[i]->SetAttribute("_toggle", "1");
+				}
+				else
+				{
+					elements[i]->SetInnerRML("<circle cx=\"25\" cy=\"25\" r=\"20\" stroke=\"black\" stroke-width=\"3\" fill=\"red\" />");
+					elements[i]->SetAttribute("_toggle", "");
+				}
+			}
+		}
+	}
+}
+
 #if defined RMLUI_PLATFORM_WIN32
 	#include <RmlUi_Include_Windows.h>
 int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instance_handle*/, char* /*command_line*/, int /*command_show*/)
@@ -73,12 +107,19 @@ int main(int /*argc*/, char** /*argv*/)
 	Shell::LoadFonts();
 
 	// Load and show the documents.
-	for (const char* filename : {"basic/svg/data/svg_element.rml", "basic/svg/data/svg_decorator.rml"})
+	std::vector<std::pair<std::string, std::string>> rml_docs = {{"basic/svg/data/svg_element.rml", "SVG Element"},
+		{"basic/svg/data/svg_decorator.rml", "SVG Decorator"}, {"basic/svg/data/svg_inline.rml", "SVG Inline"}};
+	for (const auto& rml_doc : rml_docs)
 	{
-		if (Rml::ElementDocument* document = context->LoadDocument(filename))
+		if (Rml::ElementDocument* document = context->LoadDocument(rml_doc.first))
 		{
 			document->Show();
-			document->GetElementById("title")->SetInnerRML("SVG");
+			document->GetElementById("title")->SetInnerRML(rml_doc.second);
+			Rml::Element* e = document->GetElementById("svg_inline_button");
+			if (e != nullptr)
+			{
+				e->AddEventListener("click", &click_listener, false);
+			}
 		}
 	}
 
