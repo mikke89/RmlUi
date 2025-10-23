@@ -57,7 +57,7 @@ public:
 	/// line.size()!
 	/// @param[out] line_width The width (in pixels) of the generated line.
 	/// @param[in] line_begin The index of the first character to be rendered in the line.
-	/// @param[in] maximum_line_width The width (in pixels) of space allowed for the line, or -1 for unlimited space.
+	/// @param[in] maximum_line_width The width (in pixels) of space allowed for the line, or infinite for unlimited space.
 	/// @param[in] right_spacing_width The width (in pixels) of the spacing (consisting of margins, padding, etc.) that must be remaining on the right
 	/// of the line if the last of the text is rendered onto this line.
 	/// @param[in] trim_whitespace_prefix If we're collapsing whitespace, true to remove all prefixing whitespace, or false to collapse it down to a
@@ -89,7 +89,7 @@ public:
 	using LineList = Vector<Line>;
 
 	// Returns the current list of lines.
-	const LineList &GetLines() const { return lines; }
+	const LineList& GetLines() const { return lines; }
 
 protected:
 	void OnRender() override;

@@ -479,24 +479,33 @@ String PropertySpecification::PropertiesToString(const PropertyDictionary& dicti
 
 void PropertySpecification::ParsePropertyValues(StringList& values_list, const String& values, const SplitOption split_option) const
 {
+	RMLUI_ASSERT(values_list.empty());
+
 	const bool split_values = (split_option != SplitOption::None);
 	const bool split_by_comma = (split_option == SplitOption::Comma);
 	const bool split_by_whitespace = (split_option == SplitOption::Whitespace);
 
 	String value;
 
+	auto SubmitExactValue = [&]() {
+		values_list.push_back(std::move(value));
+		value.clear();
+	};
+
 	auto SubmitValue = [&]() {
 		value = StringUtilities::StripWhitespace(value);
-		if (value.size() > 0)
-		{
-			values_list.push_back(value);
-			value.clear();
-		}
+		if (!value.empty())
+			SubmitExactValue();
 	};
+
+	auto IsAllWhitespace = [](const String& string) { return std::all_of(string.begin(), string.end(), StringUtilities::IsWhitespace); };
+
+	auto Error = [&]() { values_list.clear(); };
 
 	enum ParseState { VALUE, VALUE_PARENTHESIS, VALUE_QUOTE, VALUE_QUOTE_ESCAPE_NEXT };
 	ParseState state = VALUE;
 	int open_parentheses = 0;
+	char open_quote_character = 0;
 	size_t character_index = 0;
 
 	while (character_index < values.size())
@@ -510,27 +519,28 @@ void PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 		{
 			if (character == ';')
 			{
-				value = StringUtilities::StripWhitespace(value);
 				if (value.size() > 0)
 				{
 					values_list.push_back(value);
 					value.clear();
 				}
 			}
-			else if (split_by_comma ? (character == ',') : StringUtilities::IsWhitespace(character))
+			else if ((split_by_comma && character == ',') || (split_by_whitespace && StringUtilities::IsWhitespace(character)))
 			{
-				if (split_values)
-					SubmitValue();
-				else
-					value += character;
+				SubmitValue();
 			}
-			else if (character == '"')
+			else if (character == '"' || character == '\'')
 			{
 				state = VALUE_QUOTE;
+				open_quote_character = character;
 				if (split_by_whitespace)
 					SubmitValue();
+				else if (split_by_comma)
+					value += character;
+				else if (IsAllWhitespace(value))
+					value.clear();
 				else
-					value += (split_by_comma ? '"' : ' ');
+					return Error();
 			}
 			else if (character == '(')
 			{
@@ -556,9 +566,10 @@ void PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 				if (open_parentheses == 0)
 					state = VALUE;
 			}
-			else if (character == '"')
+			else if (character == '"' || character == '\'')
 			{
 				state = VALUE_QUOTE;
+				open_quote_character = character;
 			}
 
 			value += character;
@@ -566,15 +577,15 @@ void PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 		break;
 		case VALUE_QUOTE:
 		{
-			if (character == '"')
+			if (character == open_quote_character)
 			{
 				if (open_parentheses == 0)
 				{
 					state = VALUE;
-					if (split_by_whitespace)
-						SubmitValue();
+					if (split_by_comma)
+						value += character;
 					else
-						value += (split_by_comma ? '"' : ' ');
+						SubmitExactValue();
 				}
 				else
 				{
@@ -594,7 +605,7 @@ void PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 		break;
 		case VALUE_QUOTE_ESCAPE_NEXT:
 		{
-			if (character == '"' || character == '\\')
+			if (character == '"' || character == '\'' || character == '\\')
 			{
 				value += character;
 			}
@@ -611,6 +622,9 @@ void PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 
 	if (state == VALUE)
 		SubmitValue();
+
+	if (!split_values && values_list.size() > 1)
+		return Error();
 }
 
 } // namespace Rml

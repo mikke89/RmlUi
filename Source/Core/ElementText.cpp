@@ -42,12 +42,69 @@
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
 #include "TransformState.h"
+#include <limits>
 
 namespace Rml {
 
 static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space,
 	bool break_at_endline, Style::TextTransform text_transformation, bool decode_escape_characters);
 static bool LastToken(const char* token_begin, const char* string_end, bool collapse_white_space, bool break_at_endline);
+
+static int RoundDownToIntegerClamped(float value)
+{
+	constexpr int clamp = (1 << std::numeric_limits<float>::digits);
+	constexpr float clamp_f = float{clamp};
+	if (value >= clamp_f)
+		return clamp;
+	if (value <= -clamp_f)
+		return -clamp;
+	return static_cast<int>(value);
+}
+
+struct TextOverflowResolved {
+	bool enabled = false;
+	float overflow_width = 0.f;
+	String overflow_text;
+};
+
+static TextOverflowResolved ResolveTextOverflow(Element* parent, FontFaceHandle font_face_handle)
+{
+	if (!parent)
+		return {};
+
+	const auto& parent_computed = parent->GetComputedValues();
+	if (parent_computed.overflow_x() == Style::Overflow::Visible && parent_computed.overflow_y() == Style::Overflow::Visible)
+		return {};
+
+	const Style::TextOverflow text_overflow = parent_computed.text_overflow();
+	if (text_overflow == Style::TextOverflow::Clip)
+		return {};
+
+	const Box& box = parent->GetBox();
+	const BoxArea clip_area = parent->GetClipArea();
+
+	auto AccumulateRightSideEdgesUpTo = [](const Box& box, BoxArea up_to_area) -> float {
+		float result = 0;
+		for (int i = (int)up_to_area; i < int(BoxArea::Content); i++)
+			result += box.GetEdge((BoxArea)i, BoxEdge::Right);
+		return result;
+	};
+
+	const float overflow_width = parent->GetScrollLeft() + box.GetSize().x + AccumulateRightSideEdgesUpTo(box, clip_area);
+
+	constexpr char ellipsis_chars[] = "\xE2\x80\xA6"; // U+2026
+	constexpr char dots_chars[] = "...";
+
+	String overflow_text = (text_overflow == Style::TextOverflow::String
+			? parent->GetComputedValues().text_overflow_string()
+			: (GetFontEngineInterface()->GetFontMetrics(font_face_handle).has_ellipsis ? ellipsis_chars : dots_chars));
+
+	return TextOverflowResolved{
+		true,
+		overflow_width,
+		std::move(overflow_text),
+	};
+}
 
 void LogMissingFontFace(Element* element)
 {
@@ -184,8 +241,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	bool trim_whitespace_prefix, bool decode_escape_characters, bool allow_empty)
 {
 	RMLUI_ZoneScoped;
-	RMLUI_ASSERT(
-		maximum_line_width >= 0.f); // TODO: Check all callers for conformance, check break at line condition below. Possibly check for FLT_MAX.
+	RMLUI_ASSERT(maximum_line_width >= 0.f);
 
 	FontFaceHandle font_face_handle = GetFontFaceHandle();
 
@@ -204,13 +260,13 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	// Determine how we are processing white-space while formatting the text.
 	using namespace Style;
 	const auto& computed = GetComputedValues();
-	WhiteSpace white_space_property = computed.white_space();
-	bool collapse_white_space =
-		white_space_property == WhiteSpace::Normal || white_space_property == WhiteSpace::Nowrap || white_space_property == WhiteSpace::Preline;
-	bool break_at_line = (maximum_line_width >= 0) &&
+	const WhiteSpace white_space_property = computed.white_space();
+	const bool collapse_white_space =
+		(white_space_property == WhiteSpace::Normal || white_space_property == WhiteSpace::Nowrap || white_space_property == WhiteSpace::Preline);
+	const bool break_at_line =
 		(white_space_property == WhiteSpace::Normal || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline);
-	bool break_at_endline =
-		white_space_property == WhiteSpace::Pre || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline;
+	const bool break_at_endline =
+		(white_space_property == WhiteSpace::Pre || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline);
 
 	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.font_kerning(), computed.letter_spacing()};
 	TextTransform text_transform_property = computed.text_transform();
@@ -241,14 +297,14 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 		if (break_at_line)
 		{
 			const bool is_last_token = LastToken(next_token_begin, string_end, collapse_white_space, break_at_endline);
-			int max_token_width = int(maximum_line_width - (is_last_token ? line_width + right_spacing_width : line_width));
+			int max_token_width = RoundDownToIntegerClamped(maximum_line_width - (is_last_token ? line_width + right_spacing_width : line_width));
 
 			if (token_width > max_token_width)
 			{
 				if (word_break == WordBreak::BreakAll || (word_break == WordBreak::BreakWord && line.empty()))
 				{
 					// Try to break up the word
-					max_token_width = int(maximum_line_width - line_width);
+					max_token_width = RoundDownToIntegerClamped(maximum_line_width - line_width);
 					const int token_max_size = int(next_token_begin - token_begin);
 					const char* partial_string_end = token_begin + token_max_size;
 
@@ -358,14 +414,15 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		}
 	}
 
-	if (changed_properties.Contains(PropertyId::FontFamily) ||     //
-		changed_properties.Contains(PropertyId::FontWeight) ||     //
-		changed_properties.Contains(PropertyId::FontStyle) ||      //
-		changed_properties.Contains(PropertyId::FontSize) ||       //
-		changed_properties.Contains(PropertyId::FontKerning) ||    //
-		changed_properties.Contains(PropertyId::LetterSpacing) ||  //
-		changed_properties.Contains(PropertyId::RmlUi_Language) || //
-		changed_properties.Contains(PropertyId::RmlUi_Direction))
+	if (changed_properties.Contains(PropertyId::FontFamily) ||      //
+		changed_properties.Contains(PropertyId::FontWeight) ||      //
+		changed_properties.Contains(PropertyId::FontStyle) ||       //
+		changed_properties.Contains(PropertyId::FontSize) ||        //
+		changed_properties.Contains(PropertyId::FontKerning) ||     //
+		changed_properties.Contains(PropertyId::LetterSpacing) ||   //
+		changed_properties.Contains(PropertyId::RmlUi_Language) ||  //
+		changed_properties.Contains(PropertyId::RmlUi_Direction) || //
+		changed_properties.Contains(PropertyId::TextOverflow))
 	{
 		font_face_changed = true;
 		geometry_dirty = true;
@@ -452,17 +509,50 @@ void ElementText::GenerateGeometry(RenderManager& render_manager, const FontFace
 {
 	RMLUI_ZoneScopedC(0xD2691E);
 
+	const TextOverflowResolved text_overflow = ResolveTextOverflow(GetParentNode(), font_face_handle);
+
 	const auto& computed = GetComputedValues();
 	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.font_kerning(), computed.letter_spacing()};
 
 	TexturedMeshList mesh_list;
 	mesh_list.reserve(geometry.size());
 
-	// Generate the new geometry, one line at a time.
-	for (size_t i = 0; i < lines.size(); ++i)
+	for (Line& line : lines)
 	{
-		lines[i].width = GetFontEngineInterface()->GenerateString(render_manager, font_face_handle, font_effects_handle, lines[i].text,
-			lines[i].position, colour, opacity, text_shaping_context, mesh_list);
+		line.width = GetFontEngineInterface()->GenerateString(render_manager, font_face_handle, font_effects_handle, line.text, line.position, colour,
+			opacity, text_shaping_context, mesh_list);
+	}
+
+	const auto text_overflows_on_line = [&](const Line& line) { return line.position.x + line.width > text_overflow.overflow_width; };
+	if (text_overflow.enabled && std::any_of(lines.begin(), lines.end(), text_overflows_on_line))
+	{
+		mesh_list.clear();
+
+		for (Line& line : lines)
+		{
+			if (line.text.empty())
+				continue;
+
+			String abbreviated_text;
+			StringView text_submit_view = line.text;
+			StringIteratorU8 view(line.text, line.text.size());
+			--view;
+
+			// If we have text overflow, reduce the string one character at a time, append the ellipsis or custom
+			// string, and try again until it fits. @performance Can be improved by e.g. logarithmic search. Consider
+			// combining it with the word-breaking algorithm of 'GenerateLine'.
+			for (; text_overflows_on_line(line) && view && view.get() != line.text.c_str(); --view)
+			{
+				abbreviated_text.reserve(line.text.size() + text_overflow.overflow_text.size());
+				abbreviated_text.assign(line.text.c_str(), view.get());
+				abbreviated_text.append(text_overflow.overflow_text);
+				line.width = GetFontEngineInterface()->GetStringWidth(font_face_handle, abbreviated_text, text_shaping_context);
+				text_submit_view = abbreviated_text;
+			}
+
+			line.width = GetFontEngineInterface()->GenerateString(render_manager, font_face_handle, font_effects_handle, text_submit_view,
+				line.position, colour, opacity, text_shaping_context, mesh_list);
+		}
 	}
 
 	// Apply the new geometry and textures. Reuse the old geometry if the mesh matches, which can be relatively common
