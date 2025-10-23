@@ -54,6 +54,41 @@ TEST_CASE("Properties")
 	Context* context = Rml::CreateContext("main", window_size);
 	ElementDocument* document = context->CreateDocument();
 
+	SUBCASE("inset")
+	{
+		struct InsetTestCase {
+			String inset_value;
+
+			struct ExpectedValues {
+				String top;
+				String right;
+				String bottom;
+				String left;
+			} expected;
+		};
+
+		InsetTestCase tests[] = {
+			{"auto", {"auto", "auto", "auto", "auto"}},
+			{"0", {"0px", "0px", "0px", "0px"}},
+			{"1px", {"1px", "1px", "1px", "1px"}},
+			{"1dp", {"1dp", "1dp", "1dp", "1dp"}},
+			{"1%", {"1%", "1%", "1%", "1%"}},
+			{"10px 20px", {"10px", "20px", "10px", "20px"}},
+			{"10px 20px 30px", {"10px", "20px", "30px", "20px"}},
+			{"10px 20px 30px 40px", {"10px", "20px", "30px", "40px"}},
+		};
+
+		for (const InsetTestCase& test : tests)
+		{
+			CHECK(document->SetProperty("inset", test.inset_value));
+
+			CHECK(document->GetProperty("top")->ToString() == test.expected.top);
+			CHECK(document->GetProperty("right")->ToString() == test.expected.right);
+			CHECK(document->GetProperty("bottom")->ToString() == test.expected.bottom);
+			CHECK(document->GetProperty("left")->ToString() == test.expected.left);
+		}
+	}
+
 	SUBCASE("flex")
 	{
 		struct FlexTestCase {

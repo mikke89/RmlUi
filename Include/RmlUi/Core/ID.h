@@ -51,6 +51,7 @@ enum class ShorthandId : uint8_t {
 	BorderLeft,
 	Border,
 	BorderRadius,
+	Inset,
 	Overflow,
 	Background,
 	Font,

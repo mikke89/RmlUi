@@ -501,12 +501,13 @@ Rml::TextureHandle RenderInterface_VK::LoadTexture(Rml::Vector2i& texture_dimens
 	const byte* image_src = buffer.get() + sizeof(TGAHeader);
 	Rml::UniquePtr<byte[]> image_dest_buffer(new byte[image_size]);
 	byte* image_dest = image_dest_buffer.get();
+	const bool top_to_bottom_order = ((header.imageDescriptor & 32) != 0);
 
-	// Targa is BGR, swap to RGB, flip Y axis, and convert to premultiplied alpha.
+	// Targa is BGR, swap to RGB, flip Y axis as necessary, and convert to premultiplied alpha.
 	for (long y = 0; y < header.height; y++)
 	{
 		long read_index = y * header.width * color_mode;
-		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * 4;
+		long write_index = top_to_bottom_order ? (y * header.width * 4) : (header.height - y - 1) * header.width * 4;
 		for (long x = 0; x < header.width; x++)
 		{
 			image_dest[write_index] = image_src[read_index + 2];

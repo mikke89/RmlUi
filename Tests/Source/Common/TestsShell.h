@@ -47,7 +47,7 @@ void PresentFrame();
 // Render the current state of the context. Press 'escape' or 'return' to break out of the loop.
 // Useful for viewing documents while building the RML to benchmark.
 // Applies only when compiled with the shell backend.
-void RenderLoop();
+void RenderLoop(bool block_until_escape = true);
 
 void ShutdownShell(bool reset_tests_render_interface = true);
 
