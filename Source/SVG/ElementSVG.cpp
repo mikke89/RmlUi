@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/SVG/ElementSVG.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "SVGCache.h"
@@ -57,6 +58,8 @@ bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 
 	if (dimensions.y > 0)
 		ratio = dimensions.x / dimensions.y;
+
+	dimensions *= ElementUtilities::GetDensityIndependentPixelRatio(this);
 
 	return true;
 }
