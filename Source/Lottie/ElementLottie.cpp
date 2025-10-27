@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/FileInterface.h"
 #include "../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
@@ -52,6 +53,8 @@ bool ElementLottie::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 	dimensions = intrinsic_dimensions;
 	if (dimensions.y > 0)
 		ratio = dimensions.x / dimensions.y;
+
+	dimensions *= ElementUtilities::GetDensityIndependentPixelRatio(this);
 
 	return true;
 }
