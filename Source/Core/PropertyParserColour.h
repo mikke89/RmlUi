@@ -79,7 +79,7 @@ private:
 	//     or Oklch form (e.g. oklch(1.0 0.0 30) or oklch(1.0 0.0 60 / 0.5)).
 	static bool ParseOklabColour(Colourb& colour, const String& value);
 
-	static bool GetColourFunctionValues(StringList& values, const String& value, bool isCommaSeparated);
+	static bool GetColourFunctionValues(StringList& values, const String& value, bool is_comma_separated);
 };
 
 } // namespace Rml

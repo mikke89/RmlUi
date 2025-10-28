@@ -255,7 +255,7 @@ String StringUtilities::Replace(String subject, char search, char replace)
 	return subject;
 }
 
-void StringUtilities::ExpandString(StringList& string_list, const String& string, const char delimiter)
+void StringUtilities::ExpandString(StringList& string_list, const String& string, const char delimiter, bool ignore_repeated_delimiters)
 {
 	char quote = 0;
 	bool last_char_delimiter = true;
@@ -289,7 +289,7 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 		{
 			if (start_ptr)
 				string_list.emplace_back(start_ptr, end_ptr + 1);
-			else
+			else if (!ignore_repeated_delimiters)
 				string_list.emplace_back();
 			last_char_delimiter = true;
 			start_ptr = nullptr;

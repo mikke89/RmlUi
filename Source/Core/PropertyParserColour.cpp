@@ -448,11 +448,6 @@ bool PropertyParserColour::ParseCIELABColour(Colourb& colour, const String& valu
 		else
 			hue = (float)atof(values[2].c_str());
 
-		// Clamp hue between 0.0 and 360.0 degrees.
-		hue = std::fmod(hue, 360.0f);
-		if (hue < 0)
-			hue += 360.0f;
-
 		// Convert LCh polar coordinates to LAB Cartesian coordinates.
 		lab_values[1] = chroma * Math::Cos(Math::DegreesToRadians(hue));
 		lab_values[2] = chroma * Math::Sin(Math::DegreesToRadians(hue));
@@ -552,11 +547,6 @@ bool PropertyParserColour::ParseOklabColour(Colourb& colour, const String& value
 		else
 			hue = (float)atof(values[2].c_str());
 
-		// Clamp hue between 0.0 and 360.0 degrees.
-		hue = std::fmod(hue, 360.0f);
-		if (hue < 0)
-			hue += 360.0f;
-
 		// Convert Oklch polar coordinates to Oklab Cartesian coordinates.
 		oklab_values[1] = chroma * Math::Cos(Math::DegreesToRadians(hue));
 		oklab_values[2] = chroma * Math::Sin(Math::DegreesToRadians(hue));
@@ -569,7 +559,7 @@ bool PropertyParserColour::ParseOklabColour(Colourb& colour, const String& value
 	return true;
 }
 
-bool PropertyParserColour::GetColourFunctionValues(StringList& values, const String& value, bool isCommaSeparated)
+bool PropertyParserColour::GetColourFunctionValues(StringList& values, const String& value, bool is_comma_separated)
 {
 	size_t find = value.find('(');
 	if (find == String::npos)
@@ -577,10 +567,8 @@ bool PropertyParserColour::GetColourFunctionValues(StringList& values, const Str
 
 	size_t begin_values = find + 1;
 
-	if (isCommaSeparated)
-		StringUtilities::ExpandString(values, value.substr(begin_values, value.rfind(')') - begin_values), ',');
-	else
-		StringUtilities::ExpandString(values, value.substr(begin_values, value.rfind(')') - begin_values), ' ', '\"', '\"', true);
+	StringUtilities::ExpandString(values, value.substr(begin_values, value.rfind(')') - begin_values), is_comma_separated ? ',' : ' ',
+		!is_comma_separated);
 
 	return true;
 }
