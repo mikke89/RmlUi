@@ -145,9 +145,13 @@ float ComputeFontsize(NumericValue value, const Style::ComputedValues& values, c
 	return ComputeLength(value, 0.f, 0.f, dp_ratio, vp_dimensions);
 }
 
-String ComputeFontFamily(String font_family)
+StringList ComputeFontFamily(String font_family)
 {
-	return StringUtilities::ToLower(std::move(font_family));
+	StringList font_families{};
+	StringUtilities::ExpandString(
+		font_families,
+		StringUtilities::ToLower(std::move(font_family)));
+	return font_families;
 }
 
 Style::Clip ComputeClip(const Property* property)

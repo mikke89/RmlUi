@@ -56,6 +56,14 @@ FontFaceHandle FontEngineInterface::GetFontFaceHandle(const String& /*family*/, 
 	return 0;
 }
 
+FontFaceHandle FontEngineInterface::GetFontFaceHandle(const StringList& families, Style::FontStyle style, Style::FontWeight weight, int size)
+{
+	for (const auto& family : families)
+		if (FontFaceHandle handle = GetFontFaceHandle(family, style, weight, size))
+			return handle;
+	return reinterpret_cast<FontFaceHandle>(nullptr);
+}
+
 FontEffectsHandle FontEngineInterface::PrepareFontEffects(FontFaceHandle /*handle*/, const FontEffectList& /*font_effects*/)
 {
 	return 0;

@@ -82,6 +82,15 @@ public:
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, NULL otherwise.
 	virtual FontFaceHandle GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
+	
+	/// Attempts to find a valid font handle from a list of font families.
+	/// Iterates through each family until a matching (or close) font face is found.
+	/// @param[in] families Ordered list of font family names to try.
+	/// @param[in] style Desired font style.
+	/// @param[in] weight Desired font weight.
+	/// @param[in] size Font size in points.
+	/// @return The first valid font handle found, or NULL if none match.
+	FontFaceHandle GetFontFaceHandle(const StringList& families, Style::FontStyle style, Style::FontWeight weight, int size);
 
 	/// Called by RmlUi when a list of font effects is resolved for an element with a given font face.
 	/// @param[in] handle The font handle.

@@ -254,7 +254,7 @@ namespace Style {
 		bool                 has_decorator()       const { return common.has_decorator; }
 
 		// -- Inherited --
-		String         font_family()      const;
+		StringList     font_family()      const;
 		String         cursor()           const;
 		FontFaceHandle font_face_handle() const { return inherited.font_face_handle; }
 		float          font_size()        const { return inherited.font_size; }

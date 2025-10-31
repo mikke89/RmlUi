@@ -13,7 +13,7 @@ hr {
 }
 
 body {
-	font-family: LatoLatin;
+	font-family: TestFamily, LatoLatin;
 	font-weight: normal;
 	font-style: normal;
 	font-size: 14dp;

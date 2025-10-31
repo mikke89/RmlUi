@@ -44,7 +44,7 @@ float ComputeAngle(NumericValue value);
 float ComputeFontsize(NumericValue value, const Style::ComputedValues& values, const Style::ComputedValues* parent_values,
 	const Style::ComputedValues* document_values, float dp_ratio, Vector2f vp_dimensions);
 
-String ComputeFontFamily(String font_family);
+StringList ComputeFontFamily(String font_family);
 
 Style::Clip ComputeClip(const Property* property);
 

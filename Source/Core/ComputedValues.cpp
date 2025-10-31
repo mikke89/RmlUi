@@ -52,12 +52,12 @@ const TransitionList* Style::ComputedValues::transition() const
 	return nullptr;
 }
 
-String Style::ComputedValues::font_family() const
+StringList Style::ComputedValues::font_family() const
 {
 	if (auto p = element->GetProperty(PropertyId::FontFamily))
 		return ComputeFontFamily(p->Get<String>());
 
-	return String();
+	return StringList();
 }
 
 String Style::ComputedValues::cursor() const
