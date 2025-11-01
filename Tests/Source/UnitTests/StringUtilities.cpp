@@ -26,6 +26,7 @@
  *
  */
 
+#include "../Common/TypesToString.h"
 #include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Core/Types.h>
 #include <doctest.h>
@@ -59,6 +60,59 @@ TEST_CASE("StringUtilities::TrimTrailingDotZeros")
 	WARN(RunTrimTrailingDotZeros(".0") == "");
 	WARN(RunTrimTrailingDotZeros(" 11 2121 3.00") == " 11 2121 3");
 	WARN(RunTrimTrailingDotZeros("11") == "11");
+}
+
+TEST_CASE("StringUtilities::ExpandString")
+{
+	auto ExpandStringShort = [](const String string, char delimiter, bool ignore_repeated_delimiters = false) {
+		StringList result;
+		StringUtilities::ExpandString(result, string, delimiter, ignore_repeated_delimiters);
+		return StringListWrapper{result};
+	};
+	auto ExpandStringLong = [](const String string, char delimiter, char quote, char unquote, bool ignore_repeated_delimiters) {
+		StringList result;
+		StringUtilities::ExpandString(result, string, delimiter, quote, unquote, ignore_repeated_delimiters);
+		return StringListWrapper{result};
+	};
+	auto ExpandString = [&](const String string, char delimiter, bool ignore_repeated_delimiters = false) {
+		const StringListWrapper short_result = ExpandStringShort(string, delimiter, ignore_repeated_delimiters);
+		const StringListWrapper long_result = ExpandStringLong(string, delimiter, '(', ')', ignore_repeated_delimiters);
+		CAPTURE(string);
+		CAPTURE(String{delimiter});
+		CHECK(short_result == long_result);
+		return short_result;
+	};
+
+	CHECK(ExpandString("a,b,c", ',') == StringListWrapper{{"a", "b", "c"}});
+	CHECK(ExpandString("a,b,c", ' ') == StringListWrapper{{"a,b,c"}});
+	CHECK(ExpandString("a b c", ' ') == StringListWrapper{{"a", "b", "c"}});
+
+	CHECK(ExpandString("a,b,,c", ',') == StringListWrapper{{"a", "b", "", "c"}});
+	CHECK(ExpandString(" a ,  b  , c ", ',') == StringListWrapper{{"a", "b", "c"}});
+
+	CHECK(ExpandString("a", ',') == StringListWrapper{{"a"}});
+	CHECK(ExpandStringShort("", ',') == StringListWrapper{{""}});
+	CHECK(ExpandStringShort("", ' ') == StringListWrapper{{""}});
+	CHECK(ExpandStringShort(" ", ' ') == StringListWrapper{{""}});
+	CHECK(ExpandString(",a,b", ',') == StringListWrapper{{"", "a", "b"}});
+	CHECK(ExpandString("a,,b", ',') == StringListWrapper{{"a", "", "b"}});
+	CHECK(ExpandString("a;b;c", ';') == StringListWrapper{{"a", "b", "c"}});
+
+	CHECK(ExpandStringLong("(a,b),c", ',', '(', ')', false) == StringListWrapper{{"(a,b)", "c"}});
+	CHECK(ExpandStringLong("((a,b),c),d", ',', '(', ')', false) == StringListWrapper{{"((a,b),c)", "d"}});
+	CHECK(ExpandStringLong("a,,b", ',', '(', ')', false) == StringListWrapper{{"a", "", "b"}});
+	CHECK(ExpandStringLong("a,,b", ',', '(', ')', true) == StringListWrapper{{"a", "b"}});
+	CHECK(ExpandStringLong("a  b", ' ', '(', ')', false) == StringListWrapper{{"a", "", "b"}});
+	CHECK(ExpandStringLong("a  b", ' ', '(', ')', true) == StringListWrapper{{"a", "b"}});
+
+	// Questionable behavior, consider changing implementation to match the suggestion.
+	CHECK(ExpandString("a,b,", ',') == StringListWrapper{{"a", "b"}});                       // { "a", "b", ""}
+	CHECK(ExpandString("  ,  ", ',') == StringListWrapper{{""}});                            // {"", ""}}
+	CHECK(ExpandString(" a  b  c ", ' ') == StringListWrapper{{"", "a", "", "b", "", "c"}}); // {"a", "b", "c"}}
+	CHECK(ExpandStringShort("'a,b',c", ',') == StringListWrapper{{"a,b", "c"}});             // {"'a,b'", "c"}
+	CHECK(ExpandStringShort(R"("a,b",c)", ',') == StringListWrapper{{R"(a,b)", "c"}});       // {R"("a,b")", "c"}
+	CHECK(ExpandStringShort("\"a\\\",b\",c", ',') == StringListWrapper{{R"(a\",b)", "c"}});  // {R"("a\",b")", "c"} (MSVC fails using raw string here)
+	CHECK(ExpandStringLong("\"a,b,c\",d", ',', '"', '"', false) == StringListWrapper{{"\"a,b,c\",d"}}); // {"\"a,b,c\"", "d"}}
 }
 
 TEST_CASE("StringUtilities::StartsWith")

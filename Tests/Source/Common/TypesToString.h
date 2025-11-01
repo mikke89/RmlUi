@@ -36,6 +36,7 @@
 #include <RmlUi/Core/Vertex.h>
 #include <doctest.h>
 #include <ostream>
+#include <sstream>
 
 /*
  *   Provides string conversion of types for doctest.
@@ -102,6 +103,37 @@ inline std::ostream& operator<<(std::ostream& os, const Variant& value)
 	return os;
 }
 
+struct StringListWrapper {
+	StringList string_list;
+	bool operator==(const StringListWrapper& other) const { return string_list == other.string_list; }
+};
+
 } // namespace Rml
+
+namespace doctest {
+//  Some types are aliases to underlying std-types, so they need to be converted with a StringMaker.
+
+// For some reason, this doesn't seem to actually work. Instead, we use the StringListWrapper wrapper object in the Rml namespace.
+template <>
+struct StringMaker<Rml::StringList> {
+	static ::doctest::String convert(const Rml::StringList& value)
+	{
+		std::ostringstream os;
+		for (const auto& string : value)
+		{
+			os << string;
+			if (&string != &value.back())
+				os << ", ";
+		}
+		return ::doctest::String(os.str().c_str());
+	}
+};
+
+template <>
+struct StringMaker<Rml::StringListWrapper> {
+	static ::doctest::String convert(const Rml::StringListWrapper& value) { return StringMaker<Rml::StringList>::convert(value.string_list); }
+};
+
+} // namespace doctest
 
 #endif
