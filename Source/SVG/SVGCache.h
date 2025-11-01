@@ -54,8 +54,8 @@ namespace SVG {
 	class SVGCache {
 	public:
 		enum SourceType {
-			SOURCE_FILE, /// The source is a file path.
-			SOURCE_DATA  /// The source is raw SVG data.
+			File = 1, /// The source is a file path.
+			Data = 2  /// The source is raw SVG data.
 		};
 		static void Initialize();
 		static void Shutdown();

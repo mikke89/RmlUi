@@ -50,14 +50,13 @@ public:
 	/// Loads the current source file if needed. This normally happens automatically during layouting.
 	void EnsureSourceLoaded();
 
-	/// Sets the dirty flag for the element.
-	/// @param[in] flag_value The value to set the dirty flag to. Defaults to true.
-	/// @param[in] force_relayout For layout to be re-evaluated after flag is set. Defaults to true.
-	void SetDirtyFlag(bool flag_value = true, bool force_relayout = true);
-
 	/// Gets the SVG XML data (as text) if using inline SVG, if using a file source this will return a blank string
 	/// @param[out] content The SVG XML data (as text) or blank string
 	void GetInnerRML(String& content) const override;
+
+	/// Gets the SVG XML data (as text) if using inline SVG, if using a file source this will return a blank string
+	/// @param[in] content The SVG XML data (as text) or blank string
+	void SetInnerRML(const String& rml) override;
 
 protected:
 	/// Renders the image.
@@ -75,13 +74,14 @@ protected:
 	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
 private:
-	void UpdateCachedData();
+	/// Generate unique internal ids for SVG elements using inline SVG.
+	static unsigned long internal_id_counter;
 
+	String svg_data;
 	bool svg_dirty = false;
 
 	SharedPtr<SVG::SVGData> handle;
 };
-
 } // namespace Rml
 
 #endif

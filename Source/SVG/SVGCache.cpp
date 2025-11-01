@@ -179,7 +179,7 @@ namespace SVG {
 		if (it_svg_document == documents.cend())
 		{
 			SVGDocument doc;
-			if (source_type == SVGCache::SourceType::SOURCE_FILE)
+			if (source_type == SVGCache::SourceType::File)
 			{
 				RMLUI_SVG_DEBUG_LOG("Loading SVG document from file %s", source.c_str());
 				String svg_data;
@@ -398,11 +398,15 @@ namespace SVG {
 		if (dimensions.x == 0 || dimensions.y == 0)
 			dimensions = {0, 0};
 
-		String path;
-		if (ElementDocument* document = element->GetOwnerDocument())
+		if (source_type == File)
 		{
-			const String document_source_url = StringUtilities::Replace(document->GetSourceURL(), '|', ':');
-			GetSystemInterface()->JoinPath(path, document_source_url, source);
+			String path;
+			if (ElementDocument* document = element->GetOwnerDocument())
+			{
+				const String document_source_url = StringUtilities::Replace(document->GetSourceURL(), '|', ':');
+				GetSystemInterface()->JoinPath(path, document_source_url, source_id);
+			}
+			return Rml::SVG::GetHandle(*render_manager, path, path, source_type, dimensions, crop_to_content, colour);
 		}
 
 		return Rml::SVG::GetHandle(*render_manager, source_id, source, source_type, dimensions, crop_to_content, colour);

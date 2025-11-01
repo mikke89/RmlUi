@@ -33,6 +33,8 @@
 
 namespace Rml {
 
+unsigned long ElementSVG::internal_id_counter = 0;
+
 ElementSVG::ElementSVG(const String& tag) : Element(tag) {}
 ElementSVG::~ElementSVG()
 {
@@ -41,7 +43,7 @@ ElementSVG::~ElementSVG()
 
 bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
-	UpdateCachedData();
+	EnsureSourceLoaded();
 
 	dimensions = handle ? handle->intrinsic_dimensions : Vector2f(0);
 
@@ -60,14 +62,9 @@ bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 	return true;
 }
 
-void ElementSVG::EnsureSourceLoaded()
-{
-	UpdateCachedData();
-}
-
 void ElementSVG::OnRender()
 {
-	UpdateCachedData();
+	EnsureSourceLoaded();
 	if (handle)
 		handle->geometry.Render(GetAbsoluteOffset(BoxArea::Content), handle->texture);
 }
@@ -103,40 +100,32 @@ void ElementSVG::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 }
 
-void ElementSVG::SetDirtyFlag(const bool flag_value, const bool force_relayout)
-{
-	svg_dirty = flag_value;
-	if (force_relayout)
-		DirtyLayout();
-}
-
 void ElementSVG::GetInnerRML(String& content) const
 {
-	// If the SVG is from a file source return an empty string.
+	// If the SVG is from a file source don't add anything to the content string.
 	const auto source = GetAttribute<String>("src", "");
 	if (!source.empty())
-	{
-		content = "";
 		return;
-	}
 
-	// Try to get the text node that should contain the SVG data.
-	Element* data_element = nullptr;
-	const int non_dom_children = GetNumChildren(true) - GetNumChildren(false);
-	for (int i = 0; i < non_dom_children; i++)
-		if (GetChild(i)->GetTagName() == "#svgdata")
-			data_element = GetChild(i);
-
-	if (data_element == nullptr)
-	{
-		content = "";
-		return;
-	}
-
-	content = rmlui_static_cast<ElementText*>(data_element)->GetText();
+	content += svg_data;
 }
 
-void ElementSVG::UpdateCachedData()
+void ElementSVG::SetInnerRML(const String& content)
+{
+	// If the SVG is from a file source don't set the svg xml data on the element.
+	const auto source = GetAttribute<String>("src", "");
+	if (!source.empty())
+		return;
+
+	if (!HasAttribute("rmlui-svgdata-id"))
+		SetAttribute("rmlui-svgdata-id", "svgdata:" + std::to_string(internal_id_counter++));
+
+	svg_data = "" + content;
+	svg_dirty = true;
+	EnsureSourceLoaded();
+}
+
+void ElementSVG::EnsureSourceLoaded()
 {
 	if (!svg_dirty)
 		return;
@@ -147,45 +136,31 @@ void ElementSVG::UpdateCachedData()
 	const auto source = GetAttribute<String>("src", "");
 	if (source.empty())
 	{
-		Element* data_element = nullptr;
-		const int non_dom_children = GetNumChildren(true) - GetNumChildren(false);
-		for (int i = 0; i < non_dom_children; i++)
-			if (GetChild(i)->GetTagName() == "#svgdata")
-				data_element = GetChild(i);
-
-		if (data_element == nullptr)
-			return;
-
-		const String cdata = rmlui_static_cast<ElementText*>(data_element)->GetText();
-		const auto source_id = data_element->GetAttribute<String>("id", "");
+		const auto source_id = GetAttribute<String>("rmlui-svgdata-id", "svgdata:undefined");
 		if (handle)
 			handle.reset(); // The old handle won't be re-used so clear it.
 
-		if (cdata.empty())
-			return;
-
-		// Build an svg wrapper tag, copying all but src/_cdata attributes (expected attributes could be width, height, viewBox, etc.)
-		String svg_data = "<svg ";
+		// Build an svg wrapper tag, copying all but src attribute (expected attributes could be width, height, viewBox, etc.)
+		String svg_element_source = "<svg ";
 		ElementAttributes attrs = GetAttributes();
 		for (auto& attr : attrs)
 		{
 			if (attr.first == "src")
 				continue;
-			svg_data.append(attr.first);
-			svg_data.append("=\"");
-			svg_data.append(StringUtilities::Replace(attr.second.Get<String>(), "\"", "&quot;"));
-			svg_data.append("\" ");
+			svg_element_source.append(attr.first);
+			svg_element_source.append("=\"");
+			svg_element_source.append(StringUtilities::EncodeRml(attr.second.Get<String>()));
+			svg_element_source.append("\" ");
 		}
-		svg_data.append(">");
-		svg_data.append(cdata);
-		svg_data.append("</svg>");
+		svg_element_source.append(">");
+		svg_element_source.append(svg_data);
+		svg_element_source.append("</svg>");
 
-		handle = SVG::SVGCache::GetHandle(source_id, svg_data, SVG::SVGCache::SOURCE_DATA, this, crop_to_content, BoxArea::Content);
+		handle = SVG::SVGCache::GetHandle(source_id, svg_element_source, SVG::SVGCache::Data, this, crop_to_content, BoxArea::Content);
 	}
 	else
 	{
-		handle = SVG::SVGCache::GetHandle(source, source, SVG::SVGCache::SOURCE_FILE, this, crop_to_content, BoxArea::Content);
+		handle = SVG::SVGCache::GetHandle(source, source, SVG::SVGCache::File, this, crop_to_content, BoxArea::Content);
 	}
 }
-
 } // namespace Rml

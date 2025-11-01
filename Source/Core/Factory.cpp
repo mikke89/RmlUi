@@ -280,6 +280,10 @@ void Factory::Initialise()
 	RegisterDataControllerInstancer(&default_instancers.data_controller_event, "event");
 	RegisterDataControllerInstancer(&default_instancers.data_controller_value, "value");
 
+	// XML nodes that only contain CDATA
+	XMLParser::RegisterPersistentCDATATag("script");
+	XMLParser::RegisterPersistentCDATATag("style");
+
 	// XML node handlers
 	XMLParser::RegisterNodeHandler("", MakeShared<XMLNodeHandlerDefault>());
 	XMLParser::RegisterNodeHandler("body", MakeShared<XMLNodeHandlerBody>());
@@ -354,12 +358,6 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 bool Factory::InstanceElementText(Element* parent, const String& in_text)
 {
 	RMLUI_ASSERT(parent);
-	XMLParser parser(parent);
-	if (parser.IsCDATATag(parent->GetTagName()))
-	{
-		parser.HandleData(in_text, XMLDataType::CDATA);
-		return true;
-	}
 
 	String text;
 	if (SystemInterface* system_interface = GetSystemInterface())

@@ -51,9 +51,12 @@ public:
 	XMLParser(Element* root);
 	~XMLParser();
 
-	/// Registers a tag were its contents should be treated as CDATA
+	/// Registers a tag were its contents should be treated as CDATA.
+	///		Whereas BaseXMLParser RegisterCDataTag only registeres a
+	///		tag for a parser instance, this function willl register
+	///		a tag for all XMLParser instances created after this call.
 	/// @param[in] _tag The tag for contents to be treated as CDATA
-	static void PreRegisterCDATATag(const String& _tag);
+	static void RegisterPersistentCDATATag(const String& _tag);
 
 	/// Registers a custom node handler to be used to a given tag.
 	/// @param[in] tag The tag the custom parser will handle.

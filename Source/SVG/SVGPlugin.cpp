@@ -52,7 +52,7 @@ namespace SVG {
 			Factory::RegisterDecoratorInstancer("svg", decorator_instancer.get());
 
 			XMLParser::RegisterNodeHandler("svg", MakeShared<XMLNodeHandlerSVG>());
-			XMLParser::PreRegisterCDATATag("svg");
+			XMLParser::RegisterPersistentCDATATag("svg");
 
 			Log::Message(Log::LT_INFO, "SVG plugin initialised.");
 		}

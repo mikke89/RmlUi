@@ -26,21 +26,12 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/ElementInstancer.h"
-#include "../../Include/RmlUi/Core/Factory.h"
-#include "../../Include/RmlUi/Core/Log.h"
-#include "../../Include/RmlUi/Core/Plugin.h"
+#ifndef RMLUI_CORE_XMLNODEHANDLERSVG_H
+#define RMLUI_CORE_XMLNODEHANDLERSVG_H
+
 #include "../../Include/RmlUi/Core/XMLParser.h"
 #include "../../Include/RmlUi/SVG/ElementSVG.h"
-#include <chrono>
-#include <random>
-
-#ifndef RMLUI_CORE_XMLNODEHANDLERSVG_H
-	#define RMLUI_CORE_XMLNODEHANDLERSVG_H
-
-	#include "../../Source/Core/XMLNodeHandlerDefault.h"
+#include "../Core/XMLNodeHandlerDefault.h"
 
 namespace Rml {
 namespace SVG {
@@ -49,15 +40,8 @@ namespace SVG {
 	 */
 	class XMLNodeHandlerSVG : public XMLNodeHandlerDefault {
 	public:
-		XMLNodeHandlerSVG();
-		~XMLNodeHandlerSVG() override;
-
 		/// Called for element data
 		bool ElementData(XMLParser* parser, const String& data, XMLDataType type) override;
-
-	protected:
-		/// Generate unique internal ids for SVG elements using inline SVG.
-		std::mt19937 rand_gen;
 	};
 
 } // namespace SVG

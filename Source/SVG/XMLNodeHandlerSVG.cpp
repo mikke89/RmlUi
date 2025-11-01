@@ -30,45 +30,11 @@
 
 namespace Rml {
 namespace SVG {
-	XMLNodeHandlerSVG::XMLNodeHandlerSVG()
+	bool XMLNodeHandlerSVG::ElementData(XMLParser* parser, const String& data, XMLDataType /*type*/)
 	{
-		// Initialize rng for generating part of the element ids for non file based svg tags to be used as cache keys
-		std::random_device rd;
-		rand_gen = std::mt19937(rd());
-	};
-	XMLNodeHandlerSVG::~XMLNodeHandlerSVG() = default;
-
-	bool XMLNodeHandlerSVG::ElementData(XMLParser* parser, const String& data, XMLDataType type)
-	{
-		const String& tag = parser->GetParseFrame()->tag;
-
-		// Only handle CDATA (tag check shouldn't really be necessary)
-		if (tag == "svg" && type == XMLDataType::CDATA)
-		{
-			auto* parent = rmlui_static_cast<ElementSVG*>(parser->GetParseFrame()->element);
-			RMLUI_ASSERT(parent);
-
-			// Try to get the existing text node, or create if its missing (it is inserted as a non DOM child so should be at the start)
-			Element* data_element = nullptr;
-			const int non_dom_children = parent->GetNumChildren(true) - parent->GetNumChildren(false);
-			for (int i = 0; i < non_dom_children; i++)
-				if (parent->GetChild(i)->GetTagName() == "#svgdata")
-					data_element = parent->GetChild(i);
-
-			if (data_element == nullptr || data_element->GetTagName() != "#svgdata")
-				data_element = parent->AppendChild(Factory::InstanceElement(parent, "#text", "#svgdata", XMLAttributes()), false);
-
-			// Set a unique id for the element, used as a cache key for SVGCache
-			data_element->SetAttribute("id",
-				"svg_" +
-					std::to_string(
-						std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) +
-					"_" + std::to_string(std::generate_canonical<double, 10>(rand_gen) * 1000000));
-
-			rmlui_static_cast<ElementText*>(data_element)->SetText(data);
-			parent->SetDirtyFlag();
-		}
-
+		auto* element = rmlui_static_cast<ElementSVG*>(parser->GetParseFrame()->element);
+		RMLUI_ASSERT(element);
+		element->SetInnerRML(data);
 		return true;
 	}
 } // namespace SVG

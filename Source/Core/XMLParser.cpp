@@ -50,12 +50,8 @@ static ControlledLifetimeResource<XmlParserData> xml_parser_data;
 
 XMLParser::XMLParser(Element* root)
 {
-	RegisterCDATATag("script");
-	RegisterCDATATag("style");
 	for (const String& cdata_tag : xml_parser_data->cdata_tags)
-	{
 		RegisterCDATATag(cdata_tag);
-	}
 
 	for (const String& name : Factory::GetStructuralDataViewAttributeNames())
 		RegisterInnerXMLAttribute(name);
@@ -85,7 +81,7 @@ XMLParser::XMLParser(Element* root)
 
 XMLParser::~XMLParser() {}
 
-void XMLParser::PreRegisterCDATATag(const String& _tag)
+void XMLParser::RegisterPersistentCDATATag(const String& _tag)
 {
 	if (!xml_parser_data)
 		xml_parser_data.Initialize();

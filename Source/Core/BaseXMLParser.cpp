@@ -272,11 +272,9 @@ bool BaseXMLParser::ReadOpenTag()
 	// Check if this tag needs to be processed as CDATA.
 	if (section_opened)
 	{
-		const String lcase_tag_name = StringUtilities::ToLower(tag_name);
-
-		if (IsCDATATag(lcase_tag_name))
+		if (IsCDATATag(tag_name))
 		{
-			if (ReadCDATA(lcase_tag_name.c_str()))
+			if (ReadCDATA(StringUtilities::ToLower(tag_name).c_str()))
 			{
 				open_tag_depth--;
 				if (!data.empty())
