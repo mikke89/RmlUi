@@ -64,25 +64,27 @@ TEST_CASE("StringUtilities::TrimTrailingDotZeros")
 
 TEST_CASE("StringUtilities::ExpandString")
 {
-	auto ExpandStringShort = [](const String string, char delimiter, bool ignore_repeated_delimiters = false) {
+	auto ExpandStringShort = [](const String string, char delimiter) {
 		StringList result;
-		StringUtilities::ExpandString(result, string, delimiter, ignore_repeated_delimiters);
+		StringUtilities::ExpandString(result, string, delimiter);
 		return StringListWrapper{result};
 	};
-	auto ExpandStringLong = [](const String string, char delimiter, char quote, char unquote, bool ignore_repeated_delimiters) {
+	auto ExpandStringLong = [](const String string, char delimiter, char quote, char unquote) {
 		StringList result;
-		StringUtilities::ExpandString(result, string, delimiter, quote, unquote, ignore_repeated_delimiters);
+		StringUtilities::ExpandString(result, string, delimiter, quote, unquote);
 		return StringListWrapper{result};
 	};
-	auto ExpandString = [&](const String string, char delimiter, bool ignore_repeated_delimiters = false) {
-		const StringListWrapper short_result = ExpandStringShort(string, delimiter, ignore_repeated_delimiters);
-		const StringListWrapper long_result = ExpandStringLong(string, delimiter, '(', ')', ignore_repeated_delimiters);
+	auto ExpandString = [&](const String string, char delimiter) {
+		const StringListWrapper short_result = ExpandStringShort(string, delimiter);
+		const StringListWrapper long_result = ExpandStringLong(string, delimiter, '(', ')');
 		CAPTURE(string);
 		CAPTURE(String{delimiter});
 		CHECK(short_result == long_result);
 		return short_result;
 	};
 
+	CHECK(ExpandString("a", ',') == StringListWrapper{{"a"}});
+	CHECK(ExpandString("a", ' ') == StringListWrapper{{"a"}});
 	CHECK(ExpandString("a,b,c", ',') == StringListWrapper{{"a", "b", "c"}});
 	CHECK(ExpandString("a,b,c", ' ') == StringListWrapper{{"a,b,c"}});
 	CHECK(ExpandString("a b c", ' ') == StringListWrapper{{"a", "b", "c"}});
@@ -90,29 +92,34 @@ TEST_CASE("StringUtilities::ExpandString")
 	CHECK(ExpandString("a,b,,c", ',') == StringListWrapper{{"a", "b", "", "c"}});
 	CHECK(ExpandString(" a ,  b  , c ", ',') == StringListWrapper{{"a", "b", "c"}});
 
-	CHECK(ExpandString("a", ',') == StringListWrapper{{"a"}});
-	CHECK(ExpandStringShort("", ',') == StringListWrapper{{""}});
-	CHECK(ExpandStringShort("", ' ') == StringListWrapper{{""}});
-	CHECK(ExpandStringShort(" ", ' ') == StringListWrapper{{""}});
+	CHECK(ExpandString(" a ", ' ') == StringListWrapper{{"a"}});
+	CHECK(ExpandString(" a ", ',') == StringListWrapper{{"a"}});
+	CHECK(ExpandString(" a", ' ') == StringListWrapper{{"a"}});
+	CHECK(ExpandString(" a", ',') == StringListWrapper{{"a"}});
+	CHECK(ExpandString("a ", ' ') == StringListWrapper{{"a"}});
+	CHECK(ExpandString("a ", ',') == StringListWrapper{{"a"}});
+
+	CHECK(ExpandString("", ',') == StringListWrapper{{""}});
+	CHECK(ExpandString("", ' ') == StringListWrapper{{""}});
+	CHECK(ExpandString(" ", ' ') == StringListWrapper{{""}});
+
 	CHECK(ExpandString(",a,b", ',') == StringListWrapper{{"", "a", "b"}});
+	CHECK(ExpandString("a,b,", ',') == StringListWrapper{{"a", "b", ""}});
+	CHECK(ExpandString("  ,  ", ',') == StringListWrapper{{"", ""}});
+	CHECK(ExpandString(" a  b  c ", ' ') == StringListWrapper{{"a", "b", "c"}});
 	CHECK(ExpandString("a,,b", ',') == StringListWrapper{{"a", "", "b"}});
 	CHECK(ExpandString("a;b;c", ';') == StringListWrapper{{"a", "b", "c"}});
 
-	CHECK(ExpandStringLong("(a,b),c", ',', '(', ')', false) == StringListWrapper{{"(a,b)", "c"}});
-	CHECK(ExpandStringLong("((a,b),c),d", ',', '(', ')', false) == StringListWrapper{{"((a,b),c)", "d"}});
-	CHECK(ExpandStringLong("a,,b", ',', '(', ')', false) == StringListWrapper{{"a", "", "b"}});
-	CHECK(ExpandStringLong("a,,b", ',', '(', ')', true) == StringListWrapper{{"a", "b"}});
-	CHECK(ExpandStringLong("a  b", ' ', '(', ')', false) == StringListWrapper{{"a", "", "b"}});
-	CHECK(ExpandStringLong("a  b", ' ', '(', ')', true) == StringListWrapper{{"a", "b"}});
-
-	// Questionable behavior, consider changing implementation to match the suggestion.
-	CHECK(ExpandString("a,b,", ',') == StringListWrapper{{"a", "b"}});                       // { "a", "b", ""}
-	CHECK(ExpandString("  ,  ", ',') == StringListWrapper{{""}});                            // {"", ""}}
-	CHECK(ExpandString(" a  b  c ", ' ') == StringListWrapper{{"", "a", "", "b", "", "c"}}); // {"a", "b", "c"}}
-	CHECK(ExpandStringShort("'a,b',c", ',') == StringListWrapper{{"a,b", "c"}});             // {"'a,b'", "c"}
-	CHECK(ExpandStringShort(R"("a,b",c)", ',') == StringListWrapper{{R"(a,b)", "c"}});       // {R"("a,b")", "c"}
-	CHECK(ExpandStringShort("\"a\\\",b\",c", ',') == StringListWrapper{{R"(a\",b)", "c"}});  // {R"("a\",b")", "c"} (MSVC fails using raw string here)
-	CHECK(ExpandStringLong("\"a,b,c\",d", ',', '"', '"', false) == StringListWrapper{{"\"a,b,c\",d"}}); // {"\"a,b,c\"", "d"}}
+	CHECK(ExpandStringLong("(a,b),c", ',', '(', ')') == StringListWrapper{{"(a,b)", "c"}});
+	CHECK(ExpandStringLong("((a,b),c),d", ',', '(', ')') == StringListWrapper{{"((a,b),c)", "d"}});
+	CHECK(ExpandStringLong("a(b,c),d(e,f)", ',', '(', ')') == StringListWrapper{{"a(b,c)", "d(e,f)"}});
+	CHECK(ExpandStringLong("a,,b", ',', '(', ')') == StringListWrapper{{"a", "", "b"}});
+	CHECK(ExpandStringLong("a  b", ' ', '(', ')') == StringListWrapper{{"a", "b"}});
+	CHECK(ExpandStringLong("'a,b',c", ',', '\'', '\'') == StringListWrapper{{"'a,b'", "c"}});
+	CHECK(ExpandStringLong(R"("a,b",c)", ',', '"', '"') == StringListWrapper{{R"("a,b")", "c"}});
+	CHECK(ExpandStringLong("a,'b, c'", ',', '\'', '\'') == StringListWrapper{{"a", "'b, c'"}});
+	CHECK(ExpandStringLong(" a,'b, c' ", ',', '\'', '\'') == StringListWrapper{{"a", "'b, c'"}});
+	CHECK(ExpandStringLong(" a 'b, c' ", ' ', '\'', '\'') == StringListWrapper{{"a", "'b, c'"}});
 }
 
 TEST_CASE("StringUtilities::StartsWith")

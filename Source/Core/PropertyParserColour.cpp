@@ -386,7 +386,8 @@ bool PropertyParserColour::ParseCIELABColour(Colourb& colour, const String& valu
 	// Parse lightness and alpha (same for both lab and lch).
 	for (int i : {0, 3})
 	{
-		// Value can either be 'none' (representing 0.0), a percentage between 0% and 100%, or a number (between 0.0 and 100.0 for lightness and between 0.0 and 1.0 for alpha).
+		// Value can either be 'none' (representing 0.0), a percentage between 0% and 100%, or a number (between 0.0 and 100.0 for lightness and
+		// between 0.0 and 1.0 for alpha).
 		if (values[i] == "none")
 			lab_values[i] = 0.0f;
 		else if (values[i][values[i].size() - 1] == '%')
@@ -567,8 +568,7 @@ bool PropertyParserColour::GetColourFunctionValues(StringList& values, const Str
 
 	size_t begin_values = find + 1;
 
-	StringUtilities::ExpandString(values, value.substr(begin_values, value.rfind(')') - begin_values), is_comma_separated ? ',' : ' ',
-		!is_comma_separated);
+	StringUtilities::ExpandString(values, value.substr(begin_values, value.rfind(')') - begin_values), is_comma_separated ? ',' : ' ');
 
 	return true;
 }

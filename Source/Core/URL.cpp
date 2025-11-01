@@ -184,7 +184,7 @@ bool URL::SetURL(const String& _url)
 
 		// Loop through all parameters, loading them
 		StringList parameter_list;
-		StringUtilities::ExpandString(parameter_list, parameters + 1, '&');
+		StringUtilities::ExpandString(parameter_list, StringView(parameters + 1, _url.c_str() + _url.size()), '&');
 		for (size_t i = 0; i < parameter_list.size(); i++)
 		{
 			// Split into key and value

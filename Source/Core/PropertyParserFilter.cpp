@@ -57,7 +57,7 @@ bool PropertyParserFilter::ParseValue(Property& property, const String& filter_s
 
 	// Make sure we don't split inside the parenthesis since they may appear in filter shorthands.
 	StringList filter_string_list;
-	StringUtilities::ExpandString(filter_string_list, filter_string_value, ' ', '(', ')', true);
+	StringUtilities::ExpandString(filter_string_list, filter_string_value, ' ', '(', ')');
 
 	FilterDeclarationList filters;
 	filters.value = filter_string_value;

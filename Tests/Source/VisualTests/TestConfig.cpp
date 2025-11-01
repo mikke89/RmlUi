@@ -32,6 +32,7 @@
 #include <PlatformExtensions.h>
 #include <Shell.h>
 #include <cstdlib>
+#include <cstring>
 
 Rml::String GetCompareInputDirectory()
 {
@@ -64,7 +65,7 @@ Rml::StringList GetTestInputDirectories()
 	Rml::StringList directories = {samples_root + "../Tests/Data/VisualTests"};
 
 	if (const char* env_variable = std::getenv("RMLUI_VISUAL_TESTS_RML_DIRECTORIES"))
-		Rml::StringUtilities::ExpandString(directories, env_variable, ',');
+		Rml::StringUtilities::ExpandString(directories, Rml::StringView(env_variable, env_variable + std::strlen(env_variable)), ',');
 
 	return directories;
 }

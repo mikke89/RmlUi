@@ -48,23 +48,19 @@ RMLUICORE_API String CreateString(const char* format, ...) RMLUI_ATTRIBUTE_FORMA
 RMLUICORE_API int FormatString(String& string, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(2, 3);
 
 namespace StringUtilities {
-	/// Expands character-delimited list of values in a single string to a whitespace-trimmed list
+	/// Expands a character-delimited string to a whitespace-trimmed list of values.
 	/// of values.
 	/// @param[out] string_list Resulting list of values.
 	/// @param[in] string String to expand.
 	/// @param[in] delimiter Delimiter found between entries in the string list.
-	/// @param[in] ignore_repeated_delimiters If true, repeated values of the delimiter will not add additional entries to the list.
-	RMLUICORE_API void ExpandString(StringList& string_list, const String& string, const char delimiter = ',',
-		bool ignore_repeated_delimiters = false);
-	/// Expands character-delimited list of values with custom quote characters.
-	/// @param[out] string_list Resulting list of values.
+	RMLUICORE_API void ExpandString(StringList& string_list, StringView string, char delimiter = ',');
+	/// Expands a character-delimited string to a whitespace-trimmed list of values, with quote characters.
+	/// @param[out] string_list Resulting list of values, each entry stripped of whitespace.
 	/// @param[in] string String to expand.
 	/// @param[in] delimiter Delimiter found between entries in the string list.
-	/// @param[in] quote_character Begin quote
-	/// @param[in] unquote_character End quote
-	/// @param[in] ignore_repeated_delimiters If true, repeated values of the delimiter will not add additional entries to the list.
-	RMLUICORE_API void ExpandString(StringList& string_list, const String& string, const char delimiter, char quote_character, char unquote_character,
-		bool ignore_repeated_delimiters = false);
+	/// @param[in] quote_character Begin quote.
+	/// @param[in] unquote_character End quote.
+	RMLUICORE_API void ExpandString(StringList& string_list, StringView string, char delimiter, char quote_character, char unquote_character);
 	/// Joins a list of string values into a single string separated by a character delimiter.
 	/// @param[out] string Resulting concatenated string.
 	/// @param[in] string_list Input list of string values.

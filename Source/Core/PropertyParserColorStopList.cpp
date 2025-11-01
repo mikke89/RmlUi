@@ -62,7 +62,7 @@ bool PropertyParserColorStopList::ParseValue(Property& property, const String& v
 	for (const String& color_stop_str : color_stop_str_list)
 	{
 		StringList values;
-		StringUtilities::ExpandString(values, color_stop_str, ' ', '(', ')', true);
+		StringUtilities::ExpandString(values, color_stop_str, ' ', '(', ')');
 
 		if (values.empty() || values.size() > 3)
 			return false;

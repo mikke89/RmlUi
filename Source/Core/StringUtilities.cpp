@@ -255,106 +255,55 @@ String StringUtilities::Replace(String subject, char search, char replace)
 	return subject;
 }
 
-void StringUtilities::ExpandString(StringList& string_list, const String& string, const char delimiter, bool ignore_repeated_delimiters)
+void StringUtilities::ExpandString(StringList& string_list, StringView string, char delimiter)
 {
-	char quote = 0;
-	bool last_char_delimiter = true;
-	const char* ptr = string.c_str();
-	const char* start_ptr = nullptr;
-	const char* end_ptr = ptr;
-
-	size_t num_delimiter_values = std::count(string.begin(), string.end(), delimiter);
-	if (num_delimiter_values == 0)
-	{
-		string_list.push_back(StripWhitespace(string));
-		return;
-	}
-	string_list.reserve(string_list.size() + num_delimiter_values + 1);
-
-	while (*ptr)
-	{
-		// Switch into quote mode if the last char was a delimeter ( excluding whitespace )
-		// and we're not already in quote mode
-		if (last_char_delimiter && !quote && (*ptr == '"' || *ptr == '\''))
-		{
-			quote = *ptr;
-		}
-		// Switch out of quote mode if we encounter a quote that hasn't been escaped
-		else if (*ptr == quote && *(ptr - 1) != '\\')
-		{
-			quote = 0;
-		}
-		// If we encounter a delimiter while not in quote mode, add the item to the list
-		else if (*ptr == delimiter && !quote)
-		{
-			if (start_ptr)
-				string_list.emplace_back(start_ptr, end_ptr + 1);
-			else if (!ignore_repeated_delimiters)
-				string_list.emplace_back();
-			last_char_delimiter = true;
-			start_ptr = nullptr;
-		}
-		// Otherwise if its not white space or we're in quote mode, advance the pointers
-		else if (!IsWhitespace(*ptr) || quote)
-		{
-			if (!start_ptr)
-				start_ptr = ptr;
-			end_ptr = ptr;
-			last_char_delimiter = false;
-		}
-
-		ptr++;
-	}
-
-	// If there's data pending, add it.
-	if (start_ptr)
-		string_list.emplace_back(start_ptr, end_ptr + 1);
+	ExpandString(string_list, string, delimiter, '\0', '\0');
 }
 
-void StringUtilities::ExpandString(StringList& string_list, const String& string, const char delimiter, char quote_character, char unquote_character,
-	bool ignore_repeated_delimiters)
+void StringUtilities::ExpandString(StringList& string_list, StringView string, char delimiter, char quote_character, char unquote_character)
 {
+	// Quote depth is incremented for each encountered quote character, and decremented on unquote character. If quote
+	// and unquote are the same characters, then quote mode is instead toggled.
 	int quote_mode_depth = 0;
-	const char* ptr = string.c_str();
 	const char* start_ptr = nullptr;
-	const char* end_ptr = ptr;
+	const char* last_ptr = nullptr;
 
-	while (*ptr)
+	string_list.reserve(string_list.size() + std::count(string.begin(), string.end(), delimiter) + 1);
+
+	for (const char& c : string)
 	{
-		// Increment the quote depth for each quote character encountered
-		if (*ptr == quote_character)
+		if (c == quote_character)
 		{
-			++quote_mode_depth;
+			if (quote_character == unquote_character)
+				quote_mode_depth = (quote_mode_depth == 0 ? 1 : 0);
+			else
+				++quote_mode_depth;
 		}
-		// And decrement it for every unquote character
-		else if (*ptr == unquote_character)
+		else if (c == unquote_character)
 		{
 			--quote_mode_depth;
 		}
 
-		// If we encounter a delimiter while not in quote mode, add the item to the list
-		if (*ptr == delimiter && quote_mode_depth == 0)
+		if (c == delimiter && quote_mode_depth == 0)
 		{
 			if (start_ptr)
-				string_list.emplace_back(start_ptr, end_ptr + 1);
-			else if (!ignore_repeated_delimiters)
+				string_list.emplace_back(start_ptr, last_ptr + 1);
+			else if (!IsWhitespace(delimiter))
 				string_list.emplace_back();
 			start_ptr = nullptr;
 		}
-		// Otherwise if its not white space or we're in quote mode, advance the pointers
-		else if (!IsWhitespace(*ptr) || quote_mode_depth > 0)
+		else if (!IsWhitespace(c) || quote_mode_depth > 0)
 		{
 			if (!start_ptr)
-				start_ptr = ptr;
-			end_ptr = ptr;
+				start_ptr = &c;
+			last_ptr = &c;
 		}
-
-		ptr++;
 	}
 
-	// If there's data pending, add it.
 	if (start_ptr)
-		string_list.emplace_back(start_ptr, end_ptr + 1);
+		string_list.emplace_back(start_ptr, last_ptr + 1);
+	else if (!IsWhitespace(delimiter) || std::all_of(string.begin(), string.end(), IsWhitespace))
+		string_list.emplace_back();
 }
 
 void StringUtilities::JoinString(String& string, const StringList& string_list, const char delimiter)
