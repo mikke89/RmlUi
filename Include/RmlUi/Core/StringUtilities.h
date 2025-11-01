@@ -53,7 +53,9 @@ namespace StringUtilities {
 	/// @param[out] string_list Resulting list of values.
 	/// @param[in] string String to expand.
 	/// @param[in] delimiter Delimiter found between entries in the string list.
-	RMLUICORE_API void ExpandString(StringList& string_list, const String& string, const char delimiter = ',');
+	/// @param[in] ignore_repeated_delimiters If true, repeated values of the delimiter will not add additional entries to the list.
+	RMLUICORE_API void ExpandString(StringList& string_list, const String& string, const char delimiter = ',',
+		bool ignore_repeated_delimiters = false);
 	/// Expands character-delimited list of values with custom quote characters.
 	/// @param[out] string_list Resulting list of values.
 	/// @param[in] string String to expand.
