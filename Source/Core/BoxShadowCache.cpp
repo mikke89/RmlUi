@@ -28,14 +28,12 @@
 
 #include "BoxShadowCache.h"
 #include "../../Include/RmlUi/Core/Box.h"
-#include "../../Include/RmlUi/Core/CallbackTexture.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/FileInterface.h"
-#include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../Include/RmlUi/Core/RenderManager.h"
@@ -79,7 +77,7 @@ static SharedPtr<BoxShadowData> GetOrCreateBoxShadow(RenderManager& render_manag
 	Geometry& background_border_geometry)
 {
 	auto it_handle = shadow_cache_data->handles.find(info);
-	if (it_handle == shadow_cache_data->handles.end())
+	if (it_handle != shadow_cache_data->handles.end())
 	{
 		SharedPtr<BoxShadowData> result = it_handle->second.lock();
 		RMLUI_ASSERTMSG(result, "Failed to lock handle in SVG cache");
@@ -119,7 +117,6 @@ SharedPtr<BoxShadowData> BoxShadowCache::GetHandle(Element* element, Geometry& b
 		return {};
 
 	const ComputedValues& computed = element->GetComputedValues();
-	const ColourbPremultiplied colour = computed.image_color().ToPremultiplied(computed.opacity());
 
 	ColourbPremultiplied background_color = computed.background_color().ToPremultiplied();
 	Array<ColourbPremultiplied, 4> border_colors = {

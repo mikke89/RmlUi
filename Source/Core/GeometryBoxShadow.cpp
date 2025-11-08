@@ -120,7 +120,7 @@ void GeometryBoxShadow::GenerateTexture(CallbackTexture& out_shadow_texture, Ren
 	// device loses its GPU context and the client calls Rml::ReleaseTextures().
 	auto texture_callback = [&info](const CallbackTextureInterface& texture_interface) -> bool {
 		RMLUI_ASSERT(info.border_render_boxes.size() == info.padding_render_boxes.size());
-		int num_boxes = info.border_render_boxes.size();
+		size_t num_boxes = info.border_render_boxes.size();
 
 		RenderManager& render_manager = texture_interface.GetRenderManager();
 

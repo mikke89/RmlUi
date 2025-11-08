@@ -116,10 +116,10 @@ namespace std {
 // Hash specialization for enum class types (required on some older compilers)
 template <>
 struct hash<::Rml::Unit> {
-	using utype = ::std::underlying_type_t<::Rml::Unit>;
+	using utype = underlying_type_t<::Rml::Unit>;
 	size_t operator()(const ::Rml::Unit& t) const noexcept
 	{
-		::std::hash<utype> h;
+		hash<utype> h;
 		return h(static_cast<utype>(t));
 	}
 };
