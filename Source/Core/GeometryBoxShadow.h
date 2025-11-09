@@ -29,6 +29,9 @@
 #ifndef RMLUI_CORE_GEOMETRYBOXSHADOW_H
 #define RMLUI_CORE_GEOMETRYBOXSHADOW_H
 
+// std::hash not defined for Unit.h, how do we solve? I assume Unit.h is a very lightweight file.
+#include "../../Include/RmlUi/Core/Utilities.h"
+
 #include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/RenderBox.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -78,7 +81,7 @@ public:
 	/// @param[in] render_manager The render manager to generate the shadow for.
 	/// @param[in] shadow_geometry_info The resolved box shadow geometry of a given element.
 	///	@see GeometryBoxShadow::Resolve()
-	static void GenerateTexture(CallbackTexture& out_shadow_texture, RenderManager& render_manager,
+	static void GenerateTexture(CallbackTexture& out_shadow_texture, Geometry& background_border_geometry, RenderManager& render_manager,
 		const BoxShadowGeometryInfo& shadow_geometry_info);
 };
 

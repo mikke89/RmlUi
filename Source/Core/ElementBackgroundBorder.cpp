@@ -146,7 +146,7 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 		ConvertColor(computed.border_bottom_color()),
 		ConvertColor(computed.border_left_color()),
 	};
-	const CornerSizes border_radius = computed.border_radius();
+	// const CornerSizes border_radius = computed.border_radius();
 
 	Geometry& geometry = GetOrCreateBackground(BackgroundType::BackgroundBorder).geometry;
 	Mesh mesh = geometry.Release(Geometry::ReleaseMode::ClearMesh);
@@ -160,7 +160,7 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 	{
 		// Generate the geometry for the box-shadow texture.
 		Background& shadow_background = GetOrCreateBackground(BackgroundType::BoxShadow);
-		box_shadow_cache = BoxShadowCache::GetHandle(element, geometry);
+		box_shadow_cache = BoxShadowCache::GetHandle(element, computed);
 		shadow_background.texture = box_shadow_cache->texture;
 	}
 }

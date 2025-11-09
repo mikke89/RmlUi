@@ -52,8 +52,8 @@ struct BoxShadowCacheData {
 
 static void ReleaseHandle(BoxShadowData* handle);
 
-BoxShadowData::BoxShadowData(CallbackTexture&& texture, Geometry&& geometry, const BoxShadowGeometryInfo& geometry_info) :
-	texture(std::move(texture)), geometry(std::move(geometry)), cache_key(geometry_info)
+BoxShadowData::BoxShadowData(const BoxShadowGeometryInfo& geometry_info) :
+	cache_key(geometry_info)
 {}
 
 BoxShadowData::~BoxShadowData()
@@ -73,8 +73,7 @@ void BoxShadowCache::Shutdown()
 	shadow_cache_data.Shutdown();
 }
 
-static SharedPtr<BoxShadowData> GetOrCreateBoxShadow(RenderManager& render_manager, const BoxShadowGeometryInfo& info,
-	Geometry& background_border_geometry)
+static SharedPtr<BoxShadowData> GetOrCreateBoxShadow(RenderManager& render_manager, const BoxShadowGeometryInfo& info)
 {
 	auto it_handle = shadow_cache_data->handles.find(info);
 	if (it_handle != shadow_cache_data->handles.end())
@@ -87,15 +86,16 @@ static SharedPtr<BoxShadowData> GetOrCreateBoxShadow(RenderManager& render_manag
 	RMLUI_ASSERTMSG(iterator_inserted.second, "Could not insert entry into the Box Shadow cache handle map, duplicate key.");
 	const BoxShadowGeometryInfo& inserted_key = iterator_inserted.first->first;
 	WeakPtr<BoxShadowData>& inserted_weak_data_pointer = iterator_inserted.first->second;
+	auto shadow_handle = MakeShared<BoxShadowData>(inserted_key);
 
-	Mesh mesh = background_border_geometry.Release(Geometry::ReleaseMode::ClearMesh);
-	const byte alpha = byte(info.opacity * 255.f);
+	GeometryBoxShadow::GenerateTexture(shadow_handle->texture, shadow_handle->background_border_geometry, render_manager, inserted_key);
+
 	// TODO: maybe cache the geometry too? Similar to the SVG cache hierarchy.
+	Mesh mesh = shadow_handle->geometry.Release(Geometry::ReleaseMode::ClearMesh);
+	const byte alpha = byte(info.opacity * 255.f);
 	MeshUtilities::GenerateQuad(mesh, -info.element_offset_in_texture, Vector2f(info.texture_dimensions), ColourbPremultiplied(alpha, alpha));
-	Geometry shadow_geometry = render_manager.MakeGeometry(std::move(mesh));
-	CallbackTexture shadow_texture;
-	GeometryBoxShadow::GenerateTexture(shadow_texture, render_manager, inserted_key);
-	auto shadow_handle = MakeShared<BoxShadowData>(std::move(shadow_texture), std::move(shadow_geometry), inserted_key);
+	shadow_handle->geometry = render_manager.MakeGeometry(std::move(mesh));
+
 	inserted_weak_data_pointer = shadow_handle;
 	return shadow_handle;
 }
@@ -114,13 +114,11 @@ static void ReleaseHandle(BoxShadowData* handle)
 	handles.erase(it_handle);
 }
 
-SharedPtr<BoxShadowData> BoxShadowCache::GetHandle(Element* element, Geometry& background_border_geometry)
+SharedPtr<BoxShadowData> BoxShadowCache::GetHandle(Element* element, const ComputedValues& computed)
 {
 	RenderManager* render_manager = element->GetRenderManager();
 	if (!render_manager)
 		return {};
-
-	const ComputedValues& computed = element->GetComputedValues();
 
 	ColourbPremultiplied background_color = computed.background_color().ToPremultiplied();
 	Array<ColourbPremultiplied, 4> border_colors = {
@@ -131,6 +129,6 @@ SharedPtr<BoxShadowData> BoxShadowCache::GetHandle(Element* element, Geometry& b
 	};
 	const CornerSizes border_radius = computed.border_radius();
 	BoxShadowGeometryInfo geom_info = GeometryBoxShadow::Resolve(element, border_radius, background_color, border_colors, computed.opacity());
-	return GetOrCreateBoxShadow(*render_manager, geom_info, background_border_geometry);
+	return GetOrCreateBoxShadow(*render_manager, geom_info);
 }
 } // namespace Rml

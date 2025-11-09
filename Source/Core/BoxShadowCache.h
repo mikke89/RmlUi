@@ -38,11 +38,12 @@ namespace Rml {
 struct BoxShadowGeometryInfo;
 
 struct BoxShadowData : NonCopyMoveable {
-	BoxShadowData(CallbackTexture&& texture, Geometry&& geometry, const BoxShadowGeometryInfo& geometry_info);
+	BoxShadowData(const BoxShadowGeometryInfo& geometry_info);
 	~BoxShadowData();
 
 	CallbackTexture texture;
 	Geometry geometry;
+	Geometry background_border_geometry;
 	const BoxShadowGeometryInfo& cache_key;
 };
 
@@ -54,7 +55,7 @@ public:
 	/// Returns a handle to BoxShadow data matching the parameters - creates new data if none is found.
 	/// @param[in] element Element for which to calculate and cache the box shadow
 	/// @return A handle to the BoxShadow data, with automatic reference counting.
-	static SharedPtr<BoxShadowData> GetHandle(Element* element, Geometry& background_border_geometry);
+	static SharedPtr<BoxShadowData> GetHandle(Element* element, const ComputedValues& computed);
 };
 
 } // namespace Rml
