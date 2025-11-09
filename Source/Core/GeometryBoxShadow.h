@@ -29,6 +29,7 @@
 #ifndef RMLUI_CORE_GEOMETRYBOXSHADOW_H
 #define RMLUI_CORE_GEOMETRYBOXSHADOW_H
 
+#include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/RenderBox.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
@@ -43,12 +44,14 @@ struct BoxShadowGeometryInfo {
 	RenderBoxList padding_render_boxes;
 	RenderBoxList border_render_boxes;
 	BoxShadowList shadow_list;
+	float opacity;
 };
 inline bool operator==(const BoxShadowGeometryInfo& a, const BoxShadowGeometryInfo& b)
 {
 	return a.background_color == b.background_color && a.border_colors == b.border_colors && a.border_radius == b.border_radius &&
 		a.texture_dimensions == b.texture_dimensions && a.element_offset_in_texture == b.element_offset_in_texture &&
-		a.padding_render_boxes == b.padding_render_boxes && a.border_render_boxes == b.border_render_boxes && a.shadow_list == b.shadow_list;
+		a.padding_render_boxes == b.padding_render_boxes && a.border_render_boxes == b.border_render_boxes && a.shadow_list == b.shadow_list &&
+		a.opacity == b.opacity;
 }
 inline bool operator!=(const BoxShadowGeometryInfo& a, const BoxShadowGeometryInfo& b)
 {
@@ -66,8 +69,9 @@ public:
 	/// @param[in] border_radius The border radius of the element.
 	/// @param[in] background_color The background colour of the element.
 	/// @param[in] border_colors The border colours of the element.
-	static BoxShadowGeometryInfo Resolve(Element* element, const CornerSizes& border_radius,
-		ColourbPremultiplied background_color, const Array<ColourbPremultiplied, 4>& border_colors);
+	/// @param[in] opacity The computed opacity of the element.
+	static BoxShadowGeometryInfo Resolve(Element* element, const CornerSizes& border_radius, ColourbPremultiplied background_color,
+		const Array<ColourbPremultiplied, 4>& border_colors, float opacity);
 
 	/// Generate the texture and geometry for a box shadow.
 	/// @param[out] out_shadow_texture The target texture, assumes pointer stability during the lifetime of the shadow geometry.
@@ -110,10 +114,11 @@ struct hash<::Rml::BoxShadowGeometryInfo> {
 		{
 			HashCombine(seed, v);
 		}
-		for (const auto& v : in.shadow_list)
+		for (const ::Rml::BoxShadow& v : in.shadow_list)
 		{
 			HashCombine(seed, v);
 		}
+		HashCombine(seed, in.opacity);
 		return seed;
 	}
 };

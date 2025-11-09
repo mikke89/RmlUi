@@ -39,7 +39,7 @@
 
 namespace Rml {
 BoxShadowGeometryInfo GeometryBoxShadow::Resolve(Element* element, const CornerSizes& border_radius,
-	ColourbPremultiplied background_color, const Array<ColourbPremultiplied, 4>& border_colors)
+	ColourbPremultiplied background_color, const Array<ColourbPremultiplied, 4>& border_colors, float opacity)
 {
 	// Find the box-shadow texture dimension and offset required to cover all box-shadows and element boxes combined.
 	Vector2f element_offset_in_texture;
@@ -111,6 +111,7 @@ BoxShadowGeometryInfo GeometryBoxShadow::Resolve(Element* element, const CornerS
 	geometry_info.padding_render_boxes = std::move(padding_render_boxes);
 	geometry_info.border_render_boxes = std::move(border_render_boxes);
 	geometry_info.shadow_list = std::move(shadow_list);
+	geometry_info.opacity = opacity;
 	return geometry_info;
 }
 
