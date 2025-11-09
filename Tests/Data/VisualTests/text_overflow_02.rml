@@ -1,0 +1,80 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>Text overflow 02</title>
+	<link href="https://drafts.csswg.org/css-overflow-4/#text-overflow" rel="help"/>
+	<meta name="Description" content="The 'text-overflow' property can be used with custom text. The properly should also apply to atomic inline-level elements, but support for this is not currently implemented."/>
+	<style>
+		.group > div {
+			line-height: 1.1;
+			width: 3.1em;
+			padding: 0.2em;
+			border:  1px #000;
+			margin: 0.5em 0;
+		}
+		.group p { margin: 0.5em 0.3em;}
+		.overflow-hidden { overflow: hidden; }
+		.nowrap { white-space: nowrap; }
+		.red, .orange {
+			display: inline-block;
+			width: 10px;
+			height: 10px;
+		}
+		.red { background: red; }
+		.orange { background: orange; }
+		.custom-string1 { text-overflow: "" }
+		.custom-string2 { text-overflow: "." }
+		.custom-string3 { text-overflow: "•••" }
+		.custom-string4 { text-overflow: "🌍" }
+		.custom-string5 { text-overflow: "🌍🐑" }
+		.custom-string6 { text-overflow: "🌍🐑💛" }
+		.custom-string7 { text-overflow: " THE END" }
+		div.long-custom-string1 { width: 100px; text-overflow: " THE END" }
+		.wide1 { width: 20px; }
+		.wide2 { width: 30px; }
+		.wide3 { width: 40px; }
+		.wide4 { width: 50px; }
+		.wide5 { width: 60px; }
+		div:hover { text-overflow: clip; }
+	</style>
+</head>
+
+<body>
+Custom overflow text.
+<div class="group">
+	<div class="overflow-hidden">Guacamole</div>
+	<div class="overflow-hidden hover-clip custom-string1">Guacamole</div>
+	<div class="overflow-hidden hover-clip custom-string2">Guacamole</div>
+	<div class="overflow-hidden hover-clip custom-string3">Guacamole</div>
+	<div class="overflow-hidden hover-clip custom-string4">Guacamole</div>
+	<div class="overflow-hidden hover-clip custom-string5">Guacamole</div>
+	<div class="overflow-hidden hover-clip custom-string6">Guacamole</div>
+	<div class="overflow-hidden hover-clip custom-string7">Guacamole</div>
+	<div class="overflow-hidden hover-clip long-custom-string1 nowrap">Guacamole from the chef</div>
+</div>
+
+<hr/>
+Atomic inline-level elements.
+<div class="group nowrap">
+	<div>AB<span class="red"></span><span class="orange"></span><span class="red"></span><span class="orange"></span>, CDE</div>
+	<div class="ellipsis">AB<span class="red"></span><span class="orange"></span><span class="red"></span><span class="orange"></span>, CDE</div>
+	<div class="overflow-hidden">AB<span class="red"></span><span class="orange"></span><span class="red"></span><span class="orange"></span>, CDE</div>
+	<div class="overflow-hidden ellipsis">AB<span class="red"></span><span class="orange"></span><span class="red"></span><span class="orange"></span>, CDE</div>
+	<div class="overflow-hidden ellipsis">
+		AB<span class="red"></span><span class="orange"></span><span class="red"></span><span class="orange"></span>, CDE
+		<p>CD<span class="red"></span><span class="orange"></span><span class="red"></span><span class="orange"></span>, CDE</p>
+		EF<span class="red"></span><span class="orange"></span><span class="red"></span><span class="orange"></span>, CDE
+	</div>
+</div>
+
+<hr/>
+Wide atomic inline-level elements.
+<div class="group nowrap">
+	<div class="overflow-hidden ellipsis"><span class="red wide1"></span><span class="orange"></span></div>
+	<div class="overflow-hidden ellipsis"><span class="red wide2"></span><span class="orange"></span></div>
+	<div class="overflow-hidden ellipsis"><span class="red wide3"></span><span class="orange"></span></div>
+	<div class="overflow-hidden ellipsis"><span class="red wide4"></span><span class="orange"></span></div>
+	<div class="overflow-hidden ellipsis"><span class="red wide5"></span><span class="orange"></span></div>
+</div>
+</body>
+</rml>

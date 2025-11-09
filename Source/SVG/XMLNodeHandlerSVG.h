@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ * Copyright (c) 2019- The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,23 +26,24 @@
  *
  */
 
-#ifndef RMLUI_CORE_TEXTSHAPINGCONTEXT_H
-#define RMLUI_CORE_TEXTSHAPINGCONTEXT_H
+#ifndef RMLUI_CORE_XMLNODEHANDLERSVG_H
+#define RMLUI_CORE_XMLNODEHANDLERSVG_H
 
-#include "StyleTypes.h"
-#include "Types.h"
+#include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/SVG/ElementSVG.h"
+#include "../Core/XMLNodeHandlerDefault.h"
 
 namespace Rml {
+namespace SVG {
+	/**
+	    Element Node handler that processes the SVG tag
+	 */
+	class XMLNodeHandlerSVG : public XMLNodeHandlerDefault {
+	public:
+		/// Called for element data
+		bool ElementData(XMLParser* parser, const String& data, XMLDataType type) override;
+	};
 
-/*
-    Data extracted from the properties of an element to help provide context for text shaping and spacing.
-*/
-struct TextShapingContext {
-	const String& language;
-	Style::Direction text_direction = Style::Direction::Auto;
-	Style::FontKerning font_kerning = Style::FontKerning::Auto;
-	float letter_spacing = 0.0f; // Measured in pixels.
-};
-
+} // namespace SVG
 } // namespace Rml
 #endif

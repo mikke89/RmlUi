@@ -1263,7 +1263,8 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	// Keep generating lines until all the text content is placed.
 	do
 	{
-		if (available_width <= 0.f)
+		const float maximum_line_width = available_width - cursor_size.x;
+		if (maximum_line_width <= 0.f)
 		{
 			lines.push_back(Line{});
 			break;
@@ -1275,8 +1276,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		String line_content;
 
 		// Generate the next line.
-		last_line =
-			text_element->GenerateLine(line_content, line.size, line_width, line_begin, available_width - cursor_size.x, 0, false, false, false);
+		last_line = text_element->GenerateLine(line_content, line.size, line_width, line_begin, maximum_line_width, 0, false, false, false);
 
 		// Check if the editable length needs to be truncated to dodge a trailing endline.
 		line.editable_length = (int)line_content.size();

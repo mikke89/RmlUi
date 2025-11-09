@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ * Copyright (c) 2019- The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,23 +26,17 @@
  *
  */
 
-#ifndef RMLUI_CORE_TEXTSHAPINGCONTEXT_H
-#define RMLUI_CORE_TEXTSHAPINGCONTEXT_H
-
-#include "StyleTypes.h"
-#include "Types.h"
+#include "XMLNodeHandlerSVG.h"
 
 namespace Rml {
-
-/*
-    Data extracted from the properties of an element to help provide context for text shaping and spacing.
-*/
-struct TextShapingContext {
-	const String& language;
-	Style::Direction text_direction = Style::Direction::Auto;
-	Style::FontKerning font_kerning = Style::FontKerning::Auto;
-	float letter_spacing = 0.0f; // Measured in pixels.
-};
-
+namespace SVG {
+	bool XMLNodeHandlerSVG::ElementData(XMLParser* parser, const String& data, XMLDataType /*type*/)
+	{
+		auto* element = rmlui_dynamic_cast<ElementSVG*>(parser->GetParseFrame()->element);
+		RMLUI_ASSERT(element);
+		if (element)
+			element->SetInnerRML(data);
+		return true;
+	}
+} // namespace SVG
 } // namespace Rml
-#endif

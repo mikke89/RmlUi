@@ -1,0 +1,32 @@
+<rml>
+	<head>
+		<title>SVG Inline</title>
+		<link type="text/template" href="/assets/window.rml" />
+		<style>
+			body {
+				width: 300px;
+				height: 225px;
+				margin: auto;
+				left: -400px;
+				top: 200px;
+			}
+
+			svg {
+				display: inline;
+			}
+
+			button {
+			    display: block;
+			    margin: 0 auto;
+			}
+		</style>
+	</head>
+	<body template="window" data-model="svg_test_model">
+		<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" id="svg_1">
+		    <circle cx="25" cy="25" r="20" stroke="black" stroke-width="3" fill="red" />
+        </svg>
+		<svg width="50" height="50" data-rml="svg_data"></svg>
+		<svg width="50" height="50" data-rml="'<circle cx=&quot;25&quot; cy=&quot;25&quot; r=&quot;20&quot; stroke=&quot;' + line_color + '&quot; stroke-width=&quot;3&quot; fill=&quot;' + fill_color + '&quot; />'"></svg>
+        <button data-event-click="toggle_svg">Click Me</button>
+	</body>
+</rml>

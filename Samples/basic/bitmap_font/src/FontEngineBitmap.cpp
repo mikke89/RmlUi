@@ -264,6 +264,8 @@ void FontParserBitmap::HandleElementStart(const String& name, const Rml::XMLAttr
 
 		if (character == (Character)'x')
 			metrics.x_height = glyph.dimension.y;
+		if (character == (Character)0x2026)
+			metrics.has_ellipsis = true;
 	}
 	else if (name == "kerning")
 	{

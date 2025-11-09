@@ -141,7 +141,7 @@ void TestsShell::PresentFrame()
 		Backend::PresentFrame();
 }
 
-void TestsShell::RenderLoop()
+void TestsShell::RenderLoop(bool block_until_escape)
 {
 	REQUIRE(shell_context);
 
@@ -150,7 +150,7 @@ void TestsShell::RenderLoop()
 		bool running = true;
 		while (running)
 		{
-			running = Backend::ProcessEvents(shell_context, &Shell::ProcessKeyDownShortcuts);
+			running = Backend::ProcessEvents(shell_context, &Shell::ProcessKeyDownShortcuts) && block_until_escape;
 			shell_context->Update();
 			BeginFrame();
 			shell_context->Render();

@@ -156,17 +156,18 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Platforms
 
-| Platform support | Basic windowing | Clipboard | High DPI | Comments  |
-|------------------|:---------------:|:---------:|:--------:|-----------|
-| Win32            |       ✔️        |    ✔️     |    ✔️    | High DPI only supported on Windows 10 and newer. |
-| X11              |       ✔️        |    ✔️     |    ❌     |  |
-| SFML             |       ✔️        |    ⚠️     |    ❌     | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
-| GLFW             |       ✔️        |    ✔️     |    ✔️    |  |
-| SDL              |       ✔️        |    ✔️     |    ✔️    | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3. |
+| Platform | Basic windowing | Clipboard | High DPI | Touch | Comments                                                                      |
+|----------|:---------------:|:---------:|:--------:|:-----:|-------------------------------------------------------------------------------|
+| Win32    |       ✔️        |    ✔️     |    ✔️    |   ❌   | High DPI only supported on Windows 10 and newer.                              |
+| X11      |       ✔️        |    ✔️     |    ❌     |   ❌   |                                                                               |
+| SFML     |       ✔️        |    ⚠️     |    ❌     |   ❌   | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
+| GLFW     |       ✔️        |    ✔️     |    ✔️    |   ❌   |                                                                               |
+| SDL      |       ✔️        |    ✔️     |    ✔️    |  ✔️   | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3.                   |
 
 **Basic windowing**: Open windows, react to resize events, submit inputs to the RmlUi context.\
 **Clipboard**: Read from and write to the system clipboard.\
-**High DPI**: Scale the [dp-ratio](https://mikke89.github.io/RmlUiDoc/pages/rcss/syntax#dp-unit) of RmlUi contexts based on the monitor's DPI settings. React to DPI-changes, either because of changed settings or when moving the window to another monitor.
+**High DPI**: Scale the [dp-ratio](https://mikke89.github.io/RmlUiDoc/pages/rcss/syntax#dp-unit) of RmlUi contexts based on the monitor's DPI settings. React to DPI-changes, either because of changed settings or when moving the window to another monitor. \
+**Touch**: Process touch events, enable dragging and inertial scrolling with touch movement.
 
 ### Backends
 

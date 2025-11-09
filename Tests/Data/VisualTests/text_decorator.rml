@@ -47,6 +47,15 @@
 		.misc > :nth-child(4) { decorator: text("Hello 🌎 world!" fuchsia 20px 20%); }
 		.misc > :nth-child(5) { decorator: text("Hello 🌎 world!" fuchsia 20px 20%); opacity: 0.5; }
 
+		group.hover > :nth-child(n) { decorator: text("Hello 🌎 world!"); }
+		.hover > :nth-child(1):hover { color: red; }
+		.hover > :nth-child(2):hover { opacity: 0.5; }
+		.hover > :nth-child(3):hover { font-style: italic; }
+		.hover > :nth-child(4):hover { font-weight: bold; }
+		.hover > :nth-child(5):hover { letter-spacing: 3dp; }
+		.hover > :nth-child(6):hover { font-family: "rmlui-debugger-font"; }
+		.hover > :nth-child(7):hover { font-size: 18dp; }
+
 	</style>
 </head>
 
@@ -77,6 +86,17 @@ Blue text [equivalent]
 
 Miscellaneous
 <group class="misc">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Inherit font change on hover
+<group id="hover" class="hover">
+	<div/>
+	<div/>
 	<div/>
 	<div/>
 	<div/>

@@ -63,7 +63,15 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (!SDL_Init(SDL_INIT_VIDEO))
 		return false;
 
+	// Submit click events when focusing the window.
 	SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+	// Touch events are handled natively, no need to generate synthetic mouse events for touch devices.
+	SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+
+#if defined RMLUI_BACKEND_SIMULATE_TOUCH
+	// Simulate touch events from mouse events for testing touch behavior on a desktop machine.
+	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
+#endif
 
 	const float window_size_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
 	SDL_PropertiesID props = SDL_CreateProperties();

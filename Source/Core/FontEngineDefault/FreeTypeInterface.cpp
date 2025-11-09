@@ -138,8 +138,8 @@ FontFaceHandleFreetype FreeType::LoadFace(Span<const byte> data, const String& s
 	RMLUI_ASSERT(ft_library);
 
 	FT_Face face = nullptr;
-	FT_Error error =
-		FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()), (named_style_index << 16) | face_index, &face);
+	FT_Error error = FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()),
+		(named_style_index << 16) | face_index, &face);
 
 	if (error)
 	{
@@ -468,6 +468,9 @@ static void GenerateMetrics(FT_Face ft_face, FontMetrics& metrics, float bitmap_
 		metrics.x_height = ft_face->glyph->metrics.height * bitmap_scaling_factor / float(1 << 6);
 	else
 		metrics.x_height = 0.5f * metrics.line_spacing;
+
+	FT_UInt ellipsis_index = FT_Get_Char_Index(ft_face, 0x2026);
+	metrics.has_ellipsis = (ellipsis_index != 0);
 }
 
 static bool SetFontSize(FT_Face ft_face, int font_size, float& out_bitmap_scaling_factor)

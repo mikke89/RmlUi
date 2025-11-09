@@ -237,14 +237,22 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 	if (p0.unit == Unit::KEYWORD && p1.unit == Unit::KEYWORD)
 	{
 		// Discrete interpolation, swap at alpha = 0.5.
-		// Special case for the 'visibility' property as in the CSS specs:
-		//   Apply the visible property if present during the entire transition period, i.e. alpha (0,1).
+		// Special case for the 'visibility' and 'display' properties as in the CSS specs:
+		//   If present, apply the 'visible' / non-'none' keyword during the entire transition period, i.e. alpha (0,1).
+		// See: https://www.w3.org/TR/css-display-4/#display-animation
 		if (definition && definition->GetId() == PropertyId::Visibility)
 		{
 			if (p0.Get<int>() == (int)Style::Visibility::Visible)
 				return alpha < 1.f ? p0 : p1;
 			else if (p1.Get<int>() == (int)Style::Visibility::Visible)
 				return alpha <= 0.f ? p0 : p1;
+		}
+		if (definition && definition->GetId() == PropertyId::Display)
+		{
+			if (p0.Get<int>() == (int)Style::Display::None)
+				return alpha <= 0.f ? p0 : p1;
+			else if (p1.Get<int>() == (int)Style::Display::None)
+				return alpha < 1.f ? p0 : p1;
 		}
 
 		return p_discrete;

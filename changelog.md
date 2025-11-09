@@ -13,6 +13,90 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
+## RmlUi 6.2 (WIP)
+
+### Touch input & inertial scrolling
+
+Introducing native touch input processing and inertial (momentum) scrolling. This is likely our longest-standing open feature request, now closed thanks to great contributions. #60 #795 (thanks @reven86)
+
+- New context methods `Context::ProcessTouchStart/Move/End/Cancel` to process touch points.
+- Inertial scrolling is automatically applied from touch when a user flicks and releases while scrolling.
+- Touch support added to the SDL backends. This can be simulated using mouse events by setting the CMake variable `RMLUI_BACKEND_SIMULATE_TOUCH=ON`.
+
+### Elements
+
+- Elements: Add overloads to element animation functions for PropertyId. #825 (thanks @AthosArantes)
+- Radio buttons: Group radio buttons also when outside a form element. #779 (thanks @mcukstorm)
+- Button and submit elements: Support value attribute for HTML conformance. #798 (thanks @mcukstorm)
+- Tabset panels: Add pseudo class `:selected` to the active panel to allow adding transition effects when switching tabs. #809 (thanks @loganmcbroom)
+- Drop-down widget performance: Remove unnecessary resizing during layouting which could cause decorator data being regenerated.
+- Text input: Avoid selecting all text when Ctrl + Alt + A key combination is used. This is used to insert characters on certain keyboard layouts, and would thus cause all text to be removed instead. #773 (thanks @ShawnCZek)
+- Image element: Maintain aspect ratio when one of the width or height attributes is set. #771
+- Image element: Handle dimensions with zero size without producing contagious NaN values.
+
+### Text behavior
+
+- Expose lines from ElementText, to help with custom text effects. #833 (thanks @Paril)
+- Make text decorators update when the color or font is changed. #817
+- Fix an issue where old text could still be rendered after being cleared, when transforms were applied. #810 
+
+### Events
+
+- Allow inline event suffix 'capture' to bind to the capture phase, e.g. `<button onfocuscapture="start">`. #821
+
+### Data bindings
+
+- Fix structural data views (data-for) not working with data model on the body element. This also includes data models directly on body templates. #790
+
+### Templates
+
+- Fix content of sibling inline templates always being injected into the first sibling. #838
+
+### Callback textures
+
+- Prevent callback textures from loading again after failing. #778 (thanks @mcukstorm)
+- Allow setting custom texture handles for callback textures, which may help with custom decorators or other rendering effects. #813
+
+### Developer experience
+
+- Remove duplicate "Equal" table from VisualTest comparison log. #782 (thanks @cafeed28)
+- Add debug warnings when using an unsupported locale setting. #772
+- Add [`natvis` visualization file](Utilities/natvis/RmlUi.natvis) for RmlUi types, which can be used when debugging with Visual Studio or compatible debuggers.
+
+### Backends
+
+- SDL GPU: New backend. Currently supports basic rendering and transforms. #791 (thanks @jsoulier)
+- SDL3 backends: Fix wrong mouse position on Mac with high DPI (retina). #770
+
+### Lua plugin
+
+- Fix loading font faces through Lua. #764 (thanks @ShawnCZek)
+- Allowing setting fallback flag when loading font faces in Lua. #764 (thanks @ShawnCZek)
+
+### SVG & Lottie Plugins
+
+- Add SVG cache. Each SVG document will be stored in the cache as long as it is in use, otherwise the document will be released. For each SVG document, we also cache textures from it based on their resolution and color. Textures will be reused if all properties that determine their generated bitmap match. #598 (thanks @Illation)
+- Add SVG content cropping. When enabled (default off), the displayed SVG viewbox will be cropped to the content of the SVG, i.e. scaling up the content until it reaches the edges of the texture. #598 (thanks @Illation)
+  - For `<svg>` elements, this can be activated with the [`crop-to-content` attribute](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html#svg).
+  - For `svg` decorators, the [`crop-to-content` keyword](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html#decorator) can be used.
+- Add `EnsureSourceLoaded()` to `ElementSVG` and `ElementLottie` to allow manually triggering load, to allow preloading or using the elements within hidden elements. #763
+
+### HarfBuzz font engine
+
+- Submit font bitmaps in premultiplied alpha for proper transparency near glyph edges.
+
+### Performance
+
+- Reuse the previous text geometry when the mesh is equivalent, which avoids geometry recompilation when reused. #727
+- Use a free list instead of a bit mask in `StableVector`. This allows faster insertion at the cost of slower iteration, the former being of main concern to the library. 
+- Avoid a string allocation and copy when formatting long strings.
+
+### Build
+
+- Fix compilation of `robin_hood.h` with GCC 15. #766 (thanks @williamjcm)
+- Fix compilation of the SVG plugin when using a custom `String` type. #820 (thanks @tretre91)
+
+
 ## RmlUi 6.1
 
 ### Prevent single pixel gaps between elements

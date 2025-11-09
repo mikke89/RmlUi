@@ -34,6 +34,7 @@
 #include "../../Include/RmlUi/SVG/ElementSVG.h"
 #include "DecoratorSVG.h"
 #include "SVGCache.h"
+#include "XMLNodeHandlerSVG.h"
 
 namespace Rml {
 namespace SVG {
@@ -49,6 +50,9 @@ namespace SVG {
 
 			decorator_instancer = MakeUnique<DecoratorSVGInstancer>();
 			Factory::RegisterDecoratorInstancer("svg", decorator_instancer.get());
+
+			XMLParser::RegisterNodeHandler("svg", MakeShared<XMLNodeHandlerSVG>());
+			XMLParser::RegisterPersistentCDATATag("svg");
 
 			Log::Message(Log::LT_INFO, "SVG plugin initialised.");
 		}

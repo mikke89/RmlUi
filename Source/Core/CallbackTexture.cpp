@@ -83,6 +83,18 @@ void CallbackTextureInterface::SaveLayerAsTexture() const
 		dimensions = region.Size();
 }
 
+void CallbackTextureInterface::SetTextureHandle(TextureHandle handle, Vector2i new_dimensions) const
+{
+	if (texture_handle)
+	{
+		RMLUI_ERRORMSG("Texture already set");
+		return;
+	}
+
+	texture_handle = handle;
+	dimensions = new_dimensions;
+}
+
 RenderManager& CallbackTextureInterface::GetRenderManager() const
 {
 	return render_manager;

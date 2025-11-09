@@ -38,10 +38,7 @@
 
 body.window
 {
-	left: 80dp;
-	right: 80dp;
-	top: 50dp;
-	bottom: 50dp;
+	inset: 50dp 80dp;
 	min-width: 1040dp;
 	min-height: 300dp;
 	max-width: none;

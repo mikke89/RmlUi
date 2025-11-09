@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
@@ -41,6 +42,7 @@ namespace Rml {
 
 struct XmlParserData {
 	UnorderedMap<String, SharedPtr<XMLNodeHandler>> node_handlers;
+	UnorderedSet<String> cdata_tags;
 	SharedPtr<XMLNodeHandler> default_node_handler;
 };
 
@@ -48,8 +50,8 @@ static ControlledLifetimeResource<XmlParserData> xml_parser_data;
 
 XMLParser::XMLParser(Element* root)
 {
-	RegisterCDATATag("script");
-	RegisterCDATATag("style");
+	for (const String& cdata_tag : xml_parser_data->cdata_tags)
+		RegisterCDATATag(cdata_tag);
 
 	for (const String& name : Factory::GetStructuralDataViewAttributeNames())
 		RegisterInnerXMLAttribute(name);
@@ -57,6 +59,19 @@ XMLParser::XMLParser(Element* root)
 	// Add the first frame.
 	ParseFrame frame;
 	frame.element = root;
+	if (root != nullptr)
+	{
+		frame.tag = root->GetTagName();
+		auto itr = xml_parser_data->node_handlers.find(root->GetTagName());
+		if (itr != xml_parser_data->node_handlers.end())
+		{
+			frame.node_handler = itr->second.get();
+		}
+		else
+		{
+			frame.node_handler = xml_parser_data->default_node_handler.get();
+		}
+	}
 	stack.push(frame);
 
 	active_handler = nullptr;
@@ -65,6 +80,19 @@ XMLParser::XMLParser(Element* root)
 }
 
 XMLParser::~XMLParser() {}
+
+void XMLParser::RegisterPersistentCDATATag(const String& _tag)
+{
+	if (!xml_parser_data)
+		xml_parser_data.Initialize();
+
+	String tag = StringUtilities::ToLower(_tag);
+
+	if (tag.empty())
+		return;
+
+	xml_parser_data->cdata_tags.insert(tag);
+}
 
 XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, SharedPtr<XMLNodeHandler> handler)
 {

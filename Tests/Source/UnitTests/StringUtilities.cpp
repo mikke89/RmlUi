@@ -77,6 +77,22 @@ TEST_CASE("StringUtilities::StartsWith")
 	CHECK(!StartsWith("abc", "x"));
 }
 
+TEST_CASE("StringUtilities::EndsWith")
+{
+	using namespace Rml::StringUtilities;
+
+	CHECK(EndsWith("abc", "abc"));
+	CHECK(EndsWith("abc", "bc"));
+	CHECK(EndsWith("abc", "c"));
+	CHECK(EndsWith("abc", ""));
+
+	CHECK(!EndsWith("abc", "abcd"));
+	CHECK(!EndsWith("abc", "abd"));
+	CHECK(!EndsWith("abc", "bbc"));
+	CHECK(!EndsWith("abc", "ab"));
+	CHECK(!EndsWith("abc", "x"));
+}
+
 TEST_CASE("StringView")
 {
 	const char abc[] = "abc";

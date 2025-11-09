@@ -125,10 +125,21 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 	Parse("none,,,red", {"none", "red"}, SplitOption::Comma);
 	Parse("none, ,  ,red", {"none", "red"}, SplitOption::Comma);
 
+	Parse(R"("name")", {R"("name")"}, SplitOption::Comma);
+	Parse(R"("name" none)", {R"("name" none)"}, SplitOption::Comma);
+	Parse(R"(none "name")", {R"(none "name")"}, SplitOption::Comma);
+	Parse(R"( none "name" )", {R"(none "name")"}, SplitOption::Comma);
+	Parse(R"( "name", red )", {R"("name")", R"(red)"}, SplitOption::Comma);
+	Parse(R"( "name", "red" )", {R"("name")", R"("red")"}, SplitOption::Comma);
+	Parse(R"( "name", none "red" )", {R"("name")", R"(none "red")"}, SplitOption::Comma);
+
 	Parse("\"string with spaces\"", "string with spaces");
 	Parse("\"string with spaces\" two", {"string with spaces", "two"});
 	Parse("\"string with spaces\"two", {"string with spaces", "two"});
-	Parse("\"string with spaces\"two", "string with spaces two", SplitOption::None);
+
+	Parse("\"string\"two", {}, SplitOption::None);
+	Parse("one\"string\"", {}, SplitOption::None);
+	Parse("one \"string\"", {}, SplitOption::None);
 
 	Parse("\"string (with) ((parenthesis\" two", {"string (with) ((parenthesis", "two"});
 	Parse("\"none,,red\" two", {"none,,red", "two"});
@@ -167,6 +178,45 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 	Parse(R"(image("a\\b"))", R"(image("a\b"))");
 	Parse(R"(image("a\\\b"))", R"(image("a\\b"))");
 	Parse(R"(image("a\\\\b"))", R"(image("a\\b"))");
+
+	Parse(R"()", {});
+	Parse(R"("")", R"()");
+	Parse(R"(" ")", R"( )");
+	Parse(R"("abc")", R"(abc)");
+	Parse(R"( "abc" )", R"(abc)");
+	Parse(R"(" abc")", R"( abc)");
+	Parse(R"("abc ")", R"(abc )");
+	Parse(R"(" abc ")", R"( abc )");
+	Parse(R"("test"  none)", {R"(test)", R"(none)"});
+
+	Parse(R"('')", R"()");
+	Parse(R"(' ')", R"( )");
+	Parse(R"('abc')", R"(abc)");
+	Parse(R"( 'abc' )", R"(abc)");
+	Parse(R"(' abc')", R"( abc)");
+	Parse(R"('abc ')", R"(abc )");
+	Parse(R"(' abc ')", R"( abc )");
+	Parse(R"('test'  none)", {R"(test)", R"(none)"});
+
+	Parse(R"()", {}, SplitOption::None);
+	Parse(R"("")", R"()", SplitOption::None);
+	Parse(R"(" ")", R"( )", SplitOption::None);
+	Parse(R"("abc")", R"(abc)", SplitOption::None);
+	Parse(R"( "abc" )", R"(abc)", SplitOption::None);
+	Parse(R"(" abc")", R"( abc)", SplitOption::None);
+	Parse(R"("abc ")", R"(abc )", SplitOption::None);
+	Parse(R"(" abc ")", R"( abc )", SplitOption::None);
+	Parse(R"("test"  none)", {}, SplitOption::None);
+
+	Parse(R"("","")", {R"("")", R"("")"}, SplitOption::Comma);
+	Parse(R"(" "," ")", {R"(" ")", R"(" ")"}, SplitOption::Comma);
+	Parse(R"(" " , " ")", {R"(" ")", R"(" ")"}, SplitOption::Comma);
+	Parse(R"( " " none, yes)", {R"(" " none)", R"(yes)"}, SplitOption::Comma);
+
+	Parse(R"('','')", {R"('')", R"('')"}, SplitOption::Comma);
+	Parse(R"(' ',' ')", {R"(' ')", R"(' ')"}, SplitOption::Comma);
+	Parse(R"(' ' , ' ')", {R"(' ')", R"(' ')"}, SplitOption::Comma);
+	Parse(R"( ' ' none, yes)", {R"(' ' none)", R"(yes)"}, SplitOption::Comma);
 
 	Rml::Shutdown();
 }

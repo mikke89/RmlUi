@@ -42,6 +42,9 @@ static constexpr float SMOOTHSCROLL_MAX_VELOCITY = 10'000.f;   // [dp/s]
 static constexpr float SMOOTHSCROLL_VELOCITY_CONSTANT = 800.f; // [dp/s]
 static constexpr float SMOOTHSCROLL_VELOCITY_SQUARE_FACTOR = 0.05f;
 
+// Factor to multiply friction by before applying to velocity.
+static constexpr float INERTIA_FRICTION_FACTOR = 5.0f;
+
 // Clamp the delta time to some reasonable FPS range, to avoid large steps in case of stuttering or freezing.
 static constexpr float DELTA_TIME_CLAMP_LOW = 1.f / 500.f; // [s]
 static constexpr float DELTA_TIME_CLAMP_HIGH = 1.f / 15.f; // [s]
@@ -123,12 +126,40 @@ void ScrollController::ActivateSmoothscroll(Element* in_target, Vector2f delta_d
 		Reset();
 }
 
+void ScrollController::InstantScrollOnTarget(Element* in_target, Vector2f delta_distance)
+{
+	if (!in_target)
+		return;
+
+	// instant scroll element without changing the current target
+
+	Element* safe_target = target;
+
+	target = in_target;
+	PerformScrollOnTarget(delta_distance);
+	target = safe_target;
+}
+
+void ScrollController::ApplyScrollInertia(Element* in_target, const Vector2f& velocity)
+{
+	Reset();
+	if (!in_target || (velocity.x == 0 && velocity.y == 0))
+		return;
+
+	target = in_target;
+	inertia_scroll_velocity = velocity;
+	mode = Mode::Inertia;
+	UpdateTime();
+}
+
 bool ScrollController::Update(Vector2i mouse_position, float dp_ratio)
 {
 	if (mode == Mode::Autoscroll)
 		UpdateAutoscroll(mouse_position, dp_ratio);
 	else if (mode == Mode::Smoothscroll)
 		UpdateSmoothscroll(dp_ratio);
+	else if (mode == Mode::Inertia)
+		UpdateInertia();
 
 	return mode != Mode::None;
 }
@@ -188,6 +219,32 @@ void ScrollController::UpdateSmoothscroll(float dp_ratio)
 
 	if (HasSmoothscrollReachedTarget())
 		Reset();
+}
+
+void ScrollController::UpdateInertia()
+{
+	RMLUI_ASSERT(mode == Mode::Inertia && target);
+
+	if (inertia_scroll_velocity.x == 0.0f && inertia_scroll_velocity.y == 0.0f)
+	{
+		Reset();
+		return;
+	}
+
+	// Apply and dampen inertia.
+
+	float dt = UpdateTime();
+
+	Vector2f scroll_delta = inertia_scroll_velocity * dt;
+	PerformScrollOnTarget(scroll_delta);
+
+	float dampening = 1.0f - INERTIA_FRICTION_FACTOR * dt;
+	inertia_scroll_velocity *= dampening;
+
+	if (std::abs(inertia_scroll_velocity.x) < 30.0f)
+		inertia_scroll_velocity.x = 0.0f;
+	if (std::abs(inertia_scroll_velocity.y) < 30.0f)
+		inertia_scroll_velocity.y = 0.0f;
 }
 
 bool ScrollController::HasSmoothscrollReachedTarget() const
