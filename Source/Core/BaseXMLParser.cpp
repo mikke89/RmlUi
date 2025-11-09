@@ -44,6 +44,11 @@ void BaseXMLParser::RegisterCDATATag(const String& tag)
 		cdata_tags.insert(StringUtilities::ToLower(tag));
 }
 
+bool BaseXMLParser::IsCDATATag(const String& tag)
+{
+	return cdata_tags.find(StringUtilities::ToLower(tag)) != cdata_tags.end();
+}
+
 void BaseXMLParser::RegisterInnerXMLAttribute(const String& attribute_name)
 {
 	attributes_for_inner_xml_data.insert(attribute_name);
@@ -267,17 +272,14 @@ bool BaseXMLParser::ReadOpenTag()
 	// Check if this tag needs to be processed as CDATA.
 	if (section_opened)
 	{
-		const String lcase_tag_name = StringUtilities::ToLower(tag_name);
-		bool is_cdata_tag = (cdata_tags.find(lcase_tag_name) != cdata_tags.end());
-
-		if (is_cdata_tag)
+		if (IsCDATATag(tag_name))
 		{
-			if (ReadCDATA(lcase_tag_name.c_str()))
+			if (ReadCDATA(StringUtilities::ToLower(tag_name).c_str()))
 			{
 				open_tag_depth--;
 				if (!data.empty())
 				{
-					HandleDataInternal(data, XMLDataType::CData);
+					HandleDataInternal(data, XMLDataType::CDATA);
 					data.clear();
 				}
 				HandleElementEndInternal(tag_name);

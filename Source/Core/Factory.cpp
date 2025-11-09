@@ -280,6 +280,10 @@ void Factory::Initialise()
 	RegisterDataControllerInstancer(&default_instancers.data_controller_event, "event");
 	RegisterDataControllerInstancer(&default_instancers.data_controller_value, "value");
 
+	// XML nodes that only contain CDATA
+	XMLParser::RegisterPersistentCDATATag("script");
+	XMLParser::RegisterPersistentCDATATag("style");
+
 	// XML node handlers
 	XMLParser::RegisterNodeHandler("", MakeShared<XMLNodeHandlerDefault>());
 	XMLParser::RegisterNodeHandler("body", MakeShared<XMLNodeHandlerBody>());

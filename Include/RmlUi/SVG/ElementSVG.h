@@ -41,14 +41,22 @@ class RMLUICORE_API ElementSVG : public Element {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
 
-	ElementSVG(const String& tag);
-	virtual ~ElementSVG();
+	explicit ElementSVG(const String& tag);
+	~ElementSVG() override;
 
 	/// Returns the element's inherent size.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
 	/// Loads the current source file if needed. This normally happens automatically during layouting.
 	void EnsureSourceLoaded();
+
+	/// Gets the SVG XML data (as text) if using inline SVG, if using a file source this will return a blank string
+	/// @param[out] content The SVG XML data (as text) or blank string
+	void GetInnerRML(String& content) const override;
+
+	/// Gets the SVG XML data (as text) if using inline SVG, if using a file source this will return a blank string
+	/// @param[in] content The SVG XML data (as text) or blank string
+	void SetInnerRML(const String& rml) override;
 
 protected:
 	/// Renders the image.
@@ -66,13 +74,14 @@ protected:
 	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
 private:
-	void UpdateCachedData();
+	/// Generate unique internal ids for SVG elements using inline SVG.
+	static unsigned long internal_id_counter;
 
+	String svg_data;
 	bool svg_dirty = false;
 
 	SharedPtr<SVG::SVGData> handle;
 };
-
 } // namespace Rml
 
 #endif

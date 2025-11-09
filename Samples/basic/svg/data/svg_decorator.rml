@@ -1,6 +1,6 @@
 <rml>
 	<head>
-		<title>Demo</title>
+		<title>SVG Decorator</title>
 		<link type="text/template" href="/assets/window.rml" />
 		<style>
 			body {
@@ -8,6 +8,7 @@
 				height: 225px;
 				margin: auto;
 				left: 400px;
+				top: -400px;
 			}
 
 			div.tiger {
