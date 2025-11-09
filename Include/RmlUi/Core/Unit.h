@@ -29,7 +29,9 @@
 #ifndef RMLUI_CORE_UNIT_H
 #define RMLUI_CORE_UNIT_H
 
+// needed for std::hash
 #include "Header.h"
+#include "Utilities.h"
 #include <type_traits>
 
 namespace Rml {
@@ -112,4 +114,16 @@ inline bool Any(Units units)
 }
 
 } // namespace Rml
+namespace std {
+// Hash specialization for enum class types (required on some older compilers)
+template <>
+struct hash<::Rml::Unit> {
+	using utype = underlying_type_t<::Rml::Unit>;
+	size_t operator()(const ::Rml::Unit& t) const noexcept
+	{
+		hash<utype> h;
+		return h(static_cast<utype>(t));
+	}
+};
+} // namespace std
 #endif

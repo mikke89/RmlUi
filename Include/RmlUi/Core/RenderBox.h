@@ -30,6 +30,7 @@
 #define RMLUI_CORE_RENDERBOX_H
 
 #include "Types.h"
+#include "Utilities.h"
 
 namespace Rml {
 
@@ -76,6 +77,39 @@ private:
 	EdgeSizes border_widths;
 	CornerSizes border_radius;
 };
-
+inline bool operator==(const RenderBox& a, const RenderBox& b)
+{
+	return a.GetFillSize() == b.GetFillSize() && a.GetBorderOffset() == b.GetBorderOffset() && a.GetBorderWidths() == b.GetBorderWidths() &&
+		a.GetBorderRadius() == b.GetBorderRadius();
+}
+inline bool operator!=(const RenderBox& a, const RenderBox& b)
+{
+	return !(a == b);
+}
 } // namespace Rml
+
+namespace std {
+template <>
+struct hash<::Rml::RenderBox> {
+	
+	size_t operator()(const ::Rml::RenderBox& box) const noexcept
+	{
+		using namespace ::Rml::Utilities;
+		static auto HashArray4 = [](const ::Rml::Array<float, 4>& arr) -> size_t {
+			size_t seed = 0;
+			for (const auto& v : arr)
+				HashCombine(seed, v);
+			return seed;
+		};
+
+		size_t seed = 0;
+		HashCombine(seed, box.GetFillSize());
+		HashCombine(seed, box.GetBorderOffset());
+		HashCombine(seed, HashArray4(box.GetBorderRadius()));
+		HashCombine(seed, HashArray4(box.GetBorderWidths()));
+		return seed;
+	}
+};
+} // namespace std
+
 #endif
