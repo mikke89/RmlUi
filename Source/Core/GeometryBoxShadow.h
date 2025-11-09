@@ -29,9 +29,6 @@
 #ifndef RMLUI_CORE_GEOMETRYBOXSHADOW_H
 #define RMLUI_CORE_GEOMETRYBOXSHADOW_H
 
-// std::hash not defined for Unit.h, how do we solve? I assume Unit.h is a very lightweight file.
-#include "../../Include/RmlUi/Core/Utilities.h"
-
 #include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/RenderBox.h"
 #include "../../Include/RmlUi/Core/Types.h"

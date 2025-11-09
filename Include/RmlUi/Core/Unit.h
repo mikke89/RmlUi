@@ -29,7 +29,9 @@
 #ifndef RMLUI_CORE_UNIT_H
 #define RMLUI_CORE_UNIT_H
 
+// needed for std::hash
 #include "Header.h"
+#include "Utilities.h"
 #include <type_traits>
 
 namespace Rml {

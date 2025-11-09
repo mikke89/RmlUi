@@ -36,6 +36,9 @@
 
 namespace Rml {
 struct BoxShadowGeometryInfo;
+namespace Style {
+	class ComputedValues;
+} // namespace Style
 
 struct BoxShadowData : NonCopyMoveable {
 	BoxShadowData(const BoxShadowGeometryInfo& geometry_info);
@@ -55,7 +58,7 @@ public:
 	/// Returns a handle to BoxShadow data matching the parameters - creates new data if none is found.
 	/// @param[in] element Element for which to calculate and cache the box shadow
 	/// @return A handle to the BoxShadow data, with automatic reference counting.
-	static SharedPtr<BoxShadowData> GetHandle(Element* element, const ComputedValues& computed);
+	static SharedPtr<BoxShadowData> GetHandle(Element* element, const Style::ComputedValues& computed);
 };
 
 } // namespace Rml
