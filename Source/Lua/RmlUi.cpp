@@ -1,6 +1,6 @@
 #include "RmlUi.h"
-#include "ElementInstancer.h"
-#include "LuaElementInstancer.h"
+#include "LuaNodeInstancer.h"
+#include "NodeInstancer.h"
 #include "RmlUiContextsProxy.h"
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Factory.h>
@@ -63,9 +63,9 @@ int LuaRmlUiLoadFontFace(lua_State* L, LuaRmlUi* /*obj*/)
 int LuaRmlUiRegisterTag(lua_State* L, LuaRmlUi* /*obj*/)
 {
 	const char* tag = luaL_checkstring(L, 1);
-	LuaElementInstancer* lei = (LuaElementInstancer*)LuaType<ElementInstancer>::check(L, 2);
+	LuaNodeInstancer* lei = (LuaNodeInstancer*)LuaType<NodeInstancer>::check(L, 2);
 	RMLUI_CHECK_OBJ(lei);
-	Factory::RegisterElementInstancer(tag, lei);
+	Factory::RegisterNodeInstancer(tag, lei);
 	return 0;
 }
 

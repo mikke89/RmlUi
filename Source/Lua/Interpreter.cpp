@@ -1,4 +1,4 @@
-#include "LuaDocumentElementInstancer.h"
+#include "LuaDocumentNodeInstancer.h"
 #include "LuaEventListenerInstancer.h"
 #include "LuaPlugin.h"
 #include <RmlUi/Core/Core.h>

@@ -9,6 +9,7 @@ namespace Rml {
 class Context;
 class Element;
 class ElementDocument;
+class NodeInstancer;
 using OwnedNodeList = Vector<NodePtr>;
 
 /**
@@ -248,8 +249,15 @@ public:
 		return NodeChildReverseRange<T>(this, include_non_dom_elements);
 	}
 
+	/// Sets the instancer to use for releasing this node.
+	/// @param[in] instancer Instancer to set on this node.
+	void SetInstancer(NodeInstancer* instancer);
+
 protected:
 	Node();
+
+	NodeInstancer* GetInstancer() const;
+	void Release() override;
 
 	void SetOwnerDocument(ElementDocument* document);
 
@@ -259,6 +267,8 @@ protected:
 
 private:
 	void SetParent(Node* new_parent);
+
+	NodeInstancer* instancer = nullptr;
 
 	Node* parent = nullptr;
 	ElementDocument* owner_document = nullptr;

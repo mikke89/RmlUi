@@ -3,12 +3,12 @@
 
 ElementGameInstancer::~ElementGameInstancer() {}
 
-Rml::ElementPtr ElementGameInstancer::InstanceElement(Rml::Element* /*parent*/, const Rml::String& tag, const Rml::XMLAttributes& /*attributes*/)
+Rml::NodePtr ElementGameInstancer::InstanceNode(const Rml::String& tag)
 {
-	return Rml::ElementPtr(new ElementGame(tag));
+	return Rml::NodePtr(new ElementGame(tag));
 }
 
-void ElementGameInstancer::ReleaseElement(Rml::Element* element)
+void ElementGameInstancer::ReleaseNode(Rml::Node* node)
 {
-	delete element;
+	delete node;
 }

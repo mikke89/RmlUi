@@ -48,8 +48,8 @@ using Matrix4f = RMLUI_MATRIX4_TYPE;
 
 // Common classes
 class Node;
+class NodeInstancer;
 class Element;
-class ElementInstancer;
 class ElementAnimation;
 class RenderManager;
 class Texture;

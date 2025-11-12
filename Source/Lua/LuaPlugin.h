@@ -8,7 +8,7 @@ typedef struct lua_State lua_State;
 namespace Rml {
 namespace Lua {
 
-class LuaDocumentElementInstancer;
+class LuaDocumentNodeInstancer;
 class LuaEventListenerInstancer;
 
 /**
@@ -28,7 +28,7 @@ private:
 
 	void OnShutdown() override;
 
-	LuaDocumentElementInstancer* lua_document_element_instancer = nullptr;
+	LuaDocumentNodeInstancer* lua_document_element_instancer = nullptr;
 	LuaEventListenerInstancer* lua_event_listener_instancer = nullptr;
 	bool owns_lua_state = false;
 };
