@@ -15,8 +15,8 @@ add_library(rmlui_lua
 	ElementAttributesProxy.h
 	ElementChildNodesProxy.cpp
 	ElementChildNodesProxy.h
-	ElementInstancer.cpp
-	ElementInstancer.h
+	NodeInstancer.cpp
+	NodeInstancer.h
 	ElementStyleProxy.cpp
 	ElementStyleProxy.h
 	ElementText.cpp
@@ -35,10 +35,10 @@ add_library(rmlui_lua
 	LuaDataModel.h
 	LuaDocument.cpp
 	LuaDocument.h
-	LuaDocumentElementInstancer.cpp
-	LuaDocumentElementInstancer.h
-	LuaElementInstancer.cpp
-	LuaElementInstancer.h
+	LuaDocumentNodeInstancer.cpp
+	LuaDocumentNodeInstancer.h
+	LuaNodeInstancer.cpp
+	LuaNodeInstancer.h
 	LuaEventListener.cpp
 	LuaEventListener.h
 	LuaEventListenerInstancer.cpp

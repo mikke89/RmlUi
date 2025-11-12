@@ -26,27 +26,20 @@
  *
  */
 
-#ifndef RMLUI_LUA_ELEMENTINSTANCER_H
-#define RMLUI_LUA_ELEMENTINSTANCER_H
+#ifndef RMLUI_LUA_LUADOCUMENTNODEINSTANCER_H
+#define RMLUI_LUA_LUADOCUMENTNODEINSTANCER_H
 
-#include "LuaElementInstancer.h"
-#include <RmlUi/Lua/IncludeLua.h>
-#include <RmlUi/Lua/LuaType.h>
+#include <RmlUi/Core/NodeInstancer.h>
 
 namespace Rml {
 namespace Lua {
-template <>
-void ExtraInit<ElementInstancer>(lua_State* L, int metatable_index);
-// method
-int ElementInstancernew(lua_State* L);
-// setter
-int ElementInstancerSetAttrInstanceElement(lua_State* L);
 
-extern RegType<ElementInstancer> ElementInstancerMethods[];
-extern luaL_Reg ElementInstancerGetters[];
-extern luaL_Reg ElementInstancerSetters[];
+class LuaDocumentNodeInstancer : public ::Rml::NodeInstancer {
+public:
+	NodePtr InstanceNode(const String& tag) override;
+	void ReleaseNode(Node* node) override;
+};
 
-RMLUI_LUATYPE_DECLARE(ElementInstancer)
 } // namespace Lua
 } // namespace Rml
 #endif

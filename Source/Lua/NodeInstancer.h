@@ -26,25 +26,27 @@
  *
  */
 
-#ifndef RMLUI_LUA_LUADOCUMENTELEMENTINSTANCER_H
-#define RMLUI_LUA_LUADOCUMENTELEMENTINSTANCER_H
+#ifndef RMLUI_LUA_NODEINSTANCER_H
+#define RMLUI_LUA_NODEINSTANCER_H
 
-#include <RmlUi/Core/ElementInstancer.h>
+#include "LuaNodeInstancer.h"
+#include <RmlUi/Lua/IncludeLua.h>
+#include <RmlUi/Lua/LuaType.h>
 
 namespace Rml {
 namespace Lua {
+template <>
+void ExtraInit<NodeInstancer>(lua_State* L, int metatable_index);
+// method
+int NodeInstancernew(lua_State* L);
+// setter
+int NodeInstancerSetAttrInstanceNode(lua_State* L);
 
-class LuaDocumentElementInstancer : public ::Rml::ElementInstancer {
-	/// Instances an element given the tag name and attributes.
-	/// @param[in] parent The element the new element is destined to be parented to.
-	/// @param[in] tag The tag of the element to instance.
-	/// @param[in] attributes Dictionary of attributes.
-	ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) override;
-	/// Releases an element instanced by this instancer.
-	/// @param[in] element The element to release.
-	void ReleaseElement(Element* element) override;
-};
+extern RegType<NodeInstancer> NodeInstancerMethods[];
+extern luaL_Reg NodeInstancerGetters[];
+extern luaL_Reg NodeInstancerSetters[];
 
+RMLUI_LUATYPE_DECLARE(NodeInstancer)
 } // namespace Lua
 } // namespace Rml
 #endif

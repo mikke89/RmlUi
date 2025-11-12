@@ -88,12 +88,12 @@ Context::Context(const String& name, RenderManager* render_manager, TextInputHan
 {
 	instancer = nullptr;
 
-	root = Factory::InstanceElement(nullptr, "*", "#root", XMLAttributes());
+	root = As<ElementPtr>(Factory::InstanceNode("*", "#root"));
 	root->SetId(name);
 	root->SetOffset(Vector2f(0, 0), nullptr);
 	root->SetProperty(PropertyId::ZIndex, Property(0, Unit::NUMBER));
 
-	cursor_proxy = Factory::InstanceElement(nullptr, documents_base_tag, documents_base_tag, XMLAttributes());
+	cursor_proxy = As<ElementPtr>(Factory::InstanceNode(documents_base_tag, documents_base_tag));
 	ElementDocument* cursor_proxy_document = rmlui_dynamic_cast<ElementDocument*>(cursor_proxy.get());
 	RMLUI_ASSERT(cursor_proxy_document);
 	cursor_proxy_document->context = this;
@@ -266,24 +266,24 @@ bool Context::Render()
 
 ElementDocument* Context::CreateDocument(const String& instancer_name)
 {
-	ElementPtr element = Factory::InstanceElement(nullptr, instancer_name, documents_base_tag, XMLAttributes());
-	if (!element)
+	NodePtr node = Factory::InstanceNode(instancer_name, documents_base_tag);
+	if (!node)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document on instancer_name '%s', instancer returned nullptr.", instancer_name.c_str());
 		return nullptr;
 	}
 
-	ElementDocument* document = rmlui_dynamic_cast<ElementDocument*>(element.get());
+	ElementDocument* document = rmlui_dynamic_cast<ElementDocument*>(node.get());
 	if (!document)
 	{
 		Log::Message(Log::LT_ERROR,
 			"Failed to instance document on instancer_name '%s', Found type '%s', was expecting derivative of ElementDocument.",
-			instancer_name.c_str(), rmlui_type_name(*element));
+			instancer_name.c_str(), rmlui_type_name(*node));
 		return nullptr;
 	}
 
 	document->context = this;
-	root->AppendChild(std::move(element));
+	root->AppendChild(std::move(node));
 
 	PluginRegistry::NotifyDocumentLoad(document);
 
@@ -307,16 +307,16 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 	DebugVerifyLocaleSetting();
 	PluginRegistry::NotifyDocumentOpen(this, stream->GetSourceURL().GetURL());
 
-	ElementPtr element = Factory::InstanceDocumentStream(this, stream, GetDocumentsBaseTag());
-	if (!element)
+	NodePtr node = Factory::InstanceDocumentStream(this, stream, GetDocumentsBaseTag());
+	if (!node)
 		return nullptr;
 
-	ElementDocument* document = rmlui_static_cast<ElementDocument*>(element.get());
+	ElementDocument* document = rmlui_static_cast<ElementDocument*>(node.get());
 
-	root->AppendChild(std::move(element));
+	root->AppendChild(std::move(node));
 
 	// The 'load' event is fired before updating the document, because the user might
-	// need to initalize things before running an update. The drawback is that computed
+	// need to initialize things before running an update. The drawback is that computed
 	// values and layouting are not performed yet, resulting in default values when
 	// querying such information in the event handler.
 	PluginRegistry::NotifyDocumentLoad(document);

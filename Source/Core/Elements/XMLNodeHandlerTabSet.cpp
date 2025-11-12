@@ -47,28 +47,28 @@ Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& nam
 		// Call this node handler for all children
 		parser->PushHandler("tabset");
 
-		// Attempt to instance the tabset
-		ElementPtr element = Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);
-		ElementTabSet* tabset = rmlui_dynamic_cast<ElementTabSet*>(element.get());
+		NodePtr Node = Factory::InstanceNode(name, name);
+		ElementTabSet* tabset = rmlui_dynamic_cast<ElementTabSet*>(Node.get());
 		if (!tabset)
 		{
 			Log::Message(Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.c_str());
 			return nullptr;
 		}
+		tabset->SetAttributes(attributes);
 
-		// Add the TabSet into the document
-		Element* result = parser->GetParseFrame()->element->AppendChild(std::move(element));
+		parser->GetParseFrame()->element->AppendChild(std::move(Node));
 
-		return result;
+		return tabset;
 	}
 	else if (name == "tab")
 	{
 		// Call default element handler for all children.
 		parser->PushDefaultHandler();
 
-		ElementPtr tab_element = Factory::InstanceElement(parser->GetParseFrame()->element, "*", "tab", attributes);
-		Element* result = nullptr;
+		ElementPtr tab_element = As<ElementPtr>(Factory::InstanceNode("*", "tab"));
+		tab_element->SetAttributes(attributes);
 
+		Element* result = nullptr;
 		ElementTabSet* tabset = rmlui_dynamic_cast<ElementTabSet*>(parser->GetParseFrame()->element);
 		if (tabset)
 		{
@@ -83,9 +83,10 @@ Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& nam
 		// Call default element handler for all children.
 		parser->PushDefaultHandler();
 
-		ElementPtr panel_element = Factory::InstanceElement(parser->GetParseFrame()->element, "*", "panel", attributes);
-		Element* result = nullptr;
+		ElementPtr panel_element = As<ElementPtr>(Factory::InstanceNode("*", "panel"));
+		panel_element->SetAttributes(attributes);
 
+		Element* result = nullptr;
 		ElementTabSet* tabset = rmlui_dynamic_cast<ElementTabSet*>(parser->GetParseFrame()->element);
 		if (tabset)
 		{
@@ -103,12 +104,8 @@ Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& nam
 
 		Element* parent = parser->GetParseFrame()->element;
 
-		ElementPtr element = Factory::InstanceElement(parent, name, name, attributes);
-		if (!element)
-		{
-			Log::Message(Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.c_str());
-			return nullptr;
-		}
+		ElementPtr element = As<ElementPtr>(Factory::InstanceNode(name, name));
+		element->SetAttributes(attributes);
 
 		parent->AppendChild(std::move(element));
 

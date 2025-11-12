@@ -48,8 +48,7 @@ bool InputTypeSubmit::OnAttributeChange(const ElementAttributes& changed_attribu
 	{
 		auto value = element->GetAttribute<String>("value", "");
 		if (!value.empty() && !value_element)
-			value_element =
-				rmlui_static_cast<ElementText*>(element->AppendChild(Factory::InstanceElement(element, "#text", "", XMLAttributes()), true));
+			value_element = rmlui_static_cast<ElementText*>(element->AppendChild(Factory::InstanceNode("#text", "#text"), true));
 
 		if (value_element)
 			value_element->SetText(value);

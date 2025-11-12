@@ -344,7 +344,7 @@ TEST_CASE("PropertyParser.InvalidShorthands")
 	SetSystemInterface(&system_interface);
 	Rml::Initialise();
 
-	ElementPtr element = Factory::InstanceElement(nullptr, "*", "div", {});
+	ElementPtr element = As<ElementPtr>(Factory::InstanceNode("*", "div"));
 
 	struct TestCase {
 		bool expected_result;

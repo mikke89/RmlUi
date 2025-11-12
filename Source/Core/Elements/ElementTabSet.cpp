@@ -41,14 +41,14 @@ ElementTabSet::~ElementTabSet() {}
 
 void ElementTabSet::SetTab(int tab_index, const String& rml)
 {
-	ElementPtr element = Factory::InstanceElement(nullptr, "*", "tab", XMLAttributes());
+	ElementPtr element = As<ElementPtr>(Factory::InstanceNode("*", "tab"));
 	Factory::InstanceElementText(element.get(), rml);
 	SetTab(tab_index, std::move(element));
 }
 
 void ElementTabSet::SetPanel(int tab_index, const String& rml)
 {
-	ElementPtr element = Factory::InstanceElement(nullptr, "*", "panel", XMLAttributes());
+	ElementPtr element = As<ElementPtr>(Factory::InstanceNode("*", "panel"));
 	Factory::InstanceElementText(element.get(), rml);
 	SetPanel(tab_index, std::move(element));
 }
@@ -113,16 +113,16 @@ void ElementTabSet::SetActiveTab(int tab_index)
 		Element* old_window = windows->GetChild(active_tab);
 		Element* new_window = windows->GetChild(tab_index);
 
-        if (old_window)
-        {
-            old_window->SetPseudoClass("selected", false);
+		if (old_window)
+		{
+			old_window->SetPseudoClass("selected", false);
 			old_window->SetProperty(PropertyId::Display, Property(Style::Display::None));
-        }
+		}
 		if (new_window)
-        {
-            new_window->SetPseudoClass("selected", true);
+		{
+			new_window->SetPseudoClass("selected", true);
 			new_window->RemoveProperty(PropertyId::Display);
-        }
+		}
 
 		active_tab = tab_index;
 
@@ -188,10 +188,10 @@ void ElementTabSet::OnChildAdd(Element* child)
 
 		// Make the new element visible if its the active tab
 		if (child->GetParentNode()->GetChild(active_tab) == child)
-        {
+		{
 			child->SetPseudoClass("selected", true);
 			child->RemoveProperty(PropertyId::Display);
-        }
+		}
 	}
 }
 
@@ -205,7 +205,7 @@ Element* ElementTabSet::GetChildByTag(const String& tag)
 	}
 
 	// If it doesn't exist, create it
-	ElementPtr element = Factory::InstanceElement(this, "*", tag, XMLAttributes());
+	ElementPtr element = As<ElementPtr>(Factory::InstanceNode("*", tag));
 	Element* result = AppendChild(std::move(element));
 	return result;
 }

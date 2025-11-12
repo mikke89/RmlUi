@@ -95,11 +95,11 @@ WidgetSlider::~WidgetSlider()
 bool WidgetSlider::Initialise()
 {
 	// Create all of our child elements as standard elements, and abort if we can't create them.
-	ElementPtr track_element = Factory::InstanceElement(parent, "*", "slidertrack", XMLAttributes());
-	ElementPtr bar_element = Factory::InstanceElement(parent, "*", "sliderbar", XMLAttributes());
-	ElementPtr progress_element = Factory::InstanceElement(parent, "*", "sliderprogress", XMLAttributes());
-	ElementPtr arrow0_element = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
-	ElementPtr arrow1_element = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());
+	ElementPtr track_element = As<ElementPtr>(Factory::InstanceNode("*", "slidertrack"));
+	ElementPtr bar_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderbar"));
+	ElementPtr progress_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderprogress"));
+	ElementPtr arrow0_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderarrowdec"));
+	ElementPtr arrow1_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderarrowinc"));
 
 	if (!track_element || !bar_element || !progress_element || !arrow0_element || !arrow1_element)
 		return false;
@@ -373,11 +373,11 @@ void WidgetSlider::FormatProgress()
 	progress_box.SetContent(progress_box_content);
 	progress->SetBox(progress_box);
 
-        Vector2f offset = track->GetRelativeOffset();
-        offset.x += progress->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
-        offset.y += progress->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
+	Vector2f offset = track->GetRelativeOffset();
+	offset.x += progress->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+	offset.y += progress->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 
-        progress->SetOffset(offset, parent);
+	progress->SetOffset(offset, parent);
 
 	ResizeProgress();
 }
@@ -600,9 +600,12 @@ void WidgetSlider::ResizeProgress()
 	Box progress_box = progress->GetBox();
 	Vector2f new_size = progress_box.GetSize();
 
-	if (orientation == VERTICAL) {
+	if (orientation == VERTICAL)
+	{
 		new_size.y = bar->GetOffsetTop();
-	} else {
+	}
+	else
+	{
 		new_size.x = bar->GetOffsetLeft();
 	}
 

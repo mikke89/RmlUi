@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUI_CORE_ELEMENTINSTANCER_H
-#define RMLUI_CORE_ELEMENTINSTANCER_H
+#ifndef RMLUI_CORE_NODEINSTANCER_H
+#define RMLUI_CORE_NODEINSTANCER_H
 
 #include "Element.h"
 #include "Header.h"
@@ -37,36 +37,31 @@
 
 namespace Rml {
 
-class Element;
+class Node;
 
 /**
-    An element instancer provides a method for allocating
-    and deallocating elements.
+    A node instancer provides a method for allocating and deallocating elements.
 
-    It is important at the same instancer that allocated
-    the element releases it. This ensures there are no
-    issues with memory from different DLLs getting mixed up.
+    It is important at the same instancer that allocated the node releases it. This ensures that the node is constructed
+    and freed from the same allocator.
 
-    The returned element is a unique pointer. When this is
-    destroyed, it will call	ReleaseElement on the instancer
-    in which it was instanced.
+    The returned element is a unique pointer. When this is destroyed, it will call ReleaseElement on the instancer in
+    which it was instanced.
 
     @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API ElementInstancer : public NonCopyMoveable {
+class RMLUICORE_API NodeInstancer : public NonCopyMoveable {
 public:
-	virtual ~ElementInstancer();
+	virtual ~NodeInstancer();
 
 	/// Instances an element given the tag name and attributes.
-	/// @param[in] parent The element the new element is destined to be parented to.
 	/// @param[in] tag The tag of the element to instance.
-	/// @param[in] attributes Dictionary of attributes.
 	/// @return A unique pointer to the instanced element.
-	virtual ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) = 0;
+	virtual NodePtr InstanceNode(const String& tag) = 0;
 	/// Releases an element instanced by this instancer.
-	/// @param[in] element The element to release.
-	virtual void ReleaseElement(Element* element) = 0;
+	/// @param[in] node The element to release.
+	virtual void ReleaseNode(Node* node) = 0;
 };
 
 /**
@@ -75,11 +70,11 @@ public:
     pool for allocations.
  */
 
-class RMLUICORE_API ElementInstancerElement : public ElementInstancer {
+class RMLUICORE_API NodeInstancerElement : public NodeInstancer {
 public:
-	ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) override;
-	void ReleaseElement(Element* element) override;
-	~ElementInstancerElement();
+	NodePtr InstanceNode(const String& tag) override;
+	void ReleaseNode(Node* node) override;
+	~NodeInstancerElement();
 };
 
 /**
@@ -88,10 +83,10 @@ public:
     pool for allocations.
  */
 
-class RMLUICORE_API ElementInstancerText : public ElementInstancer {
+class RMLUICORE_API NodeInstancerText : public NodeInstancer {
 public:
-	ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) override;
-	void ReleaseElement(Element* element) override;
+	NodePtr InstanceNode(const String& tag) override;
+	void ReleaseNode(Node* node) override;
 };
 
 /**
@@ -100,26 +95,26 @@ public:
  */
 
 template <typename T>
-class ElementInstancerGeneric : public ElementInstancer {
+class NodeInstancerGeneric : public NodeInstancer {
 public:
-	virtual ~ElementInstancerGeneric() {}
+	virtual ~NodeInstancerGeneric() {}
 
-	ElementPtr InstanceElement(Element* /*parent*/, const String& tag, const XMLAttributes& /*attributes*/) override
+	NodePtr InstanceNode(const String& tag) override
 	{
-		RMLUI_ZoneScopedN("ElementGenericInstance");
-		return ElementPtr(new T(tag));
+		RMLUI_ZoneScopedN("InstanceNodeGeneric");
+		return NodePtr(new T(tag));
 	}
 
-	void ReleaseElement(Element* element) override
+	void ReleaseNode(Node* node) override
 	{
-		RMLUI_ZoneScopedN("ElementGenericRelease");
-		delete element;
+		RMLUI_ZoneScopedN("ReleaseNodeGeneric");
+		delete node;
 	}
 };
 
 namespace Detail {
-	void InitializeElementInstancerPools();
-	void ShutdownElementInstancerPools();
+	void InitializeNodeInstancerPools();
+	void ShutdownNodeInstancerPools();
 } // namespace Detail
 
 } // namespace Rml

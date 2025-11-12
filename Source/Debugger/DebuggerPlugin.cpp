@@ -29,9 +29,9 @@
 #include "DebuggerPlugin.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/NodeInstancer.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include "DebuggerSystemInterface.h"
 #include "ElementContextHook.h"
@@ -88,8 +88,8 @@ bool DebuggerPlugin::Initialise(Context* context)
 		return false;
 	}
 
-	hook_element_instancer = MakeUnique<ElementInstancerGeneric<ElementContextHook>>();
-	Factory::RegisterElementInstancer("debug-hook", hook_element_instancer.get());
+	hook_element_instancer = MakeUnique<NodeInstancerGeneric<ElementContextHook>>();
+	Factory::RegisterNodeInstancer("debug-hook", hook_element_instancer.get());
 
 	return true;
 }
@@ -274,8 +274,8 @@ bool DebuggerPlugin::LoadFont()
 
 bool DebuggerPlugin::LoadMenuElement()
 {
-	debug_document_instancer = MakeUnique<ElementInstancerGeneric<ElementDebugDocument>>();
-	Factory::RegisterElementInstancer("debug-document", debug_document_instancer.get());
+	debug_document_instancer = MakeUnique<NodeInstancerGeneric<ElementDebugDocument>>();
+	Factory::RegisterNodeInstancer("debug-document", debug_document_instancer.get());
 	menu_element = host_context->CreateDocument("debug-document");
 	if (!menu_element)
 		return false;
@@ -312,8 +312,8 @@ bool DebuggerPlugin::LoadMenuElement()
 
 bool DebuggerPlugin::LoadInfoElement()
 {
-	info_element_instancer = MakeUnique<ElementInstancerGeneric<ElementInfo>>();
-	Factory::RegisterElementInstancer("debug-info", info_element_instancer.get());
+	info_element_instancer = MakeUnique<NodeInstancerGeneric<ElementInfo>>();
+	Factory::RegisterNodeInstancer("debug-info", info_element_instancer.get());
 	info_element = rmlui_dynamic_cast<ElementInfo*>(host_context->CreateDocument("debug-info"));
 	if (!info_element)
 		return false;
@@ -333,8 +333,8 @@ bool DebuggerPlugin::LoadInfoElement()
 
 bool DebuggerPlugin::LoadLogElement()
 {
-	log_element_instancer = MakeUnique<ElementInstancerGeneric<ElementLog>>();
-	Factory::RegisterElementInstancer("debug-log", log_element_instancer.get());
+	log_element_instancer = MakeUnique<NodeInstancerGeneric<ElementLog>>();
+	Factory::RegisterNodeInstancer("debug-log", log_element_instancer.get());
 	log_element = rmlui_dynamic_cast<ElementLog*>(host_context->CreateDocument("debug-log"));
 	if (!log_element)
 		return false;

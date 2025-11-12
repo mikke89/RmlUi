@@ -109,10 +109,10 @@ bool WidgetScroll::Initialise(Orientation _orientation)
 	orientation = _orientation;
 
 	// Create all of our child elements as standard elements, and abort if we can't create them.
-	ElementPtr track_element = Factory::InstanceElement(parent, "*", "slidertrack", XMLAttributes());
-	ElementPtr bar_element = Factory::InstanceElement(parent, "*", "sliderbar", XMLAttributes());
-	ElementPtr arrow0_element = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
-	ElementPtr arrow1_element = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());
+	ElementPtr track_element = As<ElementPtr>(Factory::InstanceNode("*", "slidertrack"));
+	ElementPtr bar_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderbar"));
+	ElementPtr arrow0_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderarrowdec"));
+	ElementPtr arrow1_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderarrowinc"));
 
 	if (!track_element || !bar_element || !arrow0_element || !arrow1_element)
 	{
