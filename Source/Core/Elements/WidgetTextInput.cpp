@@ -203,9 +203,9 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent)
 	parent->AddEventListener(EventId::Dblclick, this, true);
 	parent->AddEventListener(EventId::Drag, this, true);
 
-	ElementPtr unique_text = Factory::InstanceElement(parent, "#text", "#text", XMLAttributes());
+	NodePtr unique_text = Factory::InstanceNode("#text", "#text");
 	text_element = rmlui_dynamic_cast<ElementText*>(unique_text.get());
-	ElementPtr unique_selected_text = Factory::InstanceElement(parent, "#text", "#text", XMLAttributes());
+	NodePtr unique_selected_text = Factory::InstanceNode("#text", "#text");
 	selected_text_element = rmlui_dynamic_cast<ElementText*>(unique_selected_text.get());
 	if (text_element)
 	{
@@ -217,7 +217,7 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent)
 	}
 
 	// Create the dummy selection element.
-	ElementPtr unique_selection = Factory::InstanceElement(parent, "#selection", "selection", XMLAttributes());
+	NodePtr unique_selection = Factory::InstanceNode("#selection", "selection");
 	if (ElementTextSelection* text_selection_element = rmlui_dynamic_cast<ElementTextSelection*>(unique_selection.get()))
 	{
 		selection_element = text_selection_element;

@@ -30,6 +30,7 @@
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/NodeInstancer.h"
 #include <iterator>
 
 namespace Rml {
@@ -236,6 +237,25 @@ RenderManager* Node::GetRenderManager() const
 	if (Context* context = GetContext())
 		return &context->GetRenderManager();
 	return nullptr;
+}
+
+void Node::SetInstancer(NodeInstancer* new_instancer)
+{
+	RMLUI_ASSERT(!instancer && new_instancer);
+	instancer = new_instancer;
+}
+
+NodeInstancer* Node::GetInstancer() const
+{
+	return instancer;
+}
+
+void Node::Release()
+{
+	if (instancer)
+		instancer->ReleaseNode(this);
+	else
+		Log::Message(Log::LT_WARNING, "Leak detected: Node (%s) not instanced via RmlUi Factory. Unable to release.", rmlui_type_name(*this));
 }
 
 void Node::SetOwnerDocument(ElementDocument* document)

@@ -49,7 +49,6 @@ namespace Rml {
 class Context;
 class DataModel;
 class Decorator;
-class ElementInstancer;
 class EventDispatcher;
 class EventListener;
 class ElementBackgroundBorder;
@@ -579,10 +578,6 @@ public:
 	DataModel* GetDataModel() const;
 	//@}
 
-	/// Sets the instancer to use for releasing this element.
-	/// @param[in] instancer Instancer to set on this element.
-	void SetInstancer(ElementInstancer* instancer);
-
 	/// Called when an emitted event propagates to this element, for event types with default actions.
 	/// Note: See 'EventSpecification' for the events that call this function and during which phase.
 	/// @param[in] event The event to process.
@@ -652,8 +647,6 @@ protected:
 	void DirtyDefinition(DirtyNodes dirty_nodes);
 
 	void OnStyleSheetChangeRecursive();
-
-	void Release() override;
 
 private:
 	void OnChildNodeAdd(Node* child, bool dom_node) override;
@@ -733,9 +726,6 @@ private:
 
 	// The optional, unique ID of this object.
 	String id;
-
-	// Instancer that created us, used for destruction.
-	ElementInstancer* instancer;
 
 	// Currently focused child object
 	Element* focus;

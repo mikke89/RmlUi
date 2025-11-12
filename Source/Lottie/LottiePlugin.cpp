@@ -27,9 +27,9 @@
  */
 
 #include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/NodeInstancer.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
 #include "../../Include/RmlUi/Lottie/ElementLottie.h"
 
@@ -40,9 +40,9 @@ namespace Lottie {
 	public:
 		void OnInitialise() override
 		{
-			instancer = MakeUnique<ElementInstancerGeneric<ElementLottie>>();
+			instancer = MakeUnique<NodeInstancerGeneric<ElementLottie>>();
 
-			Factory::RegisterElementInstancer("lottie", instancer.get());
+			Factory::RegisterNodeInstancer("lottie", instancer.get());
 
 			Log::Message(Log::LT_INFO, "Lottie plugin initialised.");
 		}
@@ -52,7 +52,7 @@ namespace Lottie {
 		int GetEventClasses() override { return Plugin::EVT_BASIC; }
 
 	private:
-		UniquePtr<ElementInstancerGeneric<ElementLottie>> instancer;
+		UniquePtr<NodeInstancerGeneric<ElementLottie>> instancer;
 	};
 
 	void Initialise()

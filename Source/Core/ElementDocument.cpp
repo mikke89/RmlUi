@@ -338,7 +338,7 @@ void ElementDocument::ReloadStyleSheet()
 
 	Factory::ClearStyleSheetCache();
 	Factory::ClearTemplateCache();
-	ElementPtr temp_doc = Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag());
+	NodePtr temp_doc = Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag());
 	if (!temp_doc)
 	{
 		Log::Message(Log::LT_WARNING, "Failed to reload style sheet, could not instance document: %s", source_url.c_str());
@@ -469,7 +469,7 @@ void ElementDocument::Close()
 
 ElementPtr ElementDocument::CreateElement(const String& name)
 {
-	return Factory::InstanceElement(nullptr, name, name, XMLAttributes());
+	return As<ElementPtr>(Factory::InstanceNode(name, name));
 }
 
 ElementPtr ElementDocument::CreateTextNode(const String& text)

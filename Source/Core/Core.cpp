@@ -29,10 +29,10 @@
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/FileInterface.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
+#include "../../Include/RmlUi/Core/NodeInstancer.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/RenderManager.h"
@@ -92,7 +92,7 @@ static bool initialised = false;
 
 static void InitializeMemoryPools()
 {
-	Detail::InitializeElementInstancerPools();
+	Detail::InitializeNodeInstancerPools();
 	ElementMetaPool::Initialize();
 	LayoutPools::Initialize();
 }
@@ -100,7 +100,7 @@ static void ReleaseMemoryPools()
 {
 	LayoutPools::Shutdown();
 	ElementMetaPool::Shutdown();
-	Detail::ShutdownElementInstancerPools();
+	Detail::ShutdownNodeInstancerPools();
 }
 
 #ifndef RMLUI_VERSION

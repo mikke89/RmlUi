@@ -47,9 +47,9 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	parent_element = element;
 
 	// Create the button and selection elements.
-	button_element = parent_element->AppendChild(Factory::InstanceElement(parent_element, "*", "selectarrow", XMLAttributes()), false);
-	value_element = parent_element->AppendChild(Factory::InstanceElement(parent_element, "*", "selectvalue", XMLAttributes()), false);
-	selection_element = parent_element->AppendChild(Factory::InstanceElement(parent_element, "*", "selectbox", XMLAttributes()), false);
+	button_element = parent_element->AppendChild(As<ElementPtr>(Factory::InstanceNode("*", "selectarrow")), false);
+	value_element = parent_element->AppendChild(As<ElementPtr>(Factory::InstanceNode("*", "selectvalue")), false);
+	selection_element = parent_element->AppendChild(As<ElementPtr>(Factory::InstanceNode("*", "selectbox")), false);
 
 	value_element->SetProperty(PropertyId::OverflowX, Property(Style::Overflow::Hidden));
 	value_element->SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Hidden));
@@ -380,7 +380,7 @@ int WidgetDropDown::GetSelection() const
 
 int WidgetDropDown::AddOption(const String& rml, const String& option_value, int before, bool select, bool selectable)
 {
-	ElementPtr element = Factory::InstanceElement(selection_element, "*", "option", XMLAttributes());
+	ElementPtr element = As<ElementPtr>(Factory::InstanceNode("*", "option"));
 	element->SetInnerRML(rml);
 
 	element->SetAttribute("value", option_value);

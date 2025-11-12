@@ -27,7 +27,7 @@ static ElementGameInstancer game_instancer;
 void LuaInterface::Initialise(lua_State* L)
 {
 	InitGame(L);
-	Rml::Factory::RegisterElementInstancer("game", &game_instancer);
+	Rml::Factory::RegisterNodeInstancer("game", &game_instancer);
 }
 
 void LuaInterface::InitGame(lua_State* L)

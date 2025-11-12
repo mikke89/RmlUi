@@ -31,7 +31,6 @@
 #include "../../Include/RmlUi/Core/ContextInstancer.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
-#include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Elements/ElementForm.h"
@@ -41,6 +40,7 @@
 #include "../../Include/RmlUi/Core/Elements/ElementProgress.h"
 #include "../../Include/RmlUi/Core/Elements/ElementTabSet.h"
 #include "../../Include/RmlUi/Core/EventListenerInstancer.h"
+#include "../../Include/RmlUi/Core/NodeInstancer.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
@@ -91,23 +91,23 @@ struct DefaultInstancers {
 	UniquePtr<EventInstancer> event_default;
 
 	// Basic elements
-	ElementInstancerElement element_default;
-	ElementInstancerText element_text;
-	ElementInstancerGeneric<ElementImage> element_img;
-	ElementInstancerGeneric<ElementHandle> element_handle;
-	ElementInstancerGeneric<ElementDocument> element_body;
+	NodeInstancerElement element_default;
+	NodeInstancerText element_text;
+	NodeInstancerGeneric<ElementImage> element_img;
+	NodeInstancerGeneric<ElementHandle> element_handle;
+	NodeInstancerGeneric<ElementDocument> element_body;
 
 	// Control elements
-	ElementInstancerGeneric<ElementForm> form;
-	ElementInstancerGeneric<ElementFormControlInput> input;
-	ElementInstancerGeneric<ElementFormControlSelect> select;
-	ElementInstancerGeneric<ElementLabel> element_label;
+	NodeInstancerGeneric<ElementForm> form;
+	NodeInstancerGeneric<ElementFormControlInput> input;
+	NodeInstancerGeneric<ElementFormControlSelect> select;
+	NodeInstancerGeneric<ElementLabel> element_label;
 
-	ElementInstancerGeneric<ElementFormControlTextArea> textarea;
-	ElementInstancerGeneric<ElementTextSelection> selection;
-	ElementInstancerGeneric<ElementTabSet> tabset;
+	NodeInstancerGeneric<ElementFormControlTextArea> textarea;
+	NodeInstancerGeneric<ElementTextSelection> selection;
+	NodeInstancerGeneric<ElementTabSet> tabset;
 
-	ElementInstancerGeneric<ElementProgress> progress;
+	NodeInstancerGeneric<ElementProgress> progress;
 
 	// Decorators
 	DecoratorTextInstancer decorator_text;
@@ -157,7 +157,7 @@ struct DefaultInstancers {
 
 struct FactoryData {
 	DefaultInstancers default_instancers;
-	UnorderedMap<String, ElementInstancer*> element_instancers;
+	UnorderedMap<String, NodeInstancer*> element_instancers;
 	UnorderedMap<String, DecoratorInstancer*> decorator_instancers;
 	UnorderedMap<String, FilterInstancer*> filter_instancers;
 	UnorderedMap<String, FontEffectInstancer*> font_effect_instancers;
@@ -201,24 +201,24 @@ void Factory::Initialise()
 		event_listener_instancer = nullptr;
 
 	// Basic element instancers
-	RegisterElementInstancer("*", &default_instancers.element_default);
-	RegisterElementInstancer("img", &default_instancers.element_img);
-	RegisterElementInstancer("#text", &default_instancers.element_text);
-	RegisterElementInstancer("handle", &default_instancers.element_handle);
-	RegisterElementInstancer("body", &default_instancers.element_body);
+	RegisterNodeInstancer("*", &default_instancers.element_default);
+	RegisterNodeInstancer("img", &default_instancers.element_img);
+	RegisterNodeInstancer("#text", &default_instancers.element_text);
+	RegisterNodeInstancer("handle", &default_instancers.element_handle);
+	RegisterNodeInstancer("body", &default_instancers.element_body);
 
 	// Control element instancers
-	RegisterElementInstancer("form", &default_instancers.form);
-	RegisterElementInstancer("input", &default_instancers.input);
-	RegisterElementInstancer("select", &default_instancers.select);
-	RegisterElementInstancer("label", &default_instancers.element_label);
+	RegisterNodeInstancer("form", &default_instancers.form);
+	RegisterNodeInstancer("input", &default_instancers.input);
+	RegisterNodeInstancer("select", &default_instancers.select);
+	RegisterNodeInstancer("label", &default_instancers.element_label);
 
-	RegisterElementInstancer("textarea", &default_instancers.textarea);
-	RegisterElementInstancer("#selection", &default_instancers.selection);
-	RegisterElementInstancer("tabset", &default_instancers.tabset);
+	RegisterNodeInstancer("textarea", &default_instancers.textarea);
+	RegisterNodeInstancer("#selection", &default_instancers.selection);
+	RegisterNodeInstancer("tabset", &default_instancers.tabset);
 
-	RegisterElementInstancer("progress", &default_instancers.progress);
-	RegisterElementInstancer("progressbar", &default_instancers.progress);
+	RegisterNodeInstancer("progress", &default_instancers.progress);
+	RegisterNodeInstancer("progressbar", &default_instancers.progress);
 
 	// Decorator instancers
 	RegisterDecoratorInstancer("text", &default_instancers.decorator_text);
@@ -320,12 +320,12 @@ ContextPtr Factory::InstanceContext(const String& name, RenderManager* render_ma
 	return new_context;
 }
 
-void Factory::RegisterElementInstancer(const String& name, ElementInstancer* instancer)
+void Factory::RegisterNodeInstancer(const String& name, NodeInstancer* instancer)
 {
 	factory_data->element_instancers[StringUtilities::ToLower(name)] = instancer;
 }
 
-ElementInstancer* Factory::GetElementInstancer(const String& tag)
+NodeInstancer* Factory::GetNodeInstancer(const String& tag)
 {
 	auto instancer_iterator = factory_data->element_instancers.find(tag);
 	if (instancer_iterator == factory_data->element_instancers.end())
@@ -338,17 +338,18 @@ ElementInstancer* Factory::GetElementInstancer(const String& tag)
 	return instancer_iterator->second;
 }
 
-ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_name, const String& tag, const XMLAttributes& attributes)
+NodePtr Factory::InstanceNode(const String& instancer_name, const String& tag)
 {
-	if (ElementInstancer* instancer = GetElementInstancer(instancer_name))
+	if (NodeInstancer* instancer = GetNodeInstancer(instancer_name))
 	{
-		if (ElementPtr element = instancer->InstanceElement(parent, tag, attributes))
+		if (NodePtr node = instancer->InstanceNode(tag))
 		{
-			element->SetInstancer(instancer);
-			element->SetAttributes(attributes);
+			node->SetInstancer(instancer);
 
-			PluginRegistry::NotifyElementCreate(element.get());
-			return element;
+			if (Element* element = rmlui_dynamic_cast<Element*>(node.get()))
+				PluginRegistry::NotifyElementCreate(element);
+
+			return node;
 		}
 	}
 
@@ -412,28 +413,25 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 	{
 		RMLUI_ZoneScopedNC("InstanceText", 0x8FBC8F);
 
-		// Attempt to instance the element.
-		XMLAttributes attributes;
-
-		// If we have curly brackets in the text, we tag the element so that the appropriate data view (DataViewText) is constructed.
-		if (has_data_expression)
-			attributes.emplace("data-text", Variant());
-
-		ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);
-		if (!element)
+		NodePtr node = Factory::InstanceNode("#text", "#text");
+		if (!node)
 		{
 			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned nullptr.", text.c_str());
 			return false;
 		}
 
 		// Assign the element its text value.
-		ElementText* text_element = rmlui_dynamic_cast<ElementText*>(element.get());
+		ElementText* text_element = rmlui_dynamic_cast<ElementText*>(node.get());
 		if (!text_element)
 		{
 			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.",
-				text.c_str(), rmlui_type_name(*element));
+				text.c_str(), rmlui_type_name(*node));
 			return false;
 		}
+
+		// If we have curly brackets in the text, tag the element so that the appropriate data view (DataViewText) is constructed.
+		if (has_data_expression)
+			text_element->SetAttributes(ElementAttributes{{"data-text", Variant()}});
 
 		// Unescape any escaped entities or unicode symbols
 		text = StringUtilities::DecodeRml(text);
@@ -441,7 +439,7 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 		text_element->SetText(text);
 
 		// Add to active node.
-		parent->AppendChild(std::move(element));
+		parent->AppendChild(std::move(node));
 	}
 
 	return true;
@@ -454,31 +452,31 @@ bool Factory::InstanceElementStream(Element* parent, Stream* stream)
 	return true;
 }
 
-ElementPtr Factory::InstanceDocumentStream(Context* context, Stream* stream, const String& document_base_tag)
+NodePtr Factory::InstanceDocumentStream(Context* context, Stream* stream, const String& document_base_tag)
 {
 	RMLUI_ZoneScoped;
 
-	ElementPtr element = Factory::InstanceElement(nullptr, document_base_tag, document_base_tag, XMLAttributes());
-	if (!element)
+	NodePtr node = Factory::InstanceNode(document_base_tag, document_base_tag);
+	if (!node)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document, instancer returned nullptr.");
 		return nullptr;
 	}
 
-	ElementDocument* document = rmlui_dynamic_cast<ElementDocument*>(element.get());
+	ElementDocument* document = rmlui_dynamic_cast<ElementDocument*>(node.get());
 	if (!document)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document element. Found type '%s', was expecting derivative of ElementDocument.",
-			rmlui_type_name(*element));
+			rmlui_type_name(*node));
 		return nullptr;
 	}
 
 	document->context = context;
 
-	XMLParser parser(element.get());
+	XMLParser parser(document);
 	parser.Parse(stream);
 
-	return element;
+	return node;
 }
 
 void Factory::RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer)

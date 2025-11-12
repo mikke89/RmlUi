@@ -536,7 +536,10 @@ bool DataViewFor::Update(DataModel& model)
 	{
 		if (i >= num_elements)
 		{
-			ElementPtr new_element_ptr = Factory::InstanceElement(nullptr, element->GetTagName(), element->GetTagName(), attributes);
+			NodePtr new_node_ptr = Factory::InstanceNode(element->GetTagName(), element->GetTagName());
+			Element* new_element = rmlui_dynamic_cast<Element*>(new_node_ptr.get());
+			RMLUI_ASSERT(new_element);
+			new_element->SetAttributes(attributes);
 
 			DataAddress iterator_address;
 			iterator_address.reserve(container_address.size() + 1);
@@ -545,10 +548,10 @@ bool DataViewFor::Update(DataModel& model)
 
 			DataAddress iterator_index_address = {{"literal"}, {"int"}, {i}};
 
-			model.InsertAlias(new_element_ptr.get(), iterator_name, std::move(iterator_address));
-			model.InsertAlias(new_element_ptr.get(), iterator_index_name, std::move(iterator_index_address));
+			model.InsertAlias(new_element, iterator_name, std::move(iterator_address));
+			model.InsertAlias(new_element, iterator_index_name, std::move(iterator_index_address));
 
-			Element* new_element = element->GetParentNode()->InsertBefore(std::move(new_element_ptr), element);
+			element->GetParentNode()->InsertBefore(std::move(new_node_ptr), element);
 			elements.push_back(new_element);
 
 			const String* rml_contents = RMLContents();

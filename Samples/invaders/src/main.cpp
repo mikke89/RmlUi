@@ -87,8 +87,8 @@ int main(int /*argc*/, char** /*argv*/)
 	Shell::LoadFonts();
 
 	// Register Invader's custom element and decorator instancers.
-	Rml::ElementInstancerGeneric<ElementGame> element_instancer_game;
-	Rml::Factory::RegisterElementInstancer("game", &element_instancer_game);
+	Rml::NodeInstancerGeneric<ElementGame> element_instancer_game;
+	Rml::Factory::RegisterNodeInstancer("game", &element_instancer_game);
 
 	DecoratorInstancerStarfield decorator_instancer_starfield;
 	DecoratorInstancerDefender decorator_instancer_defender;

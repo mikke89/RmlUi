@@ -26,31 +26,27 @@
  *
  */
 
-#ifndef RMLUI_LUA_LUAELEMENTINSTANCER_H
-#define RMLUI_LUA_LUAELEMENTINSTANCER_H
+#ifndef RMLUI_LUA_LUANODEINSTANCER_H
+#define RMLUI_LUA_LUANODEINSTANCER_H
 
 #include <RmlUi/Core/Element.h>
-#include <RmlUi/Core/ElementInstancer.h>
+#include <RmlUi/Core/NodeInstancer.h>
 #include <RmlUi/Lua/IncludeLua.h>
 
 namespace Rml {
 namespace Lua {
 
-class LuaElementInstancer : public ::Rml::ElementInstancer {
+class LuaNodeInstancer : public ::Rml::NodeInstancer {
 public:
-	LuaElementInstancer(lua_State* L);
-	/// Instances an element given the tag name and attributes.
-	/// @param[in] parent The element the new element is destined to be parented to.
-	/// @param[in] tag The tag of the element to instance.
-	/// @param[in] attributes Dictionary of attributes.
-	ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) override;
-	/// Releases an element instanced by this instancer.
-	/// @param[in] element The element to release.
-	void ReleaseElement(Element* element) override;
+	LuaNodeInstancer(lua_State* L);
 
-	int ref_InstanceElement;
+	NodePtr InstanceNode(const String& tag) override;
 
-	// Pushes on to the top of the stack the table named EVENTINSTNACERFUNCTIONS
+	void ReleaseNode(Node* node) override;
+
+	int ref_InstanceNode;
+
+	// Pushes on to the top of the stack the table named NODEINSTANCERFUNCTIONS
 	void PushFunctionsTable(lua_State* L);
 };
 

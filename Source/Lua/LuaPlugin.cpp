@@ -27,7 +27,7 @@
  */
 
 #include "LuaPlugin.h"
-#include "LuaDocumentElementInstancer.h"
+#include "LuaDocumentNodeInstancer.h"
 #include "LuaEventListenerInstancer.h"
 #include "RmlUi.h"
 #include <RmlUi/Core/Factory.h>
@@ -45,13 +45,13 @@
 #include "Element.h"
 #include "ElementAttributesProxy.h"
 #include "ElementChildNodesProxy.h"
-#include "ElementInstancer.h"
 #include "ElementStyleProxy.h"
 #include "ElementText.h"
 #include "Event.h"
 #include "EventParametersProxy.h"
 #include "GlobalLuaFunctions.h"
 #include "Log.h"
+#include "NodeInstancer.h"
 #include "RmlUiContextsProxy.h"
 #include "Vector2f.h"
 #include "Vector2i.h"
@@ -100,9 +100,9 @@ void LuaPlugin::OnInitialise()
 	}
 	RegisterTypes();
 
-	lua_document_element_instancer = new LuaDocumentElementInstancer();
+	lua_document_element_instancer = new LuaDocumentNodeInstancer();
 	lua_event_listener_instancer = new LuaEventListenerInstancer();
-	Factory::RegisterElementInstancer("body", lua_document_element_instancer);
+	Factory::RegisterNodeInstancer("body", lua_document_element_instancer);
 	Factory::RegisterEventListenerInstancer(lua_event_listener_instancer);
 }
 
@@ -140,7 +140,7 @@ static void RegisterTypes()
 	LuaType<Event>::Register(L);
 	LuaType<Context>::Register(L);
 	LuaType<LuaRmlUi>::Register(L);
-	LuaType<ElementInstancer>::Register(L);
+	LuaType<NodeInstancer>::Register(L);
 	// Proxy tables
 	LuaType<ContextDocumentsProxy>::Register(L);
 	LuaType<EventParametersProxy>::Register(L);

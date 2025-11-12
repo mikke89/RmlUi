@@ -31,11 +31,11 @@
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Dictionary.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
-#include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/NodeInstancer.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
@@ -98,9 +98,8 @@ Element::Element(const String& tag) :
 	dirty_child_definitions(false), dirty_animation(false), dirty_transition(false), dirty_transform(false), dirty_perspective(false), tag(tag),
 	relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0)
 {
-	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
+	RMLUI_ASSERT(tag == StringUtilities::ToLower(String(tag)));
 	focus = nullptr;
-	instancer = nullptr;
 	offset_parent = nullptr;
 
 	clip_area = BoxArea::Padding;
@@ -233,19 +232,15 @@ void Element::Render()
 
 ElementPtr Element::Clone() const
 {
-	ElementPtr clone;
+	NodeInstancer* instancer = GetInstancer();
+	RMLUI_ASSERT(instancer);
 
-	if (instancer)
-	{
-		clone = instancer->InstanceElement(nullptr, GetTagName(), attributes);
-		if (clone)
-			clone->SetInstancer(instancer);
-	}
-	else
-		clone = Factory::InstanceElement(nullptr, GetTagName(), GetTagName(), attributes);
+	ElementPtr clone = As<ElementPtr>(instancer->InstanceNode(tag));
 
 	if (clone)
 	{
+		clone->SetInstancer(instancer);
+
 		// Copy over the attributes. The 'style' and 'class' attributes are skipped because inline styles and class names are copied manually below.
 		// This is necessary in case any properties or classes have been set manually, in which case the 'style' and 'class' attributes are out of
 		// sync with the used style and active classes.
@@ -1493,16 +1488,6 @@ DataModel* Element::GetDataModel() const
 	return data_model;
 }
 
-void Element::SetInstancer(ElementInstancer* _instancer)
-{
-	// Only record the first instancer being set as some instancers call other instancers to do their dirty work, in
-	// which case we don't want to update the lowest level instancer.
-	if (!instancer)
-	{
-		instancer = _instancer;
-	}
-}
-
 void Element::ForceLocalStackingContext()
 {
 	local_stacking_context_forced = true;
@@ -1951,14 +1936,6 @@ void Element::SetDataModel(DataModel* new_data_model)
 
 	for (Element* child : IterateChildren<Element>(true))
 		child->SetDataModel(new_data_model);
-}
-
-void Element::Release()
-{
-	if (instancer)
-		instancer->ReleaseElement(this);
-	else
-		Log::Message(Log::LT_WARNING, "Leak detected: element %s not instanced via RmlUi Factory. Unable to release.", GetAddress().c_str());
 }
 
 void Element::OnChildNodeAdd(Node* child_node, bool dom_node)

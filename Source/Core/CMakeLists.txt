@@ -72,7 +72,6 @@ add_library(rmlui_core
 	ElementEffects.h
 	ElementHandle.cpp
 	ElementHandle.h
-	ElementInstancer.cpp
 	ElementMeta.cpp
 	ElementMeta.h
 	ElementScroll.cpp
@@ -125,6 +124,7 @@ add_library(rmlui_core
 	Memory.h
 	MeshUtilities.cpp
 	Node.cpp
+	NodeInstancer.cpp
 	ObserverPtr.cpp
 	Plugin.cpp
 	PluginRegistry.cpp
@@ -263,7 +263,6 @@ target_sources(rmlui_core PRIVATE
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.inl"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementDocument.h"
-	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancer.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementScroll.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementForm.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControl.h"
@@ -297,6 +296,7 @@ target_sources(rmlui_core PRIVATE
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Mesh.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/MeshUtilities.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Node.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/NodeInstancer.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/NumericValue.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ObserverPtr.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Platform.h"

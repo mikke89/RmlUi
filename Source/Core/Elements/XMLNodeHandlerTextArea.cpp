@@ -44,12 +44,10 @@ Element* XMLNodeHandlerTextArea::ElementStart(XMLParser* parser, const String& n
 	ElementFormControlTextArea* text_area = rmlui_dynamic_cast<ElementFormControlTextArea*>(parser->GetParseFrame()->element);
 	if (!text_area)
 	{
-		ElementPtr new_element = Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);
-		if (!new_element)
-			return nullptr;
+		ElementPtr new_element = As<ElementPtr>(Factory::InstanceNode(name, name));
+		new_element->SetAttributes(attributes);
 
 		Element* result = parser->GetParseFrame()->element->AppendChild(std::move(new_element));
-
 		return result;
 	}
 

@@ -42,7 +42,7 @@ class Decorator;
 class DecoratorInstancer;
 class Element;
 class ElementDocument;
-class ElementInstancer;
+class NodeInstancer;
 class Event;
 class EventInstancer;
 class EventListener;
@@ -87,18 +87,16 @@ public:
 	/// @param[in] name Name of the instancer; elements with this as their tag will use this instancer.
 	/// @param[in] instancer The instancer to call when the tag is encountered.
 	/// @lifetime The instancer must be kept alive until after the call to Rml::Shutdown.
-	static void RegisterElementInstancer(const String& name, ElementInstancer* instancer);
+	static void RegisterNodeInstancer(const String& name, NodeInstancer* instancer);
 	/// Returns the element instancer for the specified tag.
 	/// @param[in] tag Name of the tag to get the instancer for.
 	/// @return The requested element instancer, or nullptr if no such instancer is registered.
-	static ElementInstancer* GetElementInstancer(const String& tag);
-	/// Instances a single element.
-	/// @param[in] parent The parent of the new element, or nullptr for a root tag.
-	/// @param[in] instancer The name of the instancer to create the element with.
-	/// @param[in] tag The tag of the element to be instanced.
-	/// @param[in] attributes The attributes to instance the element with.
-	/// @return The instanced element, or nullptr if the instancing failed.
-	static ElementPtr InstanceElement(Element* parent, const String& instancer, const String& tag, const XMLAttributes& attributes);
+	static NodeInstancer* GetNodeInstancer(const String& tag);
+	/// Instances a single node.
+	/// @param[in] instancer The name of the instancer to create the node with.
+	/// @param[in] tag The tag of the node to be instanced.
+	/// @return The instanced node, or nullptr if the instancing failed.
+	static NodePtr InstanceNode(const String& instancer, const String& tag);
 
 	/// Instances a text element containing a string.
 	/// More than one element may be instanced if the string contains RML or RML is introduced during translation.
@@ -116,7 +114,7 @@ public:
 	/// @param[in] stream The stream to instance from.
 	/// @param[in] document_base_tag The tag used to wrap the document, eg. 'rml'.
 	/// @return The instanced document, or nullptr if an error occurred.
-	static ElementPtr InstanceDocumentStream(Context* context, Stream* stream, const String& document_base_tag);
+	static NodePtr InstanceDocumentStream(Context* context, Stream* stream, const String& document_base_tag);
 
 	/// Registers a non-owning pointer to an instancer that will be used to instance decorators.
 	/// @param[in] name The name of the decorator the instancer will be called for.

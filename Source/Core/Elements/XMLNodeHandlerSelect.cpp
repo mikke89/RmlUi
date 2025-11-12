@@ -48,27 +48,24 @@ Element* XMLNodeHandlerSelect::ElementStart(XMLParser* parser, const String& nam
 		parser->PushHandler("select");
 
 		// Attempt to instance the tabset
-		ElementPtr element = Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);
-		ElementFormControlSelect* select_element = rmlui_dynamic_cast<ElementFormControlSelect*>(element.get());
-		if (!select_element)
-		{
-			Log::Message(Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.c_str());
-			return nullptr;
-		}
+		NodePtr node = Factory::InstanceNode(name, name);
+		ElementFormControlSelect* select_element = rmlui_static_cast<ElementFormControlSelect*>(node.get());
+		select_element->SetAttributes(attributes);
 
 		// Add the Select element into the document
-		Element* result = parser->GetParseFrame()->element->AppendChild(std::move(element));
+		parser->GetParseFrame()->element->AppendChild(std::move(node));
 
-		return result;
+		return select_element;
 	}
 	else if (name == "option")
 	{
 		// Call default element handler for all children.
 		parser->PushDefaultHandler();
 
-		ElementPtr option_element = Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);
-		Element* result = nullptr;
+		ElementPtr option_element = As<ElementPtr>(Factory::InstanceNode(name, name));
+		option_element->SetAttributes(attributes);
 
+		Element* result = nullptr;
 		ElementFormControlSelect* select_element = rmlui_dynamic_cast<ElementFormControlSelect*>(parser->GetParseFrame()->element);
 		if (select_element)
 		{

@@ -27,9 +27,9 @@
  */
 
 #include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/NodeInstancer.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
 #include "../../Include/RmlUi/SVG/ElementSVG.h"
 #include "DecoratorSVG.h"
@@ -45,8 +45,8 @@ namespace SVG {
 		{
 			SVGCache::Initialize();
 
-			element_instancer = MakeUnique<ElementInstancerGeneric<ElementSVG>>();
-			Factory::RegisterElementInstancer("svg", element_instancer.get());
+			element_instancer = MakeUnique<NodeInstancerGeneric<ElementSVG>>();
+			Factory::RegisterNodeInstancer("svg", element_instancer.get());
 
 			decorator_instancer = MakeUnique<DecoratorSVGInstancer>();
 			Factory::RegisterDecoratorInstancer("svg", decorator_instancer.get());
@@ -66,7 +66,7 @@ namespace SVG {
 		int GetEventClasses() override { return Plugin::EVT_BASIC; }
 
 	private:
-		UniquePtr<ElementInstancerGeneric<ElementSVG>> element_instancer;
+		UniquePtr<NodeInstancerGeneric<ElementSVG>> element_instancer;
 		UniquePtr<DecoratorSVGInstancer> decorator_instancer;
 	};
 
