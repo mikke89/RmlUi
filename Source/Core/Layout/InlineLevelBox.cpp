@@ -50,12 +50,12 @@ InlineLevelBox::~InlineLevelBox() {}
 
 void InlineLevelBox::SubmitElementOnLayout()
 {
-	element->OnLayout();
+	GetElement()->OnLayout();
 }
 
 const FontMetrics& InlineLevelBox::GetFontMetrics() const
 {
-	if (FontFaceHandle handle = element->GetFontFaceHandle())
+	if (FontFaceHandle handle = GetElement()->GetFontFaceHandle())
 		return GetFontEngineInterface()->GetFontMetrics(handle);
 
 	// If there is no font face defined then we provide zero'd out font metrics. This situation can affect the layout,
@@ -78,7 +78,7 @@ void InlineLevelBox::SetHeightAndVerticalAlignment(float _height_above_baseline,
 
 	SetHeight(_height_above_baseline, _depth_below_baseline);
 
-	const Style::VerticalAlign vertical_align = element->GetComputedValues().vertical_align();
+	const Style::VerticalAlign vertical_align = GetElement()->GetComputedValues().vertical_align();
 	vertical_align_type = vertical_align.type;
 
 	// Determine the offset from the parent baseline.
@@ -209,7 +209,8 @@ void InlineLevelBox_Text::Submit(const PlacedFragment& placed_fragment)
 	if (principal_box)
 	{
 		element_offset = placed_fragment.position;
-		text_element->SetOffset(placed_fragment.position, placed_fragment.offset_parent);
+		// TODO(Michael): Where should we store the layout settings? Offset should really be part of that. Lines too? Or store fragments?
+		// text_element->SetOffset(placed_fragment.position, placed_fragment.offset_parent);
 		text_element->ClearLines();
 	}
 	else
@@ -227,6 +228,6 @@ String InlineLevelBox_Text::DebugDumpNameValue() const
 
 ElementText* InlineLevelBox_Text::GetTextElement()
 {
-	return rmlui_static_cast<ElementText*>(GetElement());
+	return rmlui_static_cast<ElementText*>(GetNode());
 }
 } // namespace Rml

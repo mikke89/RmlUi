@@ -125,8 +125,8 @@ void LogMissingFontFace(Element* element)
 	}
 }
 
-ElementText::ElementText(const String& tag) :
-	Element(tag), colour(255, 255, 255), opacity(1), font_handle_version(0), geometry_dirty(true), dirty_layout_on_change(true),
+ElementText::ElementText() :
+	Node(), colour(255, 255, 255), opacity(1), font_handle_version(0), geometry_dirty(true), dirty_layout_on_change(true),
 	generated_decoration(Style::TextDecoration::None), decoration_property(Style::TextDecoration::None), font_effects_dirty(true),
 	font_effects_handle(0)
 {}
@@ -149,11 +149,12 @@ const String& ElementText::GetText() const
 	return text;
 }
 
-void ElementText::OnRender()
+void ElementText::Render(Element* parent, Vector2f translation)
 {
 	RMLUI_ZoneScoped;
+	RMLUI_ASSERT(parent);
 
-	FontFaceHandle font_face_handle = GetFontFaceHandle();
+	FontFaceHandle font_face_handle = parent->GetFontFaceHandle();
 	if (font_face_handle == 0)
 		return;
 
@@ -197,8 +198,6 @@ void ElementText::OnRender()
 		generated_decoration = decoration_property;
 	}
 
-	const Vector2f translation = GetAbsoluteOffset();
-
 	bool render = true;
 
 	// Do a visibility test against the scissor region to avoid unnecessary render calls. Instead of handling
@@ -207,9 +206,9 @@ void ElementText::OnRender()
 	if (!scissor_region.Valid())
 		scissor_region = Rectanglei::FromSize(render_manager.GetViewport());
 
-	if (!GetTransformState() || !GetTransformState()->GetTransform())
+	if (!parent->GetTransformState() || !parent->GetTransformState()->GetTransform())
 	{
-		const FontMetrics& font_metrics = GetFontEngineInterface()->GetFontMetrics(GetFontFaceHandle());
+		const FontMetrics& font_metrics = GetFontEngineInterface()->GetFontMetrics(parent->GetFontFaceHandle());
 		const int ascent = Math::RoundUpToInteger(font_metrics.ascent);
 		const int descent = Math::RoundUpToInteger(font_metrics.descent);
 
@@ -243,7 +242,10 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	RMLUI_ZoneScoped;
 	RMLUI_ASSERT(maximum_line_width >= 0.f);
 
-	FontFaceHandle font_face_handle = GetFontFaceHandle();
+	Element* parent = GetParentElement();
+	RMLUI_ASSERT(parent);
+
+	FontFaceHandle font_face_handle = parent->GetFontFaceHandle();
 
 	// Initialise the output variables.
 	line.clear();
@@ -253,13 +255,13 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	// Bail if we don't have a valid font face.
 	if (font_face_handle == 0)
 	{
-		LogMissingFontFace(GetParentElement() ? GetParentElement() : this);
+		LogMissingFontFace(parent);
 		return true;
 	}
 
 	// Determine how we are processing white-space while formatting the text.
 	using namespace Style;
-	const auto& computed = GetComputedValues();
+	const auto& computed = parent->GetComputedValues();
 	const WhiteSpace white_space_property = computed.white_space();
 	const bool collapse_white_space =
 		(white_space_property == WhiteSpace::Normal || white_space_property == WhiteSpace::Nowrap || white_space_property == WhiteSpace::Preline);
@@ -384,22 +386,35 @@ void ElementText::SuppressAutoLayout()
 	dirty_layout_on_change = false;
 }
 
-void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
+void ElementText::OverrideColour(Optional<Colourb> new_override_colour)
+{
+	override_colour = new_override_colour;
+	geometry_dirty = true;
+	generated_decoration = Style::TextDecoration::None;
+}
+
+const ComputedValues& ElementText::GetComputedValues() const
+{
+	Element* parent_element = GetParentElement();
+	RMLUI_ASSERT(parent_element);
+	return parent_element->GetComputedValues();
+}
+
+void ElementText::OnParentPropertyChange(Element* parent, const PropertyIdSet& changed_properties)
 {
 	RMLUI_ZoneScoped;
-
-	Element::OnPropertyChange(changed_properties);
+	RMLUI_ASSERT(parent);
 
 	bool colour_changed = false;
 	bool font_face_changed = false;
-	auto& computed = GetComputedValues();
+	auto& computed = parent->GetComputedValues();
 
 	if (changed_properties.Contains(PropertyId::Color) || changed_properties.Contains(PropertyId::Opacity))
 	{
 		const float new_opacity = computed.opacity();
 		const bool opacity_changed = opacity != new_opacity;
 
-		ColourbPremultiplied new_colour = computed.color().ToPremultiplied(new_opacity);
+		ColourbPremultiplied new_colour = override_colour.value_or(computed.color()).ToPremultiplied(new_opacity);
 		colour_changed = colour != new_colour;
 
 		if (colour_changed)
@@ -468,16 +483,12 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 }
 
-void ElementText::GetRML(String& content)
-{
-	content += StringUtilities::EncodeRml(text);
-}
-
 bool ElementText::UpdateFontEffects()
 {
 	RMLUI_ZoneScoped;
-
-	if (GetFontFaceHandle() == 0)
+	Element* parent = GetParentElement();
+	RMLUI_ASSERT(parent);
+	if (parent->GetFontFaceHandle() == 0)
 		return false;
 
 	font_effects_dirty = false;
@@ -486,16 +497,16 @@ bool ElementText::UpdateFontEffects()
 
 	// Fetch the font-effect for this text element
 	const FontEffectList* font_effects = &empty_font_effects;
-	if (GetComputedValues().has_font_effect())
+	if (parent->GetComputedValues().has_font_effect())
 	{
-		if (const Property* p = GetProperty(PropertyId::FontEffect))
+		if (const Property* p = parent->GetProperty(PropertyId::FontEffect))
 			if (FontEffectsPtr effects = p->Get<FontEffectsPtr>())
 				font_effects = &effects->list;
 	}
 
 	// Request a font layer configuration to match this set of effects. If this is different from
 	// our old configuration, then return true to indicate we'll need to regenerate geometry.
-	FontEffectsHandle new_font_effects_handle = GetFontEngineInterface()->PrepareFontEffects(GetFontFaceHandle(), *font_effects);
+	FontEffectsHandle new_font_effects_handle = GetFontEngineInterface()->PrepareFontEffects(parent->GetFontFaceHandle(), *font_effects);
 	if (new_font_effects_handle != font_effects_handle)
 	{
 		font_effects_handle = new_font_effects_handle;
@@ -508,10 +519,12 @@ bool ElementText::UpdateFontEffects()
 void ElementText::GenerateGeometry(RenderManager& render_manager, const FontFaceHandle font_face_handle)
 {
 	RMLUI_ZoneScopedC(0xD2691E);
+	Element* parent = GetParentElement();
+	RMLUI_ASSERT(parent);
 
-	const TextOverflowResolved text_overflow = ResolveTextOverflow(GetParentElement(), font_face_handle);
+	const TextOverflowResolved text_overflow = ResolveTextOverflow(parent, font_face_handle);
 
-	const auto& computed = GetComputedValues();
+	const auto& computed = parent->GetComputedValues();
 	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.font_kerning(), computed.letter_spacing()};
 
 	TexturedMeshList mesh_list;

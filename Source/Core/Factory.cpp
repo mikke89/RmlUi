@@ -430,8 +430,9 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 		}
 
 		// If we have curly brackets in the text, tag the element so that the appropriate data view (DataViewText) is constructed.
-		if (has_data_expression)
-			text_element->SetAttributes(ElementAttributes{{"data-text", Variant()}});
+		// TODO(Michael)
+		// if (has_data_expression)
+		//	text_element->SetAttributes(ElementAttributes{{"data-text", Variant()}});
 
 		// Unescape any escaped entities or unicode symbols
 		text = StringUtilities::DecodeRml(text);

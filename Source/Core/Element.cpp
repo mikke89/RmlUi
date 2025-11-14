@@ -1761,6 +1761,9 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	{
 		dirty_transition = true;
 	}
+
+	for (ElementText* text : IterateChildren<ElementText>())
+		text->OnParentPropertyChange(this, changed_properties);
 }
 
 void Element::OnPseudoClassChange(const String& /*pseudo_class*/, bool /*activate*/) {}
@@ -1768,19 +1771,6 @@ void Element::OnPseudoClassChange(const String& /*pseudo_class*/, bool /*activat
 void Element::OnChildAdd(Element* /*child*/) {}
 
 void Element::OnChildRemove(Element* /*child*/) {}
-
-void Element::DirtyLayout()
-{
-	if (Element* document = GetOwnerDocument())
-		document->DirtyLayout();
-}
-
-bool Element::IsLayoutDirty()
-{
-	if (Element* document = GetOwnerDocument())
-		return document->IsLayoutDirty();
-	return false;
-}
 
 Element* Element::GetClosestScrollableContainer()
 {

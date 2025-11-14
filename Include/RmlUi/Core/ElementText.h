@@ -39,11 +39,11 @@ namespace Rml {
     @author Peter Curry
  */
 
-class RMLUICORE_API ElementText final : public Element {
+class RMLUICORE_API ElementText final : public Node {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementText, Element)
+	RMLUI_RTTI_DefineWithParent(ElementText, Node)
 
-	ElementText(const String& tag);
+	ElementText();
 	virtual ~ElementText();
 
 	/// Sets the raw string this text element contains. The actual rendered text may be different due to whitespace formatting.
@@ -78,6 +78,8 @@ public:
 	/// Prevents the element from dirtying its document's layout when its text is changed.
 	void SuppressAutoLayout();
 
+	void OverrideColour(Optional<Colourb> override_color);
+
 	// Used to store the position and length of each line we have geometry for.
 	struct Line {
 		Line(String text, Vector2f position) : text(std::move(text)), position(position), width(0) {}
@@ -86,17 +88,17 @@ public:
 		int width;
 	};
 
+	const ComputedValues& GetComputedValues() const;
+
 	using LineList = Vector<Line>;
 
 	// Returns the current list of lines.
 	const LineList& GetLines() const { return lines; }
 
-protected:
-	void OnRender() override;
+	/// Called when properties on the parent element is changed.
+	void OnParentPropertyChange(Element* parent, const PropertyIdSet& changed_properties);
 
-	void OnPropertyChange(const PropertyIdSet& properties) override;
-
-	void GetRML(String& content) override;
+	void Render(Element* parent, Vector2f translation);
 
 private:
 	// Prepares the font effects this element uses for its font.
@@ -120,6 +122,7 @@ private:
 	// The decoration geometry we've generated for this string.
 	UniquePtr<Geometry> decoration;
 
+	Optional<Colourb> override_colour;
 	ColourbPremultiplied colour;
 	float opacity;
 

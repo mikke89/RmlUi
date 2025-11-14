@@ -396,7 +396,8 @@ bool DataViewText::Update(DataModel& model)
 			if (SystemInterface* system_interface = GetSystemInterface())
 				system_interface->TranslateString(text, new_text);
 
-			rmlui_static_cast<ElementText*>(element)->SetText(text);
+			// TODO(Michael)
+			// rmlui_static_cast<ElementText*>(element)->SetText(text);
 		}
 		else
 		{

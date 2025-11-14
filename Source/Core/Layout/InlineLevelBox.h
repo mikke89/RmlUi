@@ -68,9 +68,10 @@ public:
 	void operator delete(void* chunk, size_t size);
 
 protected:
-	InlineLevelBox(Element* element) : element(element) { RMLUI_ASSERT(element); }
+	InlineLevelBox(Node* node) : node(node) { RMLUI_ASSERT(node); }
 
-	Element* GetElement() const { return element; }
+	Node* GetNode() const { return node; }
+	Element* GetElement() const { return rmlui_static_cast<Element*>(node); }
 	const FontMetrics& GetFontMetrics() const;
 
 	// Set the height used for inline layout, and the vertical offset relative to our parent box.
@@ -95,7 +96,7 @@ private:
 	float spacing_left = 0.f;  // Left margin-border-padding for inline boxes.
 	float spacing_right = 0.f; // Right margin-border-padding for inline boxes.
 
-	Element* element;
+	Node* node;
 };
 
 /**

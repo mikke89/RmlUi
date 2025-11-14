@@ -45,6 +45,7 @@
 	#include <list>
 	#include <map>
 	#include <memory>
+	#include <optional>
 	#include <queue>
 	#include <stack>
 	#include <string>
@@ -93,6 +94,8 @@ template <typename Key, typename Value>
 using StableUnorderedMap = std::unordered_map<Key, Value>;
 template <typename Key, typename Value>
 using UnorderedMultimap = std::unordered_multimap<Key, Value>;
+template <typename T>
+using Optional = std::optional<T>;
 
 	#ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
 template <typename Key, typename Value>

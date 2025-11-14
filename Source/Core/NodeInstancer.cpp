@@ -69,9 +69,9 @@ NodeInstancerElement::~NodeInstancerElement()
 	}
 }
 
-NodePtr NodeInstancerText::InstanceNode(const String& tag)
+NodePtr NodeInstancerText::InstanceNode(const String& /*tag*/)
 {
-	ElementText* ptr = node_instancer_pools->pool_text_default.AllocateAndConstruct(tag);
+	ElementText* ptr = node_instancer_pools->pool_text_default.AllocateAndConstruct();
 	return NodePtr(ptr);
 }
 

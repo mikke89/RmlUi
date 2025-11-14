@@ -304,6 +304,9 @@ protected:
 	virtual void OnChildNodeRemove(Node* child, bool dom_node);
 	virtual void OnParentChange(Node* parent);
 
+	virtual void DirtyLayout();
+	virtual bool IsLayoutDirty();
+
 private:
 	void SetParent(Node* new_parent);
 

@@ -422,8 +422,8 @@ void WidgetTextInput::UpdateSelectionColours()
 		colour.blue = 255 - colour.blue;
 	}
 
-	// Set the computed text colour on the element holding the selected text.
-	selected_text_element->SetProperty(PropertyId::Color, Property(colour, Unit::COLOUR));
+	// Override the color of the selected text.
+	selected_text_element->OverrideColour(colour);
 
 	// If the 'background-color' property has been set on the 'selection' element, use that as the
 	// background colour for the selected text. Otherwise, use the inverse of the selected text
@@ -466,16 +466,15 @@ void WidgetTextInput::OnResize()
 {
 	GenerateCursor();
 
-	Vector2f text_position = parent->GetBox().GetPosition(BoxArea::Content);
-	text_element->SetOffset(text_position, parent);
-	selected_text_element->SetOffset(text_position, parent);
+	text_position = parent->GetBox().GetPosition(BoxArea::Content);
 
 	ForceFormattingOnNextLayout();
 }
 
 void WidgetTextInput::OnRender()
 {
-	ElementUtilities::SetClippingRegion(text_element);
+	// TODO(Michael): Need to narrow clipping region to text_element.
+	ElementUtilities::SetClippingRegion(parent);
 
 	Vector2f text_translation = parent->GetAbsoluteOffset() - Vector2f(parent->GetScrollLeft(), parent->GetScrollTop());
 	selection_composition_geometry.Render(text_translation);
@@ -484,6 +483,10 @@ void WidgetTextInput::OnRender()
 	{
 		cursor_geometry.Render(text_translation + cursor_position);
 	}
+
+	// TODO(Michael): Text position should match whatever is done previously in text_element->SetOffset.
+	text_element->Render(parent, text_position);
+	selected_text_element->Render(parent, text_position);
 }
 
 void WidgetTextInput::OnLayout()
@@ -701,7 +704,8 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		if (event.GetTargetElement() == parent)
 		{
 			Vector2f mouse_position = Vector2f(event.GetParameter<float>("mouse_x", 0), event.GetParameter<float>("mouse_y", 0));
-			mouse_position -= text_element->GetAbsoluteOffset();
+			// TODO(Michael): Not sure if this is correct.
+			mouse_position -= parent->GetAbsoluteOffset() + text_position;
 
 			const int cursor_line_index = CalculateLineIndex(mouse_position.y);
 			const int cursor_character_index = CalculateCharacterIndex(cursor_line_index, mouse_position.x);
@@ -1071,7 +1075,7 @@ float WidgetTextInput::GetAlignmentSpecificTextOffset(const Line& line) const
 {
 	// Callback to avoid expensive calculation in the cases where it is not needed.
 	auto RemainingWidth = [this](StringView editable_line_string) {
-		const float total_width = (float)ElementUtilities::GetStringWidth(text_element, editable_line_string);
+		const float total_width = (float)ElementUtilities::GetStringWidth(parent, editable_line_string);
 		return GetAvailableWidth() - total_width;
 	};
 
@@ -1116,7 +1120,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 		++it;
 		const int offset = (int)it.offset();
 
-		const float line_width = (float)ElementUtilities::GetStringWidth(text_element, StringView(p_begin, p_begin + offset));
+		const float line_width = (float)ElementUtilities::GetStringWidth(parent, StringView(p_begin, p_begin + offset));
 		if (line_width > position)
 		{
 			if (position - prev_line_width < line_width - position)
@@ -1293,7 +1297,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			if (count > 0)
 			{
 				line_content.append(count, ' ');
-				line_width += ElementUtilities::GetStringWidth(text_element, " ") * (int)count;
+				line_width += ElementUtilities::GetStringWidth(parent, " ") * (int)count;
 				line.editable_length += (int)count;
 				line.size += (int)count;
 				// Consume the hard wrap if we have one on this line, so that it doesn't make its own, empty line.
@@ -1315,7 +1319,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		// the beginning of this line, then this will be empty).
 		if (!pre_selection.empty())
 		{
-			const int width = ElementUtilities::GetStringWidth(text_element, pre_selection);
+			const int width = ElementUtilities::GetStringWidth(parent, pre_selection);
 			text_element->AddLine(line_position + Vector2f{GetAlignmentSpecificTextOffset(line), 0}, String(pre_selection));
 			line_position.x += width;
 		}
@@ -1328,8 +1332,8 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			// the two neighboring characters from each string and compare the string width with and without kerning, which should be much faster.
 			const Character left_back = StringUtilities::ToCharacter(StringUtilities::SeekBackwardUTF8(left.end() - 1, left.begin()), left.end());
 			const StringView right_front_u8 = StringView(right.begin(), StringUtilities::SeekForwardUTF8(right.begin() + 1, right.end()));
-			const int width_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, left_back);
-			const int width_no_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, Character::Null);
+			const int width_kerning = ElementUtilities::GetStringWidth(parent, right_front_u8, left_back);
+			const int width_no_kerning = ElementUtilities::GetStringWidth(parent, right_front_u8, Character::Null);
 			return float(width_kerning - width_no_kerning);
 		};
 
@@ -1339,7 +1343,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		{
 			line_position.x += GetKerningBetween(pre_selection, selection);
 
-			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection);
+			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element->GetParentElement(), selection);
 			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + line.editable_length);
 			const Vector2f selection_size = {float(selection_width + (selection_contains_endline ? endline_font_width : 0)), line_height};
 			const Vector2f aligned_position = line_position + Vector2f{GetAlignmentSpecificTextOffset(line), 0};
@@ -1368,9 +1372,9 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!ime_composition.empty())
 		{
 			const bool composition_contains_endline = (ime_composition_end_index > line_begin + line.editable_length);
-			const int composition_width = ElementUtilities::GetStringWidth(text_element, ime_composition);
+			const int composition_width = ElementUtilities::GetStringWidth(parent, ime_composition);
 			const Vector2f composition_position = {
-				float(ElementUtilities::GetStringWidth(text_element, ime_pre_composition)) + GetAlignmentSpecificTextOffset(line),
+				float(ElementUtilities::GetStringWidth(parent, ime_pre_composition)) + GetAlignmentSpecificTextOffset(line),
 				line_position.y - top_to_baseline + line_height - COMPOSITION_UNDERLINE_WIDTH,
 			};
 			Vector2f line_size = {float(composition_width + (composition_contains_endline ? endline_font_width : 0)), COMPOSITION_UNDERLINE_WIDTH};
@@ -1417,7 +1421,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 
 void WidgetTextInput::GenerateCursor()
 {
-	cursor_size.x = Math::Round(ElementUtilities::GetDensityIndependentPixelRatio(text_element));
+	cursor_size.x = Math::Round(ElementUtilities::GetDensityIndependentPixelRatio(text_element->GetParentElement()));
 	cursor_size.y = GetLineHeight();
 
 	Colourb color = parent->GetComputedValues().color();
@@ -1440,15 +1444,14 @@ void WidgetTextInput::ForceFormattingOnNextLayout()
 
 void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 {
-	if (text_element->GetFontFaceHandle() == 0 || lines.empty())
+	if (parent->GetFontFaceHandle() == 0 || lines.empty())
 		return;
 
 	int cursor_line_index = 0, cursor_character_index = 0;
 	GetRelativeCursorIndices(cursor_line_index, cursor_character_index);
 
 	const auto& line = lines[cursor_line_index];
-	const int string_width_pre_cursor =
-		ElementUtilities::GetStringWidth(text_element, StringView(GetValue(), line.value_offset, cursor_character_index));
+	const int string_width_pre_cursor = ElementUtilities::GetStringWidth(parent, StringView(GetValue(), line.value_offset, cursor_character_index));
 	const float alignment_offset = GetAlignmentSpecificTextOffset(line);
 
 	cursor_position = {
