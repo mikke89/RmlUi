@@ -298,4 +298,17 @@ void Node::SetParent(Node* new_parent)
 	OnParentChange(parent);
 }
 
+void Node::DirtyLayout()
+{
+	if (Element* document = GetOwnerDocument())
+		document->DirtyLayout();
+}
+
+bool Node::IsLayoutDirty()
+{
+	if (Element* document = GetOwnerDocument())
+		return document->IsLayoutDirty();
+	return false;
+}
+
 } // namespace Rml

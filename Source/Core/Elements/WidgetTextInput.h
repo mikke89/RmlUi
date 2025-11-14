@@ -292,6 +292,8 @@ private:
 	Vector2f cursor_position;
 	Vector2f cursor_size;
 	Geometry cursor_geometry;
+
+	Vector2f text_position;
 };
 
 } // namespace Rml
