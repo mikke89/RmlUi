@@ -553,6 +553,10 @@ public:
 	/// @return True if the provided element is a descendant of this element, false otherwise.
 	bool Contains(Element* element) const;
 
+	/// Removes this element from its parent, if it has one.
+	/// @return A unique pointer to the removed element, discard the result to immediately destroy.
+	ElementPtr Remove();
+
 	//@}
 
 	/**
