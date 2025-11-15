@@ -58,15 +58,6 @@
 
 #if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
 	#define RMLUI_PLATFORM_WIN32_NATIVE
-
-	// declaration of 'identifier' hides class member
-	#pragma warning(disable : 4458)
-
-	// <type> needs to have dll-interface to be used by clients
-	#pragma warning(disable : 4251)
-
-	// <function> was declared deprecated
-	#pragma warning(disable : 4996)
 #endif
 
 // Tell the compiler of printf-like functions, warns on incorrect usage.
