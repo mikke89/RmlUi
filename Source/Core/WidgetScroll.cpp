@@ -108,22 +108,10 @@ bool WidgetScroll::Initialise(Orientation _orientation)
 
 	orientation = _orientation;
 
-	// Create all of our child elements as standard elements, and abort if we can't create them.
-	ElementPtr track_element = As<ElementPtr>(Factory::InstanceNode("*", "slidertrack"));
-	ElementPtr bar_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderbar"));
-	ElementPtr arrow0_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderarrowdec"));
-	ElementPtr arrow1_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderarrowinc"));
-
-	if (!track_element || !bar_element || !arrow0_element || !arrow1_element)
-	{
-		return false;
-	}
-
-	// Add them as non-DOM elements.
-	track = parent->AppendChild(std::move(track_element), false);
-	bar = parent->AppendChild(std::move(bar_element), false);
-	arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
-	arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
+	track = As<Element*>(parent->AppendChild(Factory::InstanceNode("*", "slidertrack"), false));
+	bar = As<Element*>(parent->AppendChild(Factory::InstanceNode("*", "sliderbar"), false));
+	arrows[0] = As<Element*>(parent->AppendChild(Factory::InstanceNode("*", "sliderarrowdec"), false));
+	arrows[1] = As<Element*>(parent->AppendChild(Factory::InstanceNode("*", "sliderarrowinc"), false));
 
 	bar->SetProperty(PropertyId::Drag, Property(Style::Drag::Drag));
 
@@ -513,7 +501,7 @@ void WidgetScroll::Scroll(float distance, ScrollBehavior behavior)
 		new_bar_position = Math::Clamp((bar_position * traversable_track_length + distance) / traversable_track_length, 0.f, 1.f);
 
 	// 'parent' is the scrollbar element, its parent again is the actual element we want to scroll
-	Element* element_scroll = parent->GetParentNode();
+	Element* element_scroll = parent->GetParentElement();
 	if (!element_scroll)
 	{
 		RMLUI_ERROR;

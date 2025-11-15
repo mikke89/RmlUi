@@ -84,7 +84,7 @@ public:
 			// Test replacing the current element. Need to be careful with regard to lifetime issues. The event's
 			// current element will be destroyed, so we cannot use it after SetInnerRml(). The library should handle
 			// this case safely internally when propagating the event further.
-			Element* parent = element->GetParentNode();
+			Element* parent = element->GetParentElement();
 			parent->SetInnerRML("<button onclick='confirm_exit' onmouseout='cancel_exit' />");
 			if (Element* child = parent->GetChild(0))
 				child->Focus();
@@ -95,7 +95,7 @@ public:
 		}
 		else if (value == "cancel_exit")
 		{
-			if (Element* parent = element->GetParentNode())
+			if (Element* parent = element->GetParentElement())
 				parent->SetInnerRML("<button id='exit' onclick='exit' />");
 		}
 	}

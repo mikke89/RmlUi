@@ -49,9 +49,9 @@ ElementProgress::ElementProgress(const String& tag) :
 	geometry_dirty = false;
 
 	// Add the fill element as a non-DOM element.
-	ElementPtr fill_element = As<ElementPtr>(Factory::InstanceNode("*", "fill"));
-	RMLUI_ASSERT(fill_element);
-	fill = AppendChild(std::move(fill_element), false);
+	NodePtr fill_node = Factory::InstanceNode("*", "fill");
+	RMLUI_ASSERT(fill_node);
+	fill = As<Element*>(AppendChild(std::move(fill_node), false));
 }
 
 ElementProgress::~ElementProgress() {}

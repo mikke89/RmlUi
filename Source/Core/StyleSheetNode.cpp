@@ -305,7 +305,7 @@ bool StyleSheetNode::TraverseMatch(const Element* element, const Element* scope)
 	{
 		// Try to match the next element parent. If it succeeds we continue on to the next node, otherwise we try an alternate path through the
 		// hierarchy using the next element parent. Repeat until we run out of elements.
-		for (element = element->GetParentNode(); element; element = element->GetParentNode())
+		for (element = element->GetParentElement(); element; element = element->GetParentElement())
 		{
 			if (parent->Match(element, scope) && parent->TraverseMatch(element, scope))
 				return true;
@@ -318,7 +318,7 @@ bool StyleSheetNode::TraverseMatch(const Element* element, const Element* scope)
 	case SelectorCombinator::NextSibling:
 	case SelectorCombinator::SubsequentSibling:
 	{
-		Element* parent_element = element->GetParentNode();
+		Element* parent_element = element->GetParentElement();
 		if (!parent_element)
 			return false;
 

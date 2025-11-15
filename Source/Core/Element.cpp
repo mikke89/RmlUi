@@ -1003,7 +1003,7 @@ Element* Element::Closest(const String& selectors) const
 		return nullptr;
 	}
 
-	Element* parent = GetParentNode();
+	Element* parent = GetParentElement();
 
 	while (parent)
 	{
@@ -1015,7 +1015,7 @@ Element* Element::Closest(const String& selectors) const
 			}
 		}
 
-		parent = parent->GetParentNode();
+		parent = parent->GetParentElement();
 	}
 
 	return nullptr;
@@ -1056,15 +1056,6 @@ Element* Element::GetPreviousElementSibling() const
 	return nullptr;
 }
 
-Element* Element::GetNextSibling() const
-{
-	return GetNextElementSibling();
-}
-
-Element* Element::GetPreviousSibling() const
-{
-	return GetPreviousElementSibling();
-}
 Element* Element::GetFirstElementChild() const
 {
 	auto range = IterateChildren<Element>();
@@ -1074,11 +1065,6 @@ Element* Element::GetFirstElementChild() const
 	return *it;
 }
 
-Element* Element::GetFirstChild() const
-{
-	return GetFirstElementChild();
-}
-
 Element* Element::GetLastElementChild() const
 {
 	auto range = IterateChildrenReverse<Element>();
@@ -1086,11 +1072,6 @@ Element* Element::GetLastElementChild() const
 	if (it == range.end())
 		return nullptr;
 	return *it;
-}
-
-Element* Element::GetLastChild() const
-{
-	return GetLastElementChild();
 }
 
 Element* Element::GetChild(int index) const
@@ -1155,7 +1136,7 @@ bool Element::Focus(bool focus_visible)
 
 	// Update the focus chain up the hierarchy.
 	Element* element = this;
-	while (Element* parent = element->GetParentNode())
+	while (Element* parent = element->GetParentElement())
 	{
 		parent->focus = element;
 		element = parent;
@@ -1239,7 +1220,7 @@ void Element::ScrollIntoView(const ScrollIntoViewOptions options)
 	const Vector2f size = main_box.GetSize(BoxArea::Border);
 	ScrollBehavior scroll_behavior = options.behavior;
 
-	for (Element* scroll_parent = GetParentElement(); scroll_parent; scroll_parent = scroll_parent->GetParentNode())
+	for (Element* scroll_parent = GetParentElement(); scroll_parent; scroll_parent = scroll_parent->GetParentElement())
 	{
 		using Style::Overflow;
 		const ComputedValues& computed = scroll_parent->GetComputedValues();
@@ -1429,7 +1410,7 @@ bool Element::Contains(Element* element) const
 	{
 		if (element == this)
 			return true;
-		element = element->GetParentNode();
+		element = element->GetParentElement();
 	}
 	return false;
 }
@@ -1438,7 +1419,7 @@ ElementPtr Element::Remove()
 {
 	if (Node* parent = GetParentNode())
 	{
-		if (NodePtr self = parent->RemoveChild(As<Node*>(this)))
+		if (NodePtr self = parent->RemoveChild(this))
 			return As<ElementPtr>(std::move(self));
 	}
 	return nullptr;
@@ -2276,7 +2257,7 @@ void Element::DirtyStackingContext()
 	Element* stacking_context_parent = this;
 	while (stacking_context_parent && !stacking_context_parent->local_stacking_context)
 	{
-		stacking_context_parent = stacking_context_parent->GetParentNode();
+		stacking_context_parent = stacking_context_parent->GetParentElement();
 	}
 
 	if (stacking_context_parent)

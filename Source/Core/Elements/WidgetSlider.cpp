@@ -94,22 +94,11 @@ WidgetSlider::~WidgetSlider()
 
 bool WidgetSlider::Initialise()
 {
-	// Create all of our child elements as standard elements, and abort if we can't create them.
-	ElementPtr track_element = As<ElementPtr>(Factory::InstanceNode("*", "slidertrack"));
-	ElementPtr bar_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderbar"));
-	ElementPtr progress_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderprogress"));
-	ElementPtr arrow0_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderarrowdec"));
-	ElementPtr arrow1_element = As<ElementPtr>(Factory::InstanceNode("*", "sliderarrowinc"));
-
-	if (!track_element || !bar_element || !progress_element || !arrow0_element || !arrow1_element)
-		return false;
-
-	// Add them as non-DOM elements.
-	track = parent->AppendChild(std::move(track_element), false);
-	progress = track->AppendChild(std::move(progress_element), false);
-	bar = parent->AppendChild(std::move(bar_element), false);
-	arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
-	arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
+	track = As<Element*>(parent->AppendChild(Factory::InstanceNode("*", "slidertrack"), false));
+	progress = As<Element*>(track->AppendChild(Factory::InstanceNode("*", "sliderprogress"), false));
+	bar = As<Element*>(parent->AppendChild(Factory::InstanceNode("*", "sliderbar"), false));
+	arrows[0] = As<Element*>(parent->AppendChild(Factory::InstanceNode("*", "sliderarrowdec"), false));
+	arrows[1] = As<Element*>(parent->AppendChild(Factory::InstanceNode("*", "sliderarrowinc"), false));
 
 	const Property drag_property = Property(Style::Drag::Drag);
 	track->SetProperty(PropertyId::Drag, drag_property);

@@ -61,7 +61,7 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	}
 	else if (display == Display::InlineBlock || display == Display::FlowRoot || display == Display::TableCell || computed.float_() != Float::None ||
 		computed.position() == Position::Absolute || computed.position() == Position::Fixed || computed.overflow_x() != Overflow::Visible ||
-		computed.overflow_y() != Overflow::Visible || !element->GetParentNode() || element->GetParentNode()->GetDisplay() == Display::Flex)
+		computed.overflow_y() != Overflow::Visible || !element->GetParentElement() || element->GetParentElement()->GetDisplay() == Display::Flex)
 	{
 		type = FormattingContextType::Block;
 	}

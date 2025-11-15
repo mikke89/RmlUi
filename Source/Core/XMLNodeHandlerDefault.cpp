@@ -53,7 +53,7 @@ Element* XMLNodeHandlerDefault::ElementStart(XMLParser* parser, const String& na
 	element->SetAttributes(attributes);
 
 	// Move and append the element to the parent
-	Element* result = parent->AppendChild(std::move(element));
+	Element* result = As<Element*>(parent->AppendChild(std::move(element)));
 
 	return result;
 }

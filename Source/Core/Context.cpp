@@ -363,8 +363,8 @@ void Context::UnloadDocument(ElementDocument* _document)
 		document->DispatchEvent(EventId::Unload, Dictionary());
 		PluginRegistry::NotifyDocumentUnload(document);
 
-		// Move document to a temporary location to be released later.
-		unloaded_documents.push_back(root->RemoveChild(document));
+		// Remove from root and place document in a temporary location to be released later.
+		unloaded_documents.push_back(document->Remove());
 	}
 
 	// Remove the item from the focus history.
@@ -635,7 +635,7 @@ static Element* FindFocusElement(Element* element)
 
 	while (element && element->GetComputedValues().focus() == Style::Focus::None)
 	{
-		element = element->GetParentNode();
+		element = element->GetParentElement();
 	}
 
 	return element;
@@ -710,7 +710,7 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 				Style::Drag drag_style = drag->GetComputedValues().drag();
 				switch (drag_style)
 				{
-				case Style::Drag::None: drag = drag->GetParentNode(); continue;
+				case Style::Drag::None: drag = drag->GetParentElement(); continue;
 				case Style::Drag::Block: drag = nullptr; continue;
 				default: drag_verbose = (drag_style == Style::Drag::DragDrop || drag_style == Style::Drag::Clone);
 				}
@@ -1233,7 +1233,7 @@ bool Context::OnFocusChange(Element* new_focus, bool focus_visible)
 	while (element)
 	{
 		old_chain.insert(element);
-		element = element->GetParentNode();
+		element = element->GetParentElement();
 	}
 
 	// Build the new chain
@@ -1241,7 +1241,7 @@ bool Context::OnFocusChange(Element* new_focus, bool focus_visible)
 	while (element)
 	{
 		new_chain.insert(element);
-		element = element->GetParentNode();
+		element = element->GetParentElement();
 	}
 
 	// Send out blur/focus events.
@@ -1353,7 +1353,7 @@ void Context::UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_sta
 	while (element != nullptr)
 	{
 		new_hover_chain.insert(element);
-		element = element->GetParentNode();
+		element = element->GetParentElement();
 	}
 
 	// Send mouseout / mouseover events.
@@ -1370,7 +1370,7 @@ void Context::UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_sta
 		while (element != nullptr)
 		{
 			new_drag_hover_chain.insert(element);
-			element = element->GetParentNode();
+			element = element->GetParentElement();
 		}
 
 		if (drag_started && drag_verbose)
@@ -1427,7 +1427,7 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 					if (element_hierarchy == ignore_element)
 						break;
 
-					element_hierarchy = element_hierarchy->GetParentNode();
+					element_hierarchy = element_hierarchy->GetParentElement();
 				}
 
 				if (element_hierarchy)
@@ -1495,12 +1495,12 @@ void Context::CreateDragClone(Element* element)
 	drag_clone = element_drag_clone.get();
 
 	// Append the clone to the cursor proxy element.
-	cursor_proxy->AppendChild(std::move(element_drag_clone));
+	cursor_proxy->AppendChild(As<NodePtr>(std::move(element_drag_clone)));
 
 	// Position the clone. Use projected mouse coordinates to handle any ancestor transforms.
 	const Vector2f absolute_pos = element->GetAbsoluteOffset(BoxArea::Border);
 	Vector2f projected_mouse_position = Vector2f(mouse_position);
-	if (Element* parent = element->GetParentNode())
+	if (Element* parent = element->GetParentElement())
 		parent->Project(projected_mouse_position);
 
 	drag_clone->SetProperty(PropertyId::Position, Property(Style::Position::Absolute));

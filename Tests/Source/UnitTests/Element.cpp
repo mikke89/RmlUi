@@ -166,7 +166,7 @@ TEST_CASE("Element")
 	context->Update();
 	context->Render();
 
-	Element* div = document->GetFirstChild();
+	Element* div = document->GetFirstElementChild();
 	Element* span = div->GetChild(1);
 	REQUIRE(div);
 	REQUIRE(div->GetTagName() == "div");
@@ -175,7 +175,7 @@ TEST_CASE("Element")
 
 	SUBCASE("Attribute")
 	{
-		auto* button = document->AppendChild(document->CreateElement("button"));
+		Element* button = As<Element*>(document->AppendChild(document->CreateElement("button")));
 		SUBCASE("Event listener")
 		{
 			namespace tl = trompeloeil;
@@ -194,8 +194,8 @@ TEST_CASE("Element")
 			MockEventListenerInstancer mockEventListenerInstancer;
 			const auto configureMockEventListenerInstancer = [&](const auto value) {
 				expectations.emplace_back(NAMED_REQUIRE_CALL(mockEventListenerInstancer, InstanceEventListener(value, button))
-											  .LR_SIDE_EFFECT(configureMockEventListener())
-											  .LR_RETURN(mockEventListener.get()));
+						.LR_SIDE_EFFECT(configureMockEventListener())
+						.LR_RETURN(mockEventListener.get()));
 			};
 
 			Factory::RegisterEventListenerInstancer(&mockEventListenerInstancer);
@@ -262,7 +262,7 @@ TEST_CASE("Element")
 
 	SUBCASE("CloneManual")
 	{
-		Element* element = document->GetFirstChild();
+		Element* element = document->GetFirstElementChild();
 		REQUIRE(element->GetProperty<String>("background-color") == "#ff0000");
 		CHECK(element->Clone()->GetProperty<String>("background-color") == "#ff0000");
 
@@ -270,19 +270,19 @@ TEST_CASE("Element")
 		CHECK(element->Clone()->GetProperty<String>("background-color") == "#00ff00");
 
 		element->RemoveProperty("background-color");
-		Element* clone = document->AppendChild(element->Clone());
+		Element* clone = As<Element*>(document->AppendChild(element->Clone()));
 		context->Update();
 		CHECK(clone->GetProperty<String>("background-color") == "#ffffff");
 
 		element->SetClass("blue", true);
-		clone = document->AppendChild(element->Clone());
+		clone = As<Element*>(document->AppendChild(element->Clone()));
 		context->Update();
 		CHECK(clone->GetProperty<String>("background-color") == "#0000ff");
 	}
 
 	SUBCASE("SetInnerRML")
 	{
-		Element* element = document->GetFirstChild();
+		Element* element = document->GetFirstElementChild();
 		CHECK(element->GetInnerRML() == "This is a <span>sample</span>.");
 		element->SetInnerRML("text");
 		CHECK(element->GetInnerRML() == "text");
@@ -332,7 +332,8 @@ TEST_CASE("Element")
 		inner_rml = document->GetInnerRML();
 		CHECK(inner_rml == R"(<div style="background-color: #ff0000;">This is a <img /><span>sample</span>.</div>)");
 
-		div->InsertBefore(document->CreateElement("button"), nullptr)->SetInnerRML("Click me");
+		Element* button = As<Element*>(div->InsertBefore(document->CreateElement("button"), nullptr));
+		button->SetInnerRML("Click me");
 		inner_rml = document->GetInnerRML();
 		CHECK(inner_rml == R"(<div style="background-color: #ff0000;">This is a <img /><span>sample</span>.<button>Click me</button></div>)");
 	}

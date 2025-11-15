@@ -96,11 +96,11 @@ void InputTypeRadio::PopRadioSet()
 {
 	// Uncheck all other radio buttons with our name in the form.
 	String stop_tag;
-	Element* parent = element->GetParentNode();
+	Element* parent = element->GetParentElement();
 	while (parent != nullptr && rmlui_dynamic_cast<ElementForm*>(parent) == nullptr)
-		parent = parent->GetParentNode();
+		parent = parent->GetParentElement();
 
-	//If no containing form was found, use the containing document as the parent
+	// If no containing form was found, use the containing document as the parent
 	if (parent == nullptr)
 	{
 		parent = element->GetOwnerDocument();

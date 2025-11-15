@@ -62,7 +62,7 @@ void InputTypeSubmit::ProcessDefaultAction(Event& event)
 {
 	if (event == EventId::Click && !element->IsDisabled())
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		while (parent)
 		{
 			ElementForm* form = rmlui_dynamic_cast<ElementForm*>(parent);
@@ -73,7 +73,7 @@ void InputTypeSubmit::ProcessDefaultAction(Event& event)
 			}
 			else
 			{
-				parent = parent->GetParentNode();
+				parent = parent->GetParentElement();
 			}
 		}
 	}

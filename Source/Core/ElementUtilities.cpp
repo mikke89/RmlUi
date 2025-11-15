@@ -356,7 +356,7 @@ void ElementUtilities::BuildBox(Box& box, Vector2f containing_block, Element* el
 
 bool ElementUtilities::PositionElement(Element* element, Vector2f offset, PositionAnchor anchor)
 {
-	Element* parent = element->GetParentNode();
+	Element* parent = element->GetParentElement();
 	if (!parent)
 		return false;
 

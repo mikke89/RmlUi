@@ -81,7 +81,7 @@ TEST_CASE("elementimage.dp_ratio")
 		auto clone_ptr = div->Clone();
 
 		context->SetDensityIndependentPixelRatio(4.f);
-		Element* clone_div = document->AppendChild(std::move(clone_ptr));
+		Element* clone_div = As<Element*>(document->AppendChild(std::move(clone_ptr)));
 		Element* clone_img = clone_div->GetChild(0);
 		context->Update();
 
@@ -95,7 +95,7 @@ TEST_CASE("elementimage.dp_ratio")
 		new_img_ptr->SetAttribute("src", "high_scores_alien_1.tga");
 
 		context->SetDensityIndependentPixelRatio(4.0f);
-		Element* new_img = document->AppendChild(std::move(new_img_ptr));
+		Element* new_img = As<Element*>(document->AppendChild(std::move(new_img_ptr)));
 		context->Update();
 
 		CHECK(new_img->GetClientWidth() == 4.f * img_width);

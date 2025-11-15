@@ -146,8 +146,8 @@ void ElementTabSet::ProcessDefaultAction(Event& event)
 		// Find the tab that this click occured on
 		Element* tabs = GetChildByTag("tabs");
 		Element* tab = event.GetTargetElement();
-		while (tab && tab != this && tab->GetParentNode() != tabs)
-			tab = tab->GetParentNode();
+		while (tab && tab != this && tab->GetParentElement() != tabs)
+			tab = tab->GetParentElement();
 
 		// Abort if we couldn't find the tab the click occured on
 		if (!tab || tab == this)
@@ -172,22 +172,22 @@ void ElementTabSet::OnChildAdd(Element* child)
 {
 	Element::OnChildAdd(child);
 
-	if (child->GetParentNode() == GetChildByTag("tabs"))
+	if (child->GetParentElement() == GetChildByTag("tabs"))
 	{
 		// Set up the new button and append it
 		child->RemoveProperty(PropertyId::Display);
 
-		if (child->GetParentNode()->GetChild(active_tab) == child)
+		if (child->GetParentElement()->GetChild(active_tab) == child)
 			child->SetPseudoClass("selected", true);
 	}
 
-	if (child->GetParentNode() == GetChildByTag("panels"))
+	if (child->GetParentElement() == GetChildByTag("panels"))
 	{
 		// Hide the new tab window
 		child->SetProperty(PropertyId::Display, Property(Style::Display::None));
 
 		// Make the new element visible if its the active tab
-		if (child->GetParentNode()->GetChild(active_tab) == child)
+		if (child->GetParentElement()->GetChild(active_tab) == child)
 		{
 			child->SetPseudoClass("selected", true);
 			child->RemoveProperty(PropertyId::Display);
@@ -205,8 +205,8 @@ Element* ElementTabSet::GetChildByTag(const String& tag)
 	}
 
 	// If it doesn't exist, create it
-	ElementPtr element = As<ElementPtr>(Factory::InstanceNode("*", tag));
-	Element* result = AppendChild(std::move(element));
+	NodePtr node = Factory::InstanceNode("*", tag);
+	Element* result = As<Element*>(AppendChild(std::move(node)));
 	return result;
 }
 

@@ -63,6 +63,6 @@ void Inventory::AddItem(const Rml::String& name)
 		return;
 
 	// Create the new 'icon' element.
-	Rml::Element* icon = content->AppendChild(Rml::As<Rml::ElementPtr>(Rml::Factory::InstanceNode("icon", "icon")));
+	Rml::Element* icon = Rml::As<Rml::Element*>(content->AppendChild(Rml::Factory::InstanceNode("icon", "icon")));
 	icon->SetInnerRML(name);
 }

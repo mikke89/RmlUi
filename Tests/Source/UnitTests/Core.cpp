@@ -176,7 +176,7 @@ TEST_CASE("core.load_texture_only_when_visible")
 	REQUIRE(context);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(document_textures_rml);
-	Element* child_div = document->GetFirstChild();
+	Element* child_div = document->GetFirstElementChild();
 
 	SUBCASE("Invisible")
 	{
@@ -232,7 +232,7 @@ TEST_CASE("core.warn_missing_texture_once_when_visible")
 
 	const String document_missing_textures_rml = StringUtilities::Replace(document_textures_rml, ".tga", "_invalid.tga");
 	ElementDocument* document = context->LoadDocumentFromMemory(document_missing_textures_rml);
-	Element* child_div = document->GetFirstChild();
+	Element* child_div = document->GetFirstElementChild();
 
 	TestsShell::SetNumExpectedWarnings(0);
 	document->Show();

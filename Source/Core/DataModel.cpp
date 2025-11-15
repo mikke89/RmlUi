@@ -244,7 +244,7 @@ void DataModel::CopyAliases(Element* from_element, Element* to_element)
 	{
 		// Need to create a copy to prevent errors during concurrent modification for 3rd party containers
 		auto copy = existing_map->second;
-		for (auto const& it : copy)
+		for (const auto& it : copy)
 			aliases[to_element][it.first] = std::move(it.second);
 	}
 }
@@ -288,7 +288,7 @@ DataAddress DataModel::ResolveAddress(const String& address_str, Element* elemen
 			}
 		}
 
-		ancestor = ancestor->GetParentNode();
+		ancestor = ancestor->GetParentElement();
 	}
 
 	Log::Message(Log::LT_WARNING, "Could not find variable name '%s' in data model.", address_str.c_str());

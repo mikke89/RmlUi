@@ -267,7 +267,7 @@ void ElementInfo::ProcessEvent(Event& event)
 						for (int i = 0; i < element_index; i++)
 						{
 							if (new_source_element != nullptr)
-								new_source_element = new_source_element->GetParentNode();
+								new_source_element = new_source_element->GetParentElement();
 						}
 						SetSourceElement(new_source_element);
 					}
@@ -305,7 +305,7 @@ void ElementInfo::ProcessEvent(Event& event)
 					for (int i = 0; i < element_index; i++)
 					{
 						if (hover_element != nullptr)
-							hover_element = hover_element->GetParentNode();
+							hover_element = hover_element->GetParentElement();
 					}
 				}
 				else if (sscanf(id.c_str(), "c %d", &element_index) == 1)
@@ -422,7 +422,7 @@ void ElementInfo::UpdateSourceElement()
 				// Finally, create new pseudo buttons for the rest of the active pseudo classes.
 				for (auto& extra_pseudo : list)
 				{
-					Element* grandchild = child->AppendChild(CreateElement("pseudo"));
+					Element* grandchild = As<Element*>(child->AppendChild(CreateElement("pseudo")));
 					grandchild->SetClass("active", true);
 					grandchild->SetAttribute("name", extra_pseudo);
 					grandchild->SetInnerRML(":" + extra_pseudo);
@@ -573,21 +573,21 @@ void ElementInfo::UpdateSourceElement()
 		String ancestors;
 		Element* element_ancestor = nullptr;
 		if (source_element != nullptr)
-			element_ancestor = source_element->GetParentNode();
+			element_ancestor = source_element->GetParentElement();
 
 		int ancestor_depth = 1;
 		while (element_ancestor)
 		{
 			String ancestor_name = element_ancestor->GetAddress(false, false);
 			ancestors += CreateString("<p id=\"a %d\">%s</p>", ancestor_depth, ancestor_name.c_str());
-			element_ancestor = element_ancestor->GetParentNode();
+			element_ancestor = element_ancestor->GetParentElement();
 			ancestor_depth++;
 		}
 
 		if (ancestors.empty())
 		{
 			while (ancestors_content->HasChildNodes())
-				ancestors_content->RemoveChild(ancestors_content->GetFirstChild());
+				ancestors_content->RemoveChild(ancestors_content->GetFirstElementChild());
 			ancestors_rml.clear();
 		}
 		else if (ancestors != ancestors_rml)
@@ -710,8 +710,8 @@ void ElementInfo::BuildElementPropertiesRML(String& property_rml, Element* eleme
 		}
 	}
 
-	if (element->GetParentNode() != nullptr)
-		BuildElementPropertiesRML(property_rml, element->GetParentNode(), primary_element);
+	if (Element* parent = element->GetParentElement())
+		BuildElementPropertiesRML(property_rml, parent, primary_element);
 }
 
 void ElementInfo::BuildPropertyRML(String& property_rml, const String& name, const Property* property)

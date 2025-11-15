@@ -334,7 +334,7 @@ static void RemoveElementsWithIds(ElementDocument* document, const String& remov
 	for (const String& id : remove_id_list)
 	{
 		if (Element* element = document->GetElementById(id))
-			element->GetParentNode()->RemoveChild(element);
+			element->GetParentElement()->RemoveChild(element);
 	}
 }
 static void RemoveClassesFromAllElements(ElementDocument* document, const String& remove_classes)
@@ -354,7 +354,7 @@ static void InsertElementBefore(ElementDocument* document, const String& before_
 	Element* element = document->GetElementById(before_id);
 	ElementPtr new_element = document->CreateElement("p");
 	new_element->SetId("Inserted");
-	element->GetParentNode()->InsertBefore(std::move(new_element), element);
+	element->GetParentElement()->InsertBefore(std::move(new_element), element);
 }
 
 TEST_CASE("Selectors")

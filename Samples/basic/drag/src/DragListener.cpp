@@ -47,8 +47,7 @@ void DragListener::ProcessEvent(Rml::Event& event)
 		if (dest_container == dest_element)
 		{
 			// The dragged element was dragged directly onto a container.
-			Rml::ElementPtr element = drag_element->GetParentNode()->RemoveChild(drag_element);
-			dest_container->AppendChild(std::move(element));
+			dest_container->AppendChild(drag_element->Remove());
 		}
 		else
 		{
@@ -59,25 +58,25 @@ void DragListener::ProcessEvent(Rml::Event& event)
 
 			// Unless of course if it was dragged on top of an item in its own container; we need
 			// to check then if it was moved up or down with the container.
-			if (drag_element->GetParentNode() == dest_container)
+			if (drag_element->GetParentElement() == dest_container)
 			{
 				// Check whether we're moving this icon from the left or the right.
 
-				Rml::Element* previous_icon = insert_before->GetPreviousSibling();
+				Rml::Element* previous_icon = insert_before->GetPreviousElementSibling();
 				while (previous_icon != nullptr)
 				{
 					if (previous_icon == drag_element)
 					{
-						insert_before = insert_before->GetNextSibling();
+						insert_before = insert_before->GetNextElementSibling();
 						break;
 					}
 
-					previous_icon = previous_icon->GetPreviousSibling();
+					previous_icon = previous_icon->GetPreviousElementSibling();
 				}
 			}
 
-			Rml::ElementPtr element = drag_element->GetParentNode()->RemoveChild(drag_element);
-			dest_container->InsertBefore(std::move(element), insert_before);
+			Rml::NodePtr node = drag_element->GetParentElement()->RemoveChild(drag_element);
+			dest_container->InsertBefore(std::move(node), insert_before);
 		}
 	}
 }
