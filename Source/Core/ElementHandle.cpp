@@ -205,7 +205,7 @@ private:
 	}
 	Vector2f DistanceToBottomRight(Vector2f distance_to_top_left) const
 	{
-		const Vector2f scroll_size = {target->GetParentNode()->GetScrollWidth(), target->GetParentNode()->GetScrollHeight()};
+		const Vector2f scroll_size = {target->GetParentElement()->GetScrollWidth(), target->GetParentElement()->GetScrollHeight()};
 		return scroll_size - box.GetSize(BoxArea::Border) - distance_to_top_left;
 	}
 

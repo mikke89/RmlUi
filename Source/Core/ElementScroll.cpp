@@ -225,9 +225,8 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 	scrollbars[orientation].widget = MakeUnique<WidgetScroll>(scrollbars[orientation].element);
 	scrollbars[orientation].widget->Initialise(orientation == VERTICAL ? WidgetScroll::VERTICAL : WidgetScroll::HORIZONTAL);
 
-	Element* child = element->AppendChild(std::move(scrollbar_element), false);
-
-	UpdateScrollElementProperties(child);
+	element->AppendChild(std::move(scrollbar_element), false);
+	UpdateScrollElementProperties(scrollbars[orientation].element);
 
 	return true;
 }
@@ -242,8 +241,8 @@ bool ElementScroll::CreateCorner()
 	corner->SetProperty(PropertyId::Clip, Property(1, Unit::NUMBER));
 	corner->SetProperty(PropertyId::Drag, Property(Style::Drag::Block));
 
-	Element* child = element->AppendChild(std::move(corner_element), false);
-	UpdateScrollElementProperties(child);
+	element->AppendChild(std::move(corner_element), false);
+	UpdateScrollElementProperties(corner);
 
 	return true;
 }

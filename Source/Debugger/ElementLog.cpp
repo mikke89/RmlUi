@@ -82,11 +82,11 @@ ElementLog::~ElementLog()
 {
 	RemoveEventListener(EventId::Click, this);
 
-	if (beacon && beacon->GetFirstChild())
-		beacon->GetFirstChild()->RemoveEventListener(EventId::Click, this);
+	if (beacon && beacon->GetFirstElementChild())
+		beacon->GetFirstElementChild()->RemoveEventListener(EventId::Click, this);
 
-	if (beacon && beacon->GetParentNode())
-		beacon->GetParentNode()->RemoveChild(beacon);
+	if (beacon && beacon->GetParentElement())
+		beacon->GetParentElement()->RemoveChild(beacon);
 
 	if (message_content)
 	{
@@ -123,9 +123,9 @@ bool ElementLog::Initialise()
 	beacon->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	beacon->SetInnerRML(beacon_rml);
 
-	Element* button = beacon->GetFirstChild();
+	Element* button = beacon->GetFirstElementChild();
 	if (button)
-		beacon->GetFirstChild()->AddEventListener(EventId::Click, this);
+		beacon->GetFirstElementChild()->AddEventListener(EventId::Click, this);
 
 	style_sheet = Factory::InstanceStyleSheetString(String(common_rcss) + String(beacon_rcss));
 	if (!style_sheet)
@@ -177,7 +177,7 @@ void ElementLog::AddLogMessage(Log::Type type, const String& message)
 				beacon->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 
 				current_beacon_level = type;
-				Element* beacon_button = beacon->GetFirstChild();
+				Element* beacon_button = beacon->GetFirstElementChild();
 				if (beacon_button)
 				{
 					beacon_button->SetClassNames(log_types[type].class_name);
@@ -221,9 +221,9 @@ void ElementLog::OnUpdate()
 				num_messages++;
 			}
 
-			if (message_content->HasChildNodes())
+			if (Element* last_element = message_content->GetLastElementChild())
 			{
-				float last_element_top = message_content->GetLastChild()->GetAbsoluteTop();
+				const float last_element_top = last_element->GetAbsoluteTop();
 				auto_scroll = message_content->GetAbsoluteTop() + message_content->GetAbsoluteTop() > last_element_top;
 			}
 			else
@@ -243,7 +243,7 @@ void ElementLog::ProcessEvent(Event& event)
 	{
 		if (event == EventId::Click)
 		{
-			if (event.GetTargetElement() == beacon->GetFirstChild())
+			if (event.GetTargetElement() == beacon->GetFirstElementChild())
 			{
 				if (!IsVisible())
 					SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
@@ -288,8 +288,11 @@ void ElementLog::ProcessEvent(Event& event)
 
 	if (event == EventId::Resize && auto_scroll)
 	{
-		if (message_content != nullptr && message_content->HasChildNodes())
-			message_content->GetLastChild()->ScrollIntoView();
+		if (message_content)
+		{
+			if (Element* child = message_content->GetLastElementChild())
+				child->ScrollIntoView();
+		}
 	}
 }
 

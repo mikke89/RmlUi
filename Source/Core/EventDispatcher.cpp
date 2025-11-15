@@ -155,7 +155,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const EventId id, c
 			default_action_elements.push_back(walk_element->GetObserverPtr());
 		}
 
-		walk_element = walk_element->GetParentNode();
+		walk_element = walk_element->GetParentElement();
 		dom_distance_from_target += 1;
 	}
 

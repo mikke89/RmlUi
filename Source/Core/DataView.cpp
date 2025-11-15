@@ -58,7 +58,7 @@ DataView::DataView(Element* element, int bias) : attached_element(element->GetOb
 
 	if (element)
 	{
-		for (Element* parent = element->GetParentNode(); parent; parent = parent->GetParentNode())
+		for (Node* parent = element->GetParentNode(); parent; parent = parent->GetParentNode())
 			sort_order += 2000;
 	}
 }

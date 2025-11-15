@@ -47,7 +47,7 @@ Element* XMLNodeHandlerTextArea::ElementStart(XMLParser* parser, const String& n
 		ElementPtr new_element = As<ElementPtr>(Factory::InstanceNode(name, name));
 		new_element->SetAttributes(attributes);
 
-		Element* result = parser->GetParseFrame()->element->AppendChild(std::move(new_element));
+		Element* result = As<Element*>(parser->GetParseFrame()->element->AppendChild(std::move(new_element)));
 		return result;
 	}
 

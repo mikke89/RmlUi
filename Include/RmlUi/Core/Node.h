@@ -39,6 +39,7 @@ class Context;
 class Element;
 class ElementDocument;
 class NodeInstancer;
+class NodePtrProxy;
 using OwnedNodeList = Vector<NodePtr>;
 
 /**
@@ -62,34 +63,43 @@ public:
 	/// @return True if the node has at least one DOM child, false otherwise.
 	bool HasChildNodes() const;
 
+	/// Returns the first child of this node.
+	/// @return This node's first child, or nullptr if it contains no children.
+	Node* GetFirstChild() const;
+	/// Gets the last child of this node.
+	/// @return This node's last child, or nullptr if it contains no children.
+	Node* GetLastChild() const;
+	/// Gets the node immediately following this one in the tree.
+	/// @return This node's next sibling node, or nullptr if there is no sibling node.
+	Node* GetNextSibling() const;
+	/// Gets the node immediately preceding this one in the tree.
+	/// @return This node's previous sibling node, or nullptr if there is no sibling node.
+	Node* GetPreviousSibling() const;
+
 	/// Append a child to this node.
 	/// @param[in] node The node to append as a child.
 	/// @param[in] dom_node True if the node is to be part of the DOM, false otherwise. Only set this to false if you know what you're doing!
 	/// @return A pointer to the just inserted node.
-	Node* AppendChild(NodePtr node, bool dom_node = true);
-	[[deprecated("Use the NodePtr version of this function")]] Element* AppendChild(ElementPtr element, bool dom_element = true);
+	Node* AppendChild(NodePtrProxy node, bool dom_node = true);
 	/// Adds a child to this node directly before the adjacent node. The new node inherits the DOM/non-DOM
 	/// status from the adjacent node.
 	/// @param[in] node Node to be inserted.
 	/// @param[in] adjacent_node The reference node which the new node will be inserted before.
 	/// @return A pointer to the just inserted node.
-	Node* InsertBefore(NodePtr node, Node* adjacent_node);
-	[[deprecated("Use the NodePtr version of this function")]] Element* InsertBefore(ElementPtr element, Element* adjacent_element);
+	Node* InsertBefore(NodePtrProxy node, Node* adjacent_node);
 	/// Replaces the second node with the first node.
 	/// @param[in] insert_node The node to insert and replace the other node.
 	/// @param[in] replace_node The existing child node to replace. If this doesn't exist, insert_node will be appended.
 	/// @return A unique pointer to the replaced node if found, discard the result to immediately destroy.
-	NodePtr ReplaceChild(NodePtr insert_node, Node* replace_node);
-	[[deprecated("Use the NodePtr version of this function")]] ElementPtr ReplaceChild(ElementPtr inserted_element, Element* replaced_element);
+	NodePtr ReplaceChild(NodePtrProxy insert_node, Node* replace_node);
 	/// Remove a child node from this node.
 	/// @param[in] node The node to remove.
 	/// @return A unique pointer to the node if found, discard the result to immediately destroy.
 	NodePtr RemoveChild(Node* node);
-	[[deprecated("Use the NodePtr version of this function")]] ElementPtr RemoveChild(Element* element);
 
 	/// Gets this nodes's parent node.
 	/// @return This node's parent.
-	[[deprecated("Use GetParentElement")]] Element* GetParentNode() const;
+	Node* GetParentNode() const;
 	/// Gets this nodes's parent element.
 	/// @return This node's parent if it is an element, otherwise false.
 	Element* GetParentElement() const;
@@ -306,6 +316,18 @@ private:
 	int num_non_dom_children = 0;
 
 	friend class Rml::Context;
+};
+
+class RMLUICORE_API NodePtrProxy {
+public:
+	NodePtrProxy(NodePtr node);
+	NodePtrProxy(ElementPtr element);
+	Node* Get();
+	NodePtr Extract();
+	explicit operator bool() const;
+
+private:
+	NodePtr node;
 };
 
 } // namespace Rml

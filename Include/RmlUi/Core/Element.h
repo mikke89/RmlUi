@@ -431,20 +431,16 @@ public:
 	/// Gets the element immediately following this one in the tree.
 	/// @return This element's next sibling element, or nullptr if there is no sibling element.
 	Element* GetNextElementSibling() const;
-	[[deprecated("Use GetNextElementSibling")]] Element* GetNextSibling() const;
 	/// Gets the element immediately preceding this one in the tree.
 	/// @return This element's previous sibling element, or nullptr if there is no sibling element.
 	Element* GetPreviousElementSibling() const;
-	[[deprecated("Use GetPreviousElementSibling")]] Element* GetPreviousSibling() const;
 
 	/// Returns the first child of this element.
 	/// @return This element's first child, or nullptr if it contains no children.
 	Element* GetFirstElementChild() const;
-	[[deprecated("Use GetFirstElementChild")]] Element* GetFirstChild() const;
 	/// Gets the last child of this element.
 	/// @return This element's last child, or nullptr if it contains no children.
 	Element* GetLastElementChild() const;
-	[[deprecated("Use GetLastElementChild")]] Element* GetLastChild() const;
 	/// Get the child element at the given index.
 	/// @param[in] index Index of child to get.
 	/// @return The child element at the given index.

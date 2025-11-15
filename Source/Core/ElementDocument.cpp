@@ -524,8 +524,8 @@ void ElementDocument::UpdateLayout()
 		RMLUI_ZoneText(source_url.c_str(), source_url.size());
 
 		Vector2f containing_block(0, 0);
-		if (GetParentNode() != nullptr)
-			containing_block = GetParentNode()->GetBox().GetSize();
+		if (Element* parent = GetParentElement())
+			containing_block = parent->GetBox().GetSize();
 
 		LayoutEngine::FormatElement(this, containing_block);
 
@@ -543,7 +543,7 @@ void ElementDocument::UpdatePosition()
 
 		position_dirty = false;
 
-		Element* root = GetParentNode();
+		Element* root = GetParentElement();
 
 		// We only position ourselves if we are a child of our context's root element. That is, we don't want to proceed
 		// if we are unparented or an iframe document.
@@ -663,7 +663,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 				{
 					if (CanFocusElement(focus_node) == CanFocus::Yes)
 						break;
-					focus_node = focus_node->GetParentNode();
+					focus_node = focus_node->GetParentElement();
 				}
 				return focus_node ? focus_node : this;
 			};
@@ -729,7 +729,7 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 	bool search_enabled = false;
 	Element* document = current_element->GetOwnerDocument();
 	Element* child = current_element;
-	Element* parent = current_element->GetParentNode();
+	Element* parent = current_element->GetParentElement();
 	while (child != document)
 	{
 		const int num_children = parent->GetNumChildren();
@@ -751,7 +751,7 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 
 		// Advance up the tree
 		child = parent;
-		parent = parent->GetParentNode();
+		parent = parent->GetParentElement();
 		search_enabled = false;
 	}
 
@@ -851,7 +851,7 @@ Element* ElementDocument::FindNextNavigationElement(Element* current_element, Na
 	const BoundingBox bounding_box = {position, position + current_element->GetBox().GetSize(BoxArea::Border)};
 
 	auto GetNearestScrollContainer = [this](Element* element) -> Element* {
-		for (element = element->GetParentNode(); element; element = element->GetParentNode())
+		for (element = element->GetParentElement(); element; element = element->GetParentElement())
 		{
 			if (IsScrollContainer(element))
 				return element;

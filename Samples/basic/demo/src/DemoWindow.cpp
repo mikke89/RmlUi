@@ -72,8 +72,7 @@ bool DemoWindow::Initialize(const Rml::String& title, Rml::Context* context)
 	if (auto target = document->GetElementById("sandbox_target"))
 	{
 		iframe = context->CreateDocument();
-		auto iframe_ptr = iframe->GetParentNode()->RemoveChild(iframe);
-		target->AppendChild(std::move(iframe_ptr));
+		target->AppendChild(iframe->Remove());
 		iframe->SetProperty(PropertyId::Position, Property(Style::Position::Absolute));
 		iframe->SetProperty(PropertyId::Display, Property(Style::Display::Block));
 		iframe->SetInnerRML("<p>Rendered output goes here.</p>");

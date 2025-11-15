@@ -47,9 +47,9 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	parent_element = element;
 
 	// Create the button and selection elements.
-	button_element = parent_element->AppendChild(As<ElementPtr>(Factory::InstanceNode("*", "selectarrow")), false);
-	value_element = parent_element->AppendChild(As<ElementPtr>(Factory::InstanceNode("*", "selectvalue")), false);
-	selection_element = parent_element->AppendChild(As<ElementPtr>(Factory::InstanceNode("*", "selectbox")), false);
+	button_element = As<Element*>(parent_element->AppendChild(Factory::InstanceNode("*", "selectarrow"), false));
+	value_element = As<Element*>(parent_element->AppendChild(Factory::InstanceNode("*", "selectvalue"), false));
+	selection_element = As<Element*>(parent_element->AppendChild(Factory::InstanceNode("*", "selectbox"), false));
 
 	value_element->SetProperty(PropertyId::OverflowX, Property(Style::Overflow::Hidden));
 	value_element->SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Hidden));
@@ -94,7 +94,7 @@ void WidgetDropDown::OnUpdate()
 		//  3. The first option.
 		// The select element's value may change as a result of this.
 		const String select_value = parent_element->GetAttribute("value", String());
-		Element* select_option = selection_element->GetFirstChild();
+		Element* select_option = selection_element->GetFirstElementChild();
 
 		const int num_options = selection_element->GetNumChildren();
 		for (int i = 0; i < num_options; i++)
@@ -431,7 +431,7 @@ void WidgetDropDown::RemoveOption(int index)
 
 void WidgetDropDown::ClearOptions()
 {
-	while (Element* element = selection_element->GetLastChild())
+	while (Element* element = selection_element->GetLastElementChild())
 		selection_element->RemoveChild(element);
 }
 
@@ -448,7 +448,7 @@ int WidgetDropDown::GetNumOptions() const
 void WidgetDropDown::OnChildAdd(Element* element)
 {
 	// We have a special case for 'data-for' here, since that element must remain hidden.
-	if (element->GetParentNode() != selection_element || element->HasAttribute("data-for") || element->GetTagName() != "option")
+	if (element->GetParentElement() != selection_element || element->HasAttribute("data-for") || element->GetTagName() != "option")
 		return;
 
 	// Force to block display. Register a click handler so we can be notified of selection.
@@ -466,7 +466,7 @@ void WidgetDropDown::OnChildAdd(Element* element)
 
 void WidgetDropDown::OnChildRemove(Element* element)
 {
-	if (element->GetParentNode() != selection_element)
+	if (element->GetParentElement() != selection_element)
 		return;
 
 	element->RemoveEventListener(EventId::Click, this);
@@ -500,7 +500,7 @@ void WidgetDropDown::ProcessEvent(Event& event)
 	{
 	case EventId::Click:
 	{
-		if (event.GetCurrentElement()->GetParentNode() == selection_element)
+		if (event.GetCurrentElement()->GetParentElement() == selection_element)
 		{
 			const int num_options = selection_element->GetNumChildren();
 			// Find the element in the options and fire the selection event
@@ -531,7 +531,7 @@ void WidgetDropDown::ProcessEvent(Event& event)
 			{
 				if (element == selection_element)
 					return;
-				element = element->GetParentNode();
+				element = element->GetParentElement();
 			}
 
 			if (selection_element->GetComputedValues().visibility() == Style::Visibility::Hidden)
@@ -606,7 +606,7 @@ void WidgetDropDown::ProcessEvent(Event& event)
 			// Close the select box if we scroll outside the select box.
 			bool scrolls_selection_box = false;
 
-			for (Element* element = event.GetTargetElement(); element; element = element->GetParentNode())
+			for (Element* element = event.GetTargetElement(); element; element = element->GetParentElement())
 			{
 				if (element == selection_element)
 				{

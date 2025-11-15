@@ -53,7 +53,7 @@ void DemoEventListener::ProcessEvent(Rml::Event& event)
 	else if (value == "move_child")
 	{
 		const Vector2f mouse_pos = {event.GetParameter("mouse_x", 0.0f), event.GetParameter("mouse_y", 0.0f)};
-		if (Element* child = element->GetFirstChild())
+		if (Element* child = element->GetFirstElementChild())
 		{
 			Vector2f new_pos = mouse_pos - element->GetAbsoluteOffset() - Vector2f(0.35f * child->GetClientWidth(), 0.9f * child->GetClientHeight());
 			Property destination = Transform::MakeProperty({Transforms::Translate2D(new_pos.x, new_pos.y)});

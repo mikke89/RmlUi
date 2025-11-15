@@ -165,9 +165,9 @@ void ElementFormControlSelect::OnChildRemove(Element* child)
 void ElementFormControlSelect::MoveChildren()
 {
 	// Move any child elements into the widget (except for the three functional elements).
-	while (Element* raw_child = GetFirstChild())
+	while (Element* raw_child = GetFirstElementChild())
 	{
-		ElementPtr child = RemoveChild(raw_child);
+		ElementPtr child = As<ElementPtr>(RemoveChild(raw_child));
 		widget->AddOption(std::move(child), -1);
 	}
 }

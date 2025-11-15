@@ -93,14 +93,14 @@ const Property* ElementStyle::GetProperty(PropertyId id, const Element* element,
 	// If we can inherit this property, return our parent's property.
 	if (property->IsInherited())
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		while (parent)
 		{
 			const Property* parent_property = parent->GetStyle()->GetLocalProperty(id);
 			if (parent_property)
 				return parent_property;
 
-			parent = parent->GetParentNode();
+			parent = parent->GetParentElement();
 		}
 	}
 
@@ -418,7 +418,7 @@ float ElementStyle::ResolveRelativeLength(NumericValue value, RelativeTarget rel
 	case RelativeTarget::FontSize: base_value = element->GetComputedValues().font_size(); break;
 	case RelativeTarget::ParentFontSize:
 	{
-		auto p = element->GetParentNode();
+		auto p = element->GetParentElement();
 		base_value = (p ? p->GetComputedValues().font_size() : DefaultComputedValues().font_size());
 	}
 	break;

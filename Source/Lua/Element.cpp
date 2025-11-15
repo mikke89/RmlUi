@@ -102,7 +102,7 @@ int ElementAppendChild(lua_State* L, Element* obj)
 	ElementPtr* element = LuaType<ElementPtr>::check(L, 1);
 	if (*element)
 	{
-		Element* child = obj->AppendChild(std::move(*element));
+		Element* child = As<Element*>(obj->AppendChild(std::move(*element)));
 		LuaType<Element>::push(L, child, false);
 	}
 	else
@@ -237,7 +237,7 @@ int ElementInsertBefore(lua_State* L, Element* obj)
 	Element* adjacent = LuaType<Element>::check(L, 2);
 	if (*element)
 	{
-		Element* inserted = obj->InsertBefore(std::move(*element), adjacent);
+		Element* inserted = As<Element*>(obj->InsertBefore(std::move(*element), adjacent));
 		LuaType<Element>::push(L, inserted, false);
 	}
 	else
@@ -371,7 +371,7 @@ int ElementGetAttrfirst_child(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Element* child = ele->GetFirstChild();
+	Element* child = ele->GetFirstElementChild();
 	if (child == nullptr)
 		lua_pushnil(L);
 	else
@@ -399,7 +399,7 @@ int ElementGetAttrlast_child(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Element* child = ele->GetLastChild();
+	Element* child = ele->GetLastElementChild();
 	if (child == nullptr)
 		lua_pushnil(L);
 	else
@@ -411,7 +411,7 @@ int ElementGetAttrnext_sibling(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Element* sibling = ele->GetNextSibling();
+	Element* sibling = ele->GetNextElementSibling();
 	if (sibling == nullptr)
 		lua_pushnil(L);
 	else
@@ -473,7 +473,7 @@ int ElementGetAttrparent_node(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Element* parent = ele->GetParentNode();
+	Element* parent = ele->GetParentElement();
 	if (parent == nullptr)
 		lua_pushnil(L);
 	else
@@ -485,7 +485,7 @@ int ElementGetAttrprevious_sibling(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Element* sibling = ele->GetPreviousSibling();
+	Element* sibling = ele->GetPreviousElementSibling();
 	if (sibling == nullptr)
 		lua_pushnil(L);
 	else
