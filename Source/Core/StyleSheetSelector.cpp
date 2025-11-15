@@ -70,7 +70,7 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	{
 	case StructuralSelectorType::Nth_Child:
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		if (!parent)
 			return false;
 
@@ -96,7 +96,7 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::Nth_Last_Child:
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		if (!parent)
 			return false;
 
@@ -122,7 +122,7 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::Nth_Of_Type:
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		if (!parent)
 			return false;
 
@@ -149,7 +149,7 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::Nth_Last_Of_Type:
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		if (!parent)
 			return false;
 
@@ -175,7 +175,7 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::First_Child:
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		if (!parent)
 			return false;
 
@@ -200,7 +200,7 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::Last_Child:
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		if (!parent)
 			return false;
 
@@ -225,7 +225,7 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::First_Of_Type:
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		if (!parent)
 			return false;
 
@@ -249,7 +249,7 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::Last_Of_Type:
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		if (!parent)
 			return false;
 
@@ -273,7 +273,7 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::Only_Child:
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		if (!parent)
 			return false;
 
@@ -298,7 +298,7 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::Only_Of_Type:
 	{
-		Element* parent = element->GetParentNode();
+		Element* parent = element->GetParentElement();
 		if (!parent)
 			return false;
 

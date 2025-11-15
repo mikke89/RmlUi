@@ -260,7 +260,7 @@ DataAddress DataModel::ResolveAddress(const String& address_str, Element* elemen
 			}
 		}
 
-		ancestor = ancestor->GetParentNode();
+		ancestor = ancestor->GetParentElement();
 	}
 
 	Log::Message(Log::LT_WARNING, "Could not find variable name '%s' in data model.", address_str.c_str());

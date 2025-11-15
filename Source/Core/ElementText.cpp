@@ -225,7 +225,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	// Bail if we don't have a valid font face.
 	if (font_face_handle == 0)
 	{
-		LogMissingFontFace(GetParentNode() ? GetParentNode() : this);
+		LogMissingFontFace(GetParentElement() ? GetParentElement() : this);
 		return true;
 	}
 
@@ -481,7 +481,7 @@ void ElementText::GenerateGeometry(RenderManager& render_manager, const FontFace
 {
 	RMLUI_ZoneScopedC(0xD2691E);
 
-	const TextOverflowResolved text_overflow = ResolveTextOverflow(GetParentNode(), font_face_handle);
+	const TextOverflowResolved text_overflow = ResolveTextOverflow(GetParentElement(), font_face_handle);
 
 	const auto& computed = GetComputedValues();
 	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.font_kerning(), computed.letter_spacing()};
