@@ -1458,6 +1458,16 @@ bool Element::Contains(Element* element) const
 	return false;
 }
 
+ElementPtr Element::Remove()
+{
+	if (Node* parent = GetParentNode())
+	{
+		if (NodePtr self = parent->RemoveChild(As<Node*>(this)))
+			return As<ElementPtr>(std::move(self));
+	}
+	return nullptr;
+}
+
 EventDispatcher* Element::GetEventDispatcher() const
 {
 	return &meta->event_dispatcher;
