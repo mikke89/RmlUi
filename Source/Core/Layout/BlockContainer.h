@@ -88,15 +88,15 @@ public:
 	// Adds an element to this block container to be handled as a floating element.
 	void AddFloatElement(Element* element, Vector2f visible_overflow_size);
 
-	/// Adds a new inline-level element to this block container.
-	/// @param[in] element The new inline element.
-	/// @param[in] box The box defining the element's bounds.
-	/// @return A handle for the inline element, which must later be submitted to 'CloseInlineElement()'.
+	/// Adds a new inline-level node to this block container.
+	/// @param[in] node The new inline node.
+	/// @param[in] box The box defining the node's bounds.
+	/// @return A handle for the inline box, which must later be submitted to 'CloseInlineNode()'.
 	/// @note Adds a new inline container to this box if needed, which starts a new inline formatting context.
-	InlineBoxHandle AddInlineElement(Element* element, const Box& box);
-	/// Closes a previously added inline element. This must be called after all its children have been added.
-	/// @param[in] handle A handle previously returned from 'AddInlineElement()'.
-	void CloseInlineElement(InlineBoxHandle handle);
+	InlineBoxHandle AddInlineNode(Node* node, const Box& box);
+	/// Closes a previously added inline node. This must be called after all its children have been added.
+	/// @param[in] handle A handle previously returned from 'AddInlineNode()'.
+	void CloseInlineNode(InlineBoxHandle handle);
 
 	// Adds a line-break to this block box.
 	void AddBreak();

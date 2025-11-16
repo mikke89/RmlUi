@@ -352,7 +352,12 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::Empty:
 	{
-		return element->GetNumChildren() == 0;
+		for (Node* node : element->IterateChildren<Node>())
+		{
+			if (AsIf<Element*>(node) || AsIf<ElementText*>(node))
+				return false;
+		}
+		return true;
 	}
 	break;
 	case StructuralSelectorType::Not:

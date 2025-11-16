@@ -52,17 +52,17 @@ public:
 	InlineContainer(BlockContainer* parent, float available_width);
 	~InlineContainer();
 
-	/// Adds a new inline-level element to this inline-context box.
-	/// @param[in] element The new inline-level element.
-	/// @param[in] box The box defining the element's bounds.
-	/// @return The inline box if one was generated for the elmeent, otherwise nullptr.
+	/// Adds a new inline-level node to this inline-context box.
+	/// @param[in] node The new inline-level node.
+	/// @param[in] box The box defining the node's bounds.
+	/// @return The inline box if one was generated for the node, otherwise nullptr.
 	/// @note Any non-null return value must be closed with a call to CloseInlineElement().
-	InlineBox* AddInlineElement(Element* element, const Box& box);
+	InlineBox* AddInlineNode(Node* node, const Box& box);
 
-	/// Closes the previously added inline box.
+	/// Closes the previously added inline node.
 	/// @param[in] inline_box The box to close.
-	/// @note Calls to this function should be submitted in reverse order to AddInlineElement().
-	void CloseInlineElement(InlineBox* inline_box);
+	/// @note Calls to this function should be submitted in reverse order to AddInlineNode().
+	void CloseInlineNode(InlineBox* inline_box);
 
 	/// Add a break to the last line.
 	void AddBreak(float line_height);

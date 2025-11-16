@@ -167,7 +167,7 @@ TEST_CASE("Element")
 	context->Render();
 
 	Element* div = document->GetFirstElementChild();
-	Element* span = div->GetChild(1);
+	Element* span = div->GetFirstElementChild();
 	REQUIRE(div);
 	REQUIRE(div->GetTagName() == "div");
 	REQUIRE(span);

@@ -58,27 +58,34 @@ InlineContainer::InlineContainer(BlockContainer* _parent, float _available_width
 
 InlineContainer::~InlineContainer() {}
 
-InlineBox* InlineContainer::AddInlineElement(Element* element, const Box& box)
+InlineBox* InlineContainer::AddInlineNode(Node* node, const Box& box)
 {
-	RMLUI_ASSERT(element);
+	RMLUI_ASSERT(node);
 
 	InlineBox* inline_box = nullptr;
 	InlineLevelBox* inline_level_box = nullptr;
 	InlineBoxBase* parent_box = GetOpenInlineBox();
 
-	if (auto text_element = rmlui_dynamic_cast<ElementText*>(element))
+	if (auto text_node = AsIf<ElementText*>(node))
 	{
-		inline_level_box = parent_box->AddChild(MakeUnique<InlineLevelBox_Text>(text_element));
+		inline_level_box = parent_box->AddChild(MakeUnique<InlineLevelBox_Text>(text_node));
 	}
-	else if (box.GetSize().x >= 0.f)
+	else if (auto element = AsIf<Element*>(node))
 	{
-		inline_level_box = parent_box->AddChild(MakeUnique<InlineLevelBox_Atomic>(parent_box, element, box));
+		if (box.GetSize().x >= 0.f)
+		{
+			inline_level_box = parent_box->AddChild(MakeUnique<InlineLevelBox_Atomic>(parent_box, element, box));
+		}
+		else
+		{
+			auto inline_box_ptr = MakeUnique<InlineBox>(parent_box, element, box);
+			inline_box = inline_box_ptr.get();
+			inline_level_box = parent_box->AddChild(std::move(inline_box_ptr));
+		}
 	}
 	else
 	{
-		auto inline_box_ptr = MakeUnique<InlineBox>(parent_box, element, box);
-		inline_box = inline_box_ptr.get();
-		inline_level_box = parent_box->AddChild(std::move(inline_box_ptr));
+		RMLUI_ERRORMSG("Expected Element or Text node in InlineContainer::AddInlineNode");
 	}
 
 	const float minimum_line_height =
@@ -114,7 +121,7 @@ InlineBox* InlineContainer::AddInlineElement(Element* element, const Box& box)
 	return inline_box;
 }
 
-void InlineContainer::CloseInlineElement(InlineBox* inline_box)
+void InlineContainer::CloseInlineNode(InlineBox* inline_box)
 {
 	if (LineBox* line_box = GetOpenLineBox())
 	{

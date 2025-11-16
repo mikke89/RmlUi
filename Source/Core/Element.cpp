@@ -221,6 +221,10 @@ void Element::Render()
 
 			OnRender();
 		}
+
+		// TODO(Michael): Offset is not correct. Should we make these nodes part of the stacking context?
+		for (ElementText* child : IterateChildren<ElementText>(true))
+			child->Render(this, GetAbsoluteOffset());
 	}
 
 	// Render all elements in our local stacking context.

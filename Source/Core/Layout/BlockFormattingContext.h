@@ -60,11 +60,11 @@ private:
 
 	// Format the element as an inline box, including its children.
 	// @return False if the box caused an automatic vertical scrollbar to appear in the block formatting context root, forcing it to be reformatted.
-	static bool FormatInlineBox(BlockContainer* parent_container, Element* element);
+	static bool FormatInlineBox(BlockContainer* parent_container, Node* node, Element* element_for_style);
 
 	// Determine how to format a child element of a block container, and format it accordingly, possibly including any children.
 	// @return False if the box caused an automatic vertical scrollbar to appear in the block formatting context root, forcing it to be reformatted.
-	static bool FormatBlockContainerChild(BlockContainer* parent_container, Element* element);
+	static bool FormatBlockContainerChild(BlockContainer* parent_container, Node* node);
 };
 
 } // namespace Rml

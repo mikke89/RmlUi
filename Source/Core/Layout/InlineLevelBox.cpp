@@ -127,7 +127,7 @@ void InlineLevelBox::SetInlineBoxSpacing(float _spacing_left, float _spacing_rig
 
 String InlineLevelBox::DebugDumpTree(int depth) const
 {
-	String value = String(depth * 2, ' ') + DebugDumpNameValue() + " | " + LayoutDetails::GetDebugElementName(GetElement()) + '\n';
+	String value = String(depth * 2, ' ') + DebugDumpNameValue() + " | " + LayoutDetails::GetDebugElementName(GetNode()) + '\n';
 	return value;
 }
 

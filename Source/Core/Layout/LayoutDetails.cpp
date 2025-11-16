@@ -309,10 +309,13 @@ void LayoutDetails::GetEdgeSizes(float& margin_a, float& margin_b, float& paddin
 	padding_border_b = Math::Max(0.0f, ResolveValue(computed_size.padding_b, base_value)) + Math::Max(0.0f, computed_size.border_b);
 }
 
-String LayoutDetails::GetDebugElementName(Element* element)
+String LayoutDetails::GetDebugElementName(Node* node)
 {
-	if (!element)
+	if (!node)
 		return "nullptr";
+	if (AsIf<ElementText*>(node))
+		return "#text";
+	Element* element = As<Element*>(node);
 	if (!element->GetId().empty())
 		return '#' + element->GetId();
 	if (auto element_text = rmlui_dynamic_cast<ElementText*>(element))

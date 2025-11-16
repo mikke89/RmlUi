@@ -144,9 +144,9 @@ UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_contain
 	for (int layout_iteration = 0; layout_iteration < 3; layout_iteration++)
 	{
 		bool all_children_formatted = true;
-		for (int i = 0; i < element->GetNumChildren() && all_children_formatted; i++)
+		for (int i = 0; i < element->GetNumChildNodes() && all_children_formatted; i++)
 		{
-			if (!FormatBlockContainerChild(container.get(), element->GetChild(i)))
+			if (!FormatBlockContainerChild(container.get(), element->GetChildNode(i)))
 				all_children_formatted = false;
 		}
 
@@ -177,9 +177,9 @@ bool BlockFormattingContext::FormatBlockBox(BlockContainer* parent_container, El
 
 	// Format our children. This may result in scrollbars being added to our formatting context root, then we need to
 	// bail out and restart formatting for the current block formatting context.
-	for (int i = 0; i < element->GetNumChildren(); i++)
+	for (int i = 0; i < element->GetNumChildNodes(); i++)
 	{
-		if (!FormatBlockContainerChild(container, element->GetChild(i)))
+		if (!FormatBlockContainerChild(container, element->GetChildNode(i)))
 			return false;
 	}
 
@@ -189,34 +189,44 @@ bool BlockFormattingContext::FormatBlockBox(BlockContainer* parent_container, El
 	return true;
 }
 
-bool BlockFormattingContext::FormatInlineBox(BlockContainer* parent_container, Element* element)
+bool BlockFormattingContext::FormatInlineBox(BlockContainer* parent_container, Node* node, Element* element_for_style)
 {
 	RMLUI_ZoneScopedC(0x3F6F6F);
-	const Vector2f containing_block = LayoutDetails::GetContainingBlock(parent_container, element->GetPosition()).size;
+	const Vector2f containing_block = LayoutDetails::GetContainingBlock(parent_container, element_for_style->GetPosition()).size;
 
 	Box box;
-	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::Inline);
-	auto inline_box_handle = parent_container->AddInlineElement(element, box);
+	LayoutDetails::BuildBox(box, containing_block, element_for_style, BuildBoxMode::Inline);
+	InlineBoxHandle inline_box_handle = parent_container->AddInlineNode(node, box);
 
 	// Format the element's children.
-	for (int i = 0; i < element->GetNumChildren(); i++)
+	for (int i = 0; i < node->GetNumChildNodes(); i++)
 	{
-		if (!FormatBlockContainerChild(parent_container, element->GetChild(i)))
+		if (!FormatBlockContainerChild(parent_container, node->GetChildNode(i)))
 			return false;
 	}
 
-	parent_container->CloseInlineElement(inline_box_handle);
+	parent_container->CloseInlineNode(inline_box_handle);
 
 	return true;
 }
 
-bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_container, Element* element)
+bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_container, Node* node)
 {
 #ifdef RMLUI_TRACY_PROFILING
 	RMLUI_ZoneScoped;
 	auto name = CreateString(">%s %x", element->GetAddress(false, false).c_str(), element);
 	RMLUI_ZoneName(name.c_str(), name.size());
 #endif
+
+	if (ElementText* text_node = AsIf<ElementText*>(node))
+	{
+		RMLUI_ASSERTMSG(node->GetParentElement(), "Text nodes must have a parent element.");
+		FormatInlineBox(parent_container, text_node, node->GetParentElement());
+		return true;
+	}
+
+	Element* element = AsIf<Element*>(node);
+	RMLUI_ASSERTMSG(element, "Block formatting contexts can only contain element and text nodes.");
 
 	// Check for special formatting tags.
 	if (element->GetTagName() == "br")
@@ -268,8 +278,8 @@ bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_co
 		else
 		{
 			RMLUI_ASSERT(outer_display == OuterDisplayType::InlineLevel);
-			auto inline_box_handle = parent_container->AddInlineElement(element, element->GetBox());
-			parent_container->CloseInlineElement(inline_box_handle);
+			auto inline_box_handle = parent_container->AddInlineNode(element, element->GetBox());
+			parent_container->CloseInlineNode(inline_box_handle);
 		}
 
 		return true;
@@ -279,7 +289,7 @@ bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_co
 	switch (display)
 	{
 	case Style::Display::Block: return FormatBlockBox(parent_container, element);
-	case Style::Display::Inline: return FormatInlineBox(parent_container, element);
+	case Style::Display::Inline: return FormatInlineBox(parent_container, element, element);
 	default:
 		RMLUI_ERROR; // Should have been handled above.
 		break;

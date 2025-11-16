@@ -136,10 +136,10 @@ TEST_CASE("XMLParser.escaping_tags")
 
 	TestsShell::RenderLoop();
 
-	CHECK(document->GetNumChildren() == 1);
-	CHECK(document->GetFirstElementChild()->GetTagName() == "#text");
+	CHECK(document->GetNumChildNodes() == 1);
+	CHECK(AsIf<ElementText*>(document->GetFirstChild()) != nullptr);
 	// Text-access should yield decoded value, while RML-access should yield encoded value
-	CHECK(rmlui_static_cast<ElementText*>(document->GetFirstChild())->GetText() == "<p>&lt;span/&gt;</p>");
+	CHECK(As<ElementText*>(document->GetFirstChild())->GetText() == "<p>&lt;span/&gt;</p>");
 	CHECK(document->GetInnerRML() == "&lt;p&gt;&amp;lt;span/&amp;gt;&lt;/p&gt;");
 
 	document->Close();

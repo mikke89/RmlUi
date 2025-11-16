@@ -189,22 +189,25 @@ LayoutBox* BlockContainer::AddBlockLevelBox(UniquePtr<LayoutBox> block_level_box
 	return block_level_box;
 }
 
-InlineBoxHandle BlockContainer::AddInlineElement(Element* element, const Box& child_box)
+InlineBoxHandle BlockContainer::AddInlineNode(Node* node, const Box& child_box)
 {
 	RMLUI_ZoneScoped;
 
 	// Inline-level elements need to be added to an inline container, open one if needed.
 	InlineContainer* inline_container = EnsureOpenInlineContainer();
 
-	InlineBox* inline_box = inline_container->AddInlineElement(element, child_box);
+	InlineBox* inline_box = inline_container->AddInlineNode(node, child_box);
 
-	if (element->GetPosition() == Style::Position::Relative)
-		AddRelativeElement(element);
+	if (Element* element = AsIf<Element*>(node))
+	{
+		if (element->GetPosition() == Style::Position::Relative)
+			AddRelativeElement(element);
+	}
 
 	return {inline_box};
 }
 
-void BlockContainer::CloseInlineElement(InlineBoxHandle handle)
+void BlockContainer::CloseInlineNode(InlineBoxHandle handle)
 {
 	// If the inline-level element did not generate an inline box, then there is no need to close anything.
 	if (!handle.inline_box)
@@ -214,7 +217,7 @@ void BlockContainer::CloseInlineElement(InlineBoxHandle handle)
 	// element in it. However, it is possible that an intermediary block-level element was placed, thereby splitting the
 	// inline element into multiple inline containers around the block-level box. If we don't have an open inline
 	// container at all, open a new one, even if the sole purpose of the new line is to close this inline element.
-	EnsureOpenInlineContainer()->CloseInlineElement(handle.inline_box);
+	EnsureOpenInlineContainer()->CloseInlineNode(handle.inline_box);
 }
 
 void BlockContainer::AddBreak()

@@ -117,7 +117,7 @@ public:
 	static void GetEdgeSizes(float& margin_a, float& margin_b, float& padding_border_a, float& padding_border_b,
 		const ComputedAxisSize& computed_size, float base_value);
 
-	static String GetDebugElementName(Element* element);
+	static String GetDebugElementName(Node* node);
 
 	static bool IsScrollContainer(Style::Overflow overflow_x, Style::Overflow overflow_y)
 	{
