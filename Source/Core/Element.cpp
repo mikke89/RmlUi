@@ -4,6 +4,7 @@
 #include "../../Include/RmlUi/Core/Dictionary.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Math.h"
@@ -188,6 +189,10 @@ void Element::Render()
 			RMLUI_ZoneScopedNC("OnRender", 0x228B22);
 			OnRender();
 		}
+
+		// TODO(Michael): Offset is not correct. Should we make these nodes part of the stacking context?
+		for (ElementText* child : IterateChildren<ElementText>(true))
+			child->Render(this, GetAbsoluteOffset());
 	}
 
 	for (Element* element : stacking_context)

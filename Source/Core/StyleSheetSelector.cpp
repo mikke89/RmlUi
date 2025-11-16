@@ -1,5 +1,6 @@
 #include "StyleSheetSelector.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
 #include "StyleSheetNode.h"
 #include <tuple>
 
@@ -324,7 +325,12 @@ bool IsSelectorApplicable(const Element* element, const StructuralSelector& sele
 	break;
 	case StructuralSelectorType::Empty:
 	{
-		return element->GetNumChildren() == 0;
+		for (Node* node : element->IterateChildren<Node>())
+		{
+			if (AsIf<Element*>(node) || AsIf<ElementText*>(node))
+				return false;
+		}
+		return true;
 	}
 	break;
 	case StructuralSelectorType::Not:
