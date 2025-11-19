@@ -40,6 +40,7 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core/TextInputHandler.h"
 #include "../../Include/RmlUi/Core/Types.h"
+#include "BoxShadowCache.h"
 #include "ComputeProperty.h"
 #include "ControlledLifetimeResource.h"
 #include "ElementMeta.h"
@@ -174,6 +175,7 @@ bool Initialise()
 #ifdef RMLUI_SVG_PLUGIN
 	SVG::Initialise();
 #endif
+	BoxShadowCache::Initialize();
 
 	// Notify all plugins we're starting up.
 	PluginRegistry::NotifyInitialise();
@@ -192,6 +194,8 @@ void Shutdown()
 
 	// Notify all plugins we're being shutdown.
 	PluginRegistry::NotifyShutdown();
+
+	BoxShadowCache::Shutdown();
 
 	Factory::Shutdown();
 	TemplateCache::Shutdown();

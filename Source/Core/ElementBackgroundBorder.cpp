@@ -33,7 +33,9 @@
 #include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/MeshUtilities.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/RenderManager.h"
+#include "BoxShadowCache.h"
 #include "GeometryBoxShadow.h"
 
 namespace Rml {
@@ -56,12 +58,14 @@ void ElementBackgroundBorder::Render(Element* element)
 		border_dirty = false;
 	}
 
-	Background* shadow = GetBackground(BackgroundType::BoxShadow);
-	if (shadow && shadow->geometry)
-		shadow->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border), shadow->texture);
+	if (Background* shadow = GetBackground(BackgroundType::BoxShadowAndBackgroundBorder))
+	{
+		const Vector2f offset = element->GetAbsoluteOffset(BoxArea::Border);
+		shadow->box_shadow_and_background_border->geometry.Render(offset, shadow->box_shadow_and_background_border->texture);
+	}
 	else if (Background* background = GetBackground(BackgroundType::BackgroundBorder))
 	{
-		auto offset = element->GetAbsoluteOffset(BoxArea::Border);
+		const Vector2f offset = element->GetAbsoluteOffset(BoxArea::Border);
 		background->geometry.Render(offset);
 	}
 }
@@ -117,60 +121,48 @@ ElementBackgroundBorder::Background& ElementBackgroundBorder::GetOrCreateBackgro
 	return background;
 }
 
+void ElementBackgroundBorder::EraseBackground(BackgroundType type)
+{
+	backgrounds.erase(type);
+}
+
 void ElementBackgroundBorder::GenerateGeometry(Element* element)
 {
+	RMLUI_ZoneScoped;
 	RenderManager* render_manager = element->GetRenderManager();
 	if (!render_manager)
 		return;
 
 	const ComputedValues& computed = element->GetComputedValues();
 	const bool has_box_shadow = computed.has_box_shadow();
+
+	if (has_box_shadow)
+	{
+		// The box shadow geometry also includes the element's background and border, thus we can skip the normal background generation.
+		EraseBackground(BackgroundType::BackgroundBorder);
+		Background& shadow_background = GetOrCreateBackground(BackgroundType::BoxShadowAndBackgroundBorder);
+		shadow_background.box_shadow_and_background_border = BoxShadowCache::GetHandle(element, computed);
+		return;
+	}
+
+	EraseBackground(BackgroundType::BoxShadowAndBackgroundBorder);
+
 	const float opacity = computed.opacity();
-
-	// Apply opacity except if we have a box shadow. In the latter case the background is rendered opaquely into the box-shadow texture, while
-	// opacity is applied to the entire box-shadow texture when that is rendered.
-	bool apply_opacity = (!has_box_shadow && opacity < 1.f);
-
-	auto ConvertColor = [=](Colourb color) {
-		if (apply_opacity)
-			return color.ToPremultiplied(opacity);
-		else
-			return color.ToPremultiplied();
+	ColourbPremultiplied background_color = computed.background_color().ToPremultiplied(opacity);
+	Array<ColourbPremultiplied, 4> border_colors = {
+		computed.border_top_color().ToPremultiplied(opacity),
+		computed.border_right_color().ToPremultiplied(opacity),
+		computed.border_bottom_color().ToPremultiplied(opacity),
+		computed.border_left_color().ToPremultiplied(opacity),
 	};
-
-	ColourbPremultiplied background_color = ConvertColor(computed.background_color());
-	ColourbPremultiplied border_colors[4] = {
-		ConvertColor(computed.border_top_color()),
-		ConvertColor(computed.border_right_color()),
-		ConvertColor(computed.border_bottom_color()),
-		ConvertColor(computed.border_left_color()),
-	};
-	const CornerSizes border_radius = computed.border_radius();
 
 	Geometry& geometry = GetOrCreateBackground(BackgroundType::BackgroundBorder).geometry;
 	Mesh mesh = geometry.Release(Geometry::ReleaseMode::ClearMesh);
 
 	for (int i = 0; i < element->GetNumBoxes(); i++)
-		MeshUtilities::GenerateBackgroundBorder(mesh, element->GetRenderBox(BoxArea::Padding, i), background_color, border_colors);
+		MeshUtilities::GenerateBackgroundBorder(mesh, element->GetRenderBox(BoxArea::Padding, i), background_color, border_colors.data());
 
 	geometry = render_manager->MakeGeometry(std::move(mesh));
-
-	if (has_box_shadow)
-	{
-		Geometry& background_border_geometry = geometry;
-
-		const Property* p_box_shadow = element->GetLocalProperty(PropertyId::BoxShadow);
-		RMLUI_ASSERT(p_box_shadow->value.GetType() == Variant::BOXSHADOWLIST);
-		BoxShadowList shadow_list = p_box_shadow->value.Get<BoxShadowList>();
-
-		// Generate the geometry for the box-shadow texture.
-		Background& shadow_background = GetOrCreateBackground(BackgroundType::BoxShadow);
-		Geometry& shadow_geometry = shadow_background.geometry;
-		CallbackTexture& shadow_texture = shadow_background.texture;
-
-		GeometryBoxShadow::Generate(shadow_geometry, shadow_texture, *render_manager, element, background_border_geometry, std::move(shadow_list),
-			border_radius, computed.opacity());
-	}
 }
 
 } // namespace Rml

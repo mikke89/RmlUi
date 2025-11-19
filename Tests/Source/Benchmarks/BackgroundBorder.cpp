@@ -37,7 +37,12 @@
 using namespace ankerl;
 using namespace Rml;
 
-static String document_rml = R"(
+TEST_CASE("background_border")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	static String document_rml = R"(
 <rml>
 <head>
     <link type="text/rcss" href="/../Tests/Data/style.rcss"/>
@@ -76,11 +81,6 @@ static String document_rml = R"(
 </body>
 </rml>
 )";
-
-TEST_CASE("backgrounds_and_borders")
-{
-	Context* context = TestsShell::GetContext();
-	REQUIRE(context);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
 	REQUIRE(document);
@@ -137,6 +137,92 @@ TEST_CASE("backgrounds_and_borders")
 			context->Render();
 		});
 	}
+
+	document->Close();
+}
+
+TEST_CASE("box_shadow")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	static String document_rml = R"(
+<rml>
+<head>
+    <link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<style>
+		#boxshadow > div {
+			width: 280dp;
+			height: 70dp;
+			border: 2dp #def6f7;
+			margin: 10dp auto;
+			padding: 15dp;
+			border-radius: 30dp 8dp;
+			box-sizing: border-box;
+			margin-top: 100px;
+			margin-bottom: 100px;
+		}
+		#boxshadow.blur > div {
+			box-shadow:
+				#f00f  40px  30px 25px 0px,
+				#00ff -40px -30px 45px 0px,
+				#0f08 -60px  70px 60px 0px,
+				#333a  0px  0px 30px 15px inset;
+		}
+	</style>
+</head>
+
+<body>
+<div id="boxshadow" class="blur">
+	<div/><div/><div/><div/><div/><div/><div/><div/><div/><div/>
+</div>
+</body>
+</rml>
+)";
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	REQUIRE(document);
+	document->Show();
+
+	nanobench::Bench bench;
+	bench.title("Box-shadow");
+	bench.relative(true);
+	bench.warmup(5);
+
+	TestsShell::RenderLoop(true);
+
+	Element* element_boxshadow = document->GetElementById("boxshadow");
+
+	ElementList elements;
+	document->QuerySelectorAll(elements, "#boxshadow > div");
+	REQUIRE(!elements.empty());
+	bench.run("Reference (update + render)", [&] { TestsShell::RenderLoop(false); });
+
+	element_boxshadow->SetClass("blur", true);
+	bench.run("Box-shadow (repeated)", [&] {
+		// Force regeneration of backgrounds without changing layout
+		for (auto& element : elements)
+			element->SetProperty(Rml::PropertyId::BackgroundColor, Rml::Property(Colourb(), Unit::COLOUR));
+		TestsShell::RenderLoop(false);
+	});
+
+	unsigned int unique_id = 0;
+	element_boxshadow->SetClass("blur", false);
+	bench.run("Box-shadow (unique)", [&] {
+		for (Element* element : elements)
+		{
+			unique_id += 1;
+			String id_string = CreateString("%x", unique_id);
+			REQUIRE(id_string.size() < 12);
+			id_string.resize(12, 'f');
+			const auto id_index_to_color = [&](int color_index) { return id_string.substr(color_index * 3, 3); };
+			const String value =
+				CreateString("#%sf 40px 30px 25px 0px, #%sf -40px -30px 0px 0px, #%s8 -60px 70px 0px 0px, #%sa 0px 0px 30px 15px inset",
+					id_index_to_color(0).c_str(), id_index_to_color(1).c_str(), id_index_to_color(2).c_str(), id_index_to_color(3).c_str());
+			element->SetProperty("box-shadow", value);
+		}
+		TestsShell::RenderLoop(false);
+	});
 
 	document->Close();
 }
