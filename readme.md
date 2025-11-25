@@ -377,6 +377,9 @@ Users can now edit the text field to change the animal. The data bindings ensure
 **[Killing Time: Resurrected](https://nightdivestudios.com/killing-time-resurrected/) by [Nightdive Studios](https://www.nightdivestudios.com/) and [Ziggurat Interactive](https://www.ziggurat.games/game/killing-time-resurrected) - remastered version of the classic shooter game - user interface made with RmlUi**\
 ![Killing Time: Resurrected collage](https://raw.githubusercontent.com/mikke89/RmlUiDoc/7ca874cc506986a789e2c9a317a4e23f359d2316/assets/gallery/killing_time_resurrected_collage.webp)
 
+**[Alchemist](https://docs.fivem.net/docs/alchemist/) by [Cfx.re](https://cfx.re/) (Rockstar Games) - tool to convert assets from GTAV Legacy to GTAV Enhanced.**\
+<img width="3606" height="1043" alt="2025-11-25-alchemist" src="https://github.com/user-attachments/assets/cc5dc760-5eb4-4a9a-a6f2-f914a87452f8" />
+
 **[alt:V](https://altv.mp/) installer - a multiplayer client for GTA:V**\
 ![alt:V installer collage](https://user-images.githubusercontent.com/5490330/230487770-275fe98f-753f-4b35-b2e1-1e20a798f5e8.png)
 
