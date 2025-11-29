@@ -525,6 +525,8 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 	int rule_count = 0;
 	line_number = begin_line_number;
 	stream = _stream;
+	parse_buffer.clear();
+	parse_buffer_pos = 0;
 	stream_file_name = StringUtilities::Replace(stream->GetSourceURL().GetURL(), '|', ':');
 
 	enum class State { Global, AtRuleIdentifier, KeyframeBlock, Invalid };
@@ -1133,11 +1135,21 @@ bool StyleSheetParser::FillBuffer()
 	if (stream->IsEOS())
 		return false;
 
+	const bool first_read = parse_buffer.empty();
+
 	// Read in some data (4092 instead of 4096 to avoid the buffer growing when we have to add back
 	// a character after a failed comment parse.)
 	parse_buffer.clear();
 	bool read = stream->Read(parse_buffer, 4092) > 0;
 	parse_buffer_pos = 0;
+
+	if (first_read && parse_buffer.substr(0, 3) == "\xEF\xBB\xBF")
+	{
+		Log::Message(Log::LT_WARNING,
+			"UTF-8 BOM encountered in stylesheet %s. This is not supported and can lead to subtle issues, "
+			"please remove the BOM from the file's text encoding.",
+			stream_file_name.c_str());
+	}
 
 	return read;
 }
