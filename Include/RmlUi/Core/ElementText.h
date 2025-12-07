@@ -75,6 +75,8 @@ public:
 	/// @param[in] line The contents of the line.
 	void AddLine(Vector2f line_position, String line);
 
+	void SubmitLayout(Element* offset_parent, Vector2f offset);
+
 	/// Prevents the element from dirtying its document's layout when its text is changed.
 	void SuppressAutoLayout();
 
@@ -101,6 +103,11 @@ public:
 	void Render(Element* parent, Vector2f translation);
 
 private:
+	struct Layout {
+		Element* offset_parent;
+		Vector2f offset;
+	};
+
 	// Prepares the font effects this element uses for its font.
 	bool UpdateFontEffects();
 
@@ -110,6 +117,8 @@ private:
 	void GenerateDecoration(Mesh& mesh, FontFaceHandle font_face_handle);
 
 	String text;
+
+	Layout layout = {};
 
 	LineList lines;
 

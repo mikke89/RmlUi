@@ -208,15 +208,20 @@ void InlineLevelBox_Text::Submit(const PlacedFragment& placed_fragment)
 
 	if (principal_box)
 	{
-		element_offset = placed_fragment.position;
-		// TODO(Michael): Where should we store the layout settings? Offset should really be part of that. Lines too? Or store fragments?
-		// text_element->SetOffset(placed_fragment.position, placed_fragment.offset_parent);
+		// element_offset = placed_fragment.position;
+		//  TODO(Michael): Where should we store the layout settings? Offset should really be part of that. Lines too? Or store fragments?
+		//  text_element->SetOffset(placed_fragment.position, placed_fragment.offset_parent);
+		text_element->SubmitLayout(placed_fragment.offset_parent, placed_fragment.position);
 		text_element->ClearLines();
 	}
 	else
 	{
 		line_offset = placed_fragment.position - element_offset;
 	}
+
+	// auto parent = text_element->GetParentElement();
+	// RMLUI_ASSERTMSG(parent == placed_fragment.offset_parent,
+	//	("Parent: " + parent->GetAddress() + " Offset parent: " + placed_fragment.offset_parent->GetAddress()).c_str());
 
 	text_element->AddLine(line_offset, std::move(fragments[fragment_index]));
 }

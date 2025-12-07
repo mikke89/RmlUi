@@ -224,7 +224,7 @@ void Element::Render()
 
 		// TODO(Michael): Offset is not correct. Should we make these nodes part of the stacking context?
 		for (ElementText* child : IterateChildren<ElementText>(true))
-			child->Render(this, GetAbsoluteOffset());
+			child->Render(this, absolute_offset);
 	}
 
 	// Render all elements in our local stacking context.
@@ -392,8 +392,11 @@ void Element::UpdateAbsoluteOffsetAndRenderBoxData()
 				offset_from_ancestors -= offset_parent->scroll_offset;
 
 			// Finally, there may be relatively positioned elements between ourself and our containing block, add their relative offsets as well.
-			for (Element* ancestor = GetParentElement(); ancestor && ancestor != offset_parent; ancestor = ancestor->GetParentElement())
-				offset_from_ancestors += ancestor->relative_offset_position;
+			for (Node* ancestor = GetParentNode(); ancestor && ancestor != offset_parent; ancestor = ancestor->GetParentNode())
+			{
+				if (Element* ancestor_element = AsIf<Element*>(ancestor))
+					offset_from_ancestors += ancestor_element->relative_offset_position;
+			}
 		}
 
 		const Vector2f relative_offset = relative_offset_base + relative_offset_position;

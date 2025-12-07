@@ -198,6 +198,16 @@ void ElementText::Render(Element* parent, Vector2f translation)
 		generated_decoration = decoration_property;
 	}
 
+	// TODO(Michael): This should not occur, assert instead.
+	if (!layout.offset_parent)
+		return;
+
+	// TODO(Michael): It's a bit more complicated. We should do the same as if calling GetAbsoluteOffset on this node.
+	// Except we don't have all of that data. See Element::UpdateAbsoluteOffsetAndRenderBoxData. Consider if we should
+	// have some kind of mix-in property, like SpatialNode that stores offset (including cached absolute offset, and
+	// parent node).
+	translation = layout.offset_parent->GetAbsoluteOffset() + layout.offset;
+
 	bool render = true;
 
 	// Do a visibility test against the scissor region to avoid unnecessary render calls. Instead of handling
@@ -379,6 +389,12 @@ void ElementText::AddLine(Vector2f line_position, String line)
 	lines.emplace_back(std::move(line), line_position);
 
 	geometry_dirty = true;
+}
+
+void ElementText::SubmitLayout(Element* offset_parent, Vector2f offset)
+{
+	layout.offset_parent = offset_parent;
+	layout.offset = offset;
 }
 
 void ElementText::SuppressAutoLayout()
