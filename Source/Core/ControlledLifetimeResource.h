@@ -37,7 +37,12 @@ template <typename T>
 class ControlledLifetimeResource : NonCopyMoveable {
 public:
 	ControlledLifetimeResource() = default;
-	~ControlledLifetimeResource() noexcept { RMLUI_ASSERTMSG(!pointer || intentionally_leaked, "Resource was not properly shut down."); }
+	~ControlledLifetimeResource() noexcept
+	{
+#if defined(RMLUI_PLATFORM_WIN32) && !defined(RMLUI_STATIC_LIB)
+		RMLUI_ASSERTMSG(!pointer || intentionally_leaked, "Resource was not properly shut down.");
+#endif
+	}
 
 	explicit operator bool() const noexcept { return pointer != nullptr; }
 
