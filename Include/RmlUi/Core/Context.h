@@ -293,6 +293,9 @@ public:
 	/// @param[in] name The name of the data model.
 	/// @return A constructor for the data model, or empty if it could not be found.
 	DataModelConstructor GetDataModel(const String& name);
+	/// Retrieves all data models in this context.
+	/// @return A map of all data models in this context, keyed by their name.
+	UnorderedMap<String, DataModelConstructor> GetDataModels() const;
 	/// Removes the given data model.
 	/// This also removes all data views, controllers, and bindings contained by the data model.
 	/// @warning Invalidates all handles and constructors pointing to the data model.
@@ -406,8 +409,7 @@ private:
 	// itself can't be part of it.
 	ElementSet drag_hover_chain;
 
-	using DataModels = UnorderedMap<String, UniquePtr<DataModel>>;
-	DataModels data_models;
+	UnorderedMap<String, UniquePtr<DataModel>> data_models;
 
 	UniquePtr<DataTypeRegister> default_data_type_register;
 

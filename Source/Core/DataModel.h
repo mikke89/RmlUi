@@ -80,7 +80,8 @@ public:
 
 	bool Update(bool clear_dirty_variables);
 
-	inline DataTypeRegister* GetDataTypeRegister() const { return data_type_register; }
+	DataTypeRegister* GetDataTypeRegister() const { return data_type_register; }
+	const UnorderedMap<String, DataVariable>& GetAllVariables() const { return variables; }
 
 private:
 	UniquePtr<DataViews> views;

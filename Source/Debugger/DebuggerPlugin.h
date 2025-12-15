@@ -42,6 +42,7 @@ namespace Debugger {
 class ElementLog;
 class ElementInfo;
 class ElementContextHook;
+class ElementDataModels;
 class DebuggerSystemInterface;
 
 /**
@@ -99,6 +100,7 @@ private:
 	bool LoadMenuElement();
 	bool LoadInfoElement();
 	bool LoadLogElement();
+	bool LoadDataExplorerElement();
 
 	void SetupInfoListeners(Rml::Context* new_context);
 
@@ -114,12 +116,14 @@ private:
 	ElementDocument* menu_element;
 	ElementInfo* info_element;
 	ElementLog* log_element;
+	ElementDataModels* data_explorer_element;
 	ElementContextHook* hook_element;
 
 	Rml::SystemInterface* application_interface;
 	UniquePtr<DebuggerSystemInterface> log_interface;
 
-	UniquePtr<ElementInstancer> hook_element_instancer, debug_document_instancer, info_element_instancer, log_element_instancer;
+	UniquePtr<ElementInstancer> hook_element_instancer, debug_document_instancer, info_element_instancer, log_element_instancer,
+		data_explorer_element_instancer;
 
 	bool render_outlines;
 

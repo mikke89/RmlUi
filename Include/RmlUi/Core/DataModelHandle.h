@@ -135,6 +135,7 @@ public:
 
 private:
 	bool BindVariable(const String& name, DataVariable data_variable);
+	friend class Detail::DataModelConstructorAccessor;
 
 	DataModel* model;
 	DataTypeRegister* type_register;
@@ -216,6 +217,11 @@ inline bool DataModelConstructor::RegisterArray()
 	return true;
 }
 
+namespace Detail {
+	class DataModelConstructorAccessor {
+	public:
+		RMLUICORE_API static const UnorderedMap<String, DataVariable>& GetAllVariables(const DataModelConstructor& data_model_constructor);
+	};
+} // namespace Detail
 } // namespace Rml
-
 #endif

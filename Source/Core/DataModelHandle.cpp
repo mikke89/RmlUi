@@ -75,4 +75,10 @@ bool DataModelConstructor::BindVariable(const String& name, DataVariable data_va
 	return model->BindVariable(name, data_variable);
 }
 
+const UnorderedMap<String, DataVariable>& Detail::DataModelConstructorAccessor::GetAllVariables(const DataModelConstructor& data_model_constructor)
+{
+	RMLUI_ASSERT(data_model_constructor.model);
+	return data_model_constructor.model->GetAllVariables();
+}
+
 } // namespace Rml

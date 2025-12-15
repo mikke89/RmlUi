@@ -53,13 +53,15 @@ public:
 
 	explicit operator bool() const { return definition; }
 
-	bool Get(Variant& variant);
+	bool Get(Variant& variant) const;
 	bool Set(const Variant& variant);
-	int Size();
-	DataVariable Child(const DataAddressEntry& address);
-	DataVariableType Type();
+	int Size() const;
+	DataVariable Child(const DataAddressEntry& address) const;
+	DataVariableType Type() const;
 
 private:
+	friend class Detail::DataVariableAccessor;
+
 	VariableDefinition* definition = nullptr;
 	void* ptr = nullptr;
 };
@@ -80,6 +82,8 @@ public:
 
 	virtual int Size(void* ptr);
 	virtual DataVariable Child(void* ptr, const DataAddressEntry& address);
+
+	virtual StringList ReflectMemberNames();
 
 protected:
 	VariableDefinition(DataVariableType type) : type(type) {}
@@ -147,10 +151,12 @@ public:
 
 	DataVariable Child(void* ptr, const DataAddressEntry& address) override;
 
+	StringList ReflectMemberNames() override;
+
 	void AddMember(const String& name, UniquePtr<VariableDefinition> member);
 
 private:
-	SmallUnorderedMap<String, UniquePtr<VariableDefinition>> members;
+	SmallOrderedMap<String, UniquePtr<VariableDefinition>> members;
 };
 
 template <typename Container>
@@ -217,7 +223,7 @@ protected:
 template <typename Object, typename MemberType>
 class MemberObjectDefinition final : public BasePointerDefinition {
 public:
-	MemberObjectDefinition(VariableDefinition* underlying_definition, MemberType Object::*member_ptr) :
+	MemberObjectDefinition(VariableDefinition* underlying_definition, MemberType Object::* member_ptr) :
 		BasePointerDefinition(underlying_definition), member_ptr(member_ptr)
 	{}
 
@@ -225,13 +231,13 @@ protected:
 	void* DereferencePointer(void* base_ptr) override { return &(static_cast<Object*>(base_ptr)->*member_ptr); }
 
 private:
-	MemberType Object::*member_ptr;
+	MemberType Object::* member_ptr;
 };
 
 template <typename Object, typename MemberType, typename BasicReturnType>
 class MemberGetFuncDefinition final : public BasePointerDefinition {
 public:
-	MemberGetFuncDefinition(VariableDefinition* underlying_definition, MemberType Object::*member_get_func_ptr) :
+	MemberGetFuncDefinition(VariableDefinition* underlying_definition, MemberType Object::* member_get_func_ptr) :
 		BasePointerDefinition(underlying_definition), member_get_func_ptr(member_get_func_ptr)
 	{}
 
@@ -245,16 +251,16 @@ private:
 	BasicReturnType* Extract(BasicReturnType* value) { return value; }
 	BasicReturnType* Extract(BasicReturnType& value) { return &value; }
 
-	MemberType Object::*member_get_func_ptr;
+	MemberType Object::* member_get_func_ptr;
 };
 
 template <typename Object, typename MemberGetType, typename MemberSetType, typename UnderlyingType>
 class MemberScalarGetSetFuncDefinition final : public VariableDefinition {
 public:
-	MemberScalarGetSetFuncDefinition(VariableDefinition* underlying_definition, MemberGetType Object::*member_get_func_ptr,
-		MemberSetType Object::*member_set_func_ptr) :
-		VariableDefinition(underlying_definition->Type()),
-		underlying_definition(underlying_definition), member_get_func_ptr(member_get_func_ptr), member_set_func_ptr(member_set_func_ptr)
+	MemberScalarGetSetFuncDefinition(VariableDefinition* underlying_definition, MemberGetType Object::* member_get_func_ptr,
+		MemberSetType Object::* member_set_func_ptr) :
+		VariableDefinition(underlying_definition->Type()), underlying_definition(underlying_definition), member_get_func_ptr(member_get_func_ptr),
+		member_set_func_ptr(member_set_func_ptr)
 	{}
 
 	bool Get(void* ptr, Variant& variant) override { return GetDetail(ptr, variant); }
@@ -298,9 +304,15 @@ private:
 	}
 
 	VariableDefinition* underlying_definition;
-	MemberGetType Object::*member_get_func_ptr;
-	MemberSetType Object::*member_set_func_ptr;
+	MemberGetType Object::* member_get_func_ptr;
+	MemberSetType Object::* member_set_func_ptr;
 };
 
+namespace Detail {
+	class DataVariableAccessor {
+	public:
+		RMLUICORE_API_INLINE static VariableDefinition* GetDefinition(const DataVariable& variable) { return variable.definition; }
+	};
+} // namespace Detail
 } // namespace Rml
 #endif

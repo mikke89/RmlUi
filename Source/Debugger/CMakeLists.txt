@@ -8,6 +8,8 @@ add_library(rmlui_debugger
 	DebuggerSystemInterface.h
 	ElementContextHook.cpp
 	ElementContextHook.h
+	ElementDataModels.cpp
+	ElementDataModels.h
 	ElementDebugDocument.cpp
 	ElementDebugDocument.h
 	ElementInfo.cpp

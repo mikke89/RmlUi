@@ -26,68 +26,43 @@
  *
  */
 
-static const char* menu_rcss = R"RCSS(
-body
-{
-	width: 100%;
-	height: 32dp;
-	position: absolute;
-	z-index: 1000000;
-	background: #888;
-	font-family: rmlui-debugger-font;
-	font-size: 14dp;
-	color: black;
-}
-div
-{
-	display: block;
-}
-div#button-group
-{
-	margin-top: 3dp;
-}
-button
-{
-	border-width: 1px;
-	border-color: #666;
-	background: #ddd;
-	margin-left: 6dp;
-	display: inline-block;
-	width: 130dp;
-	line-height: 24dp;
-	text-align: center;
-}
-button:hover
-{
-	background: #eee;
-}
-button:active
-{
-	background: #fff;
-}
-div#version-info
-{
-	padding: 0px;
-	margin-top: 0px;
-	font-size: 20dp;
-	float: right;
-	margin-right: 20dp;
-	width: 200dp;
-	text-align: right;
-	color: white;
-}
-span#version-number
-{
-	font-size: 15dp;
-}
-)RCSS";
+#ifndef RMLUI_DEBUGGER_ELEMENTDATAMODELS_H
+#define RMLUI_DEBUGGER_ELEMENTDATAMODELS_H
 
-static const char* menu_rml = R"RML(
-<div id="version-info">RmlUi <span id="version-number"></span></div>
-<div id="button-group">
-	<button id="event-log-button">Event Log</button>
-	<button id="debug-info-button">Element Info</button>
-	<button id="outlines-button">Outlines</button>
-	<button id="data-models-button">Data Models</button>
-</div>
-)RML";
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/EventListener.h"
+#include "ElementDebugDocument.h"
+
+namespace Rml {
+namespace Debugger {
+
+class ElementDataModels : public ElementDebugDocument, public EventListener {
+public:
+	RMLUI_RTTI_DefineWithParent(ElementDataModels, ElementDebugDocument)
+
+	ElementDataModels(const String& tag);
+	~ElementDataModels();
+
+	bool Initialise(Context* debug_context);
+	void Reset();
+
+	void SetDebugContext(Context* debug_context);
+
+protected:
+	void ProcessEvent(Event& event) override;
+	void OnUpdate() override;
+
+private:
+	void UpdateContent();
+
+	Context* debug_context = nullptr;
+
+	double previous_update_time = {};
+
+	SmallOrderedMap<String, String> model_rml_map;
+};
+
+} // namespace Debugger
+} // namespace Rml
+
+#endif

@@ -30,7 +30,7 @@
 
 namespace Rml {
 
-bool DataVariable::Get(Variant& variant)
+bool DataVariable::Get(Variant& variant) const
 {
 	return definition->Get(ptr, variant);
 }
@@ -40,17 +40,17 @@ bool DataVariable::Set(const Variant& variant)
 	return definition->Set(ptr, variant);
 }
 
-int DataVariable::Size()
+int DataVariable::Size() const
 {
 	return definition->Size(ptr);
 }
 
-DataVariable DataVariable::Child(const DataAddressEntry& address)
+DataVariable DataVariable::Child(const DataAddressEntry& address) const
 {
 	return definition->Child(ptr, address);
 }
 
-DataVariableType DataVariable::Type()
+DataVariableType DataVariable::Type() const
 {
 	return definition->Type();
 }
@@ -74,6 +74,12 @@ DataVariable VariableDefinition::Child(void* /*ptr*/, const DataAddressEntry& /*
 {
 	Log::Message(Log::LT_WARNING, "Tried to get the child of a scalar type.");
 	return DataVariable();
+}
+
+StringList VariableDefinition::ReflectMemberNames()
+{
+	Log::Message(Log::LT_WARNING, "Tried to get the member names of a non-struct type.");
+	return StringList();
 }
 
 class LiteralIntDefinition final : public VariableDefinition {
@@ -114,6 +120,15 @@ DataVariable StructDefinition::Child(void* ptr, const DataAddressEntry& address)
 	VariableDefinition* next_definition = it->second.get();
 
 	return DataVariable(next_definition, ptr);
+}
+
+StringList StructDefinition::ReflectMemberNames()
+{
+	StringList names;
+	names.reserve(members.size());
+	for (const auto& entry : members)
+		names.push_back(entry.first);
+	return names;
 }
 
 void StructDefinition::AddMember(const String& name, UniquePtr<VariableDefinition> member)

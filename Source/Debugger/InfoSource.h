@@ -31,7 +31,6 @@ body
 {
 	width: 320dp;
 	min-width: 320dp;
-	min-height: 150dp;
 	margin-top: 42dp;
 	margin-right: 20dp;
 	margin-left: auto;
@@ -39,6 +38,7 @@ body
 div#content
 {
 	height: auto;
+	min-height: 200dp;
 	max-height: 650dp;
 }
 div#content div h2
