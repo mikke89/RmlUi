@@ -99,6 +99,8 @@ template <typename Key, typename Value>
 using UnorderedMap = std::unordered_map<Key, Value>;
 template <typename Key, typename Value>
 using SmallUnorderedMap = UnorderedMap<Key, Value>;
+template <typename Key, typename Value>
+using SmallOrderedMap = StableMap<Key, Value>;
 template <typename T>
 using UnorderedSet = std::unordered_set<T>;
 template <typename T>
@@ -110,6 +112,8 @@ template <typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map<Key, Value>;
 template <typename Key, typename Value>
 using SmallUnorderedMap = itlib::flat_map<Key, Value>;
+template <typename Key, typename Value>
+using SmallOrderedMap = itlib::flat_map<Key, Value>;
 template <typename T>
 using UnorderedSet = robin_hood::unordered_flat_set<T>;
 template <typename T>

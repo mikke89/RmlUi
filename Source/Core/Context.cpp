@@ -1105,6 +1105,15 @@ DataModelConstructor Context::GetDataModel(const String& name)
 	return DataModelConstructor();
 }
 
+UnorderedMap<String, DataModelConstructor> Context::GetDataModels() const
+{
+	UnorderedMap<String, DataModelConstructor> result;
+	result.reserve(data_models.size());
+	for (const auto& pair : data_models)
+		result.emplace(pair.first, DataModelConstructor(pair.second.get()));
+	return result;
+}
+
 bool Context::RemoveDataModel(const String& name)
 {
 	auto it = data_models.find(name);

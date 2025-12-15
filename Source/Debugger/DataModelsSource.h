@@ -26,68 +26,49 @@
  *
  */
 
-static const char* menu_rcss = R"RCSS(
-body
-{
-	width: 100%;
-	height: 32dp;
-	position: absolute;
-	z-index: 1000000;
-	background: #888;
-	font-family: rmlui-debugger-font;
-	font-size: 14dp;
-	color: black;
+static const char* data_models_rcss = R"RCSS(
+body {
+	width: 320dp;
+	min-width: 320dp;
+	margin-top: 52dp;
+	margin-right: 30dp;
+	margin-left: auto;
 }
-div
-{
-	display: block;
+div#content {
+	height: auto;
+	min-height: 200dp;
+	max-height: 650dp;
 }
-div#button-group
-{
-	margin-top: 3dp;
+div#content div h2 {
+	padding-left: 5dp;
 }
-button
+div#content div div
 {
-	border-width: 1px;
-	border-color: #666;
-	background: #ddd;
-	margin-left: 6dp;
-	display: inline-block;
-	width: 130dp;
-	line-height: 24dp;
-	text-align: center;
+	font-size: 12dp;
+	padding-left: 10dp;
 }
-button:hover
-{
-	background: #eee;
+div#content .name {
+	color: #610;
 }
-button:active
-{
-	background: #fff;
-}
-div#version-info
-{
-	padding: 0px;
-	margin-top: 0px;
-	font-size: 20dp;
-	float: right;
-	margin-right: 20dp;
-	width: 200dp;
-	text-align: right;
-	color: white;
-}
-span#version-number
-{
-	font-size: 15dp;
+scrollbarvertical {
+	scrollbar-margin: 0px;
 }
 )RCSS";
 
-static const char* menu_rml = R"RML(
-<div id="version-info">RmlUi <span id="version-number"></span></div>
-<div id="button-group">
-	<button id="event-log-button">Event Log</button>
-	<button id="debug-info-button">Element Info</button>
-	<button id="outlines-button">Outlines</button>
-	<button id="data-models-button">Data Models</button>
+static const char* data_models_rml = R"RML(
+<h1>
+	<handle id="position_handle" move_target="#document"/>
+	<div id="close_button">X</div>
+	<div id="title-content">Data Models</div>
+</h1>
+<div id="content">
+	<div id="models">
+		<h2>Data models</h2>
+		<div id="models-content"></div>
+	</div>
+	<div id="variables">
+		<h2>Data variables</h2>
+		<div id="variables-content"></div>
+	</div>
 </div>
 )RML";

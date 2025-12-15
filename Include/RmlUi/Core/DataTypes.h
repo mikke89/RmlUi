@@ -103,5 +103,10 @@ using IsVoidMemberFunc = std::is_same<T, VoidMemberFunc>;
 #define RMLUI_LOG_TYPE_ERROR(T, msg) RMLUI_ERRORMSG((String(msg) + String("\nT: ") + String(rmlui_type_name<T>())).c_str())
 #define RMLUI_LOG_TYPE_ERROR_ASSERT(T, val, msg) RMLUI_ASSERTMSG((val), (String(msg) + String("\nT: ") + String(rmlui_type_name<T>())).c_str())
 
+namespace Detail {
+	class DataVariableAccessor;
+	class DataModelConstructorAccessor;
+} // namespace Detail
+
 } // namespace Rml
 #endif

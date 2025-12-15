@@ -35,6 +35,7 @@
 #include "../../Include/RmlUi/Core/Types.h"
 #include "DebuggerSystemInterface.h"
 #include "ElementContextHook.h"
+#include "ElementDataModels.h"
 #include "ElementDebugDocument.h"
 #include "ElementInfo.h"
 #include "ElementLog.h"
@@ -59,6 +60,7 @@ DebuggerPlugin::DebuggerPlugin()
 	menu_element = nullptr;
 	info_element = nullptr;
 	log_element = nullptr;
+	data_explorer_element = nullptr;
 	hook_element = nullptr;
 
 	render_outlines = false;
@@ -82,7 +84,7 @@ bool DebuggerPlugin::Initialise(Context* context)
 		return false;
 	}
 
-	if (!LoadMenuElement() || !LoadInfoElement() || !LoadLogElement())
+	if (!LoadMenuElement() || !LoadInfoElement() || !LoadLogElement() || !LoadDataExplorerElement())
 	{
 		Log::Message(Log::LT_ERROR, "Failed to initialise debugger, error while load debugger elements.");
 		return false;
@@ -96,14 +98,12 @@ bool DebuggerPlugin::Initialise(Context* context)
 
 bool DebuggerPlugin::SetContext(Context* context)
 {
-	// Remove the debug hook from the old context.
 	if (debug_context && hook_element)
 	{
 		debug_context->UnloadDocument(hook_element);
 		hook_element = nullptr;
 	}
 
-	// Add the debug hook into the new context.
 	if (context)
 	{
 		ElementDocument* element = context->CreateDocument("debug-hook");
@@ -121,11 +121,15 @@ bool DebuggerPlugin::SetContext(Context* context)
 		hook_element->Initialise(this);
 	}
 
-	// Attach the info element to the new context.
 	if (info_element)
 	{
 		SetupInfoListeners(context);
 		info_element->Reset();
+	}
+
+	if (data_explorer_element)
+	{
+		data_explorer_element->SetDebugContext(context);
 	}
 
 	debug_context = context;
@@ -220,9 +224,9 @@ void DebuggerPlugin::OnContextDestroy(Context* context)
 
 void DebuggerPlugin::OnElementDestroy(Element* element)
 {
-	// Detect external destruction of any of the debugger documents. This can happen for example if the user calls
+	// Detect external destruction of the debugger documents. This can happen for example if the user calls
 	// `Context::UnloadAllDocuments()` on the host context.
-	if (element == menu_element || element == info_element || element == log_element)
+	if (element == menu_element || element == info_element || element == log_element || element == data_explorer_element)
 	{
 		ReleaseElements();
 		Log::Message(Log::LT_ERROR,
@@ -254,6 +258,13 @@ void DebuggerPlugin::ProcessEvent(Event& event)
 		else if (event.GetTargetElement()->GetId() == "outlines-button")
 		{
 			render_outlines = !render_outlines;
+		}
+		else if (event.GetTargetElement()->GetId() == "data-models-button")
+		{
+			if (data_explorer_element->IsVisible())
+				data_explorer_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+			else
+				data_explorer_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 		}
 	}
 }
@@ -294,18 +305,13 @@ bool DebuggerPlugin::LoadMenuElement()
 
 	menu_element->SetStyleSheetContainer(std::move(style_sheet));
 
-	// Set the version info in the menu.
 	menu_element->GetElementById("version-number")->SetInnerRML(Rml::GetVersion());
 
-	// Attach to the buttons.
-	Element* event_log_button = menu_element->GetElementById("event-log-button");
-	event_log_button->AddEventListener(EventId::Click, this);
-
-	Element* element_info_button = menu_element->GetElementById("debug-info-button");
-	element_info_button->AddEventListener(EventId::Click, this);
-
-	Element* outlines_button = menu_element->GetElementById("outlines-button");
-	outlines_button->AddEventListener(EventId::Click, this);
+	for (auto* id : {"event-log-button", "debug-info-button", "outlines-button", "data-models-button"})
+	{
+		Element* button = menu_element->GetElementById(id);
+		button->AddEventListener(EventId::Click, this);
+	}
 
 	return true;
 }
@@ -357,6 +363,27 @@ bool DebuggerPlugin::LoadLogElement()
 	return true;
 }
 
+bool DebuggerPlugin::LoadDataExplorerElement()
+{
+	data_explorer_element_instancer = MakeUnique<ElementInstancerGeneric<ElementDataModels>>();
+	Factory::RegisterElementInstancer("debug-data-models", data_explorer_element_instancer.get());
+	data_explorer_element = rmlui_dynamic_cast<ElementDataModels*>(host_context->CreateDocument("debug-data-models"));
+	if (!data_explorer_element)
+		return false;
+
+	data_explorer_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+
+	if (!data_explorer_element->Initialise(debug_context))
+	{
+		host_context->UnloadDocument(data_explorer_element);
+		data_explorer_element = nullptr;
+
+		return false;
+	}
+
+	return true;
+}
+
 void DebuggerPlugin::SetupInfoListeners(Rml::Context* new_context)
 {
 	RMLUI_ASSERT(info_element);
@@ -403,6 +430,11 @@ void DebuggerPlugin::ReleaseElements()
 			Rml::SetSystemInterface(application_interface);
 			application_interface = nullptr;
 			log_interface.reset();
+		}
+		if (data_explorer_element)
+		{
+			host_context->UnloadDocument(data_explorer_element);
+			data_explorer_element = nullptr;
 		}
 
 		// Update to release documents before the plugin gets deleted.
