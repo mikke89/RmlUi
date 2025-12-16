@@ -57,7 +57,7 @@ bool InputTypeRadio::OnAttributeChange(const ElementAttributes& changed_attribut
 {
 	if (changed_attributes.count("checked"))
 	{
-		bool checked = element->HasAttribute("checked");
+		const bool checked = element->HasAttribute("checked");
 		element->SetPseudoClass("checked", checked);
 
 		if (checked)
@@ -65,7 +65,11 @@ bool InputTypeRadio::OnAttributeChange(const ElementAttributes& changed_attribut
 
 		const auto perceived_value = Variant(checked ? GetValue() : "");
 		element->DispatchEvent(EventId::Change,
-			{{"data-binding-override-value", checked ? Variant(perceived_value) : Variant()}, {"value", perceived_value}});
+			{
+				{"data-binding-override-value", checked ? perceived_value : Variant()},
+				{"value", perceived_value},
+				{"checked", Variant(checked)},
+			});
 	}
 
 	return true;
@@ -100,7 +104,7 @@ void InputTypeRadio::PopRadioSet()
 	while (parent != nullptr && rmlui_dynamic_cast<ElementForm*>(parent) == nullptr)
 		parent = parent->GetParentNode();
 
-	//If no containing form was found, use the containing document as the parent
+	// If no containing form was found, use the containing document as the parent
 	if (parent == nullptr)
 	{
 		parent = element->GetOwnerDocument();

@@ -52,7 +52,12 @@ bool InputTypeCheckbox::OnAttributeChange(const ElementAttributes& changed_attri
 	{
 		const bool checked = element->HasAttribute("checked");
 		element->SetPseudoClass("checked", checked);
-		element->DispatchEvent(EventId::Change, {{"data-binding-override-value", Variant(checked)}, {"value", Variant(checked ? GetValue() : "")}});
+		element->DispatchEvent(EventId::Change,
+			{
+				{"data-binding-override-value", Variant(checked)},
+				{"value", Variant(checked ? GetValue() : "")},
+				{"checked", Variant(checked)},
+			});
 	}
 
 	return true;
