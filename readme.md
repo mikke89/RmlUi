@@ -357,117 +357,167 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 ## Gallery
 
-**Game interface from the 'invader' sample**\
-![Game interface](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/invader.png?raw=true)
+### Game menu
 
-**Game menu**\
 ![Game menu](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/menu_screen.png?raw=true)
 
-**Simple game from the 'data_binding' sample**\
+### RmlUi 'invaders' sample
+
+![Game interface](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/invader.png?raw=true)
+
+### The Thing: Remastered
+
+[The Thing: Remastered](https://nightdivestudios.com/the-thing-remastered/) by [Nightdive Studios](https://www.nightdivestudios.com/). Restoration of the cult-classic 2002 third-person survival horror shooter game inspired by the 1982 film, The Thing. User interface made with RmlUi.
+
+![The Thing: Remastered collage](https://github.com/user-attachments/assets/de716d13-a770-4237-b4b3-b7f41b13494d)
+
+### Alchemist
+
+[Alchemist](https://docs.fivem.net/docs/alchemist/) by [Cfx.re](https://cfx.re/) (Rockstar Games). Tool to convert assets from GTAV Legacy to GTAV Enhanced.
+
+<img width="3606" height="1043" alt="2025-11-25-alchemist" src="https://github.com/user-attachments/assets/cc5dc760-5eb4-4a9a-a6f2-f914a87452f8" />
+
+### WOTInspector
+
+[WOTInspector](https://armor.wotinspector.com/en/pc/). Tool for World of Tanks players helping to learn and understand game mechanics. User interface made with RmlUi.
+
+<img width="960" height="640" alt="ai_4 0 0_960x640_2025-11-24_16-18-18" src="https://github.com/user-attachments/assets/69644844-2f9b-4440-8b9f-bd8317ef3064" />
+
+<img width="960" height="640" alt="ai_4 0 0_960x640_2018-06-24_05-52-44 (1)" src="https://github.com/user-attachments/assets/2c4a2160-5c21-4389-8c55-6d64bc46c7c9" />
+
+### ROSE Online
+
+[ROSE Online](https://www.roseonlinegame.com/). A free-to-play 3D fantasy MMORPG. User interface made with RmlUi.
+
+Character selection.
+
+<img width="1172" height="1003" alt="2025-12-18-13-20-56-capture" src="https://github.com/user-attachments/assets/413b6a00-a26e-4f59-848f-618376bc09da" /><br/>
+
+World map with custom map rendering and interaction.
+
+https://github.com/user-attachments/assets/a8ce9ece-8b63-45dd-84ba-df9c4187ad88
+
+Crafting with animations and drag & drop.
+
+https://github.com/user-attachments/assets/c336e19b-3448-4d92-ad4a-72cf7ec7185c
+
+### Killing Time: Resurrected 
+
+[Killing Time: Resurrected](https://nightdivestudios.com/killing-time-resurrected/) by [Nightdive Studios](https://www.nightdivestudios.com/). Remastered version of the classic shooter game. User interface made with RmlUi.
+
+![Killing Time: Resurrected collage](https://raw.githubusercontent.com/mikke89/RmlUiDoc/7ca874cc506986a789e2c9a317a4e23f359d2316/assets/gallery/killing_time_resurrected_collage.webp)
+
+### Unvanquished 
+
+[Unvanquished](https://unvanquished.net/). A first-person shooter game with real-time strategy elements. Menus and HUD in RmlUi.
+
+![Unvanquished 0.54 collage](https://user-images.githubusercontent.com/5490330/230487771-5108a273-8b76-4216-8324-d9e5af102622.jpg)
+
+### alt:V installer
+
+[alt:V](https://altv.mp/) installer. A multiplayer client for GTA V.
+
+![alt:V installer collage](https://user-images.githubusercontent.com/5490330/230487770-275fe98f-753f-4b35-b2e1-1e20a798f5e8.png)
+
+### TruckersMP
+
+[TruckersMP](https://truckersmp.com/). A multiplayer mod for truck simulators. Chat box and player panel in RmlUi.
+
+![TruckersMP chat box](https://raw.githubusercontent.com/mikke89/RmlUiDoc/8ce505124daec1a9fdff0327be495fc2e43a37cf/assets/gallery/truckers_mp.webp)
+
+![TruckersMP player panel](https://raw.githubusercontent.com/mikke89/RmlUiDoc/3e37fdcd85b72e20ee15b4f30033ca580866b48d/assets/gallery/truckers_mp_player_list.webp)
+
+### Installer software by [@xland](https://github.com/xland)
+
+![xland installer collage](https://user-images.githubusercontent.com/5490330/230487763-ec4d28e7-7ec6-44af-89f2-d2cbad8f44c1.png)
+
+### RmlUi 'data_binding' sample
+
+Simple game demonstrating the use of data bindings.
+
 ![Data binding sample](https://raw.githubusercontent.com/mikke89/RmlUiDoc/df1651db94e69f2977bc0344864ec061b56b104e/assets/gallery/data_binding.png)
 
-**Applying filters in the 'effects' sample**\
-![Effects sample](https://github.com/mikke89/RmlUiDoc/blob/master/assets/images/effects-sample-filters.png?raw=true)
+### RmlUi 'effects' sample
 
-\
-**Video demonstration of the 'effects' sample**
+Applying advanced filters.
+
+![Effects sample](https://github.com/mikke89/RmlUiDoc/blob/master/assets/images/effects-sample-filters.png?raw=true)
 
 [Effects sample video](https://github.com/mikke89/RmlUi/assets/5490330/bdc0422d-867d-4090-9d48-e7159e3adc18)
 
-**[Killing Time: Resurrected](https://nightdivestudios.com/killing-time-resurrected/) by [Nightdive Studios](https://www.nightdivestudios.com/) and [Ziggurat Interactive](https://www.ziggurat.games/game/killing-time-resurrected) - remastered version of the classic shooter game - user interface made with RmlUi**\
-![Killing Time: Resurrected collage](https://raw.githubusercontent.com/mikke89/RmlUiDoc/7ca874cc506986a789e2c9a317a4e23f359d2316/assets/gallery/killing_time_resurrected_collage.webp)
+### RmlUi collage of advanced effects
 
-**[Alchemist](https://docs.fivem.net/docs/alchemist/) by [Cfx.re](https://cfx.re/) (Rockstar Games) - tool to convert assets from GTAV Legacy to GTAV Enhanced.**\
-<img width="3606" height="1043" alt="2025-11-25-alchemist" src="https://github.com/user-attachments/assets/cc5dc760-5eb4-4a9a-a6f2-f914a87452f8" />
-
-**[alt:V](https://altv.mp/) installer - a multiplayer client for GTA:V**\
-![alt:V installer collage](https://user-images.githubusercontent.com/5490330/230487770-275fe98f-753f-4b35-b2e1-1e20a798f5e8.png)
-
-**[Unvanquished](https://unvanquished.net/) - a first-person shooter game with real-time strategy elements - menus and HUD in RmlUi**\
-![Unvanquished 0.54 collage](https://user-images.githubusercontent.com/5490330/230487771-5108a273-8b76-4216-8324-d9e5af102622.jpg)
-
-**Installer software by [@xland](https://github.com/xland)**\
-![xland installer collage](https://user-images.githubusercontent.com/5490330/230487763-ec4d28e7-7ec6-44af-89f2-d2cbad8f44c1.png)
-
-**[TruckersMP](https://truckersmp.com/) - a multiplayer mod for truck simulators - chat box and player panel in RmlUi**\
-![TruckersMP chat box](https://raw.githubusercontent.com/mikke89/RmlUiDoc/8ce505124daec1a9fdff0327be495fc2e43a37cf/assets/gallery/truckers_mp.webp)
-![TruckersMP player panel](https://raw.githubusercontent.com/mikke89/RmlUiDoc/3e37fdcd85b72e20ee15b4f30033ca580866b48d/assets/gallery/truckers_mp_player_list.webp)
-
-**Form controls from the 'demo' sample**\
-![Form controls](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/forms.png?raw=true)
-
-**Sandbox from the 'demo' sample, try it yourself!**\
-![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/sandbox.png?raw=true)
-
-**Collage of advanced effects:**\
 ![Collage of advanced effects](https://github.com/user-attachments/assets/71840d6f-903e-45fe-9e34-a02ed1ddae07)
 
-**Visual testing framework - for built-in automated layout tests**\
-![Visual testing framework](https://github.com/mikke89/RmlUiDoc/blob/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/gallery/visual_tests_flex.png?raw=true)
+### RmlUi 'demo' sample
 
-**Flexbox layout**\
+Form controls from the 'demo' sample.
+
+![Form controls](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/forms.png?raw=true)
+
+Sandbox from the 'demo' sample, try it yourself!
+
+![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/sandbox.png?raw=true)
+
+Transitions on mouse hover (entirely in RCSS).
+
+![Transition](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transition.gif)
+
+Animated transforms (entirely in RCSS).
+
+![Transform](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transform.gif)
+
+### RmlUi flexbox layout
+
 ![Flexbox](https://github.com/mikke89/RmlUiDoc/blob/4cf0c6ac23b822174e69e5f1413b71254230c619/assets/images/flexbox-example.png?raw=true)
 
+### RmlUi visual testing framework
 
-**Animations and transitions from the 'animation' sample**
+For built-in automated layout tests.
+
+![Visual testing framework](https://github.com/mikke89/RmlUiDoc/blob/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/gallery/visual_tests_flex.png?raw=true)
+
+### RmlUi 'animation' sample
 
 [Animation sample](https://user-images.githubusercontent.com/5490330/230486839-de3ca062-6641-48e0-aa6a-ef2b26c3aad5.webm)
 
-\
-**Transitions and transforms on a game menu**
+### Transitions and transforms on a game menu
 
 [Game main menu](https://user-images.githubusercontent.com/5490330/230487193-cd07b565-2e9b-4570-aa37-7dd7746dd9c9.webm)
 
-\
-**Camera movement in a game menu**
+### Camera movement in a game menu
 
 [Transforms applied to game menu](https://user-images.githubusercontent.com/5490330/230487217-f499dfca-5304-4b99-896d-07791926da2b.webm)
 
-\
-**Transitions on mouse hover (entirely in RCSS)**\
-![Transition](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transition.gif)
+### RmlUi 'lottie' sample
 
-**Animated transforms (entirely in RCSS)**\
-![Transform](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transform.gif)
+Vector animations with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html).
 
-**Vector animations with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)**\
 ![Lottie animation](https://github.com/mikke89/RmlUiDoc/blob/086385e119f0fc6e196229b785e91ee0252fe4b4/assets/gallery/lottie.gif)
 
-**Vector images with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html)**\
+### RmlUi 'svg' sample
+
+Vector images with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html).
+
 ![SVG image](https://github.com/mikke89/RmlUiDoc/blob/2908fe50acf7861e729ce113eafa8cf7610bf08a/assets/gallery/svg_plugin.png)
 
+### See more
 
-See the **[full gallery](https://mikke89.github.io/RmlUiDoc/pages/gallery.html)** for more screenshots and videos of the library in action.
+Additional screenshots from thirdparty projects can be found in:
+
+- [Gallery discussion thread](https://github.com/mikke89/RmlUi/discussions/184).
+- [Thirdparty projects discussion thread](https://github.com/mikke89/RmlUi/discussions/186) and links therein.
 
 
 ## License
 
-RmlUi is published under the [MIT license](LICENSE.txt). The library includes third-party source code and assets with their own licenses, as detailed below.
+### RmlUi license
 
-#### RmlUi source code and assets
+RmlUi is published under the ***MIT license***, see [LICENSE.txt](LICENSE.txt).
 
-MIT License
+### Third-party licenses
 
-Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors\
-Copyright (c) 2019-2025 The RmlUi Team, and contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+The library includes third-party source code and assets with their own licenses, as detailed below.
 
 #### Third-party source code included in RmlUi Core
 
