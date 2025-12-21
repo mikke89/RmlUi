@@ -58,6 +58,7 @@ static constexpr float UNIT_SCROLL_LENGTH = 80.f;   // [dp]
 // If the user stops scrolling for this amount of time in seconds before touch/click release, don't apply inertia.
 static constexpr float SCROLL_INERTIA_DELAY = 0.1f;
 static constexpr float TOUCH_MOVEMENT_DECAY_RATE = 5.0f;
+static constexpr float TOUCH_CLICK_MAX_DISTANCE = DOUBLE_CLICK_MAX_DIST; // [dp]
 
 static void DebugVerifyLocaleSetting()
 {
@@ -922,6 +923,7 @@ bool Context::ProcessTouchStart(const Touch& touch, int key_modifier_state)
 		state = &it_inserted->second;
 	}
 
+	state->start_position = touch.position;
 	state->inertia_position = touch.position;
 	state->last_position = touch.position;
 	state->scrolling_start_time_x = 0;
@@ -996,6 +998,11 @@ bool Context::ProcessTouchMove(const Touch& touch, int key_modifier_state)
 					state_scrolling_start_time = current_time - (current_time - state_scrolling_start_time) * weight;
 				}
 			}
+
+			const float touch_max_distance = TOUCH_CLICK_MAX_DISTANCE * density_independent_pixel_ratio;
+			const Vector2f delta_from_start = touch.position - state->start_position;
+			if (delta_from_start.SquaredMagnitude() >= touch_max_distance * touch_max_distance)
+				ResetActiveChain();
 		}
 	}
 

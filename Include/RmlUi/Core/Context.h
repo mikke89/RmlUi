@@ -371,6 +371,7 @@ private:
 	struct TouchState {
 		bool scrolling_right = false;
 		bool scrolling_down = false;
+		Vector2f start_position;
 		Vector2f inertia_position;
 		Vector2f last_position;
 		Element* scroll_container = nullptr;
