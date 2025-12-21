@@ -377,6 +377,14 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 <img width="3606" height="1043" alt="2025-11-25-alchemist" src="https://github.com/user-attachments/assets/cc5dc760-5eb4-4a9a-a6f2-f914a87452f8" />
 
+### Gearmulator
+
+[Gearmulator](https://github.com/dsp56300/gearmulator) by [The Usual Suspects](https://dsp56300.wordpress.com/). Family of emulators for classic VA synths of the late 90s/00s with the Motorola 56300 family DSPs.
+
+<img width="1784" height="878" alt="Image" src="https://github.com/user-attachments/assets/f430750a-f186-42a2-9f03-70dfe01c4a7d" />
+
+<img width="1785" height="877" alt="Image" src="https://github.com/user-attachments/assets/b217cf9d-184d-4fa5-8ad5-96135b6bb768" />
+
 ### WOTInspector
 
 [WOTInspector](https://armor.wotinspector.com/en/pc/). Tool for World of Tanks players helping to learn and understand game mechanics. User interface made with RmlUi.
