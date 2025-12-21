@@ -35,7 +35,7 @@
 namespace Rml {
 
 static constexpr float AUTOSCROLL_SPEED_FACTOR = 0.09f;
-static constexpr float AUTOSCROLL_DEADZONE = 10.0f; // [dp]
+static constexpr float AUTOSCROLL_DEADZONE = 10.0f;            // [dp]
 
 static constexpr float SMOOTHSCROLL_WINDOW_SIZE = 50.f;        // The window where smoothing is applied, as a distance from scroll start and end. [dp]
 static constexpr float SMOOTHSCROLL_MAX_VELOCITY = 10'000.f;   // [dp/s]

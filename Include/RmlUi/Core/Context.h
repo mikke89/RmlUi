@@ -368,11 +368,10 @@ private:
 	bool mouse_active;
 
 	// The current state of Touches, required to implement proper inertia scrolling.
-	struct TouchState
-	{
+	struct TouchState {
 		bool scrolling_right = false;
 		bool scrolling_down = false;
-		Vector2f start_position;
+		Vector2f inertia_position;
 		Vector2f last_position;
 		Element* scroll_container = nullptr;
 		double scrolling_last_time = 0;
@@ -428,6 +427,8 @@ private:
 	// Updates the current hover elements, sending required events.
 	void UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_state = 0, Dictionary* out_parameters = nullptr,
 		Dictionary* out_drag_parameters = nullptr);
+	// Resets the current active element and its chain.
+	void ResetActiveChain();
 
 	// Creates the drag clone from the given element. The old drag clone will be released if necessary.
 	void CreateDragClone(Element* element);

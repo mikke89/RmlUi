@@ -53,9 +53,9 @@ public:
 	void ActivateAutoscroll(Element* target, Vector2i start_position);
 
 	void ActivateSmoothscroll(Element* target, Vector2f delta_distance, ScrollBehavior scroll_behavior);
-	
+
 	void InstantScrollOnTarget(Element* target, Vector2f delta_distance);
-	
+
 	void ApplyScrollInertia(Element* target, const Vector2f& velocity);
 
 	bool Update(Vector2i mouse_position, float dp_ratio);
