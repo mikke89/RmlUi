@@ -208,8 +208,7 @@ void ElementInfo::ProcessEvent(Event& event)
 
 				if (id == "close_button")
 				{
-					if (IsVisible())
-						SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+					Hide();
 				}
 				else if (id == "update_source")
 				{

@@ -245,15 +245,13 @@ void ElementLog::ProcessEvent(Event& event)
 		{
 			if (event.GetTargetElement() == beacon->GetFirstChild())
 			{
-				if (!IsVisible())
-					SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
-
+				Show();
 				beacon->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 				current_beacon_level = Log::LT_MAX;
 			}
 			else if (event.GetTargetElement()->GetId() == "close_button")
 			{
-				SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+				Hide();
 			}
 			else if (event.GetTargetElement()->GetId() == "clear_button")
 			{
