@@ -239,32 +239,45 @@ void DebuggerPlugin::OnElementDestroy(Element* element)
 
 void DebuggerPlugin::ProcessEvent(Event& event)
 {
+	struct ButtonIdToDocumentMapping {
+		String id;
+		ElementDocument* document;
+	};
+	const ButtonIdToDocumentMapping button_mappings[] = {
+		{"event-log-button", log_element},
+		{"debug-info-button", info_element},
+		{"data-models-button", data_explorer_element},
+	};
+
 	if (event == EventId::Click)
 	{
-		if (event.GetTargetElement()->GetId() == "event-log-button")
+		for (const ButtonIdToDocumentMapping& button_mapping : button_mappings)
 		{
-			if (log_element->IsVisible())
-				log_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
-			else
-				log_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+			if (event.GetTargetElement()->GetId() == button_mapping.id)
+			{
+				if (button_mapping.document->IsVisible())
+					button_mapping.document->Hide();
+				else
+					button_mapping.document->Show();
+			}
 		}
-		else if (event.GetTargetElement()->GetId() == "debug-info-button")
-		{
-			if (info_element->IsVisible())
-				info_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
-			else
-				info_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
-		}
-		else if (event.GetTargetElement()->GetId() == "outlines-button")
+
+		if (event.GetTargetElement()->GetId() == "outlines-button")
 		{
 			render_outlines = !render_outlines;
+			event.GetTargetElement()->SetClass("open", render_outlines);
 		}
-		else if (event.GetTargetElement()->GetId() == "data-models-button")
+	}
+	else if (event == EventId::Hide || event == EventId::Show)
+	{
+		for (const ButtonIdToDocumentMapping& button_mapping : button_mappings)
 		{
-			if (data_explorer_element->IsVisible())
-				data_explorer_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
-			else
-				data_explorer_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+			if (event.GetTargetElement() == button_mapping.document)
+			{
+				Element* button = menu_element->GetElementById(button_mapping.id);
+				const bool set_open = (event == EventId::Show);
+				button->SetClass("open", set_open);
+			}
 		}
 	}
 }
@@ -330,9 +343,11 @@ bool DebuggerPlugin::LoadInfoElement()
 	{
 		host_context->UnloadDocument(info_element);
 		info_element = nullptr;
-
 		return false;
 	}
+
+	info_element->AddEventListener(EventId::Hide, this);
+	info_element->AddEventListener(EventId::Show, this);
 
 	return true;
 }
@@ -351,9 +366,11 @@ bool DebuggerPlugin::LoadLogElement()
 	{
 		host_context->UnloadDocument(log_element);
 		log_element = nullptr;
-
 		return false;
 	}
+
+	log_element->AddEventListener(EventId::Hide, this);
+	log_element->AddEventListener(EventId::Show, this);
 
 	// Make the system interface; this will trap the log messages for us.
 	application_interface = Rml::GetSystemInterface();
@@ -377,9 +394,11 @@ bool DebuggerPlugin::LoadDataExplorerElement()
 	{
 		host_context->UnloadDocument(data_explorer_element);
 		data_explorer_element = nullptr;
-
 		return false;
 	}
+
+	data_explorer_element->AddEventListener(EventId::Hide, this);
+	data_explorer_element->AddEventListener(EventId::Show, this);
 
 	return true;
 }

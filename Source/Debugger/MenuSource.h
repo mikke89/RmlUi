@@ -57,14 +57,15 @@ button
 	line-height: 24dp;
 	text-align: center;
 }
-button:hover
-{
-	background: #eee;
+button.open {
+	border-color: #6cf;
+	color: #22a;
+	background: #cee;
 }
-button:active
-{
-	background: #fff;
-}
+button:hover { background: #eee; }
+button:active { background: #fff; }
+button.open:hover { background: #dff; }
+button.open:active { background: #eff; }
 div#version-info
 {
 	padding: 0px;

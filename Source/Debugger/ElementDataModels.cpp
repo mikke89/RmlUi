@@ -170,10 +170,7 @@ void ElementDataModels::ProcessEvent(Event& event)
 		const String& id = event.GetTargetElement()->GetId();
 
 		if (id == "close_button")
-		{
-			if (IsVisible())
-				SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
-		}
+			Hide();
 
 		event.StopPropagation();
 	}
