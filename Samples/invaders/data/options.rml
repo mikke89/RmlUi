@@ -40,8 +40,8 @@
 					<label><input id="3d" type="checkbox" name="3d" value="true" /> 3D Spatialisation</label>
 				</p>
 			</div>
-			<input type="submit" id="accept" value="accept" disabled>Accept</input>
-			<input type="submit" value="cancel">Cancel</input>
+			<input type="submit" id="accept" value="Accept" disabled/>
+			<input type="submit" value="Cancel"/>
 		</form>
 	</body>
 </rml>
