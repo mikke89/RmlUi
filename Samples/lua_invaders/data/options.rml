@@ -81,7 +81,7 @@ function Options.LoadOptions(document)
 end
 
 function Options.SaveOptions(event)
-	if event.parameters['button'] == 'cancel' then
+	if event.parameters['button'] ~= 'Accept' then
 		return
 	end
 
@@ -114,8 +114,8 @@ end
 					</span>
 				</p>
 			</div>
-			<input type="submit" name="button" value="accept" data-attrif-disabled="!options_changed">Accept</input>
-			<input type="submit" name="button" value="cancel">Cancel</input>
+			<input type="submit" name="button" value="Accept" data-attrif-disabled="!options_changed"/>
+			<input type="submit" name="button" value="Cancel"/>
 		</form>
 	</body>
 </rml>

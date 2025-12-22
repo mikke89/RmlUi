@@ -100,9 +100,8 @@ void EventHandlerOptions::ProcessEvent(Rml::Event& event, const Rml::String& val
 	// necessary changes on the game details structure.
 	else if (value == "store")
 	{
-		// First check which button was clicked to submit the form; if it was 'cancel', then we don't want to
-		// propagate the changes.
-		if (event.GetParameter<Rml::String>("submit", "cancel") == "accept")
+		// First check which button was clicked to submit the form; we process the changes only if it was 'Accept'.
+		if (event.GetParameter<Rml::String>("submit", "") == "Accept")
 		{
 			// Fetch the results of the form submission. These are stored as parameters directly on the event itself.
 			// Like HTML form events, the name of the parameter is the 'name' attribute of the control, and the value
