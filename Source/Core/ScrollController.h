@@ -51,12 +51,10 @@ public:
 	};
 
 	void ActivateAutoscroll(Element* target, Vector2i start_position);
-
 	void ActivateSmoothscroll(Element* target, Vector2f delta_distance, ScrollBehavior scroll_behavior);
+	void ActivateInertia(Element* target, Vector2f velocity);
 
 	void InstantScrollOnTarget(Element* target, Vector2f delta_distance);
-
-	void ApplyScrollInertia(Element* target, const Vector2f& velocity);
 
 	bool Update(Vector2i mouse_position, float dp_ratio);
 
@@ -80,11 +78,11 @@ private:
 	// Updates time to now, and returns the delta time since the previous time update.
 	float UpdateTime();
 
-	void UpdateAutoscroll(Vector2i mouse_position, float dp_ratio);
+	void UpdateAutoscroll(float dt, Vector2i mouse_position, float dp_ratio);
 
-	void UpdateSmoothscroll(float dp_ratio);
+	void UpdateSmoothscroll(float dt, float dp_ratio);
 
-	void UpdateInertia();
+	void UpdateInertia(float dt);
 
 	bool HasSmoothscrollReachedTarget() const;
 

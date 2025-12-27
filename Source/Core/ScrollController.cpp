@@ -44,6 +44,7 @@ static constexpr float SMOOTHSCROLL_VELOCITY_SQUARE_FACTOR = 0.05f;
 
 // Factor to multiply friction by before applying to velocity.
 static constexpr float INERTIA_FRICTION_FACTOR = 5.0f;
+static constexpr float INERTIA_VELOCITY_CUTOFF = 30.0f;
 
 // Clamp the delta time to some reasonable FPS range, to avoid large steps in case of stuttering or freezing.
 static constexpr float DELTA_TIME_CLAMP_LOW = 1.f / 500.f; // [s]
@@ -126,6 +127,18 @@ void ScrollController::ActivateSmoothscroll(Element* in_target, Vector2f delta_d
 		Reset();
 }
 
+void ScrollController::ActivateInertia(Element* in_target, Vector2f velocity)
+{
+	Reset();
+	if (!in_target || (velocity.x == 0 && velocity.y == 0))
+		return;
+
+	target = in_target;
+	inertia_scroll_velocity = velocity;
+	mode = Mode::Inertia;
+	UpdateTime();
+}
+
 void ScrollController::InstantScrollOnTarget(Element* in_target, Vector2f delta_distance)
 {
 	if (!in_target)
@@ -140,35 +153,24 @@ void ScrollController::InstantScrollOnTarget(Element* in_target, Vector2f delta_
 	target = safe_target;
 }
 
-void ScrollController::ApplyScrollInertia(Element* in_target, const Vector2f& velocity)
-{
-	Reset();
-	if (!in_target || (velocity.x == 0 && velocity.y == 0))
-		return;
-
-	target = in_target;
-	inertia_scroll_velocity = velocity;
-	mode = Mode::Inertia;
-	UpdateTime();
-}
-
 bool ScrollController::Update(Vector2i mouse_position, float dp_ratio)
 {
-	if (mode == Mode::Autoscroll)
-		UpdateAutoscroll(mouse_position, dp_ratio);
-	else if (mode == Mode::Smoothscroll)
-		UpdateSmoothscroll(dp_ratio);
-	else if (mode == Mode::Inertia)
-		UpdateInertia();
+	const float dt = (mode == Mode::None ? 0.f : UpdateTime());
+
+	switch (mode)
+	{
+	case Mode::Smoothscroll: UpdateSmoothscroll(dt, dp_ratio); break;
+	case Mode::Autoscroll: UpdateAutoscroll(dt, mouse_position, dp_ratio); break;
+	case Mode::Inertia: UpdateInertia(dt); break;
+	case Mode::None: break;
+	}
 
 	return mode != Mode::None;
 }
 
-void ScrollController::UpdateAutoscroll(Vector2i mouse_position, float dp_ratio)
+void ScrollController::UpdateAutoscroll(float dt, Vector2i mouse_position, float dp_ratio)
 {
 	RMLUI_ASSERT(mode == Mode::Autoscroll && target);
-
-	const float dt = UpdateTime();
 
 	const Vector2f scroll_delta = Vector2f(mouse_position - autoscroll_start_position);
 	const Vector2f scroll_velocity = CalculateAutoscrollVelocity(scroll_delta, dp_ratio);
@@ -186,14 +188,13 @@ void ScrollController::UpdateAutoscroll(Vector2i mouse_position, float dp_ratio)
 	PerformScrollOnTarget(scroll_length_integral);
 }
 
-void ScrollController::UpdateSmoothscroll(float dp_ratio)
+void ScrollController::UpdateSmoothscroll(float dt, float dp_ratio)
 {
 	RMLUI_ASSERT(mode == Mode::Smoothscroll && target);
 
 	const Vector2f target_delta = Vector2f(smoothscroll_target_distance - smoothscroll_scrolled_distance);
 	const Vector2f velocity = CalculateSmoothscrollVelocity(target_delta, smoothscroll_scrolled_distance, dp_ratio);
 
-	const float dt = UpdateTime();
 	Vector2f scroll_distance = (smoothscroll_speed_factor * velocity * dt).Round();
 
 	for (int i = 0; i < 2; i++)
@@ -221,7 +222,7 @@ void ScrollController::UpdateSmoothscroll(float dp_ratio)
 		Reset();
 }
 
-void ScrollController::UpdateInertia()
+void ScrollController::UpdateInertia(float dt)
 {
 	RMLUI_ASSERT(mode == Mode::Inertia && target);
 
@@ -232,18 +233,15 @@ void ScrollController::UpdateInertia()
 	}
 
 	// Apply and dampen inertia.
-
-	float dt = UpdateTime();
-
 	Vector2f scroll_delta = inertia_scroll_velocity * dt;
 	PerformScrollOnTarget(scroll_delta);
 
 	float dampening = 1.0f - INERTIA_FRICTION_FACTOR * dt;
 	inertia_scroll_velocity *= dampening;
 
-	if (std::abs(inertia_scroll_velocity.x) < 30.0f)
+	if (Math::Absolute(inertia_scroll_velocity.x) < INERTIA_VELOCITY_CUTOFF)
 		inertia_scroll_velocity.x = 0.0f;
-	if (std::abs(inertia_scroll_velocity.y) < 30.0f)
+	if (Math::Absolute(inertia_scroll_velocity.y) < INERTIA_VELOCITY_CUTOFF)
 		inertia_scroll_velocity.y = 0.0f;
 }
 

@@ -1034,7 +1034,7 @@ bool Context::ProcessTouchEnd(const Touch& touch, int key_modifier_state)
 			if (elapsed_time_y > 0)
 				velocity.y /= elapsed_time_y;
 
-			scroll_controller->ApplyScrollInertia(state->scroll_container, velocity);
+			scroll_controller->ActivateInertia(state->scroll_container, velocity);
 		}
 	}
 
