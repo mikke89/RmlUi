@@ -547,6 +547,10 @@ See
 
 See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT license.
 
+#### Library included with the DirectX 12 backend *(in Backends/RmlUi_DirectX/)*
+
+See [Backends/RmlUi_DirectX/LICENSE.txt](Backends/RmlUi_DirectX/LICENSE.txt) - MIT license.
+
 #### Library included with the SDL GPU backend *(in Backends/RmlUi_SDL_GPU/)*
 
 See [Backends/RmlUi_SDL_GPU/LICENSE.txt](Backends/RmlUi_SDL_GPU/LICENSE.txt) - Zlib license.
