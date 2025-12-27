@@ -15,7 +15,7 @@
     Requires Windows 10, version 1703.
  */
 #ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
-	#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((HANDLE)-4)
+	#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((HANDLE) - 4)
 #endif
 #ifndef WM_DPICHANGED
 	#define WM_DPICHANGED 0x02E0
@@ -94,10 +94,13 @@ struct BackendData {
 };
 static Rml::UniquePtr<BackendData> data;
 
-bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize)
+bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize, RmlRenderInitInfo* p_info)
 {
 	RMLUI_ASSERT(!data);
-
+	if (p_info)
+	{
+		p_info = nullptr;
+	}
 	const std::wstring name = RmlWin32::ConvertToUTF16(Rml::String(window_name));
 
 	data = Rml::MakeUnique<BackendData>();

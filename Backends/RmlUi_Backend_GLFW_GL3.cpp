@@ -31,9 +31,14 @@ struct BackendData {
 };
 static Rml::UniquePtr<BackendData> data;
 
-bool Backend::Initialize(const char* name, int width, int height, bool allow_resize)
+bool Backend::Initialize(const char* name, int width, int height, bool allow_resize, RmlRenderInitInfo* p_info)
 {
 	RMLUI_ASSERT(!data);
+
+	if (p_info)
+	{
+		p_info = nullptr;
+	}
 
 	glfwSetErrorCallback(LogErrorFromGLFW);
 
@@ -50,7 +55,7 @@ bool Backend::Initialize(const char* name, int width, int height, bool allow_res
 	glfwWindowHint(GLFW_RESIZABLE, allow_resize ? GLFW_TRUE : GLFW_FALSE);
 	glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 	GLFWwindow* window = glfwCreateWindow(width, height, name, nullptr, nullptr);
 	if (!window)

@@ -31,9 +31,14 @@ struct BackendData {
 };
 static Rml::UniquePtr<BackendData> data;
 
-bool Backend::Initialize(const char* name, int width, int height, bool allow_resize)
+bool Backend::Initialize(const char* name, int width, int height, bool allow_resize, RmlRenderInitInfo* p_info)
 {
 	RMLUI_ASSERT(!data);
+
+	if (p_info)
+	{
+		p_info = nullptr;
+	}
 
 	glfwSetErrorCallback(LogErrorFromGLFW);
 

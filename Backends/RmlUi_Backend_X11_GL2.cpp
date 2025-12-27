@@ -72,10 +72,13 @@ struct BackendData {
 };
 static Rml::UniquePtr<BackendData> data;
 
-bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize)
+bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize, RmlRenderInitInfo* p_info)
 {
 	RMLUI_ASSERT(!data);
-
+	if (p_info)
+	{
+		p_info = nullptr;
+	}
 	Display* display = XOpenDisplay(0);
 	if (!display)
 		return false;
@@ -195,7 +198,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 		FD_SET(display_fd, &fds);
 
 		double timeout = Rml::Math::Min(context->GetNextUpdateDelay(), 10.0);
-		struct timeval tv {};
+		struct timeval tv{};
 		double seconds;
 		tv.tv_usec = std::modf(timeout, &seconds) * 1000000.0;
 		tv.tv_sec = seconds;
