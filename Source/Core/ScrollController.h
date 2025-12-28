@@ -102,6 +102,7 @@ private:
 
 	Vector2f smoothscroll_target_distance;
 	Vector2f smoothscroll_scrolled_distance;
+	Vector2f smoothscroll_accumulated_fractional_distance;
 
 	Vector2f inertia_scroll_velocity;
 };
