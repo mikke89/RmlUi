@@ -37,10 +37,11 @@ namespace Rml {
 static constexpr float AUTOSCROLL_SPEED_FACTOR = 0.09f;
 static constexpr float AUTOSCROLL_DEADZONE = 10.0f;            // [dp]
 
-static constexpr float SMOOTHSCROLL_WINDOW_SIZE = 50.f;        // The window where smoothing is applied, as a distance from scroll start and end. [dp]
+static constexpr float SMOOTHSCROLL_WINDOW_SIZE = 100.f;       // The window where smoothing is applied, as a distance from scroll start and end. [dp]
 static constexpr float SMOOTHSCROLL_MAX_VELOCITY = 10'000.f;   // [dp/s]
 static constexpr float SMOOTHSCROLL_VELOCITY_CONSTANT = 800.f; // [dp/s]
 static constexpr float SMOOTHSCROLL_VELOCITY_SQUARE_FACTOR = 0.05f;
+static constexpr float SMOOTHSCROLL_FIRST_FRAME_DELTA_TIME_MIN = 1.f / 100.f; // To make the scroll feel a bit more responsive. [s]
 
 // Factor to multiply friction by before applying to velocity.
 static constexpr float INERTIA_FRICTION_FACTOR = 5.0f;
@@ -79,8 +80,8 @@ static Vector2f CalculateSmoothscrollVelocity(Vector2f target_delta, Vector2f sc
 	const Vector2f alpha_in = Math::Min(scrolled_distance / SMOOTHSCROLL_WINDOW_SIZE, Vector2f(1.f));
 	const Vector2f alpha_out = Math::Min(target_delta_abs / SMOOTHSCROLL_WINDOW_SIZE, Vector2f(1.f));
 	const Vector2f smooth_window = {
-		0.2f + 0.8f * tween(alpha_in.x) * tween(alpha_out.x),
-		0.2f + 0.8f * tween(alpha_in.y) * tween(alpha_out.y),
+		0.35f + 0.65f * tween(alpha_in.x) * tween(alpha_out.x),
+		0.35f + 0.65f * tween(alpha_in.y) * tween(alpha_out.y),
 	};
 
 	const Vector2f velocity_constant = Vector2f(SMOOTHSCROLL_VELOCITY_CONSTANT);
@@ -193,6 +194,9 @@ void ScrollController::UpdateSmoothscroll(float dt, float dp_ratio)
 
 	const Vector2f target_delta = Vector2f(smoothscroll_target_distance - smoothscroll_scrolled_distance);
 	const Vector2f velocity = CalculateSmoothscrollVelocity(target_delta, smoothscroll_scrolled_distance, dp_ratio);
+
+	if (smoothscroll_scrolled_distance == Vector2f{0})
+		dt = Math::Max(dt, SMOOTHSCROLL_FIRST_FRAME_DELTA_TIME_MIN);
 
 	Vector2f scroll_distance_fractional = smoothscroll_speed_factor * velocity * dt + smoothscroll_accumulated_fractional_distance;
 
