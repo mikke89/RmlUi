@@ -120,8 +120,10 @@ void ElementSVG::SetInnerRML(const String& content)
 	if (!source.empty())
 		return;
 
+	// We use CreateString instead of std::to_string to avoid having to create an extra std::string and convert it to Rml::String in case clients use
+	// a non-std string.
 	if (!HasAttribute("rmlui-svgdata-id"))
-		SetAttribute("rmlui-svgdata-id", "svgdata:" + std::to_string(internal_id_counter++));
+		SetAttribute("rmlui-svgdata-id", "svgdata:" + CreateString("%lu", internal_id_counter++));
 
 	svg_data = "" + content;
 	svg_dirty = true;
