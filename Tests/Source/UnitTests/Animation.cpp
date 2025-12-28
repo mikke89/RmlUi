@@ -283,7 +283,7 @@ TEST_CASE("animation.decorator")
 		{
 			const double t_final = 0.1;
 
-			system_interface->SetTime(0.0);
+			system_interface->SetManualTime(0.0);
 			String document_rml = Rml::CreateString(document_decorator_rml.c_str(), test.from_rule.c_str(), test.to_rule.c_str(),
 				property_str.c_str(), test.from.c_str(), property_str.c_str(), test.to.c_str());
 
@@ -293,7 +293,7 @@ TEST_CASE("animation.decorator")
 			document->Show();
 			TestsShell::RenderLoop();
 
-			system_interface->SetTime(0.25 * t_final);
+			system_interface->SetManualTime(0.25 * t_final);
 			TestsShell::RenderLoop();
 
 			CAPTURE(property_str);
@@ -304,8 +304,6 @@ TEST_CASE("animation.decorator")
 			document->Close();
 		}
 	}
-
-	system_interface->SetTime(0.0);
 
 	TestsShell::ShutdownShell();
 }
@@ -413,7 +411,7 @@ TEST_CASE("animation.filter")
 		{
 			const double t_final = 0.1;
 
-			system_interface->SetTime(0.0);
+			system_interface->SetManualTime(0.0);
 			String document_rml = Rml::CreateString(document_filter_rml.c_str(), property_str, test.from.c_str(), property_str, test.to.c_str());
 
 			ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
@@ -421,7 +419,7 @@ TEST_CASE("animation.filter")
 
 			document->Show();
 
-			system_interface->SetTime(0.25 * t_final);
+			system_interface->SetManualTime(0.25 * t_final);
 			TestsShell::RenderLoop();
 
 			CHECK_MESSAGE(element->GetProperty<String>(property_str) == test.expected_25p, property_str, " from: ", test.from, ", to: ", test.to);
@@ -429,8 +427,6 @@ TEST_CASE("animation.filter")
 			document->Close();
 		}
 	}
-
-	system_interface->SetTime(0.0);
 
 	TestsShell::ShutdownShell();
 }
@@ -488,7 +484,7 @@ TEST_CASE("animation.case_sensitivity")
 
 	for (const auto& test_case : test_cases)
 	{
-		system_interface->SetTime(0.0);
+		system_interface->SetManualTime(0.0);
 		INFO("@keyframes: ", test_case.keyframe_name);
 		INFO("animation: ", test_case.animation_name);
 
@@ -504,7 +500,7 @@ TEST_CASE("animation.case_sensitivity")
 		while (t < t_end)
 		{
 			t += dt;
-			system_interface->SetTime(t);
+			system_interface->SetManualTime(t);
 			context->Update();
 		}
 
@@ -513,7 +509,6 @@ TEST_CASE("animation.case_sensitivity")
 		document->Close();
 	}
 
-	system_interface->SetTime(0.0);
 	TestsShell::ShutdownShell();
 }
 
@@ -586,7 +581,7 @@ TEST_CASE("animation.case_sensitive_distinct_keyframes")
 	for (const auto& test_case : test_cases)
 	{
 		INFO("Class name: ", test_case.class_name);
-		system_interface->SetTime(0.0);
+		system_interface->SetManualTime(0.0);
 		ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
 		Element* element = document->GetChild(0);
 		element->SetClass(test_case.class_name, true);
@@ -599,7 +594,7 @@ TEST_CASE("animation.case_sensitive_distinct_keyframes")
 		while (t < t_end)
 		{
 			t += dt;
-			system_interface->SetTime(t);
+			system_interface->SetManualTime(t);
 			context->Update();
 		}
 
@@ -608,7 +603,6 @@ TEST_CASE("animation.case_sensitive_distinct_keyframes")
 		document->Close();
 	}
 
-	system_interface->SetTime(0.0);
 	TestsShell::ShutdownShell();
 }
 
@@ -682,7 +676,7 @@ TEST_CASE("animation.multiple_values")
 	};
 
 	{
-		system_interface->SetTime(0.0);
+		system_interface->SetManualTime(0.0);
 		ElementDocument* document = context->LoadDocumentFromMemory(document_multiple_values_rml, "assets/");
 		Element* element = document->GetChild(0);
 
@@ -695,7 +689,7 @@ TEST_CASE("animation.multiple_values")
 			while (t < test.time)
 			{
 				t = Math::Min(t + dt, test.time);
-				system_interface->SetTime(t);
+				system_interface->SetManualTime(t);
 				context->Update();
 			}
 
@@ -707,7 +701,6 @@ TEST_CASE("animation.multiple_values")
 		document->Close();
 	}
 
-	system_interface->SetTime(0.0);
 	TestsShell::ShutdownShell();
 }
 
@@ -798,7 +791,7 @@ TEST_CASE("animation.multiple_overlapping")
 	{
 		system_interface->SetNumExpectedWarnings(2);
 
-		system_interface->SetTime(0.0);
+		system_interface->SetManualTime(0.0);
 
 		ElementDocument* document = context->LoadDocumentFromMemory(document_animation_multiple_values_rml, "assets/");
 		Element* element = document->GetChild(0);
@@ -813,7 +806,7 @@ TEST_CASE("animation.multiple_overlapping")
 			while (t < test.time)
 			{
 				t = Math::Min(t + dt, test.time);
-				system_interface->SetTime(t);
+				system_interface->SetManualTime(t);
 				context->Update();
 			}
 
@@ -825,7 +818,6 @@ TEST_CASE("animation.multiple_overlapping")
 		document->Close();
 	}
 
-	system_interface->SetTime(0.0);
 	TestsShell::ShutdownShell();
 }
 
@@ -906,7 +898,7 @@ TEST_CASE("transition.display_and_visibility")
 	};
 
 	{
-		system_interface->SetTime(0.0);
+		system_interface->SetManualTime(0.0);
 
 		ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
 		Element* element = document->GetChild(0);
@@ -919,7 +911,7 @@ TEST_CASE("transition.display_and_visibility")
 			while (t < test.time)
 			{
 				t = Math::Min(t + dt, test.time);
-				system_interface->SetTime(t);
+				system_interface->SetManualTime(t);
 				TestsShell::RenderLoop(false);
 			}
 
@@ -938,6 +930,5 @@ TEST_CASE("transition.display_and_visibility")
 		document->Close();
 	}
 
-	system_interface->SetTime(0.0);
 	TestsShell::ShutdownShell();
 }

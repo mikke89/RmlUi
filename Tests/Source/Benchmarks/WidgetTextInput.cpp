@@ -79,7 +79,7 @@ TEST_CASE("WidgetTextInput")
 	auto IncrementTime = [system_interface = TestsShell::GetTestsSystemInterface(), t = 0.0]() mutable {
 		constexpr double dt = 0.5;
 		t += dt;
-		system_interface->SetTime(t);
+		system_interface->SetManualTime(t);
 	};
 	struct TestCase {
 		String name;

@@ -177,7 +177,7 @@ void TestsShell::ShutdownShell(bool reset_tests_render_interface)
 
 	Rml::Shutdown();
 
-	tests_system_interface.SetNumExpectedWarnings(0);
+	tests_system_interface.Reset();
 
 	if (use_backend_shell)
 		Backend::Shutdown();

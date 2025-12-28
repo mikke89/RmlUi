@@ -439,11 +439,11 @@ TEST_CASE("Element.ScrollIntoView")
 		SUBCASE("Smoothscroll")
 		{
 			TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
-			system_interface->SetTime(0);
+			system_interface->SetManualTime(0);
 			cells[3][3]->ScrollIntoView({ScrollAlignment::Nearest, ScrollAlignment::Nearest, ScrollBehavior::Smooth});
 
 			constexpr double dt = 1.0 / 15.0;
-			system_interface->SetTime(dt);
+			system_interface->SetManualTime(dt);
 			Run(context);
 
 			// We don't define the exact offset at this time step, but it should be somewhere between the start and end offsets.
@@ -456,7 +456,7 @@ TEST_CASE("Element.ScrollIntoView")
 			// After one second it should be at the destination offset.
 			for (double t = 2.0 * dt; t < 1.0; t += dt)
 			{
-				system_interface->SetTime(t);
+				system_interface->SetManualTime(t);
 				Run(context);
 			}
 			CHECK(cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(50, 50));

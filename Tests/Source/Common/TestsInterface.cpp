@@ -39,7 +39,10 @@ TestsSystemInterface::~TestsSystemInterface()
 
 double TestsSystemInterface::GetElapsedTime()
 {
-	return elapsed_time;
+	if (manual_time)
+		return elapsed_time;
+
+	return Rml::SystemInterface::GetElapsedTime();
 }
 
 bool TestsSystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message)
@@ -86,9 +89,18 @@ void TestsSystemInterface::SetNumExpectedWarnings(int in_num_expected_warnings)
 	num_expected_warnings = in_num_expected_warnings;
 }
 
-void TestsSystemInterface::SetTime(double t)
+void TestsSystemInterface::SetManualTime(double t)
 {
+	manual_time = true;
 	elapsed_time = t;
+}
+
+void TestsSystemInterface::Reset()
+{
+	SetManualTime(0);
+	manual_time = false;
+
+	SetNumExpectedWarnings(0);
 }
 
 Rml::CompiledGeometryHandle TestsRenderInterface::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)

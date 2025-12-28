@@ -46,9 +46,12 @@ public:
 	// warnings and errors until the next call.
 	void SetNumExpectedWarnings(int num_expected_warnings);
 
-	void SetTime(double t);
+	void SetManualTime(double t);
+
+	void Reset();
 
 private:
+	bool manual_time = false;
 	double elapsed_time = 0.0;
 
 	int num_logged_warnings = 0;
