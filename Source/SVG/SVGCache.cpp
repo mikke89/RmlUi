@@ -189,14 +189,16 @@ namespace SVG {
 					return {};
 				}
 
-				// We use a reset-release approach here in case clients use a non-std unique_ptr (lunasvg uses std::unique_ptr)
-				doc.svg_document.reset(lunasvg::Document::loadFromData(svg_data).release());
+				// We use a reset-release approach here in case clients use a non-std unique_ptr (lunasvg uses std::unique_ptr). We also use
+				// loadFromData(char*, size_t) instead of loadFromData(std::string) in case clients use a non-std string.
+				doc.svg_document.reset(lunasvg::Document::loadFromData(svg_data.data(), svg_data.size()).release());
 			}
 			else
 			{
 				RMLUI_SVG_DEBUG_LOG("Loading SVG document from element %s contents", source_id.c_str());
-				// We use a reset-release approach here in case clients use a non-std unique_ptr (lunasvg uses std::unique_ptr)
-				doc.svg_document.reset(lunasvg::Document::loadFromData(source).release());
+				// We use a reset-release approach here in case clients use a non-std unique_ptr (lunasvg uses std::unique_ptr). We also use
+				// loadFromData(char*, size_t) instead of loadFromData(std::string) in case clients use a non-std string.
+				doc.svg_document.reset(lunasvg::Document::loadFromData(source.data(), source.size()).release());
 			}
 
 			if (!doc.svg_document)
