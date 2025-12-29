@@ -117,9 +117,10 @@ RmlUi is readily available from [ConanCenter](https://conan.io/center/recipes/rm
 2. `git clone https://github.com/mikke89/RmlUi.git`
 3. `cd RmlUi`
 4. `devbox init`
-5. `devbox add freetype freetype.dev glfw3`
-6. `devbox shell`
-7. Build the project: 
+5. Optionally add the CMake package globally: `devbox global add cmake`
+6. `devbox add freetype freetype.dev glfw3`
+7. `devbox shell`
+8. Build the project: 
 ```
 cmake -B Build -S . --preset samples \
       -DRMLUI_BACKEND=GLFW_GL3 \
