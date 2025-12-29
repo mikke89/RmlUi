@@ -2646,7 +2646,7 @@ void RenderInterface_VK::Update_PendingForDeletion_Geometries() noexcept
 
 void RenderInterface_VK::Submit() noexcept
 {
-	const VkSemaphore p_semaphores_wait[] = {m_semaphores_image_available[m_semaphore_index]};
+	const VkSemaphore p_semaphores_wait[] = {m_semaphores_image_available[m_semaphore_index_previous]};
 	const VkSemaphore p_semaphores_signal[] = {m_semaphores_finished_render[m_semaphore_index]};
 
 	VkFence p_fence = m_executed_fences[m_semaphore_index];
