@@ -111,6 +111,24 @@ To make all the samples available, you can additionally install `lua lunasvg rlo
 
 RmlUi is readily available from [ConanCenter](https://conan.io/center/recipes/rmlui).
 
+#### Devbox (nixpkgs)
+
+1. Install the [Devbox package manager](https://www.jetify.com/docs/devbox/installing-devbox)
+2. `git clone https://github.com/mikke89/RmlUi.git`
+3. `cd RmlUi`
+4. `devbox init`
+5. `devbox add freetype freetype.dev glfw3`
+6. `devbox shell`
+7. Build the project: 
+```
+cmake -B Build -S . --preset samples \
+      -DRMLUI_BACKEND=GLFW_GL3 \
+      -DCMAKE_C_COMPILER=clang \
+      -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_PREFIX_PATH="$DEVBOX_PACKAGES_DIR"
+cmake --build Build
+```
+
 
 ## Integrating RmlUi
 
