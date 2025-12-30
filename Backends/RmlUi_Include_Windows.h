@@ -46,6 +46,21 @@
 
 	#include <windows.h>
 
+namespace Backend {
+struct RmlProcessEventInfo {
+	union {
+	#ifdef _WIN32
+		HWND hwnd;
+		UINT msg;
+		WPARAM wParam;
+		LPARAM lParam;
+	#endif
+	};
+	// todo: add other info that comes from window proc on different platforms
+};
+}
+
+
 #endif
 
 #endif

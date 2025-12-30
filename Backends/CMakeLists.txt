@@ -9,6 +9,7 @@ add_library(rmlui_backend_common_headers INTERFACE)
 target_include_directories(rmlui_backend_common_headers INTERFACE "${CMAKE_CURRENT_LIST_DIR}")
 target_sources(rmlui_backend_common_headers INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend.cpp"
 )
 
 if(RMLUI_BACKEND_SIMULATE_TOUCH)
@@ -48,6 +49,17 @@ target_sources(rmlui_backend_Win32_VK INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/ShadersCompiledSPV.h"
 )
 target_link_libraries(rmlui_backend_Win32_VK INTERFACE rmlui_backend_common_headers)
+
+add_library(rmlui_backend_Win32_DX12 INTERFACE)
+target_sources(rmlui_backend_Win32_DX12 INTERFACE
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Win32.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX12.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_Win32_DX12.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Win32.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX12.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_DirectX_12.h"
+)
+target_link_libraries(rmlui_backend_Win32_DX12 INTERFACE rmlui_backend_common_headers)
 
 add_library(rmlui_backend_X11_GL2 INTERFACE)
 target_sources(rmlui_backend_X11_GL2 INTERFACE
@@ -112,6 +124,17 @@ if(UNIX)
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
 	target_link_libraries(rmlui_backend_SDL_VK INTERFACE ${CMAKE_DL_LIBS})
 endif()
+
+add_library(rmlui_backend_SDL_DX12 INTERFACE)
+target_sources(rmlui_backend_SDL_DX12 INTERFACE
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX12.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_SDL_DX12.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX12.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_DirectX_12.h"
+)
+target_link_libraries(rmlui_backend_SDL_DX12 INTERFACE rmlui_backend_common_headers SDL::SDL)
 
 add_library(rmlui_backend_SDL_SDLrenderer INTERFACE)
 target_sources(rmlui_backend_SDL_SDLrenderer INTERFACE
@@ -187,6 +210,17 @@ if(UNIX)
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
 	target_link_libraries(rmlui_backend_GLFW_VK INTERFACE ${CMAKE_DL_LIBS})
 endif()
+
+add_library(rmlui_backend_GLFW_DX12 INTERFACE)
+target_sources(rmlui_backend_GLFW_DX12 INTERFACE
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_GLFW.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX12.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_GLFW_DX12.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_GLFW.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX12.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_DirectX_12.h"
+)
+target_link_libraries(rmlui_backend_GLFW_DX12 INTERFACE rmlui_backend_common_headers glfw)
 
 add_library(rmlui_backend_BackwardCompatible_GLFW_GL2 INTERFACE)
 target_sources(rmlui_backend_BackwardCompatible_GLFW_GL2 INTERFACE

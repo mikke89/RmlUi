@@ -90,4 +90,20 @@ void RenderInterface::RenderShader(CompiledShaderHandle /*shader*/, CompiledGeom
 
 void RenderInterface::ReleaseShader(CompiledShaderHandle /*shader*/) {}
 
+void RenderInterface::UserSetBackbufferIndex(unsigned char /*backbuffer_index*/) {}
+
+bool RenderInterface::CaptureScreen(int& width, int& height, int& num_components, int& row_pitch, Rml::byte*& raw_pixels, size_t& pixels_count)
+{
+	(void)(width);
+	(void)(height);
+	(void)(num_components);
+	(void)(row_pitch);
+	(void)(raw_pixels);
+	(void)(pixels_count);
+
+	RMLUI_ASSERT(!"provide implementation please!");
+	
+	return false;
+}
+
 } // namespace Rml

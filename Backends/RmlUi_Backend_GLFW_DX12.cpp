@@ -27,12 +27,17 @@
  */
 
 #include "RmlUi_Backend.h"
+#include "RmlUi_Renderer_DX12.h"
+// This space is intentional to prevent autoformat from reordering RmlUi_Renderer_VK behind RmlUi_Platform_GLFW
 #include "RmlUi_Platform_GLFW.h"
-#include "RmlUi_Renderer_GL3.h"
+#include <RmlUi/Config/Config.h>
 #include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/Input.h>
-#include <RmlUi/Core/Profiling.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/Log.h>
 #include <GLFW/glfw3.h>
+#include <stdint.h>
+#include <thread>
 
 static void SetupCallbacks(GLFWwindow* window);
 
@@ -48,69 +53,81 @@ static void LogErrorFromGLFW(int error, const char* description)
  */
 struct BackendData {
 	SystemInterface_GLFW system_interface;
-	RenderInterface_GL3 render_interface;
-	GLFWwindow* window = nullptr;
-	int glfw_active_modifiers = 0;
-	bool context_dimensions_dirty = true;
+	RenderInterface_DX12* render_interface;
 
-	// Arguments set during event processing and nulled otherwise.
+	GLFWwindow* window = nullptr;
 	Rml::Context* context = nullptr;
 	KeyDownCallback key_down_callback = nullptr;
+	Backend::RmlRenderInitInfo* p_default_init_info = nullptr;
+	int glfw_active_modifiers = 0;
+	bool running = true;
+	bool context_dimensions_dirty = true;
 };
 static Rml::UniquePtr<BackendData> data;
 
-bool Backend::Initialize(const char* name, int width, int height, bool allow_resize, RmlRenderInitInfo* p_info)
+bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize, RmlRenderInitInfo* p_info)
 {
 	RMLUI_ASSERT(!data);
 
+	// todo: provide implementation for this thing please, for now temporary for fixing unused warning that treated as error
 	if (p_info) { p_info = nullptr; }
-
 	glfwSetErrorCallback(LogErrorFromGLFW);
 
 	if (!glfwInit())
+	{
+		glfwTerminate();
 		return false;
+	}
 
-	// Set window hints for OpenGL 3.3 Core context creation.
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-
-	// Apply window properties and create it.
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, allow_resize ? GLFW_TRUE : GLFW_FALSE);
 	glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	GLFWwindow* window = glfwCreateWindow(width, height, window_name, nullptr, nullptr);
 
-	GLFWwindow* window = glfwCreateWindow(width, height, name, nullptr, nullptr);
 	if (!window)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "GLFW failed to create window");
 		return false;
+	}
 
-	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1);
-
-	// Load the OpenGL functions.
-	Rml::String renderer_message;
-	if (!RmlGL3::Initialize(&renderer_message))
-		return false;
-
-	// Construct the system and render interface, this includes compiling all the shaders. If this fails, it is likely an error in the shader code.
 	data = Rml::MakeUnique<BackendData>();
-	if (!data || !data->render_interface)
-		return false;
-
 	data->window = window;
-	data->system_interface.SetWindow(window);
-	data->system_interface.LogMessage(Rml::Log::LT_INFO, renderer_message);
 
-	// The window size may have been scaled by DPI settings, get the actual pixel size.
-	glfwGetFramebufferSize(window, &width, &height);
-	data->render_interface.SetViewport(width, height);
+	uint32_t count;
+
+	HWND window_handle = glfwGetWin32Window(window);
+	
+	if (!window_handle)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "GLFW failed to obtain win32 window handle! Failed to initailize renderer dx12!");
+		return false;
+	}
+
+	if (!p_info)
+	{
+		p_info = new RmlRenderInitInfo(window_handle, true);
+		p_info->Get_Settings().vsync = false;
+		data->p_default_init_info = p_info;
+	}
+
+	data->render_interface = RmlDX12::Initialize(nullptr, p_info);
+
+	if (!data->render_interface)
+	{
+		glfwDestroyWindow(data->window);
+		glfwTerminate();
+		data.reset();
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to initialize DirectX 12 render interface");
+		return false;
+	}
+
+	data->system_interface.SetWindow(window);
+	data->render_interface->SetViewport(width, height);
 
 	// Receive num lock and caps lock modifiers for proper handling of numpad inputs in text fields.
 	glfwSetInputMode(window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
 
-	// Setup the input and window event callback functions.
 	SetupCallbacks(window);
 
 	return true;
@@ -119,9 +136,26 @@ bool Backend::Initialize(const char* name, int width, int height, bool allow_res
 void Backend::Shutdown()
 {
 	RMLUI_ASSERT(data);
+	RMLUI_ASSERT(data->render_interface);
+
+	if (data->p_default_init_info)
+	{
+		delete data->p_default_init_info;
+		data->p_default_init_info = nullptr;
+	}
+
+	RmlDX12::Shutdown(data->render_interface);
+
+	if (data->render_interface)
+	{
+		delete data->render_interface;
+		data->render_interface = nullptr;
+	}
+
 	glfwDestroyWindow(data->window);
+
 	data.reset();
-	RmlGL3::Shutdown();
+
 	glfwTerminate();
 }
 
@@ -134,14 +168,40 @@ Rml::SystemInterface* Backend::GetSystemInterface()
 Rml::RenderInterface* Backend::GetRenderInterface()
 {
 	RMLUI_ASSERT(data);
-	return &data->render_interface;
+	return data->render_interface;
+}
+
+static bool WaitForValidSwapchain()
+{
+	bool result = true;
+
+	// In some situations the swapchain may become invalid, such as when the window is minimized. In this state the renderer cannot accept any render
+	// calls. Since we don't have full control over the main loop here we may risk calls to Context::Render if we were to return. Instead, we keep the
+	// application inside this loop until we are able to recreate the swapchain and render again.
+
+	while (!data->render_interface->IsSwapchainValid())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+		if (glfwWindowShouldClose(data->window))
+		{
+			glfwRestoreWindow(data->window);
+			result = false;
+		}
+
+		glfwPollEvents();
+		data->render_interface->RecreateSwapchain();
+	}
+
+	return result;
 }
 
 bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
 
-	// The initial window size may have been affected by system DPI settings, apply the actual pixel size and dp-ratio to the context.
+	bool result = data->running;
+
 	if (data->context_dimensions_dirty)
 	{
 		data->context_dimensions_dirty = false;
@@ -163,35 +223,36 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	else
 		glfwPollEvents();
 
+	if (!WaitForValidSwapchain())
+		result = false;
+
 	data->context = nullptr;
 	data->key_down_callback = nullptr;
 
-	const bool result = !glfwWindowShouldClose(data->window);
+	result = !glfwWindowShouldClose(data->window);
 	glfwSetWindowShouldClose(data->window, GLFW_FALSE);
+
 	return result;
 }
 
 void Backend::RequestExit()
 {
 	RMLUI_ASSERT(data);
+	data->running = false;
 	glfwSetWindowShouldClose(data->window, GLFW_TRUE);
 }
 
 void Backend::BeginFrame()
 {
 	RMLUI_ASSERT(data);
-	data->render_interface.Clear();
-	data->render_interface.BeginFrame();
+	data->render_interface->BeginFrame();
+	data->render_interface->Clear();
 }
 
 void Backend::PresentFrame()
 {
 	RMLUI_ASSERT(data);
-	data->render_interface.EndFrame();
-	glfwSwapBuffers(data->window);
-
-	// Optional, used to mark frames during performance profiling.
-	RMLUI_FrameMark;
+	data->render_interface->EndFrame();
 }
 
 static void SetupCallbacks(GLFWwindow* window)
@@ -255,7 +316,7 @@ static void SetupCallbacks(GLFWwindow* window)
 
 	// Window events
 	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* /*window*/, int width, int height) {
-		data->render_interface.SetViewport(width, height);
+		data->render_interface->SetViewport(width, height);
 		RmlGLFW::ProcessFramebufferSizeCallback(data->context, width, height);
 	});
 

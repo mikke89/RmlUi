@@ -63,6 +63,8 @@ public:
 
 	void SetTransform(const Rml::Matrix4f* transform) override;
 
+	bool CaptureScreen(int& width, int& height, int& num_components, int& row_pitch, Rml::byte*& raw_pixels, size_t& pixels_count) override;
+
 	// Can be passed to RenderGeometry() to enable texture rendering without changing the bound texture.
 	static const Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
 

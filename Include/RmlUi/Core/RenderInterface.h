@@ -169,6 +169,26 @@ public:
 	/// Called by RmlUi when it no longer needs a previously compiled shader.
 	/// @param[in] shader The handle to a previously compiled shader.
 	virtual void ReleaseShader(CompiledShaderHandle shader);
+
+	/// @brief this is for integration cases where user specified a texture-(s) and if textures are many and probably if they are just backbuffers
+	/// from swapchain then it is probably needed to change on needed index otherwise user can calculate by it is own, you have t call this method
+	/// only after Backend::EndFrame
+	/// @param backbuffer_index your index where you want to change backbuffer image for writing data to backbuffer image, rmlui's backend can't
+	/// automatically calculate your needs to you have to resolve by your own but at least we provided a way for changing backbuffer where you wish,
+	/// but we recommend to do that before calling Backend::EndFrame because it is design for that initially otherwise do what you think is right (but
+	/// you do that just passing argument in Backend::EndFrame)
+	virtual void UserSetBackbufferIndex(unsigned char backbuffer_index);
+
+	/// @brief  this method stands for those renderers that don't have global states like Old GAPIs like OpenGL and thus it is context based
+	/// @param width output width of current screen dimensions
+	/// @param height output height of current screen dimensions
+	/// @param num_components
+	/// @param row_pitch uses for backends where row_pitch is defined for GL and VK it doesn't affect and thus will be remain -1
+	/// @param raw_pixels data you don't need to allocate you just need to pass a raw pointer that will be initialized otherwise you will get nullptr
+	/// if method calling is failed
+	/// @param pixels_count size of data of raw_pixels
+	/// @return true means successful execution otherwise failed
+	virtual bool CaptureScreen(int& width, int& height, int& num_components, int& row_pitch, Rml::byte*& raw_pixels, size_t& pixels_count);
 };
 
 } // namespace Rml
