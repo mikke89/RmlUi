@@ -8,7 +8,6 @@ class ElementFormControl;
 
 /**
     Widget for drop-down functionality.
-    @author Lloyd Weehuizen
  */
 
 class WidgetDropDown : public EventListener {

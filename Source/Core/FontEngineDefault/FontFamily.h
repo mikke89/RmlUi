@@ -7,10 +7,6 @@ namespace Rml {
 class FontFace;
 class FontFaceHandleDefault;
 
-/**
-    @author Peter Curry
- */
-
 class FontFamily {
 public:
 	FontFamily(const String& name);

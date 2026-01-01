@@ -3,10 +3,6 @@
 #include <RmlUi/Core/Texture.h>
 #include <RmlUi/Core/Types.h>
 
-/**
-    @author Peter Curry
- */
-
 class Sprite {
 public:
 	Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_texcoord, const Rml::Vector2f& bottom_right_texcoord);

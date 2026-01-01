@@ -8,8 +8,6 @@ class Template;
 
 /**
     Manages requests for loading templates, caching as it goes.
-
-    @author Lloyd Weehuizen
  */
 
 class TemplateCache {

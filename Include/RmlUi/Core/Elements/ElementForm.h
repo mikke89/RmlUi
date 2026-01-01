@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     A specialisation of the generic Element representing a form element.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API ElementForm : public Element {

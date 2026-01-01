@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     Metrics and bitmap data for a single glyph within a font face.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API FontGlyph {

@@ -16,7 +16,6 @@ using PseudoClassMap = SmallUnorderedMap<String, PseudoClassState>;
 
 /**
     Manages an element's style and property information.
-    @author Lloyd Weehuizen
  */
 
 class ElementStyle {

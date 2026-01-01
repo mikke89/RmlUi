@@ -15,8 +15,6 @@ enum class FilterOperation {
 /**
     A programmable convolution filter, designed to aid in the generation of texture data by custom
     FontEffect types.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API ConvolutionFilter {

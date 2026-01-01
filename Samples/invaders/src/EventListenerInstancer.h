@@ -2,10 +2,6 @@
 
 #include <RmlUi/Core/EventListenerInstancer.h>
 
-/**
-    @author Peter Curry
- */
-
 class EventListenerInstancer : public Rml::EventListenerInstancer {
 public:
 	EventListenerInstancer();

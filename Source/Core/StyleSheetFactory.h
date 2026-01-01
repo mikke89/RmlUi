@@ -10,8 +10,6 @@ struct StructuralSelector;
 
 /**
     Creates stylesheets on the fly as needed. The factory keeps a cache of built sheets for optimisation.
-
-    @author Lloyd Weehuizen
  */
 
 class StyleSheetFactory {

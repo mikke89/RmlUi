@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     A radio button input type handler.
-
-    @author Peter Curry
  */
 
 class InputTypeRadio : public InputType {

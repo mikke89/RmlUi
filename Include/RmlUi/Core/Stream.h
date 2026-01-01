@@ -11,7 +11,6 @@ class StreamListener;
 
 /**
     Abstract class for a media-independent byte stream.
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API Stream : public NonCopyMoveable {

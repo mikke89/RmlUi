@@ -10,8 +10,6 @@ enum class BoxDirection { Vertical, Horizontal };
 /**
     Stores a box with four sized areas; content, padding, a border and margin. See
     http://www.w3.org/TR/REC-CSS2/box.html#box-dimensions for a diagram.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API Box {

@@ -18,10 +18,6 @@ struct RMLUICORE_API PropertySource {
 	String rule_name;
 };
 
-/**
-    @author Peter Curry
- */
-
 class RMLUICORE_API Property {
 public:
 	Property();

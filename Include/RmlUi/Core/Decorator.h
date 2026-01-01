@@ -19,8 +19,6 @@ class DecoratorInstancerInterface;
 
 /**
     The abstract base class for any visual object that can be attached to any element.
-
-    @author Peter Curry
  */
 class RMLUICORE_API Decorator {
 public:

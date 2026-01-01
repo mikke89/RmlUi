@@ -23,8 +23,6 @@ enum class EventId : uint16_t;
 
 /**
     A context for storing, rendering, and processing RML documents. Multiple contexts can exist simultaneously.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API Context : public ScriptInterface {

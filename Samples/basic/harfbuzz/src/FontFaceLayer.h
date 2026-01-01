@@ -33,7 +33,6 @@ class FontFaceHandleHarfBuzz;
     A textured layer stored as part of a font face handle. Each handle will have at least a base
     layer for the standard font. Further layers can be added to allow rendering of text effects.
 
-    Original author: Peter Curry
     Modified to support HarfBuzz text shaping.
  */
 

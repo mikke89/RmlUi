@@ -4,10 +4,6 @@
 
 namespace Rml {
 
-/**
-    @author Peter Curry
- */
-
 class DecoratorTiledImage : public DecoratorTiled {
 public:
 	DecoratorTiledImage();

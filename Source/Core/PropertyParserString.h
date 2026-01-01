@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     A passthrough property parser that parses a string.
-
-    @author Peter Curry
  */
 
 class PropertyParserString : public PropertyParser {

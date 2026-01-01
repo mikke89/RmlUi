@@ -14,7 +14,6 @@ class FontFace;
 class FontFaceHandleHarfBuzz;
 
 /**
-    Original author: Peter Curry
     Modified to support HarfBuzz text shaping.
  */
 

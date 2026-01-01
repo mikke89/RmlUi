@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     A submit input type handler.
-
-    @author Peter Curry
  */
 
 class InputTypeSubmit : public InputType {

@@ -12,8 +12,6 @@ namespace Rml {
 
     The default logging implementation outputs to the Windows Debug Console on Windows, and Standard Error on other
     platforms.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API SystemInterface : public NonCopyMoveable {

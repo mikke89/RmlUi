@@ -2,10 +2,6 @@
 
 #include <RmlUi/Core/EventListener.h>
 
-/**
-    @author Peter Curry
- */
-
 class EventListener : public Rml::EventListener {
 public:
 	EventListener(const Rml::String& value);

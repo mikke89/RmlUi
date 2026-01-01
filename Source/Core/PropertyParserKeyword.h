@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     A property parser that validates a value is part of a specified list of keywords.
-
-    @author Peter Curry
  */
 
 class PropertyParserKeyword : public PropertyParser {

@@ -10,8 +10,6 @@ class DebuggerPlugin;
 
 /**
     An element that the debugger uses to render into a foreign context.
-
-    @author Peter Curry
  */
 
 class ElementContextHook : public ElementDebugDocument {

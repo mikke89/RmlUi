@@ -32,8 +32,6 @@ enum class ShorthandType {
 
 /**
     A property specification stores a group of property definitions.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API PropertySpecification {

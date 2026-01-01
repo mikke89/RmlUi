@@ -22,8 +22,6 @@ struct EventListenerEntry {
 /**
     The Event Dispatcher manages a list of event listeners and triggers the events via EventHandlers
     whenever requested.
-
-    @author Lloyd Weehuizen
 */
 
 class EventDispatcher {

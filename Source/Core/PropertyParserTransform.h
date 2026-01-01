@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     A property parser that parses a RCSS transform property specification.
-
-    @author Markus Schöngart
  */
 class PropertyParserTransform : public PropertyParser {
 public:

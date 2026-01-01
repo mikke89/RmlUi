@@ -23,8 +23,6 @@ using DecoratorPtrList = Vector<SharedPtr<const Decorator>>;
 /**
     StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
     a new, merged stylesheet.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API StyleSheet final : public NonCopyMoveable {

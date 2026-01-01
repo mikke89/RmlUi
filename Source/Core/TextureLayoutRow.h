@@ -8,8 +8,6 @@ class TextureLayout;
 
 /**
     A texture layout row is a single row of rectangles positioned vertically within a texture.
-
-    @author Peter
  */
 
 class TextureLayoutRow {

@@ -21,8 +21,6 @@ class Element;
     The returned element is a unique pointer. When this is
     destroyed, it will call	ReleaseElement on the instancer
     in which it was instanced.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API ElementInstancer : public NonCopyMoveable {

@@ -6,10 +6,6 @@
 
 namespace Rml {
 
-/**
-    @author Peter Curry
- */
-
 class RMLUICORE_API ElementText final : public Element {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementText, Element)

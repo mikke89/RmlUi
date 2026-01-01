@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     Default instancer for instancing events.
-
-    @author Lloyd Weehuizen
  */
 
 class EventInstancerDefault : public EventInstancer {

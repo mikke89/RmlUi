@@ -4,18 +4,14 @@
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../../Include/RmlUi/Core/FontMetrics.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
-#include "../../../Include/RmlUi/Core/Texture.h"
 #include "../../../Include/RmlUi/Core/TextShapingContext.h"
+#include "../../../Include/RmlUi/Core/Texture.h"
 #include "../../../Include/RmlUi/Core/Traits.h"
 #include "FontTypes.h"
 
 namespace Rml {
 
 class FontFaceLayer;
-
-/**
-    @author Peter Curry
- */
 
 class FontFaceHandleDefault final : public NonCopyMoveable {
 public:

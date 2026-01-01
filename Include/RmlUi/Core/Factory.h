@@ -32,8 +32,6 @@ enum class EventId : uint16_t;
 
 /**
     The Factory contains a registry of instancers for different types.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API Factory {

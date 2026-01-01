@@ -8,7 +8,6 @@ namespace Rml {
 
 /**
     Templated class for a generic four-component vector.
-    @author Markus Schöngart
  */
 
 template <typename Type>
@@ -26,7 +25,7 @@ public:
 	/// @param[in] w Initial omega-value of the vector.
 	inline Vector4(Type x, Type y, Type z, Type w);
 	/// Implicit conversion from a 3D Vector.
-	inline Vector4(Vector3<Type> const& v, Type w);
+	inline Vector4(const Vector3<Type>& v, Type w);
 
 	/// Returns the magnitude of the vector.
 	/// @return The computed magnitude.

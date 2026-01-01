@@ -18,8 +18,6 @@ class DebuggerSystemInterface;
 
 /**
     RmlUi plugin interface for the debugger.
-
-    @author Robert Curry
  */
 
 class DebuggerPlugin : public Rml::Plugin, public Rml::EventListener {

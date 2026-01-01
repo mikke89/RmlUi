@@ -10,8 +10,6 @@ class WidgetScroll;
 
 /**
     Manages an element's scrollbars and scrolling state.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API ElementScroll {

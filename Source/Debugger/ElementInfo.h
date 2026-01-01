@@ -10,10 +10,6 @@ namespace Debugger {
 typedef Pair<String, const Property*> NamedProperty;
 typedef Vector<NamedProperty> NamedPropertyList;
 
-/**
-    @author Robert Curry
- */
-
 class ElementInfo : public ElementDebugDocument, public EventListener {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementInfo, ElementDebugDocument)

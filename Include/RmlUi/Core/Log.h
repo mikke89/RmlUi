@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     RmlUi logging API.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API Log {

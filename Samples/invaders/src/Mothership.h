@@ -2,9 +2,6 @@
 
 #include "Invader.h"
 
-/**
- */
-
 class Mothership : public Invader {
 public:
 	Mothership(Game* game, int index);

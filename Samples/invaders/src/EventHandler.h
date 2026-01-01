@@ -2,10 +2,6 @@
 
 #include <RmlUi/Core/Types.h>
 
-/**
-    @author Peter Curry
- */
-
 class EventHandler {
 public:
 	virtual ~EventHandler();

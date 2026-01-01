@@ -14,8 +14,6 @@ namespace Style {
 
 /**
     Utility functions for dealing with elements.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API ElementUtilities {

@@ -8,8 +8,6 @@ using byte = unsigned char;
 
 /**
     Templated class for a four-component RGBA colour.
-
-    @author Peter Curry
  */
 
 template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>

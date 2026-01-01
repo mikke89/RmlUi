@@ -5,10 +5,6 @@
 
 namespace Rml {
 
-/**
-    @author Peter Curry
- */
-
 class StreamFile final : public Stream {
 public:
 	StreamFile();

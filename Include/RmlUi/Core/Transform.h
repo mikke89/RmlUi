@@ -15,8 +15,6 @@ class Property;
     of an element. Each transform instance is relative to the element's parent coordinate system.
     During the Context::Render call, the transforms of the current element and its ancestors will be
     used to find the final transformation matrix for the global coordinate system.
-
-    @author Markus Schöngart
     @see Rml::Variant
  */
 

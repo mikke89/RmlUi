@@ -9,8 +9,6 @@ using LineNumberList = Vector<int>;
 /**
     The document header struct contains the
     header details gathered from an XML document parse.
-
-    @author Lloyd Weehuizen
  */
 
 class DocumentHeader {

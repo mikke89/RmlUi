@@ -150,8 +150,6 @@ namespace Transforms {
 /**
     The TransformPrimitive struct is the base struct of geometric transforms such as rotations, scalings and translations.
     Instances of this struct are added to Rml::Transform during parsing of the 'transform' property.
-
-    @author Markus Schöngart
     @see Rml::Transform
     @see Rml::PropertyParserTransform
  */

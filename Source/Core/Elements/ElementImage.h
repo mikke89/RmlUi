@@ -29,8 +29,6 @@ namespace Rml {
 
     This has the result of sizing the element to the pixel-size of the rendered image, unless
     overridden by the 'width' or 'height' attributes.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API ElementImage : public Element {

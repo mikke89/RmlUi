@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     Element Node handler that processes the custom template tags
-
-    @author Lloyd Weehuizen
  */
 
 class XMLNodeHandlerTemplate : public XMLNodeHandler {

@@ -8,9 +8,7 @@
     A texture layout generates and stores a layout of rectangles within a series of textures. It is
     used primarily by the font system for generating font textures.
 
-	Modified to support 64-bit IDs.
-
-    @author Peter
+    Modified to support 64-bit IDs.
  */
 
 using Rml::Vector;

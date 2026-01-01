@@ -17,8 +17,6 @@ class PropertiesIterator;
 
     Note: Not an std-style iterator. Implemented as a wrapper over the internal
     iterator to avoid exposing internal headers to the user.
-
-    @author Michael R. P. Ragazzon
  */
 
 class RMLUICORE_API PropertiesIteratorView {

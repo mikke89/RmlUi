@@ -8,8 +8,6 @@ namespace Rml {
 
 /**
     A concrete font effect for rendering outlines around text.
-
-    @author Peter Curry
  */
 
 class FontEffectOutline : public FontEffect {
@@ -32,8 +30,6 @@ private:
 
 /**
     A concrete font effect instancer for the outline effect.
-
-    @author Peter Curry
  */
 
 class FontEffectOutlineInstancer : public FontEffectInstancer {

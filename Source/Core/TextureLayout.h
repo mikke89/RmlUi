@@ -8,8 +8,6 @@ namespace Rml {
 /**
     A texture layout generates and stores a layout of rectangles within a series of textures. It is
     used primarily by the font system for generating font textures.
-
-    @author Peter
  */
 
 class TextureLayout {

@@ -8,8 +8,6 @@ namespace Rml {
 
 /**
     A property parser that parses a colour value.
-
-    @author Peter Curry
  */
 
 class PropertyParserColour : public PropertyParser {

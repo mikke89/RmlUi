@@ -6,8 +6,6 @@ class Game;
 
 /**
     An alien invader.
-
-    @author Lloyd Weehuizen
  */
 
 class Invader {

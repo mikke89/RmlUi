@@ -9,8 +9,6 @@ using ParameterMap = UnorderedMap<String, int>;
 
 /**
     A property parser takes a property declaration in string form, validates it, and converts it to a Property.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API PropertyParser {

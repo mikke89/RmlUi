@@ -12,8 +12,6 @@ class Mothership;
     Runs the game.
     - Updates the Invader positions, animations and bombs.
     - Updates the player position and bullets
-
-    @author Lloyd Weehuizen
  */
 
 class Game {

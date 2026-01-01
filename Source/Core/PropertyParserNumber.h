@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     A property parser that parses a floating-point number with an optional unit.
-
-    @author Peter Curry
  */
 
 class PropertyParserNumber : public PropertyParser {

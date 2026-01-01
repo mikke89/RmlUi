@@ -4,10 +4,6 @@
 
 namespace Rml {
 
-/**
-    @author Peter Curry
- */
-
 class DecoratorTiledHorizontal : public DecoratorTiled {
 public:
 	DecoratorTiledHorizontal();

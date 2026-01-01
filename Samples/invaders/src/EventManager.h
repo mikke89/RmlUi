@@ -6,10 +6,6 @@
 
 class EventHandler;
 
-/**
-    @author Peter Curry
- */
-
 class EventManager {
 public:
 	/// Releases all event handlers registered with the manager.

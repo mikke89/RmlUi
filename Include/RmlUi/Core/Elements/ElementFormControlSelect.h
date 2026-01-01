@@ -9,8 +9,6 @@ class WidgetDropDown;
 
 /**
     A drop-down select form control.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API ElementFormControlSelect : public ElementFormControl {

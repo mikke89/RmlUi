@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     XML node handler for processing the tabset tags.
-
-    @author Lloyd Weehuizen
  */
 
 class XMLNodeHandlerTabSet : public XMLNodeHandler {

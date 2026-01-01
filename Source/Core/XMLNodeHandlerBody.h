@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     Element Node handler that processes the HEAD tag
-
-    @author Lloyd Weehuizen
  */
 
 class XMLNodeHandlerBody : public XMLNodeHandler {

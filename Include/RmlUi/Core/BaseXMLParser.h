@@ -12,10 +12,6 @@ using XMLAttributes = Dictionary;
 
 enum class XMLDataType { Text, CDATA, InnerXML };
 
-/**
-    @author Peter Curry
- */
-
 class RMLUICORE_API BaseXMLParser {
 public:
 	BaseXMLParser();

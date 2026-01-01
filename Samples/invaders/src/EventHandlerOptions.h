@@ -2,10 +2,6 @@
 
 #include "EventHandler.h"
 
-/**
-    @author Peter Curry
- */
-
 class EventHandlerOptions : public EventHandler {
 public:
 	EventHandlerOptions();

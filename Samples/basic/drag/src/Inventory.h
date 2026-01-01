@@ -4,10 +4,6 @@
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Types.h>
 
-/**
-    @author Peter Curry
- */
-
 class Inventory {
 public:
 	/// Constructs a new inventory and opens its window.

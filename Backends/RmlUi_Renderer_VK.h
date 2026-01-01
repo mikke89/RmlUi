@@ -12,33 +12,14 @@
 #ifdef RMLUI_DEBUG
 	#define RMLUI_VK_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(statement, msg)
 
-	// Uncomment the following line to enable additional Vulkan debugging.
-	// #define RMLUI_VK_DEBUG
+// Uncomment the following line to enable additional Vulkan debugging.
+// #define RMLUI_VK_DEBUG
 #else
 	#define RMLUI_VK_ASSERTMSG(statement, msg) static_cast<void>(statement)
 #endif
 
-// your specified api version, but in future it will be dynamic ^_^
+// Your specified API version. Ideally, this will be dynamic in the future.
 #define RMLUI_VK_API_VERSION VK_API_VERSION_1_0
-
-/**
- * Vulkan render interface for RmlUi
- *
- * My aim is to create compact, but easy to use class
- * I understand that it isn't good architectural choice to keep all things in one class
- * But I follow to RMLUI design and for implementing one GAPI backend it just needs one class
- * For user looks cool, but for programmer...
- *
- * It's better to try operate with very clean 'one-class' architecture rather than create own library for Vulkan
- * With many different classes, with not trivial signatures and etc
- * And as a result we should document that library so it's just a headache for all of us
- *
- * Reminder to users: If you want to implement your Vulkan renderer check previous commits of this work, because current system works only with new
- * and delete operations every frame (CPU side), on GPU we implemented the pre-allocated buffer with virtual allocs (Vma) so there's no problems and
- * all fine. I wrote all ideas and implementation for that.
- *
- * @author wh1t3lord (https://github.com/wh1t3lord)
- */
 
 class RenderInterface_VK : public Rml::RenderInterface {
 public:

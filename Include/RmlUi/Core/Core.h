@@ -18,8 +18,6 @@ enum class DefaultActionPhase;
 
 /**
     RmlUi library core API.
-
-    @author Peter Curry
  */
 
 /// Initialises RmlUi.

@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     Node handler that processes the contents of the textarea tag.
-
-    @author Peter Curry
  */
 
 class XMLNodeHandlerTextArea : public XMLNodeHandler {

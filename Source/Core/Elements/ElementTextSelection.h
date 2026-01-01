@@ -9,8 +9,6 @@ class WidgetTextInput;
 /**
     A stub element used by the WidgetTextInput to query the RCSS-specified text colour and
     background colour for selected text.
-
-    @author Peter Curry
  */
 
 class ElementTextSelection : public Element {

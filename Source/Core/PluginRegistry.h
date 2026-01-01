@@ -9,10 +9,6 @@ class Element;
 class ElementDocument;
 class Plugin;
 
-/**
-    @author Peter Curry
- */
-
 class PluginRegistry {
 public:
 	static void RegisterPlugin(Plugin* plugin);

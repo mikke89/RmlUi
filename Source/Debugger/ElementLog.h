@@ -10,10 +10,6 @@ namespace Debugger {
 
 class DebuggerSystemInterface;
 
-/**
-    @author Robert Curry
- */
-
 class ElementLog : public ElementDebugDocument, public Rml::EventListener {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementLog, ElementDebugDocument)

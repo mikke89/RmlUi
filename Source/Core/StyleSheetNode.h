@@ -12,8 +12,6 @@ using StyleSheetNodeList = Vector<UniquePtr<StyleSheetNode>>;
 
 /**
     A style sheet is composed of a tree of nodes.
-
-    @author Pete / Lloyd
  */
 
 class StyleSheetNode {

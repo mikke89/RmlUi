@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     A tabulated set of panels.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API ElementTabSet : public Element {

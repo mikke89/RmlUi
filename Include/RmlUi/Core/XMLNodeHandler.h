@@ -12,8 +12,6 @@ enum class XMLDataType;
 
 /**
     A handler gets ElementStart, ElementEnd and ElementData called by the XMLParser.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API XMLNodeHandler : public NonCopyMoveable {

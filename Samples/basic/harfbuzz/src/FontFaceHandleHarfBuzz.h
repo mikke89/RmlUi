@@ -30,10 +30,6 @@ using Rml::Vector;
 using Rml::Vector2f;
 using Rml::Vector2i;
 
-/**
-    Original author: Peter Curry
-    Modified to support HarfBuzz text shaping.
- */
 class FontFaceHandleHarfBuzz : public Rml::NonCopyMoveable {
 public:
 	FontFaceHandleHarfBuzz();
@@ -107,10 +103,11 @@ private:
 	const FontGlyph* GetOrAppendFallbackGlyph(Character& character);
 
 	// Build and append fallback cluster glyph to 'fallback_cluster_glyphs'.
-	bool AppendFallbackClusterGlyphs(StringView cluster, const TextShapingContext& text_shaping_context,
-		const LanguageDataMap& registered_languages, Span<struct hb_feature_t> text_shaping_features);
+	bool AppendFallbackClusterGlyphs(StringView cluster, const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages,
+		Span<struct hb_feature_t> text_shaping_features);
 
-	/// Retrieve a fallback cluster glyph from the given cluster and text-shaping/language data, building and appending a new fallback cluster glyph if not already built.
+	/// Retrieve a fallback cluster glyph from the given cluster and text-shaping/language data, building and appending a new fallback cluster glyph
+	/// if not already built.
 	/// @param[in] cluster  The cluster.
 	/// @param[in] text_shaping_context  Extra parameters that provide context for text shaping.
 	/// @param[in] registered_languages  A list of languages registered in the font engine interface.

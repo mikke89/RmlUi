@@ -6,10 +6,6 @@
 
 namespace Rml {
 
-/**
-    @author Peter Curry
- */
-
 enum class RelativeTarget { None, ContainingBlockWidth, ContainingBlockHeight, FontSize, ParentFontSize, LineHeight };
 
 class RMLUICORE_API PropertyDefinition final : public NonCopyMoveable {

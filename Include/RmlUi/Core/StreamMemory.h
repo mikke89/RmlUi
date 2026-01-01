@@ -7,7 +7,6 @@ namespace Rml {
 
 /**
     Memory Byte Stream Class
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API StreamMemory final : public Stream {

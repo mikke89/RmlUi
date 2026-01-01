@@ -3,10 +3,6 @@
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/Types.h>
 
-/**
-    @author Pete
- */
-
 class DragListener : public Rml::EventListener {
 public:
 	/// Registers an elemenet as being a container of draggable elements.

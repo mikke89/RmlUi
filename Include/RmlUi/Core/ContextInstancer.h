@@ -13,8 +13,6 @@ class Event;
 
 /**
     Abstract instancer interface for instancing contexts.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API ContextInstancer : public Releasable {

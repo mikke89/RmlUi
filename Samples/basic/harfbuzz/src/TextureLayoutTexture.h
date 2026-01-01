@@ -12,9 +12,7 @@ class TextureLayout;
     A texture layout texture is a single rectangular area which sub-rectangles are placed on within
     a complete texture layout.
 
-	Modified to support 64-bit IDs.
-
-    @author Peter
+    Modified to support 64-bit IDs.
  */
 
 class TextureLayoutTexture {

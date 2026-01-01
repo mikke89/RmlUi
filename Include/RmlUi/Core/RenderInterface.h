@@ -20,8 +20,6 @@ enum class BlendMode {
 /**
     The abstract base class for application-specific rendering implementation. Your application must provide a concrete
     implementation of this class and install it through Rml::SetRenderInterface() in order for anything to be rendered.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API RenderInterface : public NonCopyMoveable {

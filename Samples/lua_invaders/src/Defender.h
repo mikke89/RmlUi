@@ -7,7 +7,6 @@ class Sprite;
 
 /**
     Represents the Earth defender. Stores position and performs the update of the bullet position and collision detection.
-    @author Lloyd Weehuizen
  */
 
 class Defender {

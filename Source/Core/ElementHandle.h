@@ -8,8 +8,6 @@ namespace Rml {
 /**
     A derivation of an element for use as a mouse drag handle. It responds to drag events, and can be configured to move
     or resize specified target elements.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API ElementHandle : public Element {

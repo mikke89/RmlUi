@@ -5,7 +5,6 @@
 
 /**
     RmlUi file interface for the shell examples.
-    @author Lloyd Weehuizen
  */
 
 class ShellFileInterface : public Rml::FileInterface {

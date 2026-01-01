@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     A specialisation of the text input widget for single-line input fields.
-
-    @author Peter Curry
  */
 
 class WidgetTextInputSingleLine : public WidgetTextInput {

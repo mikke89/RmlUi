@@ -10,8 +10,6 @@ namespace Debugger {
 
 /**
     Helper class for generating geometry for the debugger.
-
-    @author Peter Curry
  */
 
 class Geometry {

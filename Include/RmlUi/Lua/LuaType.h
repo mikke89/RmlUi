@@ -8,26 +8,17 @@
 // it would result in code that looks like
 //{ "GetId", UnitGetId },
 // Which would force you to create a global function named UnitGetId in C with the correct function signature, usually int(*)(lua_State*,type*);
-#define RMLUI_LUAMETHOD(type, name) \
-	{                               \
-		#name, type##name           \
-	}
+#define RMLUI_LUAMETHOD(type, name) {#name, type##name}
 
 // See above, but the method must match the function signature int(*)(lua_State*) and as example:
 // RMLUI_LUAGETTER(Unit,Id), would mean you need a function named UnitGetAttrId
 // The first stack position will be the userdata
-#define RMLUI_LUAGETTER(type, varname)   \
-	{                                    \
-		#varname, type##GetAttr##varname \
-	}
+#define RMLUI_LUAGETTER(type, varname) {#varname, type##GetAttr##varname}
 
 // Same method signature as above, but as example:
 // RMLUI_LUASETTER(Unit,Id) would mean you need a function named UnitSetAttrId
 // The first stack position will be the userdata, and the second will be value on the other side of the equal sign
-#define RMLUI_LUASETTER(type, varname)   \
-	{                                    \
-		#varname, type##SetAttr##varname \
-	}
+#define RMLUI_LUASETTER(type, varname) {#varname, type##SetAttr##varname}
 
 #define RMLUI_CHECK_BOOL(L, narg) (lua_toboolean((L), (narg)) > 0 ? true : false)
 #define RMLUI_CHECK_OBJ(obj) \
@@ -110,8 +101,6 @@ namespace Lua {
 	/**
 	    This is mostly the definition of the Lua userdata that C++ gives to the user, plus
 	    some helper functions.
-
-	    @author Nathan Starkey
 	*/
 	template <typename T>
 	class RMLUILUA_API LuaType {

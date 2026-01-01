@@ -9,8 +9,6 @@ class WidgetTextInputMultiLine;
 
 /**
     Default RmlUi implementation of a text area.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API ElementFormControlTextArea : public ElementFormControl {

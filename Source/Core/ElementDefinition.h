@@ -11,8 +11,6 @@ class ElementDefinitionIterator;
 
 /**
     ElementDefinition provides an element's applicable properties from its stylesheet.
-
-    @author Peter Curry
  */
 
 class ElementDefinition : public NonCopyMoveable {

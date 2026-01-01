@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     A texture layout rectangle is an area positioned with a texture layout.
-
-    @author Peter
  */
 
 class TextureLayoutRectangle {

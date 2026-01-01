@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     A generic specialisation of the generic Element for all input controls.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API ElementFormControl : public Element {

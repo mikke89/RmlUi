@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     RmlUi's Interface to Time.
-
-    @author Lloyd Weehuizen
  */
 class Clock {
 public:

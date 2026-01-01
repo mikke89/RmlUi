@@ -12,7 +12,6 @@ class FontFaceHandleDefault;
 
 /**
     The font provider contains all font families currently in use by RmlUi.
-    @author Peter Curry
  */
 
 class FontProvider {
@@ -34,7 +33,8 @@ public:
 	static bool LoadFontFace(const String& file_name, int face_index, bool fallback_face, Style::FontWeight weight = Style::FontWeight::Auto);
 
 	/// Adds a new font face from memory.
-	static bool LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
+	static bool LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+		bool fallback_face);
 
 	/// Return the number of fallback font faces.
 	static int CountFallbackFontFaces();
@@ -51,8 +51,8 @@ private:
 
 	static FontProvider& Get();
 
-	bool LoadFontFace(Span<const byte> data, int face_index, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source, String font_family,
-		Style::FontStyle style, Style::FontWeight weight);
+	bool LoadFontFace(Span<const byte> data, int face_index, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source,
+		String font_family, Style::FontStyle style, Style::FontWeight weight);
 
 	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face,
 		UniquePtr<byte[]> face_memory);

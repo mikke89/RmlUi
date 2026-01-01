@@ -11,8 +11,6 @@ class Event;
 
 /**
     Abstract instancer interface for instancing events. This is required to be overridden for scripting systems.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API EventInstancer : public Releasable {

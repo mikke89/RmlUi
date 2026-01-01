@@ -8,8 +8,6 @@ class Element;
 
 /**
     Tools for aiding in parsing XML documents.
-
-    @author Lloyd Weehuizen
  */
 
 class XMLParseTools {

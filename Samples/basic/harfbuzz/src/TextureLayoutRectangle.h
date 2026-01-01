@@ -7,10 +7,8 @@ using Rml::Vector2i;
 
 /**
     A texture layout rectangle is an area positioned with a texture layout.
-	
-	Modified to support 64-bit IDs.
 
-    @author Peter
+    Modified to support 64-bit IDs.
  */
 
 class TextureLayoutRectangle {

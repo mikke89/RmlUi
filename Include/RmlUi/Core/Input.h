@@ -4,8 +4,6 @@ namespace Rml {
 
 /*
     Enumerants for sending input events into RmlUi.
-
-    @author Peter Curry
  */
 
 namespace Input {

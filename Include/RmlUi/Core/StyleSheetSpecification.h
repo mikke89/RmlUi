@@ -9,10 +9,6 @@ namespace Rml {
 class PropertyParser;
 struct DefaultStyleSheetParsers;
 
-/**
-    @author Peter Curry
- */
-
 class RMLUICORE_API StyleSheetSpecification {
 public:
 	/// Starts up the specification structure and registers default properties and type parsers.

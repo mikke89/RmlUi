@@ -4,7 +4,6 @@
 
 /**
     Sample custom RmlUi system interface for writing log messages to file.
-    @author Lloyd Weehuizen
  */
 
 class SystemInterface : public Rml::SystemInterface {

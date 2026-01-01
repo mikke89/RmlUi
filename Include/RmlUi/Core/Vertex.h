@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     The element that makes up all geometry sent to the renderer.
-
-    @author Peter Curry
  */
 
 struct RMLUICORE_API Vertex {

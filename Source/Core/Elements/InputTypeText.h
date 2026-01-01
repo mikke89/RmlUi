@@ -8,8 +8,6 @@ class WidgetTextInput;
 
 /**
     A single-line input type handler.
-
-    @author Peter Curry
  */
 
 class InputTypeText : public InputType {

@@ -11,8 +11,6 @@ struct Mesh;
 
 /**
     Base class for tiled decorators.
-
-    @author Peter Curry
  */
 
 class DecoratorTiled : public Decorator {
@@ -46,8 +44,6 @@ public:
 	/**
 	    Structure for storing the different tiles the tiled decorator uses internally over its
 	    surface.
-
-	    @author Peter Curry
 	 */
 	struct Tile {
 		/// Constructs the tile with safe default values.

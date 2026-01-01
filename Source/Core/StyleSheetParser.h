@@ -14,8 +14,6 @@ using StyleSheetNodeListRaw = Vector<StyleSheetNode*>;
 
 /**
     Helper class for parsing a style sheet into its memory representation.
-
-    @author Lloyd Weehuizen
  */
 
 class StyleSheetParser {

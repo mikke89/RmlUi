@@ -8,7 +8,6 @@ namespace Rml {
 
 /**
     Base class for all objects that hold a scriptable object.
-    @author Peter Curry
  */
 
 class RMLUICORE_API ScriptInterface : public Releasable {

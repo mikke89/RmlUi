@@ -9,8 +9,6 @@ enum class ScrollBehavior;
 
 /**
     A widget for incorporating scrolling functionality into an element.
-
-    @author Peter Curry
  */
 
 class WidgetScroll final : public EventListener {

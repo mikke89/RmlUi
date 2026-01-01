@@ -5,10 +5,6 @@
 
 namespace Rml {
 
-/**
-    @author Peter Curry
- */
-
 class RMLUICORE_API URL {
 public:
 	/// Constructs an empty URL.

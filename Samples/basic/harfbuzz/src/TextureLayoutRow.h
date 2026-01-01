@@ -12,8 +12,6 @@ class TextureLayout;
     A texture layout row is a single row of rectangles positioned vertically within a texture.
 
     Modified to support 64-bit IDs.
-
-    @author Peter
  */
 
 class TextureLayoutRow {

@@ -14,8 +14,6 @@ class FontFaceHandleDefault;
 /**
     A textured layer stored as part of a font face handle. Each handle will have at least a base
     layer for the standard font. Further layers can be added to allow rendering of text effects.
-
-    @author Peter Curry
  */
 
 class FontFaceLayer {

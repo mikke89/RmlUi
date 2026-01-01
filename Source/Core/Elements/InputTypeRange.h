@@ -8,8 +8,6 @@ class WidgetSlider;
 
 /**
     A range input type handler.
-
-    @author Peter Curry
  */
 
 class InputTypeRange : public InputType {

@@ -9,8 +9,6 @@ class Element;
 
 /**
     Contains a RML template. The Header is stored in parsed form, body in an unparsed stream.
-
-    @author Lloyd Weehuizen
  */
 
 class Template {

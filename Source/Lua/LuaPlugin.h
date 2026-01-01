@@ -14,8 +14,6 @@ class LuaEventListenerInstancer;
 /**
     This initializes the Lua interpreter, and has functions to load the scripts or
     call functions that exist in Lua.
-
-    @author Nathan Starkey
 */
 class RMLUILUA_API LuaPlugin : public Plugin {
 public:

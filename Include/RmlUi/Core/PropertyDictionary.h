@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     A dictionary to property names to values.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API PropertyDictionary {

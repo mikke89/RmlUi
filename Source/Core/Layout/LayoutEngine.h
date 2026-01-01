@@ -5,10 +5,6 @@
 namespace Rml {
 
 /**
-    @author Michael R. P. Ragazzon
-
-    Based on original work by: Robert Curry and Peter Curry
-
     See the CSS glossary for terms used in the layout engine:
     https://www.w3.org/TR/css-display-3/#glossary
  */

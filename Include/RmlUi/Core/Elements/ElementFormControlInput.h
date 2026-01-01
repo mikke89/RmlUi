@@ -9,8 +9,6 @@ class InputType;
 
 /**
     A form control for the generic input element. All functionality is handled through an input type interface.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API ElementFormControlInput : public ElementFormControl {

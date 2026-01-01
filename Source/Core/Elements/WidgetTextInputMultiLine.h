@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     A specialisation of the text input widget for multi-line text fields.
-
-    @author Peter Curry
  */
 
 class WidgetTextInputMultiLine : public WidgetTextInput {

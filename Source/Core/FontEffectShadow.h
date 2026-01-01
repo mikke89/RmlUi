@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     A concrete font effect for rendering text shadows.
-
-    @author Peter Curry
  */
 
 class FontEffectShadow : public FontEffect {
@@ -28,8 +26,6 @@ private:
 
 /**
     A concrete font effect instancer for the shadow effect.
-
-    @author Peter Curry
  */
 
 class FontEffectShadowInstancer : public FontEffectInstancer {

@@ -13,8 +13,6 @@ class URL;
 
 /**
     RmlUi's XML parsing engine. The factory creates an instance of this class for each RML parse.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API XMLParser : public BaseXMLParser {

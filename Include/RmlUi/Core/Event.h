@@ -18,8 +18,6 @@ enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, TargetAn
 /**
     An event that propagates through the element hierarchy. Events follow the DOM3 event specification. See
     http://www.w3.org/TR/DOM-Level-3-Events/events.html.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API Event : public ScriptInterface {

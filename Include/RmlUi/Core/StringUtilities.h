@@ -7,7 +7,6 @@ namespace Rml {
 
 /**
     Helper functions for string manipulation.
-    @author Lloyd Weehuizen
  */
 
 class StringView;

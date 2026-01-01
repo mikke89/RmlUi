@@ -14,8 +14,6 @@ class WidgetTextInputContext;
 
 /**
     An abstract widget for editing and navigating around a text field.
-
-    @author Peter Curry
  */
 
 class WidgetTextInput : public EventListener {

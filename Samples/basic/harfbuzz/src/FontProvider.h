@@ -18,7 +18,6 @@ class FontFaceHandleHarfBuzz;
 
 /**
     The font provider contains all font families currently in use by RmlUi.
-    Original author: Peter Curry
     Modified to support HarfBuzz text shaping.
  */
 

@@ -7,7 +7,6 @@ namespace Rml {
 
 /**
     Templated class for a generic two-component vector.
-    @author Peter Curry
  */
 
 template <typename Type>

@@ -11,8 +11,6 @@ class StyleSheet;
 /**
     StyleSheetContainer contains a list of media blocks and creates a combined style sheet when getting
     properties of the current context regarding the available media features.
-
-    @author Maximilian Stark
  */
 
 class RMLUICORE_API StyleSheetContainer : public NonCopyMoveable {

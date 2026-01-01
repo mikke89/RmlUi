@@ -11,8 +11,6 @@ class Element;
 
 /**
     Abstract interface class for handling events.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API EventListener : public EnableObserverPtr<EventListener> {

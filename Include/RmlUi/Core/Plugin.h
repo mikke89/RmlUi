@@ -11,8 +11,6 @@ class Context;
 
 /**
     Generic Interface for plugins to RmlUi.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API Plugin {

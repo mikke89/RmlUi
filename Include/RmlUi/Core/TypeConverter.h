@@ -17,8 +17,6 @@ enum class Unit;
 
     These converters convert from source types to destination types.
     They're mainly useful in things like dictionaries and serialisers.
-
-    @author Lloyd Weehuizen
 */
 
 template <typename SourceType, typename DestType>

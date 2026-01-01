@@ -8,8 +8,6 @@ namespace Rml {
 
 /**
     Implementation of the RmlUi file interface using the Standard C file functions.
-
-    @author Peter Curry
  */
 
 class FileInterfaceDefault : public FileInterface {

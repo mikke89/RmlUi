@@ -41,9 +41,7 @@ struct ElementMeta;
 struct StackingContextChild;
 
 /**
-	A generic element in the DOM tree.
-
-	@author Peter Curry
+    A generic element in the DOM tree.
  */
 
 class RMLUICORE_API Element : public ScriptInterface, public EnableObserverPtr<Element> {
@@ -558,7 +556,7 @@ public:
 	//@}
 
 	/**
-		@name Internal Functions
+	    @name Internal Functions
 	 */
 	//@{
 	/// Access the event dispatcher for this element.

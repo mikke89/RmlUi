@@ -15,8 +15,6 @@ class FontEffect;
 
     It is important that the same instancer that allocated a font effect releases it. This ensures there are no issues
     with memory from different DLLs getting mixed up.
-
-    @author Peter Curry
  */
 
 class RMLUICORE_API FontEffectInstancer {

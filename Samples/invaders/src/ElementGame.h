@@ -5,10 +5,6 @@
 
 class Game;
 
-/**
-    @author Peter Curry
- */
-
 class ElementGame : public Rml::Element, public Rml::EventListener {
 public:
 	ElementGame(const Rml::String& tag);

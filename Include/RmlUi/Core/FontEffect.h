@@ -4,10 +4,6 @@
 
 namespace Rml {
 
-/**
-    @author Peter Curry
- */
-
 class RMLUICORE_API FontEffect {
 public:
 	// Behind or in front of the main text.

@@ -8,7 +8,6 @@ namespace Rml {
 
 /**
     Templated class that acts as base strategy for vectors access patterns of matrices.
-    @author Markus Schöngart
  */
 template <typename Component>
 struct MatrixStorageBase {
@@ -110,7 +109,6 @@ struct ColumnMajorStorage;
 
 /**
     Templated class that defines the vectors access pattern for row-major matrices.
-    @author Markus Schöngart
  */
 template <typename Component>
 struct RowMajorStorage : public MatrixStorageBase<Component> {
@@ -131,7 +129,6 @@ struct RowMajorStorage : public MatrixStorageBase<Component> {
 
 /**
     Templated class that defines the vectors access pattern for column-major matrices.
-    @author Markus Schöngart
  */
 template <typename Component>
 struct ColumnMajorStorage {
@@ -152,7 +149,6 @@ struct ColumnMajorStorage {
 
 /**
     Templated class for a generic 4x4 matrix.
-    @author Markus Schöngart
  */
 
 template <typename Component, class Storage = ColumnMajorStorage<Component>>

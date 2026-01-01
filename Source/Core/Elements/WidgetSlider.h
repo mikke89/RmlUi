@@ -8,8 +8,6 @@ class ElementFormControl;
 
 /**
     A generic widget for incorporating sliding functionality into an element.
-
-    @author Peter Curry
  */
 
 class WidgetSlider final : public EventListener {

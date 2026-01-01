@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     Default instancer for instancing contexts.
-
-    @author Peter Curry
  */
 
 class ContextInstancerDefault : public ContextInstancer {

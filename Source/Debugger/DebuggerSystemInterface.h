@@ -10,8 +10,6 @@ class ElementLog;
 /**
     The log interface the debugger installs into RmlUi. This is a pass-through interface, so it holds onto the
     application's system interface and passes all the calls through.
-
-    @author Peter Curry
  */
 
 class DebuggerSystemInterface : public Rml::SystemInterface {

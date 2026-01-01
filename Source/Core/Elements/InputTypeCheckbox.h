@@ -6,8 +6,6 @@ namespace Rml {
 
 /**
     A checkbox input type handler.
-
-    @author Peter Curry
  */
 
 class InputTypeCheckbox : public InputType {

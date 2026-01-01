@@ -10,8 +10,6 @@ namespace Rml {
 /**
     A button input type handler. The only functionality a button provides over a normal element is the ability
     to be disabled. This prevents 'click' events on this element and the ability to receive focus.
-
-    @author Peter Curry
  */
 
 class InputTypeButton : public InputType {

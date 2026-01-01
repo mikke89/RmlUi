@@ -9,8 +9,6 @@ const int PIXEL_SIZE = 4;
 
 /**
     A shield, protecting the player.
-
-    @author Robert Curry
  */
 
 class Shield {

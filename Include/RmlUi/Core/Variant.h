@@ -12,8 +12,6 @@ namespace Rml {
     value in the native form corresponding to the version of Set that was called.
 
     Get is templated to convert from the stored form to the requested form by using a TypeConverter.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API Variant {

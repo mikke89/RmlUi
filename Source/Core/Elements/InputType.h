@@ -10,8 +10,6 @@ class ElementFormControlInput;
 /**
     An interface for a input type handler used by ElementFormControlInput. A concrete InputType object handles the
     functionality of an input element.
-
-    @author Peter Curry
  */
 
 class InputType {

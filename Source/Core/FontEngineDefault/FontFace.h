@@ -7,10 +7,6 @@ namespace Rml {
 
 class FontFaceHandleDefault;
 
-/**
-    @author Peter Curry
- */
-
 class FontFace {
 public:
 	FontFace(FontFaceHandleFreetype face, Style::FontStyle style, Style::FontWeight weight);

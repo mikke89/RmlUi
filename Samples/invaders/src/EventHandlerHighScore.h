@@ -2,9 +2,6 @@
 
 #include "EventHandler.h"
 
-/**
- */
-
 class EventHandlerHighScore : public EventHandler {
 public:
 	EventHandlerHighScore();

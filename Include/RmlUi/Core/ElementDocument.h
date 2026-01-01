@@ -28,8 +28,6 @@ enum class FocusFlag {
 
 /**
     Represents a document in the dom tree.
-
-    @author Lloyd Weehuizen
  */
 
 class RMLUICORE_API ElementDocument : public Element {

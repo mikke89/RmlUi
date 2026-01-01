@@ -7,8 +7,6 @@ namespace Rml {
 
 /**
     Element Node handler that creates elements
-
-    @author Lloyd Weehuizen
  */
 
 class XMLNodeHandlerDefault : public XMLNodeHandler {

@@ -4,10 +4,6 @@
 
 namespace Rml {
 
-/**
-    @author Peter Curry
- */
-
 class WidgetTextInputSingleLinePassword : public WidgetTextInputSingleLine {
 public:
 	WidgetTextInputSingleLinePassword(ElementFormControl* parent);
