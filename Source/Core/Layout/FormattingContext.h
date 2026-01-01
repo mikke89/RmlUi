@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LAYOUT_FORMATTINGCONTEXT_H
-#define RMLUI_CORE_LAYOUT_FORMATTINGCONTEXT_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Types.h"
 
@@ -36,4 +35,3 @@ protected:
 };
 
 } // namespace Rml
-#endif

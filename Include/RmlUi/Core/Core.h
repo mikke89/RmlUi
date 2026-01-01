@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_CORE_H
-#define RMLUI_CORE_CORE_H
+#pragma once
 
 #include "Event.h"
 #include "Header.h"
@@ -160,5 +159,3 @@ RMLUICORE_API void ReleaseFontResources();
 RMLUICORE_API void ReleaseRenderManagers();
 
 } // namespace Rml
-
-#endif

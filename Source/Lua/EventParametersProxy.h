@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_EVENTPARAMETERSPROXY_H
-#define RMLUI_LUA_EVENTPARAMETERSPROXY_H
+#pragma once
 
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -24,4 +23,3 @@ extern luaL_Reg EventParametersProxySetters[];
 RMLUI_LUATYPE_DECLARE(EventParametersProxy)
 } // namespace Lua
 } // namespace Rml
-#endif

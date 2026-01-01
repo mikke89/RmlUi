@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTHANDLE_H
-#define RMLUI_CORE_ELEMENTHANDLE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Header.h"
@@ -52,4 +51,3 @@ protected:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTFACELAYER_H
-#define RMLUI_CORE_FONTENGINEDEFAULT_FONTFACELAYER_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/CallbackTexture.h"
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
@@ -98,4 +97,3 @@ private:
 };
 
 } // namespace Rml
-#endif

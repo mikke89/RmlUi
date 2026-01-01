@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATORSHADER_H
-#define RMLUI_CORE_DECORATORSHADER_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
@@ -48,4 +47,3 @@ struct ShaderElementData {
 Pool<ShaderElementData>& GetShaderElementDataPool();
 
 } // namespace Rml
-#endif

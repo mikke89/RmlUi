@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ID_H
-#define RMLUI_CORE_ID_H
+#pragma once
 
 #include <stdint.h>
 
@@ -235,4 +234,3 @@ enum class EventId : uint16_t {
 };
 
 } // namespace Rml
-#endif

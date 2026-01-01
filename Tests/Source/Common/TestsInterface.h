@@ -1,5 +1,4 @@
-#ifndef RMLUI_TESTS_TESTSINTERFACE_H
-#define RMLUI_TESTS_TESTSINTERFACE_H
+#pragma once
 
 #include <RmlUi/Core/Mesh.h>
 #include <RmlUi/Core/RenderInterface.h>
@@ -93,5 +92,3 @@ private:
 	Rml::Vector<Rml::Mesh> meshes;
 	bool meshes_set = false;
 };
-
-#endif

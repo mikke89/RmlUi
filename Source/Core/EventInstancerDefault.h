@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_EVENTINSTANCERDEFAULT_H
-#define RMLUI_CORE_EVENTINSTANCERDEFAULT_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/EventInstancer.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -34,4 +33,3 @@ public:
 };
 
 } // namespace Rml
-#endif

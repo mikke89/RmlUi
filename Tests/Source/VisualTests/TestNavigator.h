@@ -1,5 +1,4 @@
-#ifndef RMLUI_TESTS_VISUALTESTS_TESTNAVIGATOR_H
-#define RMLUI_TESTS_VISUALTESTS_TESTNAVIGATOR_H
+#pragma once
 
 #include "CaptureScreen.h"
 #include "TestSuite.h"
@@ -67,5 +66,3 @@ private:
 
 	Rml::Vector<ComparisonResult> comparison_results;
 };
-
-#endif

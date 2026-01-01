@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATORTILEDBOX_H
-#define RMLUI_CORE_DECORATORTILEDBOX_H
+#pragma once
 
 #include "DecoratorTiled.h"
 
@@ -56,4 +55,3 @@ public:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATORGRADIENT_H
-#define RMLUI_CORE_DECORATORGRADIENT_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
@@ -201,4 +200,3 @@ private:
 };
 
 } // namespace Rml
-#endif

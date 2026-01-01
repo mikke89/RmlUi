@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STYLETYPES_H
-#define RMLUI_CORE_STYLETYPES_H
+#pragma once
 
 #include "Types.h"
 
@@ -144,4 +143,3 @@ namespace Style {
 using ComputedValues = Style::ComputedValues;
 
 } // namespace Rml
-#endif

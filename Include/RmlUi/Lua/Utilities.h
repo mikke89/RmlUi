@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_UTILITIES_H
-#define RMLUI_LUA_UTILITIES_H
+#pragma once
 /*
     This file is for free-floating functions that are used across more than one file.
 */
@@ -68,4 +67,3 @@ namespace Lua {
 	}
 } // namespace Lua
 } // namespace Rml
-#endif

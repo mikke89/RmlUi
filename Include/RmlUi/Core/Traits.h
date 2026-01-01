@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TRAITS_H
-#define RMLUI_CORE_TRAITS_H
+#pragma once
 
 #include "../Config/Config.h"
 #include "Debug.h"
@@ -159,5 +158,3 @@ const char* rmlui_type_name()
 }
 
 #endif // RMLUI_CUSTOM_RTTI
-
-#endif // RMLUI_CORE_TRAITS_H

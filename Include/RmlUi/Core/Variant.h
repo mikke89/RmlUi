@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_VARIANT_H
-#define RMLUI_CORE_VARIANT_H
+#pragma once
 
 #include "Animation.h"
 #include "Header.h"
@@ -149,5 +148,3 @@ private:
 } // namespace Rml
 
 #include "Variant.inl"
-
-#endif

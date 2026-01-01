@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_EFFECTSPECIFICATION_H
-#define RMLUI_CORE_EFFECTSPECIFICATION_H
+#pragma once
 
 #include "Header.h"
 #include "PropertySpecification.h"
@@ -42,4 +41,3 @@ private:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_VECTOR2F_H
-#define RMLUI_LUA_VECTOR2F_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -35,4 +34,3 @@ extern luaL_Reg Vector2fSetters[];
 RMLUI_LUATYPE_DECLARE(Vector2f)
 } // namespace Lua
 } // namespace Rml
-#endif

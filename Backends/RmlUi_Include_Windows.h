@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_INCLUDE_WINDOWS_H
-#define RMLUI_BACKENDS_INCLUDE_WINDOWS_H
+#pragma once
 
 #ifndef RMLUI_DISABLE_INCLUDE_WINDOWS
 
@@ -17,7 +16,5 @@
 	#endif
 
 	#include <windows.h>
-
-#endif
 
 #endif

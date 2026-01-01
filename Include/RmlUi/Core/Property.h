@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTY_H
-#define RMLUI_CORE_PROPERTY_H
+#pragma once
 
 #include "Header.h"
 #include "NumericValue.h"
@@ -63,4 +62,3 @@ public:
 };
 
 } // namespace Rml
-#endif

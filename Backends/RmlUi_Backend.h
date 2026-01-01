@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_BACKEND_H
-#define RMLUI_BACKENDS_BACKEND_H
+#pragma once
 
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/RenderInterface.h>
@@ -40,5 +39,3 @@ void BeginFrame();
 void PresentFrame();
 
 } // namespace Backend
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_XMLPARSER_H
-#define RMLUI_CORE_XMLPARSER_H
+#pragma once
 
 #include "BaseXMLParser.h"
 #include "Header.h"
@@ -90,4 +89,3 @@ private:
 };
 
 } // namespace Rml
-#endif

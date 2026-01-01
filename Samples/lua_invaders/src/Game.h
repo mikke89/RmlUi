@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUAINVADERS_GAME_H
-#define RMLUI_LUAINVADERS_GAME_H
+#pragma once
 
 #include <RmlUi/Core/Texture.h>
 #include <RmlUi/Core/Types.h>
@@ -95,5 +94,3 @@ private:
 	void InitialiseWave();
 	void OnGameOver();
 };
-
-#endif

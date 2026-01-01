@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_INCLUDE_XLIB_H
-#define RMLUI_BACKENDS_INCLUDE_XLIB_H
+#pragma once
 
 #ifndef RMLUI_DISABLE_INCLUDE_XLIB
 
@@ -15,7 +14,5 @@
 		// Value 2
 		#undef Always
 	#endif
-
-#endif
 
 #endif

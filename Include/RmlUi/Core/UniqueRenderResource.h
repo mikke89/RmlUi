@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_UNIQUERENDERRESOURCE_H
-#define RMLUI_CORE_UNIQUERENDERRESOURCE_H
+#pragma once
 
 #include "Types.h"
 #include <utility>
@@ -55,5 +54,3 @@ private:
 };
 
 } // namespace Rml
-
-#endif

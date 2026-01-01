@@ -1,5 +1,4 @@
-#ifndef RMLUI_DEBUGGER_DEBUGGERSYSTEMINTERFACE_H
-#define RMLUI_DEBUGGER_DEBUGGERSYSTEMINTERFACE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 
@@ -69,5 +68,3 @@ private:
 
 } // namespace Debugger
 } // namespace Rml
-
-#endif

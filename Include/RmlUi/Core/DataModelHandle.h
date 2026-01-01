@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DATAMODELHANDLE_H
-#define RMLUI_CORE_DATAMODELHANDLE_H
+#pragma once
 
 #include "DataStructHandle.h"
 #include "DataTypeRegister.h"
@@ -196,4 +195,3 @@ namespace Detail {
 	};
 } // namespace Detail
 } // namespace Rml
-#endif

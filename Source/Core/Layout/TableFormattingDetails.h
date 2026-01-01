@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LAYOUT_TABLEFORMATTINGDETAILS_H
-#define RMLUI_CORE_LAYOUT_TABLEFORMATTINGDETAILS_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/StyleTypes.h"
 #include "../../../Include/RmlUi/Core/Types.h"
@@ -148,4 +147,3 @@ inline float GetSpanningCellBorderSize(const TrackBoxList& boxes, const int inde
 }
 
 } // namespace Rml
-#endif

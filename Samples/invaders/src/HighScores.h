@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_HIGHSCORES_H
-#define RMLUI_INVADERS_HIGHSCORES_H
+#pragma once
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Types.h>
@@ -43,5 +42,3 @@ private:
 
 	Rml::DataModelHandle model_handle;
 };
-
-#endif

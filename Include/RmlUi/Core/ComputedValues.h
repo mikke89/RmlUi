@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_COMPUTEDVALUES_H
-#define RMLUI_CORE_COMPUTEDVALUES_H
+#pragma once
 
 #include "Animation.h"
 #include "Element.h"
@@ -437,4 +436,3 @@ RMLUICORE_API_INLINE float ResolveValue(Style::LengthPercentage length, float ba
 using ComputedValues = Style::ComputedValues;
 
 } // namespace Rml
-#endif

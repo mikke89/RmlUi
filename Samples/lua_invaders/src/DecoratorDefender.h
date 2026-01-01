@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUAINVADERS_DECORATORDEFENDER_H
-#define RMLUI_LUAINVADERS_DECORATORDEFENDER_H
+#pragma once
 
 #include <RmlUi/Core/Decorator.h>
 
@@ -33,5 +32,3 @@ public:
 private:
 	Rml::PropertyId id_image_src;
 };
-
-#endif

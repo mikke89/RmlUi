@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_SPRITE_H
-#define RMLUI_INVADERS_SPRITE_H
+#pragma once
 
 #include <RmlUi/Core/Texture.h>
 #include <RmlUi/Core/Types.h>
@@ -28,5 +27,3 @@ struct ColoredPoint {
 using ColoredPointList = Rml::Vector<ColoredPoint>;
 
 void DrawPoints(Rml::RenderManager& render_manager, float point_size, const ColoredPointList& points);
-
-#endif

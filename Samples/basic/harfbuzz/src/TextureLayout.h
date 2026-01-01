@@ -1,5 +1,4 @@
-#ifndef TEXTSHAPER_TEXTURELAYOUT_H
-#define TEXTSHAPER_TEXTURELAYOUT_H
+#pragma once
 
 #include "TextureLayoutRectangle.h"
 #include "TextureLayoutTexture.h"
@@ -56,5 +55,3 @@ private:
 	TextureList textures;
 	RectangleList rectangles;
 };
-
-#endif

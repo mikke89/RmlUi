@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
-#define RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/CallbackTexture.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
@@ -40,4 +39,3 @@ private:
 };
 
 } // namespace Rml
-#endif

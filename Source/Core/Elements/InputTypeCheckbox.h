@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_INPUTTYPECHECKBOX_H
-#define RMLUI_CORE_ELEMENTS_INPUTTYPECHECKBOX_H
+#pragma once
 
 #include "InputType.h"
 
@@ -39,4 +38,3 @@ public:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTDOCUMENT_H
-#define RMLUI_CORE_ELEMENTDOCUMENT_H
+#pragma once
 
 #include "Element.h"
 
@@ -171,4 +170,3 @@ private:
 };
 
 } // namespace Rml
-#endif

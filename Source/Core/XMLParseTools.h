@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_XMLPARSETOOLS_H
-#define RMLUI_CORE_XMLPARSETOOLS_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Types.h"
 
@@ -41,4 +40,3 @@ public:
 };
 
 } // namespace Rml
-#endif

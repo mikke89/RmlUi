@@ -1,5 +1,4 @@
-#ifndef TEXTURELAYOUTRECTANGLE_H
-#define TEXTURELAYOUTRECTANGLE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Types.h"
 
@@ -63,4 +62,3 @@ private:
 };
 
 } // namespace Rml
-#endif

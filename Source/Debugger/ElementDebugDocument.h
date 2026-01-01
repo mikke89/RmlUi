@@ -1,5 +1,4 @@
-#ifndef RMLUI_DEBUGGER_ELEMENTDEBUGDOCUMENT_H
-#define RMLUI_DEBUGGER_ELEMENTDEBUGDOCUMENT_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 
@@ -15,5 +14,3 @@ public:
 
 } // namespace Debugger
 } // namespace Rml
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_LOG_H
-#define RMLUI_LUA_LOG_H
+#pragma once
 
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -19,5 +18,3 @@ extern luaL_Reg LogSetters[];
 RMLUI_LUATYPE_DECLARE(Log)
 } // namespace Lua
 } // namespace Rml
-
-#endif

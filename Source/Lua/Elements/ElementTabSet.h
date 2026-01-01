@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_ELEMENTS_ELEMENTTABSET_H
-#define RMLUI_LUA_ELEMENTS_ELEMENTTABSET_H
+#pragma once
 
 #include <RmlUi/Core/Elements/ElementTabSet.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -29,5 +28,3 @@ void ExtraInit<ElementTabSet>(lua_State* L, int metatable_index);
 RMLUI_LUATYPE_DECLARE(ElementTabSet)
 } // namespace Lua
 } // namespace Rml
-
-#endif

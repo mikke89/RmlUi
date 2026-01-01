@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PLATFORM_H
-#define RMLUI_CORE_PLATFORM_H
+#pragma once
 
 #if defined __WIN32__ || defined _WIN32
 	#define RMLUI_PLATFORM_WIN32
@@ -48,6 +47,4 @@
 	#define RMLUI_ATTRIBUTE_FORMAT_PRINTF(i, f) __attribute__((format(printf, i, f)))
 #else
 	#define RMLUI_ATTRIBUTE_FORMAT_PRINTF(i, f)
-#endif
-
 #endif

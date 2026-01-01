@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TRANSFORM_H
-#define RMLUI_CORE_TRANSFORM_H
+#pragma once
 
 #include "Header.h"
 #include "TransformPrimitive.h"
@@ -54,4 +53,3 @@ private:
 };
 
 } // namespace Rml
-#endif

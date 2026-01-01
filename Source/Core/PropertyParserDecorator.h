@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTYPARSERDECORATOR_H
-#define RMLUI_CORE_PROPERTYPARSERDECORATOR_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 #include "ControlledLifetimeResource.h"
@@ -28,4 +27,3 @@ private:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_DEBUGGER_FONTSOURCE_H
-#define RMLUI_DEBUGGER_FONTSOURCE_H
+#pragma once
 
 /*
     The fonts 'Courier Prime Code' and 'Courier Prime Code Italic', included
@@ -5163,5 +5162,3 @@ static const unsigned char courier_prime_code_italic[] = {
 	0x0,0x0,0x0,0x0,0x0,0x1,0x0,0x0,0x0,0x0
 };
 // clang-format on
-
-#endif

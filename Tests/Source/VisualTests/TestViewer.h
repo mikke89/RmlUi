@@ -1,5 +1,4 @@
-#ifndef RMLUI_TESTS_VISUALTESTS_TESTVIEWER_H
-#define RMLUI_TESTS_VISUALTESTS_TESTVIEWER_H
+#pragma once
 
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/Types.h>
@@ -43,5 +42,3 @@ private:
 
 	Rml::String reference_filename;
 };
-
-#endif

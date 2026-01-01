@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_CALLBACKTEXTURE_H
-#define RMLUI_CORE_CALLBACKTEXTURE_H
+#pragma once
 
 #include "Header.h"
 #include "Types.h"
@@ -95,4 +94,3 @@ private:
 };
 
 } // namespace Rml
-#endif

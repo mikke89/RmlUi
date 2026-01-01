@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_ELEMENTCHILDNODESPROXY_H
-#define RMLUI_LUA_ELEMENTCHILDNODESPROXY_H
+#pragma once
 
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -25,4 +24,3 @@ extern luaL_Reg ElementChildNodesProxySetters[];
 RMLUI_LUATYPE_DECLARE(ElementChildNodesProxy)
 } // namespace Lua
 } // namespace Rml
-#endif

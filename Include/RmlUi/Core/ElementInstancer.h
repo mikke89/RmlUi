@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTINSTANCER_H
-#define RMLUI_CORE_ELEMENTINSTANCER_H
+#pragma once
 
 #include "Element.h"
 #include "Header.h"
@@ -95,4 +94,3 @@ namespace Detail {
 } // namespace Detail
 
 } // namespace Rml
-#endif

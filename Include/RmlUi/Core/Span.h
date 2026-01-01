@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_SPAN_H
-#define RMLUI_CORE_SPAN_H
+#pragma once
 
 #include "../Config/Config.h"
 #include "Header.h"
@@ -40,4 +39,3 @@ private:
 };
 
 } // namespace Rml
-#endif

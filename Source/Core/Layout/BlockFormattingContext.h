@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LAYOUT_BLOCKFORMATTINGCONTEXT_H
-#define RMLUI_CORE_LAYOUT_BLOCKFORMATTINGCONTEXT_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Types.h"
 #include "FormattingContext.h"
@@ -40,4 +39,3 @@ private:
 };
 
 } // namespace Rml
-#endif

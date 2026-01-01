@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTFACEHANDLE_H
-#define RMLUI_CORE_FONTENGINEDEFAULT_FONTFACEHANDLE_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/FontEffect.h"
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
@@ -130,4 +129,3 @@ private:
 };
 
 } // namespace Rml
-#endif

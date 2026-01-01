@@ -1,5 +1,4 @@
-#ifndef RMLUI_TESTS_VISUALTESTS_TESTSUITE_H
-#define RMLUI_TESTS_VISUALTESTS_TESTSUITE_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 #include <algorithm>
@@ -109,5 +108,3 @@ private:
 };
 
 using TestSuiteList = Rml::Vector<TestSuite>;
-
-#endif

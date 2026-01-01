@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_INPUTTYPETEXT_H
-#define RMLUI_CORE_ELEMENTS_INPUTTYPETEXT_H
+#pragma once
 
 #include "InputType.h"
 
@@ -65,4 +64,3 @@ private:
 };
 
 } // namespace Rml
-#endif

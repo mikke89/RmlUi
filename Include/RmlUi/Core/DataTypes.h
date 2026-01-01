@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DATADEFINITIONS_H
-#define RMLUI_CORE_DATADEFINITIONS_H
+#pragma once
 
 #include "Header.h"
 #include "Types.h"
@@ -81,4 +80,3 @@ namespace Detail {
 } // namespace Detail
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LAYOUT_LAYOUTPOOLS_H
-#define RMLUI_CORE_LAYOUT_LAYOUTPOOLS_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Types.h"
 
@@ -16,4 +15,3 @@ namespace LayoutPools {
 } // namespace LayoutPools
 
 } // namespace Rml
-#endif

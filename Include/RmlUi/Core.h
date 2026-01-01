@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_H
-#define RMLUI_CORE_H
+#pragma once
 
 #include "Core/Animation.h"
 #include "Core/Box.h"
@@ -81,5 +80,3 @@
 #include "Core/Elements/ElementFormControlTextArea.h"
 #include "Core/Elements/ElementProgress.h"
 #include "Core/Elements/ElementTabSet.h"
-
-#endif

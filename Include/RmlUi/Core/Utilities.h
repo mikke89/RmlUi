@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_UTILITIES_H
-#define RMLUI_CORE_UTILITIES_H
+#pragma once
 
 #include "Types.h"
 
@@ -16,4 +15,3 @@ namespace Utilities {
 
 } // namespace Utilities
 } // namespace Rml
-#endif

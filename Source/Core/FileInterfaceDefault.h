@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FILEINTERFACEDEFAULT_H
-#define RMLUI_CORE_FILEINTERFACEDEFAULT_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/FileInterface.h"
 
@@ -46,5 +45,3 @@ public:
 
 } // namespace Rml
 #endif /*RMLUI_NO_FILE_INTERFACE_DEFAULT*/
-
-#endif

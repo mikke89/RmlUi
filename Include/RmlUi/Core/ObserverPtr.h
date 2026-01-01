@@ -1,5 +1,4 @@
-#ifndef RMLUIOBSERVERPTR_H
-#define RMLUIOBSERVERPTR_H
+#pragma once
 
 #include "Header.h"
 #include <type_traits>
@@ -166,4 +165,3 @@ private:
 };
 
 } // namespace Rml
-#endif

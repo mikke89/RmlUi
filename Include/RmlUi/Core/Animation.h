@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ANIMATION_H
-#define RMLUI_CORE_ANIMATION_H
+#pragma once
 
 #include "ID.h"
 #include "Tween.h"
@@ -64,4 +63,3 @@ inline bool operator!=(const TransitionList& a, const TransitionList& b)
 }
 
 } // namespace Rml
-#endif

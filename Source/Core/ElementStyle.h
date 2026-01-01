@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTSTYLE_H
-#define RMLUI_CORE_ELEMENTSTYLE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
@@ -142,4 +141,3 @@ private:
 };
 
 } // namespace Rml
-#endif

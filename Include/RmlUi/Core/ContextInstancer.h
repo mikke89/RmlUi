@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_CONTEXTINSTANCER_H
-#define RMLUI_CORE_CONTEXTINSTANCER_H
+#pragma once
 
 #include "Header.h"
 #include "Traits.h"
@@ -35,4 +34,3 @@ public:
 };
 
 } // namespace Rml
-#endif

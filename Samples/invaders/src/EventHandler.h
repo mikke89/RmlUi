@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_EVENTHANDLER_H
-#define RMLUI_INVADERS_EVENTHANDLER_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 
@@ -12,5 +11,3 @@ public:
 	virtual ~EventHandler();
 	virtual void ProcessEvent(Rml::Event& event, const Rml::String& value) = 0;
 };
-
-#endif

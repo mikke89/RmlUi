@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FACTORY_H
-#define RMLUI_CORE_FACTORY_H
+#pragma once
 
 #include "Header.h"
 #include "XMLParser.h"
@@ -192,4 +191,3 @@ private:
 };
 
 } // namespace Rml
-#endif

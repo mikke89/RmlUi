@@ -1,5 +1,4 @@
-#ifndef RMLUI_SHELL_RENDEREREXTENSIONS_H
-#define RMLUI_SHELL_RENDEREREXTENSIONS_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 
@@ -15,5 +14,3 @@ struct Image {
 Image CaptureScreen();
 
 } // namespace RendererExtensions
-
-#endif

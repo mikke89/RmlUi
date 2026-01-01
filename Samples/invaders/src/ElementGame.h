@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_ELEMENTGAME_H
-#define RMLUI_INVADERS_ELEMENTGAME_H
+#pragma once
 
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/EventListener.h>
@@ -33,5 +32,3 @@ protected:
 private:
 	Game* game;
 };
-
-#endif

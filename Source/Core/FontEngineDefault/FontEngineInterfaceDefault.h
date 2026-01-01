@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTENGINEINTERFACEDEFAULT_H
-#define RMLUI_CORE_FONTENGINEDEFAULT_FONTENGINEINTERFACEDEFAULT_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/FontEngineInterface.h"
 
@@ -47,4 +46,3 @@ public:
 };
 
 } // namespace Rml
-#endif

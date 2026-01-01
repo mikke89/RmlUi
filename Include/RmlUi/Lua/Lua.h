@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_LUA_H
-#define RMLUI_LUA_LUA_H
+#pragma once
 
 #include "Header.h"
 
@@ -21,4 +20,3 @@ namespace Lua {
 
 } // namespace Lua
 } // namespace Rml
-#endif

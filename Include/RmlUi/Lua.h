@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_H
-#define RMLUI_LUA_H
+#pragma once
 
 #include "Lua/Lua.h"
 
@@ -7,5 +6,3 @@
 #include "Lua/IncludeLua.h"
 #include "Lua/Interpreter.h"
 #include "Lua/LuaType.h"
-
-#endif

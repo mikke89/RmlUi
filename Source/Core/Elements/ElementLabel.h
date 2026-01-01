@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_ELEMENTLABEL_H
-#define RMLUI_CORE_ELEMENTS_ELEMENTLABEL_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Element.h"
 #include "../../../Include/RmlUi/Core/EventListener.h"
@@ -31,5 +30,3 @@ private:
 };
 
 } // namespace Rml
-
-#endif

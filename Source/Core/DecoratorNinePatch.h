@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATORNINEPATCH_H
-#define RMLUI_CORE_DECORATORNINEPATCH_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/ID.h"
@@ -40,4 +39,3 @@ private:
 };
 
 } // namespace Rml
-#endif

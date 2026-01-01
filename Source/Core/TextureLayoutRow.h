@@ -1,5 +1,4 @@
-#ifndef TEXTURELAYOUTROW_H
-#define TEXTURELAYOUTROW_H
+#pragma once
 
 #include "TextureLayoutRectangle.h"
 
@@ -45,4 +44,3 @@ private:
 };
 
 } // namespace Rml
-#endif

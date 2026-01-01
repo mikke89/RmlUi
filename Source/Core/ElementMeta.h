@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTMETA_H
-#define RMLUI_CORE_ELEMENTMETA_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
@@ -36,4 +35,3 @@ struct ElementMetaPool {
 };
 
 } // namespace Rml
-#endif

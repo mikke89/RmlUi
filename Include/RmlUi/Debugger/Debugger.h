@@ -1,5 +1,4 @@
-#ifndef RMLUI_DEBUGGER_DEBUGGER_H
-#define RMLUI_DEBUGGER_DEBUGGER_H
+#pragma once
 
 #include "Header.h"
 
@@ -34,5 +33,3 @@ namespace Debugger {
 
 } // namespace Debugger
 } // namespace Rml
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_NUMERICVALUE_H
-#define RMLUI_CORE_NUMERICVALUE_H
+#pragma once
 
 #include "Unit.h"
 
@@ -24,5 +23,3 @@ inline bool operator!=(const NumericValue& a, const NumericValue& b)
 }
 
 } // namespace Rml
-
-#endif

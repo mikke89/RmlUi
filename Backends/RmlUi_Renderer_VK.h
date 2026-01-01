@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_RENDERER_VK_H
-#define RMLUI_BACKENDS_RENDERER_VK_H
+#pragma once
 
 #include <RmlUi/Core/RenderInterface.h>
 
@@ -581,5 +580,3 @@ private:
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;
 };
-
-#endif

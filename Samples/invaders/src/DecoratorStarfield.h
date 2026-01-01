@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_DECORATORSTARFIELD_H
-#define RMLUI_INVADERS_DECORATORSTARFIELD_H
+#pragma once
 
 #include <RmlUi/Core/Decorator.h>
 #include <RmlUi/Core/Types.h>
@@ -57,5 +56,3 @@ public:
 private:
 	Rml::PropertyId id_num_layers, id_top_colour, id_bottom_colour, id_top_speed, id_bottom_speed, id_top_density, id_bottom_density;
 };
-
-#endif

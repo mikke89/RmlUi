@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STREAMMEMORY_H
-#define RMLUI_CORE_STREAMMEMORY_H
+#pragma once
 
 #include "Header.h"
 #include "Stream.h"
@@ -83,4 +82,3 @@ private:
 };
 
 } // namespace Rml
-#endif

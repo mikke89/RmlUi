@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STYLESHEETCONTAINER_H
-#define RMLUI_CORE_STYLESHEETCONTAINER_H
+#pragma once
 
 #include "StyleSheetTypes.h"
 #include "Traits.h"
@@ -48,4 +47,3 @@ private:
 };
 
 } // namespace Rml
-#endif

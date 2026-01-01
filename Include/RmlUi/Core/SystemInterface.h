@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_SYSTEMINTERFACE_H
-#define RMLUI_CORE_SYSTEMINTERFACE_H
+#pragma once
 
 #include "Header.h"
 #include "Log.h"
@@ -66,4 +65,3 @@ public:
 };
 
 } // namespace Rml
-#endif

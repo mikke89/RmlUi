@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_EVENTLISTENER_H
-#define RMLUI_CORE_EVENTLISTENER_H
+#pragma once
 
 #include "Event.h"
 #include "Header.h"
@@ -31,4 +30,3 @@ public:
 };
 
 } // namespace Rml
-#endif

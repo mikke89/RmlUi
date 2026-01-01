@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_GEOMETRYBOXSHADOW_H
-#define RMLUI_CORE_GEOMETRYBOXSHADOW_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/RenderBox.h"
@@ -56,5 +55,3 @@ public:
 };
 
 } // namespace Rml
-
-#endif

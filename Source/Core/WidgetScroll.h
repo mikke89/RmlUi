@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_WIDGETSCROLL_H
-#define RMLUI_CORE_WIDGETSCROLL_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/EventListener.h"
 
@@ -100,4 +99,3 @@ private:
 };
 
 } // namespace Rml
-#endif

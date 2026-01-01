@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_COLOURF_H
-#define RMLUI_LUA_COLOURF_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -34,4 +33,3 @@ extern luaL_Reg ColourfSetters[];
 RMLUI_LUATYPE_DECLARE(Colourf)
 } // namespace Lua
 } // namespace Rml
-#endif

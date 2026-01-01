@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_GLOBALLUAFUNCTIONS_H
-#define RMLUI_LUA_GLOBALLUAFUNCTIONS_H
+#pragma once
 
 typedef struct lua_State lua_State;
 
@@ -10,4 +9,3 @@ void OverrideLuaGlobalFunctions(lua_State* L);
 // overrdes print to print to the console
 } // namespace Lua
 } // namespace Rml
-#endif

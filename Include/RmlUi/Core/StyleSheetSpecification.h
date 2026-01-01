@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STYLESHEETSPECIFICATION_H
-#define RMLUI_CORE_STYLESHEETSPECIFICATION_H
+#pragma once
 
 #include "Header.h"
 #include "PropertySpecification.h"
@@ -106,4 +105,3 @@ private:
 };
 
 } // namespace Rml
-#endif

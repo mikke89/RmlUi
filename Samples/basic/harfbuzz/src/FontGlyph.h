@@ -1,5 +1,4 @@
-#ifndef FONTGLYPH_H
-#define FONTGLYPH_H
+#pragma once
 
 #include <RmlUi/Core.h>
 
@@ -39,5 +38,3 @@ inline uint64_t GetFallbackFontClusterGlyphLookupID(FontGlyphIndex glyph_index, 
 	// Combine 32-bit glyph index and 32-bit character into a single 64-bit integer.
 	return (static_cast<uint64_t>(glyph_index) << (sizeof(Rml::Character) * 8)) | static_cast<uint64_t>(character);
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTYPARSER_H
-#define RMLUI_CORE_PROPERTYPARSER_H
+#pragma once
 
 #include "Header.h"
 #include "Property.h"
@@ -27,4 +26,3 @@ public:
 };
 
 } // namespace Rml
-#endif

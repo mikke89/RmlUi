@@ -1,5 +1,4 @@
-#ifndef TEXTURELAYOUTTEXTURE_H
-#define TEXTURELAYOUTTEXTURE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Texture.h"
 #include "TextureLayoutRow.h"
@@ -44,4 +43,3 @@ private:
 };
 
 } // namespace Rml
-#endif

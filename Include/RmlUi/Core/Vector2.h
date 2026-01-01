@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_VECTOR2_H
-#define RMLUI_CORE_VECTOR2_H
+#pragma once
 
 #include "Debug.h"
 #include "Math.h"
@@ -136,5 +135,3 @@ public:
 } // namespace Rml
 
 #include "Vector2.inl"
-
-#endif

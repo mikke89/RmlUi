@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STYLESHEETPARSER_H
-#define RMLUI_CORE_STYLESHEETPARSER_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -103,4 +102,3 @@ private:
 };
 
 } // namespace Rml
-#endif

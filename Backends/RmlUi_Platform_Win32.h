@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_PLATFORM_WIN32_H
-#define RMLUI_BACKENDS_PLATFORM_WIN32_H
+#pragma once
 
 #include "RmlUi_Include_Windows.h"
 #include <RmlUi/Core/Input.h>
@@ -118,5 +117,3 @@ private:
 	int composition_range_start;
 	int composition_range_end;
 };
-
-#endif

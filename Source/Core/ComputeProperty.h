@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_COMPUTEPROPERTY_H
-#define RMLUI_CORE_COMPUTEPROPERTY_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/NumericValue.h"
 #include "../../Include/RmlUi/Core/StyleTypes.h"
@@ -45,4 +44,3 @@ void InitializeComputeProperty();
 void ShutdownComputeProperty();
 
 } // namespace Rml
-#endif

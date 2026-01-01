@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STYLESHEETSELECTOR_H
-#define RMLUI_CORE_STYLESHEETSELECTOR_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Types.h"
 
@@ -128,4 +127,3 @@ bool operator==(const CompoundSelector& a, const CompoundSelector& b);
 bool IsSelectorApplicable(const Element* element, const StructuralSelector& selector, const Element* scope);
 
 } // namespace Rml
-#endif

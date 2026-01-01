@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_RMLUI_H
-#define RMLUI_LUA_RMLUI_H
+#pragma once
 
 #include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Lua/LuaType.h>
@@ -37,4 +36,3 @@ extern luaL_Reg LuaRmlUiSetters[];
 RMLUI_LUATYPE_DECLARE(LuaRmlUi)
 } // namespace Lua
 } // namespace Rml
-#endif

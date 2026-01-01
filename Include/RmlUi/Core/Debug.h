@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DEBUG_H
-#define RMLUI_CORE_DEBUG_H
+#pragma once
 
 #include "Header.h"
 
@@ -97,5 +96,3 @@ struct RmlUiAssertNonrecursive {
 		RmlUiAssertNonrecursive rmlui_nonrecursive(rmlui_nonrecursive_entered)
 
 #endif // RMLUI_DEBUG
-
-#endif // RMLUI_CORE_DEBUG_H

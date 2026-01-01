@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_ELEMENTTEXTSELECTION_H
-#define RMLUI_CORE_ELEMENTS_ELEMENTTEXTSELECTION_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Element.h"
 
@@ -34,4 +33,3 @@ private:
 };
 
 } // namespace Rml
-#endif

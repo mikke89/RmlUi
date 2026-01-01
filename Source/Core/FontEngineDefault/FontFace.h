@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTFACE_H
-#define RMLUI_CORE_FONTENGINEDEFAULT_FONTFACE_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/StyleTypes.h"
 #include "FontTypes.h"
@@ -41,4 +40,3 @@ private:
 };
 
 } // namespace Rml
-#endif

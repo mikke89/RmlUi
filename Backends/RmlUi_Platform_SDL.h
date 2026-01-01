@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_PLATFORM_SDL_H
-#define RMLUI_BACKENDS_PLATFORM_SDL_H
+#pragma once
 
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/SystemInterface.h>
@@ -61,5 +60,3 @@ int ConvertMouseButton(int sdl_mouse_button);
 int GetKeyModifierState();
 
 } // namespace RmlSDL
-
-#endif

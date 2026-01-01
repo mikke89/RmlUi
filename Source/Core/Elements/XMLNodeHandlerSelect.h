@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_XMLNODEHANDLERSELECT_H
-#define RMLUI_CORE_ELEMENTS_XMLNODEHANDLERSELECT_H
+#pragma once
 
 #include "../XMLNodeHandlerDefault.h"
 
@@ -19,4 +18,3 @@ public:
 };
 
 } // namespace Rml
-#endif

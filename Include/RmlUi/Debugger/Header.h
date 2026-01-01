@@ -1,5 +1,4 @@
-#ifndef RMLUI_DEBUGGER_HEADER_H
-#define RMLUI_DEBUGGER_HEADER_H
+#pragma once
 
 #include "../Core/Platform.h"
 
@@ -15,6 +14,4 @@
 	#endif
 #else
 	#define RMLUIDEBUGGER_API
-#endif
-
 #endif

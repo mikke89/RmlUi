@@ -1,5 +1,4 @@
-#ifndef RMLUI_DEBUGGER_ELEMENTCONTEXTHOOK_H
-#define RMLUI_DEBUGGER_ELEMENTCONTEXTHOOK_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "ElementDebugDocument.h"
@@ -32,5 +31,3 @@ private:
 
 } // namespace Debugger
 } // namespace Rml
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FILTER_H
-#define RMLUI_CORE_FILTER_H
+#pragma once
 
 #include "EffectSpecification.h"
 #include "Header.h"
@@ -48,4 +47,3 @@ public:
 };
 
 } // namespace Rml
-#endif

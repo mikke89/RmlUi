@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_SCROLLTYPES_H
-#define RMLUI_CORE_SCROLLTYPES_H
+#pragma once
 
 namespace Rml {
 
@@ -36,5 +35,3 @@ struct ScrollIntoViewOptions {
 };
 
 } // namespace Rml
-
-#endif

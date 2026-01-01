@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_RENDERINTERFACECOMPATIBILITY_H
-#define RMLUI_CORE_RENDERINTERFACECOMPATIBILITY_H
+#pragma once
 
 #include "RenderInterface.h"
 
@@ -90,4 +89,3 @@ private:
 };
 
 } // namespace Rml
-#endif

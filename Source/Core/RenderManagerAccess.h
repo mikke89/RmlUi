@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_RENDERMANAGERACCESS_H
-#define RMLUI_CORE_RENDERMANAGERACCESS_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/RenderManager.h"
@@ -47,5 +46,3 @@ private:
 };
 
 } // namespace Rml
-
-#endif

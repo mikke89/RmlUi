@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_ELEMENTFORMCONTROLSELECT_H
-#define RMLUI_CORE_ELEMENTS_ELEMENTFORMCONTROLSELECT_H
+#pragma once
 
 #include "../Header.h"
 #include "ElementFormControl.h"
@@ -104,4 +103,3 @@ protected:
 };
 
 } // namespace Rml
-#endif

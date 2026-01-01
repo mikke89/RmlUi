@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_COMPILEDFILTERSHADER_H
-#define RMLUI_CORE_COMPILEDFILTERSHADER_H
+#pragma once
 
 #include "Header.h"
 #include "UniqueRenderResource.h"
@@ -43,5 +42,3 @@ private:
 };
 
 } // namespace Rml
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTYSPECIFICATION_H
-#define RMLUI_CORE_PROPERTYSPECIFICATION_H
+#pragma once
 
 #include "Header.h"
 #include "ID.h"
@@ -116,4 +115,3 @@ private:
 };
 
 } // namespace Rml
-#endif

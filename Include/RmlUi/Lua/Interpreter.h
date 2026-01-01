@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_INTERPRETER_H
-#define RMLUI_LUA_INTERPRETER_H
+#pragma once
 
 #include "Header.h"
 #include <RmlUi/Core/Types.h>
@@ -52,4 +51,3 @@ namespace Lua {
 
 } // namespace Lua
 } // namespace Rml
-#endif

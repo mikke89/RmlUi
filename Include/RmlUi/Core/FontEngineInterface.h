@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTENGINEINTERFACE_H
-#define RMLUI_CORE_FONTENGINEINTERFACE_H
+#pragma once
 
 #include "FontMetrics.h"
 #include "Header.h"
@@ -103,4 +102,3 @@ public:
 };
 
 } // namespace Rml
-#endif

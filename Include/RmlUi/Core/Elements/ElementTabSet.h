@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_ELEMENTTABSET_H
-#define RMLUI_CORE_ELEMENTS_ELEMENTTABSET_H
+#pragma once
 
 #include "../Element.h"
 #include "../Header.h"
@@ -67,4 +66,3 @@ private:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_CONTROLLEDLIFETIMERESOURCE_H
-#define RMLUI_CORE_CONTROLLEDLIFETIMERESOURCE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Debug.h"
 #include "../../Include/RmlUi/Core/Traits.h"
@@ -61,4 +60,3 @@ private:
 };
 
 } // namespace Rml
-#endif

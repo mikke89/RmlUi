@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTEFFECT_H
-#define RMLUI_CORE_FONTEFFECT_H
+#pragma once
 
 #include "FontGlyph.h"
 
@@ -66,4 +65,3 @@ private:
 };
 
 } // namespace Rml
-#endif

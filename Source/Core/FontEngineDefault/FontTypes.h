@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTTYPES_H
-#define RMLUI_CORE_FONTENGINEDEFAULT_FONTTYPES_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../../Include/RmlUi/Core/StyleTypes.h"
@@ -23,4 +22,3 @@ inline bool operator<(const FaceVariation& a, const FaceVariation& b)
 }
 
 } // namespace Rml
-#endif

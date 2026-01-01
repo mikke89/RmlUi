@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATOR_H
-#define RMLUI_CORE_DECORATOR_H
+#pragma once
 
 #include "EffectSpecification.h"
 #include "Header.h"
@@ -105,4 +104,3 @@ private:
 };
 
 } // namespace Rml
-#endif

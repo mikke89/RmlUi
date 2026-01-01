@@ -1,5 +1,4 @@
-#ifndef FONTENGINEBITMAP_H
-#define FONTENGINEBITMAP_H
+#pragma once
 
 #include "FontEngineInterfaceBitmap.h"
 #include <RmlUi/Core/BaseXMLParser.h>
@@ -89,5 +88,3 @@ public:
 	FontGlyphs glyphs;
 	FontKerning kerning;
 };
-
-#endif

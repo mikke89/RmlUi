@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PLUGINREGISTRY_H
-#define RMLUI_CORE_PLUGINREGISTRY_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Types.h"
 
@@ -46,4 +45,3 @@ private:
 };
 
 } // namespace Rml
-#endif

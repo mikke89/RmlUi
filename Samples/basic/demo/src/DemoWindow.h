@@ -1,5 +1,4 @@
-#ifndef DEMOWINDOW_H
-#define DEMOWINDOW_H
+#pragma once
 
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/EventListener.h>
@@ -41,5 +40,3 @@ private:
 
 	TweeningParameters tweening_parameters;
 };
-
-#endif

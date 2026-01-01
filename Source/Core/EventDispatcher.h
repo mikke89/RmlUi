@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_EVENTDISPATCHER_H
-#define RMLUI_CORE_EVENTDISPATCHER_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -80,4 +79,3 @@ private:
 };
 
 } // namespace Rml
-#endif

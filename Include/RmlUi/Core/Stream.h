@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STREAM_H
-#define RMLUI_CORE_STREAM_H
+#pragma once
 
 #include "Header.h"
 #include "Traits.h"
@@ -100,4 +99,3 @@ private:
 };
 
 } // namespace Rml
-#endif

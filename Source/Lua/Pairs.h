@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_PAIRS_H
-#define RMLUI_LUA_PAIRS_H
+#pragma once
 
 #include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Lua/Utilities.h>
@@ -109,5 +108,3 @@ inline int MakeIntPairs(lua_State* L)
 
 } // namespace Lua
 } // namespace Rml
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_INCLUDELUA_H
-#define RMLUI_LUA_INCLUDELUA_H
+#pragma once
 
 #ifndef RMLUI_LUA_AS_CXX
 extern "C" {
@@ -12,6 +11,4 @@ extern "C" {
 
 #ifndef RMLUI_LUA_AS_CXX
 }
-#endif
-
 #endif

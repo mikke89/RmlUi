@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTYDICTIONARY_H
-#define RMLUI_CORE_PROPERTYDICTIONARY_H
+#pragma once
 
 #include "Header.h"
 #include "Property.h"
@@ -57,4 +56,3 @@ private:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef DEMOEVENTLISTENER_H
-#define DEMOEVENTLISTENER_H
+#pragma once
 
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/EventListener.h>
@@ -30,5 +29,3 @@ public:
 private:
 	DemoWindow* demo_window;
 };
-
-#endif

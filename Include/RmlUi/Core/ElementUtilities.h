@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTUTILITIES_H
-#define RMLUI_CORE_ELEMENTUTILITIES_H
+#pragma once
 
 #include "Header.h"
 #include "RenderManager.h"
@@ -113,4 +112,3 @@ public:
 };
 
 } // namespace Rml
-#endif

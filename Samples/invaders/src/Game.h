@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_GAME_H
-#define RMLUI_INVADERS_GAME_H
+#pragma once
 
 #include <RmlUi/Core/Texture.h>
 #include <RmlUi/Core/Types.h>
@@ -92,5 +91,3 @@ private:
 	void InitialiseWave();
 	void OnGameOver();
 };
-
-#endif

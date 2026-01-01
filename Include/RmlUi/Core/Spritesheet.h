@@ -1,5 +1,4 @@
-#ifndef RMLUISPRITESHEET_H
-#define RMLUISPRITESHEET_H
+#pragma once
 
 #include "Texture.h"
 #include "Types.h"
@@ -56,4 +55,3 @@ private:
 };
 
 } // namespace Rml
-#endif

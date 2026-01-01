@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTGLYPH_H
-#define RMLUI_CORE_FONTGLYPH_H
+#pragma once
 
 #include "Types.h"
 
@@ -43,4 +42,3 @@ public:
 using FontGlyphMap = UnorderedMap<Character, FontGlyph>;
 
 } // namespace Rml
-#endif

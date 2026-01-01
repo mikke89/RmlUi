@@ -1,5 +1,4 @@
-#ifndef RMLUI_SHELL_SHELLFILEINTERFACE_H
-#define RMLUI_SHELL_SHELLFILEINTERFACE_H
+#pragma once
 
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Types.h>
@@ -32,5 +31,3 @@ public:
 private:
 	Rml::String root;
 };
-
-#endif

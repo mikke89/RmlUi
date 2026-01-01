@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_INPUT_H
-#define RMLUI_CORE_INPUT_H
+#pragma once
 
 namespace Rml {
 
@@ -245,4 +244,3 @@ namespace Input {
 } // namespace Input
 
 } // namespace Rml
-#endif

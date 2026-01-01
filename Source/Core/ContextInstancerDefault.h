@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_CONTEXTINSTANCERDEFAULT_H
-#define RMLUI_CORE_CONTEXTINSTANCERDEFAULT_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/ContextInstancer.h"
 
@@ -27,4 +26,3 @@ public:
 };
 
 } // namespace Rml
-#endif

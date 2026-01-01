@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_EVENT_H
-#define RMLUI_LUA_EVENT_H
+#pragma once
 
 #include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Lua/LuaType.h>
@@ -25,4 +24,3 @@ extern luaL_Reg EventSetters[];
 RMLUI_LUATYPE_DECLARE(Event)
 } // namespace Lua
 } // namespace Rml
-#endif

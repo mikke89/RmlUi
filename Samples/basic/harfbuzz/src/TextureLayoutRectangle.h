@@ -1,5 +1,4 @@
-#ifndef TEXTSHAPER_TEXTURELAYOUTRECTANGLE_H
-#define TEXTSHAPER_TEXTURELAYOUTRECTANGLE_H
+#pragma once
 
 #include <RmlUi/Core.h>
 
@@ -64,5 +63,3 @@ private:
 	byte* texture_data;
 	int texture_stride;
 };
-
-#endif

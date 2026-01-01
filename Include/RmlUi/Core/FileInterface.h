@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FILEINTERFACE_H
-#define RMLUI_CORE_FILEINTERFACE_H
+#pragma once
 
 #include "Header.h"
 #include "Traits.h"
@@ -62,4 +61,3 @@ public:
 };
 
 } // namespace Rml
-#endif

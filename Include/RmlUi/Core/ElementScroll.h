@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTSCROLL_H
-#define RMLUI_CORE_ELEMENTSCROLL_H
+#pragma once
 
 #include "Header.h"
 #include "Types.h"
@@ -77,4 +76,3 @@ private:
 };
 
 } // namespace Rml
-#endif

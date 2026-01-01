@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_ELEMENTINSTANCER_H
-#define RMLUI_LUA_ELEMENTINSTANCER_H
+#pragma once
 
 #include "LuaElementInstancer.h"
 #include <RmlUi/Lua/IncludeLua.h>
@@ -21,4 +20,3 @@ extern luaL_Reg ElementInstancerSetters[];
 RMLUI_LUATYPE_DECLARE(ElementInstancer)
 } // namespace Lua
 } // namespace Rml
-#endif

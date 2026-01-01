@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTEFFECTBLUR_H
-#define RMLUI_CORE_FONTEFFECTBLUR_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/ConvolutionFilter.h"
 #include "../../Include/RmlUi/Core/FontEffect.h"
@@ -45,4 +44,3 @@ private:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_ELEMENTPROGRESS_H
-#define RMLUI_CORE_ELEMENTS_ELEMENTPROGRESS_H
+#pragma once
 
 #include "../Element.h"
 #include "../Geometry.h"
@@ -91,4 +90,3 @@ private:
 };
 
 } // namespace Rml
-#endif

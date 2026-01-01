@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATORTILED_H
-#define RMLUI_CORE_DECORATORTILED_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
@@ -129,4 +128,3 @@ private:
 };
 
 } // namespace Rml
-#endif

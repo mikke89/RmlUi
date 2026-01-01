@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DATAVARIABLE_H
-#define RMLUI_CORE_DATAVARIABLE_H
+#pragma once
 
 #include "DataTypes.h"
 #include "Header.h"
@@ -287,4 +286,3 @@ namespace Detail {
 	};
 } // namespace Detail
 } // namespace Rml
-#endif

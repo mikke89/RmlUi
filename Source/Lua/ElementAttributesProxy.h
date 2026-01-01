@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_ELEMENTATTRIBUTESPROXY_H
-#define RMLUI_LUA_ELEMENTATTRIBUTESPROXY_H
+#pragma once
 
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -24,4 +23,3 @@ extern luaL_Reg ElementAttributesProxySetters[];
 RMLUI_LUATYPE_DECLARE(ElementAttributesProxy)
 } // namespace Lua
 } // namespace Rml
-#endif

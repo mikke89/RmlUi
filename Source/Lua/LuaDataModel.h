@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_DATAMODEL_H
-#define RMLUI_LUA_DATAMODEL_H
+#pragma once
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Types.h>
@@ -17,4 +16,3 @@ void CloseLuaDataModel(lua_State* L);
 
 } // namespace Lua
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_LUAELEMENTINSTANCER_H
-#define RMLUI_LUA_LUAELEMENTINSTANCER_H
+#pragma once
 
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementInstancer.h>
@@ -28,4 +27,3 @@ public:
 
 } // namespace Lua
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_XMLNODEHANDLERSVG_H
-#define RMLUI_CORE_XMLNODEHANDLERSVG_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/XMLParser.h"
 #include "../../Include/RmlUi/SVG/ElementSVG.h"
@@ -18,4 +17,3 @@ namespace SVG {
 
 } // namespace SVG
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_VERTEX_H
-#define RMLUI_CORE_VERTEX_H
+#pragma once
 
 #include "Header.h"
 #include "Types.h"
@@ -28,4 +27,3 @@ struct RMLUICORE_API Vertex {
 };
 
 } // namespace Rml
-#endif

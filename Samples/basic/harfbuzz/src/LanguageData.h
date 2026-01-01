@@ -1,5 +1,4 @@
-#ifndef LANGUAGEDATA_H
-#define LANGUAGEDATA_H
+#pragma once
 
 #include <RmlUi/Core.h>
 
@@ -14,5 +13,3 @@ struct LanguageData {
 };
 
 using LanguageDataMap = Rml::UnorderedMap<Rml::String, LanguageData>;
-
-#endif

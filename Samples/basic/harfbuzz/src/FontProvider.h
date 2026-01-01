@@ -1,5 +1,4 @@
-#ifndef FONTPROVIDER_H
-#define FONTPROVIDER_H
+#pragma once
 
 #include "FontEngineDefault/FontTypes.h"
 #include <RmlUi/Core.h>
@@ -74,5 +73,3 @@ private:
 
 	static const String debugger_font_family_name;
 };
-
-#endif

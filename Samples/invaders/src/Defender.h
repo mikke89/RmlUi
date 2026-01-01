@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_DEFENDER_H
-#define RMLUI_INVADERS_DEFENDER_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 
@@ -51,5 +50,3 @@ private:
 	enum State { ALIVE, RESPAWN };
 	State state;
 };
-
-#endif

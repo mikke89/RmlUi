@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_LUAPLUGIN_H
-#define RMLUI_LUA_LUAPLUGIN_H
+#pragma once
 
 #include <RmlUi/Core/Plugin.h>
 #include <RmlUi/Lua/Header.h>
@@ -38,4 +37,3 @@ private:
 
 } // namespace Lua
 } // namespace Rml
-#endif

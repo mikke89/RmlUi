@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_PLATFORM_GLFW_H
-#define RMLUI_BACKENDS_PLATFORM_GLFW_H
+#pragma once
 
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/SystemInterface.h>
@@ -58,5 +57,3 @@ Rml::Input::KeyIdentifier ConvertKey(int glfw_key);
 int ConvertKeyModifiers(int glfw_mods);
 
 } // namespace RmlGLFW
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_ELEMENTS_SELECTOPTIONSPROXY_H
-#define RMLUI_LUA_ELEMENTS_SELECTOPTIONSPROXY_H
+#pragma once
 
 #include <RmlUi/Core/Elements/ElementFormControlSelect.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -24,5 +23,3 @@ void ExtraInit<SelectOptionsProxy>(lua_State* L, int metatable_index);
 RMLUI_LUATYPE_DECLARE(SelectOptionsProxy)
 } // namespace Lua
 } // namespace Rml
-
-#endif

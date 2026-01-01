@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PLUGIN_H
-#define RMLUI_CORE_PLUGIN_H
+#pragma once
 
 #include "Header.h"
 #include "Types.h"
@@ -57,4 +56,3 @@ public:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_LUAEVENTLISTENER_H
-#define RMLUI_LUA_LUAEVENTLISTENER_H
+#pragma once
 
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -41,4 +40,3 @@ private:
 
 } // namespace Lua
 } // namespace Rml
-#endif

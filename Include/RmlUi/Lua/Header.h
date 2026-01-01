@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_HEADER_H
-#define RMLUI_LUA_HEADER_H
+#pragma once
 
 #include <RmlUi/Core/Platform.h>
 
@@ -19,6 +18,4 @@
 	#endif
 #else
 	#define RMLUILUA_API
-#endif
-
 #endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_RMLUICONTEXTSPROXY_H
-#define RMLUI_LUA_RMLUICONTEXTSPROXY_H
+#pragma once
 
 #include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Lua/LuaType.h>
@@ -23,4 +22,3 @@ extern luaL_Reg RmlUiContextsProxySetters[];
 RMLUI_LUATYPE_DECLARE(RmlUiContextsProxy)
 } // namespace Lua
 } // namespace Rml
-#endif

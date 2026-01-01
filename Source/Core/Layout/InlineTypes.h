@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LAYOUT_INLINETYPES_H
-#define RMLUI_CORE_LAYOUT_INLINETYPES_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Types.h"
 
@@ -38,4 +37,3 @@ struct PlacedFragment {
 };
 
 } // namespace Rml
-#endif

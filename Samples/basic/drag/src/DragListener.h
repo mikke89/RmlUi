@@ -1,5 +1,4 @@
-#ifndef DRAGLISTENER_H
-#define DRAGLISTENER_H
+#pragma once
 
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/Types.h>
@@ -16,5 +15,3 @@ public:
 protected:
 	void ProcessEvent(Rml::Event& event) override;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTMETRICS_H
-#define RMLUI_CORE_FONTMETRICS_H
+#pragma once
 
 #include "Header.h"
 
@@ -21,4 +20,3 @@ struct FontMetrics {
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTYPARSERFONTEFFECT_H
-#define RMLUI_CORE_PROPERTYPARSERFONTEFFECT_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 
@@ -19,4 +18,3 @@ public:
 };
 
 } // namespace Rml
-#endif

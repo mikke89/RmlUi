@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_LUATYPE_H
-#define RMLUI_LUA_LUATYPE_H
+#pragma once
 
 #include "Header.h"
 #include "IncludeLua.h"
@@ -182,4 +181,3 @@ namespace Lua {
 } // namespace Rml
 
 #include "LuaType.inl"
-#endif

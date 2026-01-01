@@ -1,5 +1,4 @@
-#ifndef FONTENGINEINTERFACEHARFBUZZ_H
-#define FONTENGINEINTERFACEHARFBUZZ_H
+#pragma once
 
 #include "LanguageData.h"
 #include <RmlUi/Core/FontEngineInterface.h>
@@ -63,5 +62,3 @@ public:
 private:
 	LanguageDataMap registered_languages;
 };
-
-#endif

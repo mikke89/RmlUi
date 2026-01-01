@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STYLESHEETNODE_H
-#define RMLUI_CORE_STYLESHEETNODE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -77,4 +76,3 @@ private:
 };
 
 } // namespace Rml
-#endif

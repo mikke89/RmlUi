@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_EVENTHANDLERSTARTGAME_H
-#define RMLUI_INVADERS_EVENTHANDLERSTARTGAME_H
+#pragma once
 
 #include "EventHandler.h"
 
@@ -14,5 +13,3 @@ public:
 
 	void ProcessEvent(Rml::Event& event, const Rml::String& value) override;
 };
-
-#endif

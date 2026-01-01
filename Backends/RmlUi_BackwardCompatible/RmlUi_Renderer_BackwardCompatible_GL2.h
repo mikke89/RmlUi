@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_RENDERER_BACKWARDCOMPATIBLE_GL2_H
-#define RMLUI_BACKENDS_RENDERER_BACKWARDCOMPATIBLE_GL2_H
+#pragma once
 
 #include <RmlUi/Core/RenderInterfaceCompatibility.h>
 
@@ -45,5 +44,3 @@ private:
 	int viewport_height = 0;
 	bool transform_enabled = false;
 };
-
-#endif

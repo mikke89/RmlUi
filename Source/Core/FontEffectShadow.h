@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTEFFECTSHADOW_H
-#define RMLUI_CORE_FONTEFFECTSHADOW_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/FontEffect.h"
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
@@ -45,4 +44,3 @@ private:
 };
 
 } // namespace Rml
-#endif

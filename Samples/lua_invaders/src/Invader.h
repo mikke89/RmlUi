@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUAINVADERS_INVADER_H
-#define RMLUI_LUAINVADERS_INVADER_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 
@@ -82,5 +81,3 @@ protected:
 
 	int GetSpriteIndex() const;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STYLESHEETTYPES_H
-#define RMLUI_CORE_STYLESHEETTYPES_H
+#pragma once
 
 #include "Factory.h"
 #include "PropertyDictionary.h"
@@ -95,4 +94,3 @@ struct hash<::Rml::StyleSheetIndex::NodeList> {
 	}
 };
 } // namespace std
-#endif

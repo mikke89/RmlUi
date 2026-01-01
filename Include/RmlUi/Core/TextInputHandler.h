@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TEXTINPUTHANDLER_H
-#define RMLUI_CORE_TEXTINPUTHANDLER_H
+#pragma once
 
 namespace Rml {
 
@@ -34,5 +33,3 @@ public:
 };
 
 } // namespace Rml
-
-#endif

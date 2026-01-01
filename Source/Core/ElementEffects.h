@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTEFFECTS_H
-#define RMLUI_CORE_ELEMENTEFFECTS_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/CompiledFilterShader.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -64,4 +63,3 @@ private:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TRANSFORMPRIMITIVE_H
-#define RMLUI_CORE_TRANSFORMPRIMITIVE_H
+#pragma once
 
 #include "Header.h"
 #include "NumericValue.h"
@@ -234,4 +233,3 @@ struct RMLUICORE_API TransformPrimitive {
 };
 
 } // namespace Rml
-#endif

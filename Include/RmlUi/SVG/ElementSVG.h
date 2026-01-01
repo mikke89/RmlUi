@@ -1,5 +1,4 @@
-#ifndef RMLUI_SVG_ELEMENT_SVG_H
-#define RMLUI_SVG_ELEMENT_SVG_H
+#pragma once
 
 #include "../Core/Element.h"
 #include "../Core/Header.h"
@@ -55,5 +54,3 @@ private:
 	SharedPtr<SVG::SVGData> handle;
 };
 } // namespace Rml
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DATASTRUCTHANDLE_H
-#define RMLUI_CORE_DATASTRUCTHANDLE_H
+#pragma once
 
 #include "DataTypeRegister.h"
 #include "DataTypes.h"
@@ -182,4 +181,3 @@ bool StructHandle<Object>::CreateMemberScalarGetSetFuncDefinition(const String& 
 }
 
 } // namespace Rml
-#endif

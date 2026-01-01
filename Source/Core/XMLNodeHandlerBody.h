@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_XMLNODEHANDLERBODY_H
-#define RMLUI_CORE_XMLNODEHANDLERBODY_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/XMLNodeHandler.h"
 
@@ -25,4 +24,3 @@ public:
 };
 
 } // namespace Rml
-#endif

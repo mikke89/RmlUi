@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STYLESHEET_H
-#define RMLUI_CORE_STYLESHEET_H
+#pragma once
 
 #include "PropertyDictionary.h"
 #include "Spritesheet.h"
@@ -98,5 +97,3 @@ private:
 };
 
 } // namespace Rml
-
-#endif

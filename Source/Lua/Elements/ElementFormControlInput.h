@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_ELEMENTS_ELEMENTFORMCONTROLINPUT_H
-#define RMLUI_LUA_ELEMENTS_ELEMENTFORMCONTROLINPUT_H
+#pragma once
 
 #include <RmlUi/Core/Elements/ElementFormControlInput.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -39,5 +38,3 @@ void ExtraInit<ElementFormControlInput>(lua_State* L, int metatable_index);
 RMLUI_LUATYPE_DECLARE(ElementFormControlInput)
 } // namespace Lua
 } // namespace Rml
-
-#endif

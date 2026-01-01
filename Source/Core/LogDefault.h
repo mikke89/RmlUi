@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LOGDEFAULT_H
-#define RMLUI_CORE_LOGDEFAULT_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -16,5 +15,3 @@ public:
 };
 
 } // namespace Rml
-
-#endif

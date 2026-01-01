@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_UNIT_H
-#define RMLUI_CORE_UNIT_H
+#pragma once
 
 #include "Header.h"
 #include <type_traits>
@@ -84,4 +83,3 @@ inline bool Any(Units units)
 }
 
 } // namespace Rml
-#endif

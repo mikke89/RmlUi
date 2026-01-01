@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DICTIONARY_H
-#define RMLUI_CORE_DICTIONARY_H
+#pragma once
 
 #include "Header.h"
 #include "Variant.h"
@@ -31,4 +30,3 @@ inline T Get(const Dictionary& dictionary, const String& key, const T& default_v
 }
 
 } // namespace Rml
-#endif

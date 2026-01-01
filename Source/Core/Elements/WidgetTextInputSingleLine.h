@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_WIDGETTEXTINPUTSINGLELINE_H
-#define RMLUI_CORE_ELEMENTS_WIDGETTEXTINPUTSINGLELINE_H
+#pragma once
 
 #include "WidgetTextInput.h"
 
@@ -23,4 +22,3 @@ protected:
 };
 
 } // namespace Rml
-#endif

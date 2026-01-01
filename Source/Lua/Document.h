@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_DOCUMENT_H
-#define RMLUI_LUA_DOCUMENT_H
+#pragma once
 
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -35,4 +34,3 @@ extern luaL_Reg DocumentSetters[];
 RMLUI_LUATYPE_DECLARE(Document)
 } // namespace Lua
 } // namespace Rml
-#endif

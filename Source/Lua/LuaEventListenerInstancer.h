@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_LUAEVENTLISTENERINSTANCER_H
-#define RMLUI_LUA_LUAEVENTLISTENERINSTANCER_H
+#pragma once
 #include <RmlUi/Core/EventListenerInstancer.h>
 
 namespace Rml {
@@ -15,4 +14,3 @@ public:
 
 } // namespace Lua
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TEXTSHAPINGCONTEXT_H
-#define RMLUI_CORE_TEXTSHAPINGCONTEXT_H
+#pragma once
 
 #include "StyleTypes.h"
 #include "Types.h"
@@ -17,4 +16,3 @@ struct TextShapingContext {
 };
 
 } // namespace Rml
-#endif

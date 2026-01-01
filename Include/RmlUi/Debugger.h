@@ -1,6 +1,3 @@
-#ifndef RMLUI_DEBUGGER_H
-#define RMLUI_DEBUGGER_H
+#pragma once
 
 #include "Debugger/Debugger.h"
-
-#endif

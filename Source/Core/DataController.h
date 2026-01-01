@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DATACONTROLLER_H
-#define RMLUI_CORE_DATACONTROLLER_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Traits.h"
@@ -82,4 +81,3 @@ private:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_BOXSHADOWHASH_H
-#define RMLUI_CORE_BOXSHADOWHASH_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/NumericValue.h"
@@ -142,5 +141,3 @@ struct hash<::Rml::BoxShadowGeometryInfo> {
 };
 
 } // namespace std
-
-#endif

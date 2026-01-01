@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTYPARSERCOLORSTOPLIST_H
-#define RMLUI_CORE_PROPERTYPARSERCOLORSTOPLIST_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -24,4 +23,3 @@ private:
 };
 
 } // namespace Rml
-#endif

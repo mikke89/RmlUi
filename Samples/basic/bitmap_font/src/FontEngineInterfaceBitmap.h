@@ -1,5 +1,4 @@
-#ifndef FONTENGINEINTERFACEBITMAP_H
-#define FONTENGINEINTERFACEBITMAP_H
+#pragma once
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/FontEngineInterface.h>
@@ -63,5 +62,3 @@ public:
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated.eometry.
 	int GetVersion(FontFaceHandle handle) override;
 };
-
-#endif

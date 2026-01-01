@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LOG_H
-#define RMLUI_CORE_LOG_H
+#pragma once
 
 #include "Header.h"
 #include "Types.h"
@@ -37,4 +36,3 @@ public:
 };
 
 } // namespace Rml
-#endif

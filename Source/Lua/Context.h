@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_CONTEXT_H
-#define RMLUI_LUA_CONTEXT_H
+#pragma once
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -39,4 +38,3 @@ extern luaL_Reg ContextSetters[];
 RMLUI_LUATYPE_DECLARE(Context)
 } // namespace Lua
 } // namespace Rml
-#endif

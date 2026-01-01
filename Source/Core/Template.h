@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TEMPLATE_H
-#define RMLUI_CORE_TEMPLATE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "DocumentHeader.h"
@@ -41,4 +40,3 @@ private:
 };
 
 } // namespace Rml
-#endif

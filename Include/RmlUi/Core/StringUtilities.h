@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_STRINGUTILITIES_H
-#define RMLUI_CORE_STRINGUTILITIES_H
+#pragma once
 
 #include "Header.h"
 #include "Types.h"
@@ -204,4 +203,3 @@ private:
 };
 
 } // namespace Rml
-#endif

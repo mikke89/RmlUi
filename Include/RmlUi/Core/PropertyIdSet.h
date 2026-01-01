@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTYIDSET_H
-#define RMLUI_CORE_PROPERTYIDSET_H
+#pragma once
 
 #include "ID.h"
 #include "Types.h"
@@ -132,4 +131,3 @@ PropertyIdSetIterator PropertyIdSet::Erase(PropertyIdSetIterator it)
 }
 
 } // namespace Rml
-#endif

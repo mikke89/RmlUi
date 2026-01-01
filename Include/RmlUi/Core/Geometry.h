@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_GEOMETRY_H
-#define RMLUI_CORE_GEOMETRY_H
+#pragma once
 
 #include "CompiledFilterShader.h"
 #include "Header.h"
@@ -34,4 +33,3 @@ private:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_LUADOCUMENTELEMENTINSTANCER_H
-#define RMLUI_LUA_LUADOCUMENTELEMENTINSTANCER_H
+#pragma once
 
 #include <RmlUi/Core/ElementInstancer.h>
 
@@ -19,4 +18,3 @@ class LuaDocumentElementInstancer : public ::Rml::ElementInstancer {
 
 } // namespace Lua
 } // namespace Rml
-#endif

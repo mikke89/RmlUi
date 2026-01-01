@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_CONTEXT_H
-#define RMLUI_CORE_CONTEXT_H
+#pragma once
 
 #include "Header.h"
 #include "Input.h"
@@ -454,4 +453,3 @@ private:
 };
 
 } // namespace Rml
-#endif

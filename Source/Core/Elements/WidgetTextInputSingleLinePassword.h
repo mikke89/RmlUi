@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_WIDGETTEXTINPUTSINGLELINEPASSWORD_H
-#define RMLUI_CORE_ELEMENTS_WIDGETTEXTINPUTSINGLELINEPASSWORD_H
+#pragma once
 
 #include "WidgetTextInputSingleLine.h"
 
@@ -22,4 +21,3 @@ protected:
 };
 
 } // namespace Rml
-#endif

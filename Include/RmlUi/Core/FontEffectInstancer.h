@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTEFFECTINSTANCER_H
-#define RMLUI_CORE_FONTEFFECTINSTANCER_H
+#pragma once
 
 #include "Header.h"
 #include "PropertyDictionary.h"
@@ -59,4 +58,3 @@ private:
 };
 
 } // namespace Rml
-#endif

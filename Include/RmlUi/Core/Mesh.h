@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_MESH_H
-#define RMLUI_CORE_MESH_H
+#pragma once
 
 #include "Header.h"
 #include "Texture.h"
@@ -24,4 +23,3 @@ struct RMLUICORE_API TexturedMesh {
 using TexturedMeshList = Vector<TexturedMesh>;
 
 } // namespace Rml
-#endif

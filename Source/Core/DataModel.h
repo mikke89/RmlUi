@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DATAMODEL_H
-#define RMLUI_CORE_DATAMODEL_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/DataModelHandle.h"
 #include "../../Include/RmlUi/Core/DataTypes.h"
@@ -74,4 +73,3 @@ private:
 };
 
 } // namespace Rml
-#endif

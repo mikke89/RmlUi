@@ -1,5 +1,4 @@
-#ifndef RMLUI_TESTS_VISUALTESTS_XMLNODEHANDLERS_H
-#define RMLUI_TESTS_VISUALTESTS_XMLNODEHANDLERS_H
+#pragma once
 
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/Types.h>
@@ -55,5 +54,3 @@ private:
 	LinkList link_list;
 	Rml::XMLNodeHandler* node_handler_head;
 };
-
-#endif

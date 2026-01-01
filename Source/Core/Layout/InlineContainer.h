@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LAYOUT_INLINECONTAINER_H
-#define RMLUI_CORE_LAYOUT_INLINECONTAINER_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Box.h"
 #include "../../../Include/RmlUi/Core/Types.h"
@@ -104,4 +103,3 @@ private:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_PLATFORM_SFML_H
-#define RMLUI_BACKENDS_PLATFORM_SFML_H
+#pragma once
 
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/SystemInterface.h>
@@ -59,5 +58,3 @@ Rml::Input::KeyIdentifier ConvertKey(sf::Keyboard::Key sfml_key);
 int GetKeyModifierState();
 
 } // namespace RmlSFML
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATORTILEDHORIZONTAL_H
-#define RMLUI_CORE_DECORATORTILEDHORIZONTAL_H
+#pragma once
 
 #include "DecoratorTiled.h"
 
@@ -45,4 +44,3 @@ public:
 };
 
 } // namespace Rml
-#endif

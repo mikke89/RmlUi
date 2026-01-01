@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FREETYPEINTERFACE_H
-#define RMLUI_CORE_FONTENGINEDEFAULT_FREETYPEINTERFACE_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/FontMetrics.h"
 #include "FontTypes.h"
@@ -40,4 +39,3 @@ namespace FreeType {
 
 } // namespace FreeType
 } // namespace Rml
-#endif

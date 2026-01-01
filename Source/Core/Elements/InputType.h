@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_INPUTTYPE_H
-#define RMLUI_CORE_ELEMENTS_INPUTTYPE_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Event.h"
 #include "../../../Include/RmlUi/Core/Types.h"
@@ -74,4 +73,3 @@ protected:
 };
 
 } // namespace Rml
-#endif

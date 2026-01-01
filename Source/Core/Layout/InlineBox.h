@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LAYOUT_INLINEBOX_H
-#define RMLUI_CORE_LAYOUT_INLINEBOX_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Box.h"
 #include "InlineLevelBox.h"
@@ -68,4 +67,3 @@ public:
 };
 
 } // namespace Rml
-#endif

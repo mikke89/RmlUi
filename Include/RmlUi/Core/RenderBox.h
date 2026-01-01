@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_RENDERBOX_H
-#define RMLUI_CORE_RENDERBOX_H
+#pragma once
 
 #include "Types.h"
 
@@ -58,5 +57,3 @@ inline bool operator!=(const RenderBox& a, const RenderBox& b)
 	return !(a == b);
 }
 } // namespace Rml
-
-#endif

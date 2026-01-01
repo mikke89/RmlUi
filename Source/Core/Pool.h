@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_POOL_H
-#define RMLUI_CORE_POOL_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Debug.h"
 #include "../../Include/RmlUi/Core/Header.h"
@@ -112,5 +111,3 @@ private:
 } // namespace Rml
 
 #include "Pool.inl"
-
-#endif

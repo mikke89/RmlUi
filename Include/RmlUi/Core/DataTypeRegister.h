@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DATATYPEREGISTER_H
-#define RMLUI_CORE_DATATYPEREGISTER_H
+#pragma once
 
 #include "DataTypes.h"
 #include "DataVariable.h"
@@ -118,4 +117,3 @@ private:
 };
 
 } // namespace Rml
-#endif

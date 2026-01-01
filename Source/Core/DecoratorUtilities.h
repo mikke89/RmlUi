@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATORUTILITIES_H
-#define RMLUI_CORE_DECORATORUTILITIES_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/NumericValue.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -12,4 +11,3 @@ using Vector2Numeric = Vector2<NumericValue>;
 Vector2Numeric ComputePosition(Array<const Property*, 2> p_position);
 
 } // namespace Rml
-#endif

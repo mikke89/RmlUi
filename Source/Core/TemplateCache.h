@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TEMPLATECACHE_H
-#define RMLUI_CORE_TEMPLATECACHE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Types.h"
 
@@ -37,4 +36,3 @@ private:
 };
 
 } // namespace Rml
-#endif

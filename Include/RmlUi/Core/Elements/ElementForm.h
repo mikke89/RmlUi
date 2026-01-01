@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_ELEMENTFORM_H
-#define RMLUI_CORE_ELEMENTS_ELEMENTFORM_H
+#pragma once
 
 #include "../Element.h"
 #include "../Header.h"
@@ -28,4 +27,3 @@ public:
 };
 
 } // namespace Rml
-#endif

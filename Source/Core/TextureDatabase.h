@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TEXTUREDATABASE_H
-#define RMLUI_CORE_TEXTUREDATABASE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/CallbackTexture.h"
 #include "../../Include/RmlUi/Core/StableVector.h"
@@ -73,4 +72,3 @@ public:
 };
 
 } // namespace Rml
-#endif

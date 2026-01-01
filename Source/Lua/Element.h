@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_ELEMENT_H
-#define RMLUI_LUA_ELEMENT_H
+#pragma once
 
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -88,4 +87,3 @@ RMLUI_LUATYPE_DECLARE(ElementPtr)
 
 } // namespace Lua
 } // namespace Rml
-#endif

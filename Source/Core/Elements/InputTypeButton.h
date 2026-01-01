@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_INPUTTYPEBUTTON_H
-#define RMLUI_CORE_ELEMENTS_INPUTTYPEBUTTON_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../../Include/RmlUi/Core/ElementText.h"
@@ -42,4 +41,3 @@ private:
 };
 
 } // namespace Rml
-#endif

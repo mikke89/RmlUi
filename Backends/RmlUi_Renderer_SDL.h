@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_RENDERER_SDL_H
-#define RMLUI_BACKENDS_RENDERER_SDL_H
+#pragma once
 
 #include <RmlUi/Core/RenderInterface.h>
 
@@ -43,5 +42,3 @@ private:
 	SDL_Rect rect_scissor = {};
 	bool scissor_region_enabled = false;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef INVENTORY_H
-#define INVENTORY_H
+#pragma once
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -26,5 +25,3 @@ public:
 private:
 	Rml::ElementDocument* document;
 };
-
-#endif

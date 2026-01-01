@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_RENDERER_BACKWARDCOMPATIBLE_GL3_H
-#define RMLUI_BACKENDS_RENDERER_BACKWARDCOMPATIBLE_GL3_H
+#pragma once
 
 #include <RmlUi/Core/RenderInterfaceCompatibility.h>
 #include <RmlUi/Core/Types.h>
@@ -116,5 +115,3 @@ bool Initialize(Rml::String* out_message = nullptr);
 void Shutdown();
 
 } // namespace RmlGL3
-
-#endif

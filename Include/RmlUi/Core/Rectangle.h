@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_RECTANGLE_H
-#define RMLUI_CORE_RECTANGLE_H
+#pragma once
 
 #include "Debug.h"
 #include "Vector2.h"
@@ -84,5 +83,3 @@ private:
 };
 
 } // namespace Rml
-
-#endif

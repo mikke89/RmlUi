@@ -1,5 +1,4 @@
-#ifndef RMLUI_TESTS_COMMON_TESTSSHELL_H
-#define RMLUI_TESTS_COMMON_TESTSSHELL_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 namespace Rml {
@@ -36,5 +35,3 @@ void ResetTestsRenderInterface();
 TestsSystemInterface* GetTestsSystemInterface();
 
 } // namespace TestsShell
-
-#endif

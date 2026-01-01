@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTFAMILY_H
-#define RMLUI_CORE_FONTENGINEDEFAULT_FONTFAMILY_H
+#pragma once
 
 #include "FontTypes.h"
 
@@ -49,4 +48,3 @@ protected:
 };
 
 } // namespace Rml
-#endif

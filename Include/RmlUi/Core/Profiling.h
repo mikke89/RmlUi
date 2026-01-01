@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROFILING_H
-#define RMLUI_CORE_PROFILING_H
+#pragma once
 
 #ifdef RMLUI_TRACY_PROFILING
 
@@ -46,7 +45,5 @@
 	#define RMLUI_FrameMarkNamed(name)
 	#define RMLUI_FrameMarkStart(name)
 	#define RMLUI_FrameMarkEnd(name)
-
-#endif
 
 #endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUAINVADERS_LUAINTERFACE_H
-#define RMLUI_LUAINVADERS_LUAINTERFACE_H
+#pragma once
 /*
     This will define the "Game" global table in Lua and some functions with it.
 
@@ -22,5 +21,3 @@ public:
 	static void Initialise(lua_State* L);
 	static void InitGame(lua_State* L);
 };
-
-#endif

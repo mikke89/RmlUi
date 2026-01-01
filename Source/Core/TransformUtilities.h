@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TRANSFORMUTILITIES_H
-#define RMLUI_CORE_TRANSFORMUTILITIES_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -39,4 +38,3 @@ namespace TransformUtilities {
 } // namespace TransformUtilities
 
 } // namespace Rml
-#endif

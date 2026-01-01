@@ -1,5 +1,4 @@
-#ifndef RMLUI_SVG_SVG_PLUGIN_H
-#define RMLUI_SVG_SVG_PLUGIN_H
+#pragma once
 
 namespace Rml {
 namespace SVG {
@@ -8,5 +7,3 @@ namespace SVG {
 
 }
 } // namespace Rml
-
-#endif

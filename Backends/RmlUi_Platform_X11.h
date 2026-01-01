@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_PLATFORM_X11_H
-#define RMLUI_BACKENDS_PLATFORM_X11_H
+#pragma once
 
 #include "RmlUi_Include_Xlib.h"
 #include <RmlUi/Core/Input.h>
@@ -74,5 +73,3 @@ int ConvertMouseButton(unsigned int x11_mouse_button);
 int GetKeyModifierState(int x11_state);
 
 } // namespace RmlX11
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_EVENTLISTENERINSTANCER_H
-#define RMLUI_INVADERS_EVENTLISTENERINSTANCER_H
+#pragma once
 
 #include <RmlUi/Core/EventListenerInstancer.h>
 
@@ -15,5 +14,3 @@ public:
 	/// Instances a new event listener for Invaders.
 	Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* element) override;
 };
-
-#endif

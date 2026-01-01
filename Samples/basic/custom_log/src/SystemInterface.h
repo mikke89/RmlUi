@@ -1,5 +1,4 @@
-#ifndef SYSTEMINTERFACE_H
-#define SYSTEMINTERFACE_H
+#pragma once
 
 #include <RmlUi/Core/SystemInterface.h>
 
@@ -22,5 +21,3 @@ public:
 private:
 	FILE* fp;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_ELEMENTS_AS_H
-#define RMLUI_LUA_ELEMENTS_AS_H
+#pragma once
 /*
     These are helper functions to fill up the Element.As table with types that are able to be casted
 */
@@ -39,4 +38,3 @@ void AddCastFunctionToElementAsTable(lua_State* L)
 
 } // namespace Lua
 } // namespace Rml
-#endif

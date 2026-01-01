@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_BASEXMLPARSER_H
-#define RMLUI_CORE_BASEXMLPARSER_H
+#pragma once
 
 #include "Dictionary.h"
 #include "Header.h"
@@ -111,4 +110,3 @@ private:
 };
 
 } // namespace Rml
-#endif

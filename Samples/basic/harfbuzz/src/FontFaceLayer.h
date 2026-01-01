@@ -1,5 +1,4 @@
-#ifndef FONTFACELAYER_H
-#define FONTFACELAYER_H
+#pragma once
 
 #include "FontGlyph.h"
 #include "TextureLayout.h"
@@ -136,5 +135,3 @@ private:
 	CharacterMap character_boxes;
 	Colourb colour;
 };
-
-#endif

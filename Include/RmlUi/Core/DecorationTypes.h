@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATIONTYPES_H
-#define RMLUI_CORE_DECORATIONTYPES_H
+#pragma once
 
 #include "NumericValue.h"
 #include "Types.h"
@@ -37,4 +36,3 @@ inline bool operator!=(const BoxShadow& a, const BoxShadow& b)
 }
 
 } // namespace Rml
-#endif

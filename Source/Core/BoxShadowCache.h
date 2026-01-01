@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_BOXSHADOWCACHE_H
-#define RMLUI_CORE_BOXSHADOWCACHE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/CallbackTexture.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
@@ -34,4 +33,3 @@ public:
 };
 
 } // namespace Rml
-#endif

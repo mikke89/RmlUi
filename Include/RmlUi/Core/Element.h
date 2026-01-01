@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENT_H
-#define RMLUI_CORE_ELEMENT_H
+#pragma once
 
 #include "Box.h"
 #include "Core.h"
@@ -798,5 +797,3 @@ private:
 } // namespace Rml
 
 #include "Element.inl"
-
-#endif

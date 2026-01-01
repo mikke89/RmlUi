@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_MATH_H
-#define RMLUI_CORE_MATH_H
+#pragma once
 
 #include "Header.h"
 #include <type_traits>
@@ -215,4 +214,3 @@ namespace Math {
 
 } // namespace Math
 } // namespace Rml
-#endif

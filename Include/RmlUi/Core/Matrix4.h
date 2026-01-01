@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_MATRIX4_H
-#define RMLUI_CORE_MATRIX4_H
+#pragma once
 
 #include "Debug.h"
 #include "Math.h"
@@ -470,5 +469,3 @@ public:
 } // namespace Rml
 
 #include "Matrix4.inl"
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_TESTS_VISUALTESTS_CAPTURESCREEN_H
-#define RMLUI_TESTS_VISUALTESTS_CAPTURESCREEN_H
+#pragma once
 
 #include <RmlUi/Core/Mesh.h>
 #include <RmlUi/Core/RenderInterface.h>
@@ -29,5 +28,3 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 void RenderTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry);
 
 void ReleaseTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry);
-
-#endif

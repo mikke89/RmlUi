@@ -1,5 +1,4 @@
-#ifndef RMLUI_LOTTIE_ELEMENT_LOTTIE_H
-#define RMLUI_LOTTIE_ELEMENT_LOTTIE_H
+#pragma once
 
 #include "../Core/CallbackTexture.h"
 #include "../Core/Element.h"
@@ -78,5 +77,3 @@ private:
 };
 
 } // namespace Rml
-
-#endif

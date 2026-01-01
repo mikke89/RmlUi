@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTYPARSERBOXSHADOW_H
-#define RMLUI_CORE_PROPERTYPARSERBOXSHADOW_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 
@@ -26,4 +25,3 @@ private:
 };
 
 } // namespace Rml
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_TESTS_COMMON_TYPESTOSTRING_H
-#define RMLUI_TESTS_COMMON_TYPESTOSTRING_H
+#pragma once
 
 #include <RmlUi/Core/Mesh.h>
 #include <RmlUi/Core/TypeConverter.h>
@@ -75,5 +74,3 @@ inline std::ostream& operator<<(std::ostream& os, const Variant& value)
 }
 
 } // namespace Rml
-
-#endif

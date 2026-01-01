@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_ELEMENTTEXT_H
-#define RMLUI_LUA_ELEMENTTEXT_H
+#pragma once
 
 #include <RmlUi/Core/ElementText.h>
 #include <RmlUi/Lua/IncludeLua.h>
@@ -21,4 +20,3 @@ extern luaL_Reg ElementTextSetters[];
 RMLUI_LUATYPE_DECLARE(ElementText)
 } // namespace Lua
 } // namespace Rml
-#endif

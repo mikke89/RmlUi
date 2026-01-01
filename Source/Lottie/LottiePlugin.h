@@ -1,5 +1,4 @@
-#ifndef RMLUI_LOTTIE_LOTTIE_PLUGIN_H
-#define RMLUI_LOTTIE_LOTTIE_PLUGIN_H
+#pragma once
 
 namespace Rml {
 namespace Lottie {
@@ -8,5 +7,3 @@ namespace Lottie {
 
 }
 } // namespace Rml
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTYSHORTHANDDEFINITION_H
-#define RMLUI_CORE_PROPERTYSHORTHANDDEFINITION_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/ID.h"
 
@@ -44,4 +43,3 @@ struct ShorthandDefinition {
 };
 
 } // namespace Rml
-#endif

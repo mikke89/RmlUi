@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_MOTHERSHIP_H
-#define RMLUI_INVADERS_MOTHERSHIP_H
+#pragma once
 
 #include "Invader.h"
 
@@ -21,5 +20,3 @@ private:
 	// Direction mothership is flying in
 	float direction;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DATAVIEW_H
-#define RMLUI_CORE_DATAVIEW_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/DataTypes.h"
 #include "../../Include/RmlUi/Core/Header.h"
@@ -99,4 +98,3 @@ private:
 };
 
 } // namespace Rml
-#endif

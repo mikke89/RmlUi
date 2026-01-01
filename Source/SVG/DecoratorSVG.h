@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATORSVG_H
-#define RMLUI_CORE_DECORATORSVG_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Decorator.h"
 
@@ -42,5 +41,3 @@ namespace SVG {
 
 } // namespace SVG
 } // namespace Rml
-
-#endif

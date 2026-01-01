@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_SCROLLCONTROLLER_H
-#define RMLUI_CORE_SCROLLCONTROLLER_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/ScrollTypes.h"
@@ -80,4 +79,3 @@ private:
 };
 
 } // namespace Rml
-#endif

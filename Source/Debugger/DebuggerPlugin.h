@@ -1,5 +1,4 @@
-#ifndef RMLUI_DEBUGGER_DEBUGGERPLUGIN_H
-#define RMLUI_DEBUGGER_DEBUGGERPLUGIN_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/EventListener.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
@@ -105,5 +104,3 @@ private:
 
 } // namespace Debugger
 } // namespace Rml
-
-#endif

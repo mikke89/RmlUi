@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TYPES_H
-#define RMLUI_CORE_TYPES_H
+#pragma once
 
 #include "../Config/Config.h"
 #include "Traits.h"
@@ -166,5 +165,3 @@ struct hash<::Rml::FamilyId> {
 	}
 };
 } // namespace std
-
-#endif

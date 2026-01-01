@@ -1,5 +1,4 @@
-#ifndef TEXTSHAPER_TEXTURELAYOUTTEXTURE_H
-#define TEXTSHAPER_TEXTURELAYOUTTEXTURE_H
+#pragma once
 
 #include "TextureLayoutRow.h"
 #include <RmlUi/Core.h>
@@ -45,5 +44,3 @@ private:
 	Vector2i dimensions;
 	RowList rows;
 };
-
-#endif

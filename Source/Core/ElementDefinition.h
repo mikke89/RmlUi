@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTDEFINITION_H
-#define RMLUI_CORE_ELEMENTDEFINITION_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
@@ -36,4 +35,3 @@ private:
 };
 
 } // namespace Rml
-#endif

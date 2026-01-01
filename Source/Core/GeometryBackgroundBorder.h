@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_GEOMETRYBACKGROUNDBORDER_H
-#define RMLUI_CORE_GEOMETRYBACKGROUNDBORDER_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/Vertex.h"
@@ -108,4 +107,3 @@ private:
 };
 
 } // namespace Rml
-#endif

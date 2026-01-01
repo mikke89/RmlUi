@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_EVENT_H
-#define RMLUI_CORE_EVENT_H
+#pragma once
 
 #include "Dictionary.h"
 #include "Header.h"
@@ -122,4 +121,3 @@ private:
 };
 
 } // namespace Rml
-#endif

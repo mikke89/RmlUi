@@ -1,5 +1,4 @@
-#ifndef RMLUI_SVG_SVG_CACHE_H
-#define RMLUI_SVG_SVG_CACHE_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Texture.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -48,5 +47,3 @@ namespace SVG {
 
 } // namespace SVG
 } // namespace Rml
-
-#endif

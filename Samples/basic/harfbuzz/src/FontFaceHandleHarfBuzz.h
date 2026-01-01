@@ -1,5 +1,4 @@
-#ifndef FONTFACEHANDLEHARFBUZZ_H
-#define FONTFACEHANDLEHARFBUZZ_H
+#pragma once
 
 #include "FontEngineDefault/FontTypes.h"
 #include "FontFaceLayer.h"
@@ -181,5 +180,3 @@ private:
 	FontFaceHandleFreetype ft_face;
 	struct hb_font_t* hb_font;
 };
-
-#endif

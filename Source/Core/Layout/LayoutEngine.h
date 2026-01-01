@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LAYOUT_LAYOUTENGINE_H
-#define RMLUI_CORE_LAYOUT_LAYOUTENGINE_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Types.h"
 
@@ -22,4 +21,3 @@ public:
 };
 
 } // namespace Rml
-#endif

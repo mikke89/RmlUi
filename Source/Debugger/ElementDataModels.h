@@ -1,5 +1,4 @@
-#ifndef RMLUI_DEBUGGER_ELEMENTDATAMODELS_H
-#define RMLUI_DEBUGGER_ELEMENTDATAMODELS_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/EventListener.h"
@@ -36,5 +35,3 @@ private:
 
 } // namespace Debugger
 } // namespace Rml
-
-#endif

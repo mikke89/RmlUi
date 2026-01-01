@@ -1,5 +1,4 @@
-#ifndef TEXTSHAPER_TEXTURELAYOUTROW_H
-#define TEXTSHAPER_TEXTURELAYOUTROW_H
+#pragma once
 
 #include "TextureLayoutRectangle.h"
 #include <RmlUi/Core.h>
@@ -47,5 +46,3 @@ private:
 	int height;
 	RectangleList rectangles;
 };
-
-#endif

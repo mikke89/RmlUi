@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_EVENTSPECIFICATION_H
-#define RMLUI_CORE_EVENTSPECIFICATION_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Header.h"
@@ -38,4 +37,3 @@ namespace EventSpecificationInterface {
 } // namespace EventSpecificationInterface
 
 } // namespace Rml
-#endif

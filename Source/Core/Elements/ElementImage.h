@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_ELEMENTIMAGE_H
-#define RMLUI_CORE_ELEMENTS_ELEMENTIMAGE_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Element.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
@@ -102,4 +101,3 @@ private:
 };
 
 } // namespace Rml
-#endif

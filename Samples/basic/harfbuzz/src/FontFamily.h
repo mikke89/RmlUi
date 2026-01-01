@@ -1,5 +1,4 @@
-#ifndef FONTFAMILY_H
-#define FONTFAMILY_H
+#pragma once
 
 #include "FontEngineDefault/FontTypes.h"
 #include <RmlUi/Core.h>
@@ -54,5 +53,3 @@ protected:
 	using FontFaceList = Vector<FontFaceEntry>;
 	FontFaceList font_faces;
 };
-
-#endif

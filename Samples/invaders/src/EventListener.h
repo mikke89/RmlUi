@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_EVENTLISTENER_H
-#define RMLUI_INVADERS_EVENTLISTENER_H
+#pragma once
 
 #include <RmlUi/Core/EventListener.h>
 
@@ -21,5 +20,3 @@ public:
 private:
 	Rml::String value;
 };
-
-#endif

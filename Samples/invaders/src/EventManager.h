@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_EVENTMANAGER_H
-#define RMLUI_INVADERS_EVENTMANAGER_H
+#pragma once
 
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Event.h>
@@ -33,5 +32,3 @@ private:
 	EventManager();
 	~EventManager();
 };
-
-#endif

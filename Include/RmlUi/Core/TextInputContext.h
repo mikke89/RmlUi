@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TEXTINPUTCONTEXT_H
-#define RMLUI_CORE_TEXTINPUTCONTEXT_H
+#pragma once
 
 #include "StringUtilities.h"
 
@@ -61,5 +60,3 @@ public:
 };
 
 } // namespace Rml
-
-#endif

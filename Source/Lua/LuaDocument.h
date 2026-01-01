@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUA_LUADOCUMENT_H
-#define RMLUI_LUA_LUADOCUMENT_H
+#pragma once
 /*
     This class is an ElementDocument that overrides the LoadInlineScript and LoadExternalScript function
 */
@@ -17,4 +16,3 @@ public:
 
 } // namespace Lua
 } // namespace Rml
-#endif

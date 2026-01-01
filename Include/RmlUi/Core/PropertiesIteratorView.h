@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_PROPERTIESITERATORVIEW_H
-#define RMLUI_CORE_PROPERTIESITERATORVIEW_H
+#pragma once
 
 #include "Property.h"
 #include "Types.h"
@@ -46,4 +45,3 @@ private:
 };
 
 } // namespace Rml
-#endif

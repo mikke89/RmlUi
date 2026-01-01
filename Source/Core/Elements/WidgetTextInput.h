@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_WIDGETTEXTINPUT_H
-#define RMLUI_CORE_ELEMENTS_WIDGETTEXTINPUT_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/EventListener.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
@@ -288,4 +287,3 @@ private:
 };
 
 } // namespace Rml
-#endif

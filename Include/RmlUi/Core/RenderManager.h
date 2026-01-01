@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_RENDERMANAGER_H
-#define RMLUI_CORE_RENDERMANAGER_H
+#pragma once
 
 #include "CallbackTexture.h"
 #include "Mesh.h"
@@ -127,5 +126,3 @@ private:
 };
 
 } // namespace Rml
-
-#endif

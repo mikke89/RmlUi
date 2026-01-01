@@ -1,5 +1,4 @@
-#ifndef FONTFACE_H
-#define FONTFACE_H
+#pragma once
 
 #include "FontEngineDefault/FontTypes.h"
 #include "FontFaceHandleHarfBuzz.h"
@@ -42,5 +41,3 @@ private:
 
 	FontFaceHandleFreetype face;
 };
-
-#endif

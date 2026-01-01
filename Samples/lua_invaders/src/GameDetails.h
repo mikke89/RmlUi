@@ -1,5 +1,4 @@
-#ifndef RMLUI_LUAINVADERS_GAMEDETAILS_H
-#define RMLUI_LUAINVADERS_GAMEDETAILS_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 
@@ -75,5 +74,3 @@ private:
 	GameDetails();
 	~GameDetails();
 };
-
-#endif

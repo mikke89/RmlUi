@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTANIMATION_H
-#define RMLUI_CORE_ELEMENTANIMATION_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Property.h"
@@ -61,4 +60,3 @@ public:
 };
 
 } // namespace Rml
-#endif

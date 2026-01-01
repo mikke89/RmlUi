@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_LAYOUT_TABLEFORMATTINGCONTEXT_H
-#define RMLUI_CORE_LAYOUT_TABLEFORMATTINGCONTEXT_H
+#pragma once
 
 #include "../../../Include/RmlUi/Core/Types.h"
 #include "FormattingContext.h"
@@ -64,4 +63,3 @@ private:
 };
 
 } // namespace Rml
-#endif

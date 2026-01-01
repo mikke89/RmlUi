@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_TYPECONVERTER_H
-#define RMLUI_CORE_TYPECONVERTER_H
+#pragma once
 
 #include "Log.h"
 #include "Platform.h"
@@ -153,5 +152,3 @@ public:
 } // namespace Rml
 
 #include "TypeConverter.inl"
-
-#endif

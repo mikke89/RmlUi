@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_BOX_H
-#define RMLUI_CORE_BOX_H
+#pragma once
 
 #include "Types.h"
 
@@ -84,4 +83,3 @@ private:
 };
 
 } // namespace Rml
-#endif

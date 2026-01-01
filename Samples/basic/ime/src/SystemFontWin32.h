@@ -1,8 +1,5 @@
-#ifndef RMLUI_SAMPLES_IME_SYSTEMFONTWIN32_H
-#define RMLUI_SAMPLES_IME_SYSTEMFONTWIN32_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 
 Rml::Vector<Rml::String> GetSelectedSystemFonts();
-
-#endif

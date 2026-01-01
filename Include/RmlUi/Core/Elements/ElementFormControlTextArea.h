@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_ELEMENTS_ELEMENTFORMCONTROLTEXTAREA_H
-#define RMLUI_CORE_ELEMENTS_ELEMENTFORMCONTROLTEXTAREA_H
+#pragma once
 
 #include "../Header.h"
 #include "ElementFormControl.h"
@@ -111,4 +110,3 @@ private:
 };
 
 } // namespace Rml
-#endif

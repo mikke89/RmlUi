@@ -1,5 +1,4 @@
-#ifndef RMLUI_BACKENDS_RENDERER_SDL_GPU_H
-#define RMLUI_BACKENDS_RENDERER_SDL_GPU_H
+#pragma once
 
 #include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/Types.h>
@@ -120,5 +119,3 @@ private:
 	bool BeginRenderPass();
 	Buffer* RequestBuffer(int capacity, SDL_GPUBufferUsageFlags usage);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_FILTERBASIC_H
-#define RMLUI_CORE_FILTERBASIC_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Filter.h"
 #include "../../Include/RmlUi/Core/ID.h"
@@ -33,4 +32,3 @@ private:
 };
 
 } // namespace Rml
-#endif

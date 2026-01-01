@@ -1,5 +1,4 @@
-#ifndef RMLUI_INVADERS_SHIELD_H
-#define RMLUI_INVADERS_SHIELD_H
+#pragma once
 
 #include <RmlUi/Core/Types.h>
 
@@ -58,5 +57,3 @@ protected:
 	enum ShieldCellState { ON, OFF, DESTROYED };
 	ShieldCellState shield_cells[NUM_SHIELD_CELLS][NUM_SHIELD_CELLS];
 };
-
-#endif

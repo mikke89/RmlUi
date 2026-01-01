@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_DECORATORTEXT_H
-#define RMLUI_CORE_DECORATORTEXT_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
@@ -55,4 +54,3 @@ private:
 };
 
 } // namespace Rml
-#endif

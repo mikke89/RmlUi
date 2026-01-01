@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_CLOCK_H
-#define RMLUI_CORE_CLOCK_H
+#pragma once
 
 #include "../../Include/RmlUi/Core/Header.h"
 
@@ -18,4 +17,3 @@ public:
 };
 
 } // namespace Rml
-#endif

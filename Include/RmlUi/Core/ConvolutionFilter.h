@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_CONVOLUTIONFILTER_H
-#define RMLUI_CORE_CONVOLUTIONFILTER_H
+#pragma once
 
 #include "Header.h"
 #include "Types.h"
@@ -62,4 +61,3 @@ private:
 };
 
 } // namespace Rml
-#endif

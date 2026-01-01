@@ -1,5 +1,4 @@
-#ifndef RMLUI_CORE_COLOUR_H
-#define RMLUI_CORE_COLOUR_H
+#pragma once
 
 #include "Header.h"
 
@@ -124,5 +123,3 @@ public:
 } // namespace Rml
 
 #include "Colour.inl"
-
-#endif
