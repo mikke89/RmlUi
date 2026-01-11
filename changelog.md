@@ -56,7 +56,7 @@ Introducing native touch input processing and inertial (momentum) scrolling. Thi
 - Add [data models viewer](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/debugger.html#data-models) to inspect live values of data variables. #865
 - Highlight open debugger menu items.
 
-![Debugger data models screenshot](https://github.com/mikke89/RmlUiDoc/blob/1709eff628b6f4b47c074d9fa54e409224438ade/assets/images/debugger-data-models.png?raw=true)
+![Debugger data models screenshot](https://github.com/mikke89/RmlUiDoc/blob/1709eff628b6f4b47c074d9fa54e409224438ade/assets/images/debugger-data-models.png)
 
 ### Text behavior
 
