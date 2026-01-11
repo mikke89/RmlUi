@@ -1,3 +1,4 @@
+* [RmlUi 6.2](#rmlui-62)
 * [RmlUi 6.1](#rmlui-61)
 * [RmlUi 6.0](#rmlui-60)
 * [RmlUi 5.1](#rmlui-51)
@@ -13,7 +14,7 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
-## RmlUi 6.2 (WIP)
+## RmlUi 6.2
 
 ### Touch input & inertial scrolling
 
@@ -25,14 +26,37 @@ Introducing native touch input processing and inertial (momentum) scrolling. Thi
 
 ### Elements
 
-- Elements: Add overloads to element animation functions for PropertyId. #825 (thanks @AthosArantes)
 - Radio buttons: Group radio buttons also when outside a form element. #779 (thanks @mcukstorm)
-- Button and submit elements: Support value attribute for HTML conformance. #798 (thanks @mcukstorm)
+- Radio buttons and checboxes: Add `checked` parameter to `change` events. Helpful in cases where the checked state is used in boolean expressions.
+- Button and submit elements: Support `value` attribute for HTML conformance. #798 (thanks @mcukstorm)
 - Tabset panels: Add pseudo class `:selected` to the active panel to allow adding transition effects when switching tabs. #809 (thanks @loganmcbroom)
 - Drop-down widget performance: Remove unnecessary resizing during layouting which could cause decorator data being regenerated.
-- Text input: Avoid selecting all text when Ctrl + Alt + A key combination is used. This is used to insert characters on certain keyboard layouts, and would thus cause all text to be removed instead. #773 (thanks @ShawnCZek)
+- Text input: Avoid selecting all text when Ctrl + Alt + A key combination is used. This is used to insert characters on certain keyboard layouts, and will cause all text to be removed instead. #773 (thanks @ShawnCZek)
 - Image element: Maintain aspect ratio when one of the width or height attributes is set. #771
 - Image element: Handle dimensions with zero size without producing contagious NaN values.
+- Element API: Animation methods now have separate overloads taking `PropertyID`. #825 (thanks @AthosArantes)
+
+### RCSS
+
+- Add [`font-kerning`](https://mikke89.github.io/RmlUiDoc/pages/rcss/fonts.html#font-kerning) property. #843 (thanks @TriangulumDesire)
+- Add [`inset`](https://mikke89.github.io/RmlUiDoc/pages/rcss/visual_formatting_model.html#top_right_bottom_left) property. A shorthand for specifying the `top`, `right`, `bottom`, and `left` properties.
+- Add [`text-overflow`](https://mikke89.github.io/RmlUiDoc/pages/rcss/text.html#text-overflow) property. Includes support for ellipsis as well as custom strings. #849
+- Implement CIELAB and Oklab [color space functions](https://mikke89.github.io/RmlUiDoc/pages/rcss/syntax.html#colours), e.g. `color: oklch(63% 0.25 30 / 0.8)`. #847 (thanks @TriangulumDesire)
+- Allow specifying RCSS strings using 'single quotation marks'.
+- Whitespace is now preserved within quotes, an empty string is now possible using quotes.
+- Make animations with the `display` property always visible during interpolation, see the [display animation behavior](https://mikke89.github.io/RmlUiDoc/pages/rcss/visual_formatting_model.html#display) documentation. Helpful in animations and transition where one wants to apply fade-in or fade-out effects when showing or hiding an element. Matches the existing behavior of the `visibility` property and is consistent with recent CSS specifications.
+- Fix animation keyframes with uppercase characters. Names of keyframes are now case-sensitive, like in CSS. #852
+
+### Data bindings
+
+- Fix structural data views (data-for) not working with data model on the body element. This also includes data models directly on body templates. #790
+
+### Debugger
+
+- Add [data models viewer](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/debugger.html#data-models) to inspect live values of data variables. #865
+- Highlight open debugger menu items.
+
+![Debugger data models screenshot](https://github.com/mikke89/RmlUiDoc/blob/1709eff628b6f4b47c074d9fa54e409224438ade/assets/images/debugger-data-models.png?raw=true)
 
 ### Text behavior
 
@@ -40,13 +64,9 @@ Introducing native touch input processing and inertial (momentum) scrolling. Thi
 - Make text decorators update when the color or font is changed. #817
 - Fix an issue where old text could still be rendered after being cleared, when transforms were applied. #810 
 
-### Events
+### RML events
 
-- Allow inline event suffix 'capture' to bind to the capture phase, e.g. `<button onfocuscapture="start">`. #821
-
-### Data bindings
-
-- Fix structural data views (data-for) not working with data model on the body element. This also includes data models directly on body templates. #790
+- Allow inline event suffix `capture` to bind to the capture phase, e.g. `<button onfocuscapture="start">`. #821
 
 ### Templates
 
@@ -57,21 +77,31 @@ Introducing native touch input processing and inertial (momentum) scrolling. Thi
 - Prevent callback textures from loading again after failing. #778 (thanks @mcukstorm)
 - Allow setting custom texture handles for callback textures, which may help with custom decorators or other rendering effects. #813
 
+### Scrolling
+
+- Handle very high FPS (above ~500) on smooth scroll. #870
+- Minor smooth scroll tweak to make it slightly more responsive.
+
 ### Developer experience
 
 - Remove duplicate "Equal" table from VisualTest comparison log. #782 (thanks @cafeed28)
+- Avoid assertions being invoked in `~ControlledLifetimeResource` during abnormal shutdown on Windows with DLL builds, which impacted the developer experience. #864 #866 (thanks @espkk)
 - Add debug warnings when using an unsupported locale setting. #772
+- Add warning on parsing style sheets with UTF-8 BOM. #862
 - Add [`natvis` visualization file](Utilities/natvis/RmlUi.natvis) for RmlUi types, which can be used when debugging with Visual Studio or compatible debuggers.
 
 ### Backends
 
 - SDL GPU: New backend. Currently supports basic rendering and transforms. #791 (thanks @jsoulier)
+- GLFW: Handle nullptr clipboard data in clipboard getter, which could lead to a crash when the clipboard doesn't contain text. #871 (thanks @sa413x)
+- Vulkan: Fix synchronization bug in Vulkan backend. #861 #874 (thanks @gigony)
 - SDL3 backends: Fix wrong mouse position on Mac with high DPI (retina). #770
+- Fix loading of 24-bit TGA with flipped y-axis. #851
 
 ### Lua plugin
 
 - Fix loading font faces through Lua. #764 (thanks @ShawnCZek)
-- Allowing setting fallback flag when loading font faces in Lua. #764 (thanks @ShawnCZek)
+- Allow setting fallback flag when loading font faces in Lua. #764 (thanks @ShawnCZek)
 
 ### SVG & Lottie Plugins
 
@@ -79,22 +109,40 @@ Introducing native touch input processing and inertial (momentum) scrolling. Thi
 - Add SVG content cropping. When enabled (default off), the displayed SVG viewbox will be cropped to the content of the SVG, i.e. scaling up the content until it reaches the edges of the texture. #598 (thanks @Illation)
   - For `<svg>` elements, this can be activated with the [`crop-to-content` attribute](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html#svg).
   - For `svg` decorators, the [`crop-to-content` keyword](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html#decorator) can be used.
+- Enable [inline SVG content](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html#svg). #777 (thanks @mcukstorm)
+   ```html
+   <svg width="50" height="50" xmlns="http://www.w3.org/2000/svg">
+       <circle cx="25" cy="25" r="20" stroke="black" stroke-width="3" fill="red" />
+   </svg>
+  ```
 - Add `EnsureSourceLoaded()` to `ElementSVG` and `ElementLottie` to allow manually triggering load, to allow preloading or using the elements within hidden elements. #763
+- Scale intrinsic dimensions of SVG and Lottie elements by `dp`-ratio. #854
 
 ### HarfBuzz font engine
 
+- Fix rendering of unsupported glyph clusters, improve emoji rendering. #837 (thanks @TriangulumDesire)
+- Skip glyphs with empty bitmaps during fallback font selection. #844 (thanks @TriangulumDesire)
 - Submit font bitmaps in premultiplied alpha for proper transparency near glyph edges.
+
+<img width="632" height="422" alt="image" src="https://github.com/user-attachments/assets/f914aaab-7252-4bf3-a722-ed06dd0ebf32" />
 
 ### Performance
 
+- Implement cache for box shadows. This particularly helps in situations with many elements of the same size and the same box shadow. In such cases it improves the initial document render time, and can also significantly lower the total texture size permanently. #799 #802 (thanks @ZilverBlade)
 - Reuse the previous text geometry when the mesh is equivalent, which avoids geometry recompilation when reused. #727
-- Use a free list instead of a bit mask in `StableVector`. This allows faster insertion at the cost of slower iteration, the former being of main concern to the library. 
+- Use a free list instead of a bit mask in `StableVector`. This allows faster insertion at the cost of slower iteration, the former being the main usage pattern in the library. 
 - Avoid a string allocation and copy when formatting long strings.
 
 ### Build
 
+- Android support for the OpenGL 3 backend. #840 (thanks @mccakit)
 - Fix compilation of `robin_hood.h` with GCC 15. #766 (thanks @williamjcm)
-- Fix compilation of the SVG plugin when using a custom `String` type. #820 (thanks @tretre91)
+- Fix compilation of the SVG plugin when using a custom `String` type. #820 #872 (thanks @tretre91)
+- Replace macro guard in headers with `#pragma once`.
+
+### Deprecation notice
+
+This will be the last RmlUi release to support C++14. Future releases will require compilers with C++17 support.
 
 
 ## RmlUi 6.1
