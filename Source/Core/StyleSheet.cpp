@@ -85,11 +85,12 @@ const Keyframes* StyleSheet::GetKeyframes(const String& name) const
 	return nullptr;
 }
 
+// Since we may return a reference to the below static variable.
+static DecoratorPtrList non_cached_decorator_list;
 const DecoratorPtrList& StyleSheet::InstanceDecorators(RenderManager& render_manager, const DecoratorDeclarationList& declaration_list,
 	const PropertySource* source) const
 {
-	RMLUI_ASSERT_NONRECURSIVE; // Since we may return a reference to the below static variable.
-	static DecoratorPtrList non_cached_decorator_list;
+	RMLUI_ASSERT_NONRECURSIVE;
 
 	// Empty declaration values are used for interpolated values which we don't want to cache.
 	const bool enable_cache = !declaration_list.value.empty();
@@ -162,12 +163,12 @@ const Sprite* StyleSheet::GetSprite(const String& name) const
 	return spritesheet_list.GetSprite(name);
 }
 
+// Using static to avoid allocations. Make sure we don't call this function recursively.
+static Vector<const StyleSheetNode*> applicable_nodes;
 SharedPtr<const ElementDefinition> StyleSheet::GetElementDefinition(const Element* element) const
 {
 	RMLUI_ASSERT_NONRECURSIVE;
 
-	// Using static to avoid allocations. Make sure we don't call this function recursively.
-	static Vector<const StyleSheetNode*> applicable_nodes;
 	applicable_nodes.clear();
 
 	auto AddApplicableNodes = [element](const StyleSheetIndex::NodeIndex& node_index, const String& key) {

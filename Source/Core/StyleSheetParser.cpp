@@ -18,6 +18,10 @@
 
 namespace Rml {
 
+static const String identifiers = "#.:[ >+~";
+static const String combinators = " >+~";
+static const String attribute_operators = "=~|^$*]";
+
 class AbstractPropertyParser : NonCopyMoveable {
 protected:
 	~AbstractPropertyParser() = default;
@@ -917,7 +921,6 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, const S
 				// Read until we hit the next identifier. Don't match inside parenthesis in case of structural selectors.
 				for (; end_index < rule.size(); end_index++)
 				{
-					static const String identifiers = "#.:[ >+~";
 					if (parenthesis_count == 0 && identifiers.find(rule[end_index]) != String::npos)
 						break;
 
@@ -956,7 +959,6 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, const S
 
 					AttributeSelector attribute;
 
-					static const String attribute_operators = "=~|^$*]";
 					size_t i_cursor = Math::Min(static_cast<size_t>(rule.find_first_of(attribute_operators, i_attr_begin)), i_attr_end);
 					attribute.name = rule.substr(i_attr_begin, i_cursor - i_attr_begin);
 
@@ -989,7 +991,6 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, const S
 			index = end_index;
 
 			// If we reached a combinator then we submit the current node and start fresh with a new node.
-			static const String combinators(" >+~");
 			if (combinators.find(rule[index]) != String::npos)
 				break;
 		}

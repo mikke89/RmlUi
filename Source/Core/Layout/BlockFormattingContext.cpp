@@ -24,6 +24,7 @@ static void LogUnexpectedFlowElement(Element* element, Style::Display display)
 
 #ifdef RMLUI_DEBUG
 static bool g_debug_dumping_layout_tree = false;
+static const String debug_trigger_id = "rmlui-debug-layout";
 struct DebugDumpLayoutTree {
 	Element* element;
 	BlockContainer* block_box;
@@ -32,7 +33,6 @@ struct DebugDumpLayoutTree {
 	DebugDumpLayoutTree(Element* element, BlockContainer* block_box) : element(element), block_box(block_box)
 	{
 		// When an element with this ID is encountered, dump the formatted layout tree (including for all descendant formatting contexts).
-		static const String debug_trigger_id = "rmlui-debug-layout";
 		is_printing_tree_root = element->HasAttribute(debug_trigger_id);
 		if (is_printing_tree_root)
 			g_debug_dumping_layout_tree = true;

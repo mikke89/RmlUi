@@ -7,9 +7,9 @@
 
 namespace Rml {
 
+static String clipboard_text;
 static String& GlobalClipBoardText()
 {
-	static String clipboard_text;
 	return clipboard_text;
 }
 

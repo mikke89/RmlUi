@@ -445,6 +445,7 @@ void ElementText::GetRML(String& content)
 	content += StringUtilities::EncodeRml(text);
 }
 
+static const FontEffectList empty_font_effects;
 bool ElementText::UpdateFontEffects()
 {
 	RMLUI_ZoneScoped;
@@ -453,8 +454,6 @@ bool ElementText::UpdateFontEffects()
 		return false;
 
 	font_effects_dirty = false;
-
-	static const FontEffectList empty_font_effects;
 
 	// Fetch the font-effect for this text element
 	const FontEffectList* font_effects = &empty_font_effects;
