@@ -346,7 +346,7 @@ void ElementDocument::PushToBack()
 		context->PushDocumentToBack(this);
 }
 
-void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
+void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag, ScrollFlag scroll_flag)
 {
 	switch (modal_flag)
 	{
@@ -411,7 +411,7 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 
 		// Focus the window or element
 		bool focused = focus_element->Focus(true);
-		if (focused && focus_element != this)
+		if (focused && focus_element != this && scroll_flag == ScrollFlag::Auto)
 			focus_element->ScrollIntoView(false);
 	}
 

@@ -353,4 +353,79 @@ TEST_CASE("Modal.FocusWithin")
 	TestsShell::ShutdownShell();
 }
 
+TEST_CASE("ScrollFlag")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	static const String document_rml = R"(
+<rml>
+<head>
+<title>Demo</title>
+<link type="text/rcss" href="/assets/rml.rcss" />
+<link type="text/rcss" href="/../Tests/Data/style.rcss" />
+<style>
+	body {
+		width: 400px;
+		height: 300px;
+		overflow-y: scroll;
+		background-color: #333;
+	}
+	div {
+		height: 200px;
+		background-color: #c33;
+		margin: 5px 0;
+	}
+</style>
+</head>
+<body>
+	<div/>
+	<div/>
+	<input id="input" type="text" autofocus/>
+	<div/>
+	<div/>
+</body>
+</rml>
+)";
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	REQUIRE(document);
+	Element* input = document->GetElementById("input");
+	REQUIRE(input);
+
+	constexpr float scroll_y_none = 0.f;
+	constexpr float scroll_y_input = 138.f;
+
+	SUBCASE("Default")
+	{
+		document->Show();
+		CHECK(document->GetScrollTop() == scroll_y_input);
+	}
+	SUBCASE("Auto")
+	{
+		document->Show(ModalFlag::None, FocusFlag::Auto, ScrollFlag::Auto);
+		CHECK(document->GetScrollTop() == scroll_y_input);
+	}
+	SUBCASE("FocusNone")
+	{
+		document->Show(ModalFlag::None, FocusFlag::None, ScrollFlag::Auto);
+		CHECK(document->GetScrollTop() == scroll_y_none);
+	}
+	SUBCASE("FocusDocument")
+	{
+		document->Show(ModalFlag::None, FocusFlag::Document, ScrollFlag::Auto);
+		CHECK(document->GetScrollTop() == scroll_y_none);
+	}
+	SUBCASE("ScrollNone")
+	{
+		document->Show(ModalFlag::None, FocusFlag::Auto, ScrollFlag::None);
+		CHECK(document->GetScrollTop() == scroll_y_none);
+	}
+
+	TestsShell::RenderLoop();
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
 TEST_SUITE_END();
