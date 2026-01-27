@@ -181,18 +181,14 @@ void Element::Render()
 
 	UpdateAbsoluteOffsetAndRenderBoxData();
 
-	// Rebuild our stacking context if necessary.
 	if (stacking_context_dirty)
 		BuildLocalStackingContext();
 
 	UpdateTransformState();
-
-	// Apply our transform
 	ElementUtilities::ApplyTransform(*this);
 
 	meta->effects.RenderEffects(RenderStage::Enter);
 
-	// Set up the clipping region for this element.
 	if (ElementUtilities::SetClippingRegion(this))
 	{
 		meta->background_border.Render(this);
@@ -200,15 +196,14 @@ void Element::Render()
 
 		{
 			RMLUI_ZoneScopedNC("OnRender", 0x228B22);
-
 			OnRender();
 		}
 	}
 
-	// Render all elements in our local stacking context.
 	for (Element* element : stacking_context)
 		element->Render();
 
+	ElementUtilities::ApplyTransform(*this);
 	meta->effects.RenderEffects(RenderStage::Exit);
 }
 
