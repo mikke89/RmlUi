@@ -258,7 +258,9 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Window* window, SDL_Ev
 			int logical_w = 0;
 			int logical_h = 0;
 			SDL_RendererLogicalPresentation mode{};
-			if (SDL_GetRenderLogicalPresentation(renderer, &logical_w, &logical_h, &mode) && logical_w > 0 && logical_h > 0)
+			if (SDL_GetRenderLogicalPresentation(renderer, &logical_w, &logical_h, &mode)
+				&& mode != SDL_LOGICAL_PRESENTATION_DISABLED
+				&& logical_w > 0 && logical_h > 0)
 				dimensions = Rml::Vector2i(logical_w, logical_h);
 		}
 	#endif
