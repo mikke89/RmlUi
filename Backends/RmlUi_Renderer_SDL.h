@@ -41,4 +41,5 @@ private:
 	SDL_BlendMode blend_mode = {};
 	SDL_Rect rect_scissor = {};
 	bool scissor_region_enabled = false;
+	Rml::Vector<SDL_Vertex> sdl_vertices;
 };
