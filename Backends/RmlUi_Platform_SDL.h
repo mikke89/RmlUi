@@ -14,11 +14,8 @@
 
 class SystemInterface_SDL : public Rml::SystemInterface {
 public:
-	SystemInterface_SDL();
+	SystemInterface_SDL(SDL_Window* window);
 	~SystemInterface_SDL();
-
-	// Optionally, provide or change the window to be used for setting the mouse cursors.
-	void SetWindow(SDL_Window* window);
 
 	// -- Inherited from Rml::SystemInterface  --
 

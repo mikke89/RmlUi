@@ -11,7 +11,7 @@
     Lifetime governed by the calls to Backend::Initialize() and Backend::Shutdown().
  */
 struct BackendData {
-	BackendData(SDL_Renderer* renderer) : render_interface(renderer) {}
+	BackendData(SDL_Window* window, SDL_Renderer* renderer) : system_interface(window), render_interface(renderer) {}
 
 	SystemInterface_SDL system_interface;
 	RenderInterface_SDL render_interface;
@@ -87,10 +87,9 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (!renderer)
 		return false;
 
-	data = Rml::MakeUnique<BackendData>(renderer);
+	data = Rml::MakeUnique<BackendData>(window, renderer);
 	data->window = window;
 	data->renderer = renderer;
-	data->system_interface.SetWindow(window);
 
 	const char* renderer_name = nullptr;
 	Rml::String available_renderers;

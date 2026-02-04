@@ -10,8 +10,10 @@ static Rml::TouchList TouchEventToTouchList(SDL_Event& ev, Rml::Context* context
 	return {Rml::Touch{static_cast<Rml::TouchId>(finger_id), position}};
 }
 
-SystemInterface_SDL::SystemInterface_SDL()
+SystemInterface_SDL::SystemInterface_SDL(SDL_Window* window) : window(window)
 {
+	RMLUI_ASSERTMSG(window, "Please provide a valid SDL window to the SDL system interface");
+
 #if SDL_MAJOR_VERSION >= 3
 	cursor_default = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
 	cursor_move = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_MOVE);
@@ -46,11 +48,6 @@ SystemInterface_SDL::~SystemInterface_SDL()
 	DestroyCursor(cursor_cross);
 	DestroyCursor(cursor_text);
 	DestroyCursor(cursor_unavailable);
-}
-
-void SystemInterface_SDL::SetWindow(SDL_Window* in_window)
-{
-	window = in_window;
 }
 
 double SystemInterface_SDL::GetElapsedTime()
@@ -99,30 +96,24 @@ void SystemInterface_SDL::GetClipboardText(Rml::String& text)
 
 void SystemInterface_SDL::ActivateKeyboard(Rml::Vector2f caret_position, float line_height)
 {
-	if (window)
-	{
 #if SDL_MAJOR_VERSION >= 3
-		const SDL_Rect rect = {int(caret_position.x), int(caret_position.y), 1, int(line_height)};
-		SDL_SetTextInputArea(window, &rect, 0);
-		SDL_StartTextInput(window);
+	const SDL_Rect rect = {int(caret_position.x), int(caret_position.y), 1, int(line_height)};
+	SDL_SetTextInputArea(window, &rect, 0);
+	SDL_StartTextInput(window);
 #else
-		(void)caret_position;
-		(void)line_height;
-		SDL_StartTextInput();
+	(void)caret_position;
+	(void)line_height;
+	SDL_StartTextInput();
 #endif
-	}
 }
 
 void SystemInterface_SDL::DeactivateKeyboard()
 {
-	if (window)
-	{
 #if SDL_MAJOR_VERSION >= 3
-		SDL_StopTextInput(window);
+	SDL_StopTextInput(window);
 #else
-		SDL_StopTextInput();
+	SDL_StopTextInput();
 #endif
-	}
 }
 
 bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Window* window, SDL_Event& ev)

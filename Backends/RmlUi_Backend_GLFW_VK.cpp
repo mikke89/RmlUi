@@ -24,6 +24,8 @@ static void LogErrorFromGLFW(int error, const char* description)
     Lifetime governed by the calls to Backend::Initialize() and Backend::Shutdown().
  */
 struct BackendData {
+	BackendData(GLFWwindow* window) : system_interface(window) {}
+
 	SystemInterface_GLFW system_interface;
 	RenderInterface_VK render_interface;
 
@@ -61,7 +63,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 		return false;
 	}
 
-	data = Rml::MakeUnique<BackendData>();
+	data = Rml::MakeUnique<BackendData>(window);
 	data->window = window;
 
 	uint32_t count;
@@ -78,7 +80,6 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 		return false;
 	}
 
-	data->system_interface.SetWindow(window);
 	data->render_interface.SetViewport(width, height);
 
 	// Receive num lock and caps lock modifiers for proper handling of numpad inputs in text fields.

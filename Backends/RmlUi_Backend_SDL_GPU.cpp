@@ -15,7 +15,7 @@
     Lifetime governed by the calls to Backend::Initialize() and Backend::Shutdown().
  */
 struct BackendData {
-	BackendData(SDL_GPUDevice* device, SDL_Window* window) : render_interface(device, window) {}
+	BackendData(SDL_Window* window, SDL_GPUDevice* device) : system_interface(window), render_interface(device, window) {}
 
 	SystemInterface_SDL system_interface;
 	RenderInterface_SDL_GPU render_interface;
@@ -83,10 +83,9 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 		return false;
 	}
 
-	data = Rml::MakeUnique<BackendData>(device, window);
+	data = Rml::MakeUnique<BackendData>(window, device);
 	data->window = window;
 	data->device = device;
-	data->system_interface.SetWindow(window);
 
 	const char* renderer_name = SDL_GetGPUDeviceDriver(device);
 	data->system_interface.LogMessage(Rml::Log::LT_INFO, Rml::CreateString("Using SDL device driver: %s", renderer_name));

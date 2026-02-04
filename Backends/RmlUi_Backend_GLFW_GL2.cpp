@@ -19,6 +19,8 @@ static void LogErrorFromGLFW(int error, const char* description)
     Lifetime governed by the calls to Backend::Initialize() and Backend::Shutdown().
  */
 struct BackendData {
+	BackendData(GLFWwindow* window) : system_interface(window) {}
+
 	SystemInterface_GLFW system_interface;
 	RenderInterface_GL2 render_interface;
 	GLFWwindow* window = nullptr;
@@ -62,9 +64,8 @@ bool Backend::Initialize(const char* name, int width, int height, bool allow_res
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
 
-	data = Rml::MakeUnique<BackendData>();
+	data = Rml::MakeUnique<BackendData>(window);
 	data->window = window;
-	data->system_interface.SetWindow(window);
 
 	// The window size may have been scaled by DPI settings, get the actual pixel size.
 	glfwGetFramebufferSize(window, &width, &height);
