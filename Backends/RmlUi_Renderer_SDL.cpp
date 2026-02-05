@@ -67,8 +67,11 @@ void RenderInterface_SDL::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml
 	const int* indices = geometry->indices.data();
 	const size_t num_indices = geometry->indices.size();
 
-	sdl_vertices.clear();
-	sdl_vertices.reserve(num_vertices);
+	if (sdl_vertices_size < num_vertices)
+	{
+		sdl_vertices_size = num_vertices;
+		sdl_vertices.reset(new SDL_Vertex[sdl_vertices_size]);
+	}
 
 	for (size_t i = 0; i < num_vertices; i++)
 	{
@@ -86,7 +89,7 @@ void RenderInterface_SDL::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml
 
 	SDL_Texture* sdl_texture = (SDL_Texture*)texture;
 
-	SDL_RenderGeometry(renderer, sdl_texture, sdl_vertices.data(), (int)num_vertices, indices, (int)num_indices);
+	SDL_RenderGeometry(renderer, sdl_texture, sdl_vertices.get(), (int)num_vertices, indices, (int)num_indices);
 }
 
 void RenderInterface_SDL::EnableScissorRegion(bool enable)
