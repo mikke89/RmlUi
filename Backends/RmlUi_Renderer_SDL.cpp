@@ -67,18 +67,23 @@ void RenderInterface_SDL::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml
 	const int* indices = geometry->indices.data();
 	const size_t num_indices = geometry->indices.size();
 
-	Rml::UniquePtr<SDL_Vertex[]> sdl_vertices{new SDL_Vertex[num_vertices]};
+	if (sdl_vertices_size < num_vertices)
+	{
+		sdl_vertices_size = num_vertices * 1.5;
+		sdl_vertices.reset(new SDL_Vertex[sdl_vertices_size]);
+	}
 
 	for (size_t i = 0; i < num_vertices; i++)
 	{
-		sdl_vertices[i].position = {vertices[i].position.x + translation.x, vertices[i].position.y + translation.y};
-		sdl_vertices[i].tex_coord = {vertices[i].tex_coord.x, vertices[i].tex_coord.y};
+		SDL_Vertex& sdl_vertex = sdl_vertices[i];
+		sdl_vertex.position = {vertices[i].position.x + translation.x, vertices[i].position.y + translation.y};
+		sdl_vertex.tex_coord = {vertices[i].tex_coord.x, vertices[i].tex_coord.y};
 
 		const auto& color = vertices[i].colour;
 #if SDL_MAJOR_VERSION >= 3
-		sdl_vertices[i].color = {color.red / 255.f, color.green / 255.f, color.blue / 255.f, color.alpha / 255.f};
+		sdl_vertex.color = {color.red / 255.f, color.green / 255.f, color.blue / 255.f, color.alpha / 255.f};
 #else
-		sdl_vertices[i].color = {color.red, color.green, color.blue, color.alpha};
+		sdl_vertex.color = {color.red, color.green, color.blue, color.alpha};
 #endif
 	}
 
