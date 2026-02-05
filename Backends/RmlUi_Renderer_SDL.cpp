@@ -69,7 +69,7 @@ void RenderInterface_SDL::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml
 
 	if (sdl_vertices_size < num_vertices)
 	{
-		sdl_vertices_size = num_vertices;
+		sdl_vertices_size = num_vertices * 1.5;
 		sdl_vertices.reset(new SDL_Vertex[sdl_vertices_size]);
 	}
 
