@@ -10,7 +10,7 @@ static Rml::TouchList TouchEventToTouchList(SDL_Event& ev, Rml::Context* context
 	return {Rml::Touch{static_cast<Rml::TouchId>(finger_id), position}};
 }
 
-SystemInterface_SDL::SystemInterface_SDL(SDL_Window* window) : window(window)
+SystemInterface_SDL::SystemInterface_SDL(SDL_Window* in_window) : window(in_window)
 {
 	RMLUI_ASSERTMSG(window, "Please provide a valid SDL window to the SDL system interface");
 
@@ -30,6 +30,7 @@ SystemInterface_SDL::SystemInterface_SDL(SDL_Window* window) : window(window)
 	cursor_cross = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
 	cursor_text = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
 	cursor_unavailable = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
+	(void)window; // Window is unused on SDL 2.
 #endif
 }
 
