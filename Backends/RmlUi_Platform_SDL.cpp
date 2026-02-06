@@ -242,6 +242,24 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Window* window, SDL_Ev
 	case event_window_size_changed:
 	{
 		Rml::Vector2i dimensions(ev.window.data1, ev.window.data2);
+		
+	#if SDL_MAJOR_VERSION >= 3
+		// SDL_Renderer backend (SDL3): if SDL_SetRenderLogicalPresentation() is enabled, the renderer uses a fixed logical
+		// output size (render coordinates) and scales it to the window; use that logical size for the RmlUi context.
+		// Input events should be converted to render coordinates first (e.g. SDL_ConvertEventToRenderCoordinates()).
+		SDL_Renderer* renderer = SDL_GetRenderer(window);
+		if (renderer)
+		{
+			int logical_w = 0;
+			int logical_h = 0;
+			SDL_RendererLogicalPresentation mode{};
+			if (SDL_GetRenderLogicalPresentation(renderer, &logical_w, &logical_h, &mode)
+				&& mode != SDL_LOGICAL_PRESENTATION_DISABLED
+				&& logical_w > 0 && logical_h > 0)
+				dimensions = Rml::Vector2i(logical_w, logical_h);
+		}
+	#endif
+
 		context->SetDimensions(dimensions);
 	}
 	break;
