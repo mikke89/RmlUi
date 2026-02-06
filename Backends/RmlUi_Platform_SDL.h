@@ -47,6 +47,11 @@ private:
 namespace RmlSDL {
 
 // Applies input on the context based on the given SDL event.
+// 
+// Note (SDL3 + SDL_Renderer): When using SDL_SetRenderLogicalPresentation(), SDL_Renderer operates in render
+// coordinates (logical coordinates). Therefore, before passing an SDL_Event to InputEventHandler, input event
+// coordinates (mouse/touch/etc.) should be converted to render coordinates, e.g.
+// SDL_ConvertEventToRenderCoordinates(renderer, &ev).
 // @return True if the event is still propagating, false if it was handled by the context.
 bool InputEventHandler(Rml::Context* context, SDL_Window* window, SDL_Event& ev);
 
