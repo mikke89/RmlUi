@@ -445,15 +445,6 @@ bool ElementStyle::AnyPropertiesDirty() const
 
 PropertiesIterator ElementStyle::Iterate() const
 {
-	// Note: Value initialized iterators are only guaranteed to compare equal in C++14, and only for iterators
-	// satisfying the ForwardIterator requirements.
-#ifdef _MSC_VER
-	// Null forward iterator supported since VS 2015
-	static_assert(_MSC_VER >= 1900, "Visual Studio 2015 or higher required, see comment.");
-#else
-	static_assert(__cplusplus >= 201402L, "C++14 or higher required, see comment.");
-#endif
-
 	const PropertyMap& property_map = inline_properties.GetProperties();
 	auto it_style_begin = property_map.begin();
 	auto it_style_end = property_map.end();

@@ -175,8 +175,6 @@ configure_file(
 	"${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake"
 	@ONLY
 )
-# RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
-# From CMake 3.11 use compatibility mode `SameMinorVersion`.
 write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake"
 	COMPATIBILITY ExactVersion
 )

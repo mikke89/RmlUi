@@ -78,7 +78,7 @@ RmlUi adds features and enhancements over CSS and HTML where it makes sense, mos
 - [FreeType](https://www.freetype.org/). However, it can be fully replaced by a custom [font engine](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/font_engine.html).
 - The standard library.
 
-In addition, a C++14 compatible compiler is required.
+In addition, a C++17 compatible compiler is required.
 
 
 ## Building RmlUi
