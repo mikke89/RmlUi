@@ -23,7 +23,6 @@ protected:
 	const String& GetModifier() const;
 	DataExpression& GetExpression();
 
-	// Delete this
 	void Release() override;
 
 private:
