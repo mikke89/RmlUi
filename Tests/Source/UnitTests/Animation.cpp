@@ -904,3 +904,89 @@ TEST_CASE("transition.display_and_visibility")
 
 	TestsShell::ShutdownShell();
 }
+
+TEST_CASE("animation.transform_interpolation")
+{
+	static const String document_rml_template = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body { inset: 0; }
+		@keyframes move {
+			from { transform: %s; }
+			to   { transform: %s; }
+		}
+		div {
+			width: 64px;
+			height: 64px;
+			animation: move 0.1s;
+		}
+	</style>
+</head>
+
+<body>
+	<div/>
+</body>
+</rml>
+)";
+
+	struct Test {
+		String from;
+		String to;
+		String expected_midpoint;
+	};
+
+	const Vector<Test> tests{
+		{
+			"translate(0px, 50px)",
+			"translate3d(-600px, -200px, -200px) rotate3d(1, 0, 0, 60deg) skewX(-10deg)",
+			"translate3d(-300px, -75px, -100px) rotate3d(1, 0, 0, 30deg) skewX(-5deg)",
+		},
+		{
+			"translate3d(-600px, -200px, -200px) rotate3d(1, 0, 0, 60deg) skewX(-10deg)",
+			"translate(0px, 50px)",
+			"translate3d(-300px, -75px, -100px) rotate3d(1, 0, 0, 30deg) skewX(-5deg)",
+		},
+		{
+			"none",
+			"rotate3d(0, 1, 0, 60deg)",
+			"rotate3d(0, 1, 0, 30deg)",
+		},
+		{
+			"scale(3)",
+			"scale(1) rotate3d(3, 4, 0, 90deg)",
+			"scale(2, 2) rotate3d(0.6, 0.8, 0, 45deg)",
+		},
+	};
+
+	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
+	Context* context = TestsShell::GetContext();
+
+	for (const Test& test : tests)
+	{
+		const double t_final = 0.1;
+
+		system_interface->SetManualTime(0.0);
+		const String document_rml = CreateString(document_rml_template.c_str(), test.from.c_str(), test.to.c_str());
+
+		ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
+		document->Show();
+
+		system_interface->SetManualTime(0.5 * t_final);
+		context->Update();
+
+		Element* element = document->GetChild(0);
+		String transform_str = element->GetProperty<String>("transform");
+		CAPTURE(test.from);
+		CAPTURE(test.to);
+		CAPTURE(transform_str);
+		CHECK(transform_str.find("decomposedMatrix3d") == String::npos);
+		CHECK(transform_str == test.expected_midpoint);
+
+		document->Close();
+	}
+
+	TestsShell::ShutdownShell();
+}

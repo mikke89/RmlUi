@@ -93,6 +93,7 @@ struct SetIdentityVisitor {
 	void operator()(Transforms::ScaleZ& p) { p.values[0] = 1; }
 	void operator()(Transforms::Scale2D& p) { p.values[0] = p.values[1] = 1; }
 	void operator()(Transforms::Scale3D& p) { p.values[0] = p.values[1] = p.values[2] = 1; }
+	void operator()(Transforms::Rotate3D& p) { p.values[3] = 0; } // Keep the existing rotation axis to allow interpolation with matching axes.
 	void operator()(Transforms::DecomposedMatrix4& p)
 	{
 		p.perspective = Vector4f(0, 0, 0, 1);
