@@ -26,15 +26,17 @@ static int ConvertFixed16_16ToInt(int32_t fx)
 	return fx / 0x10000;
 }
 
-#undef FTERRORS_H_
+#ifdef RMLUI_DEBUG
 #define FT_ERROR_START_LIST     switch ( error_code ) {
 #define FT_ERRORDEF( e, v, s )    case v: return s;
 #define FT_ERROR_END_LIST       }
 // https://freetype.org/freetype2/docs/reference/ft2-error_enumerations.html
 static const char* GetFreeTypeErrorString(FT_Error error_code)
 {
-#include "freetype/fterrors.h";
+#undef FTERRORS_H_
+#include "freetype/fterrors.h"
 }
+#endif
 
 bool FreeType::Initialise()
 {
@@ -293,19 +295,27 @@ static bool BuildGlyph(FT_Face ft_face, const Character character, FontGlyphMap&
 	FT_Error error = FT_Load_Glyph(ft_face, index, FT_LOAD_COLOR);
 	if (error != 0)
 	{
+#ifdef RMLUI_DEBUG
 		auto error_message = GetFreeTypeErrorString(error);
-		Log::Message(Log::LT_WARNING, "Unable to load glyph for character '%u' on the font face '%s %s'; error message: %s.", (unsigned int)character,
-			ft_face->family_name, ft_face->style_name, error_message);
-		return false;
+		Rml::Log::Message(Rml::Log::LT_WARNING, "Unable to load glyph at index '%u' in font face '%s %s'; FreeType error 0x%x: %s.",
+			(unsigned int)index, ft_face->family_name, ft_face->style_name, error, error_message);
+#else
+		Rml::Log::Message(Rml::Log::LT_WARNING, "Unable to load glyph at index '%u' in font face '%s %s'; FreeType error 0x%x.",
+			(unsigned int)index, ft_face->family_name, ft_face->style_name, error);
+#endif
 	}
 
 	error = FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_NORMAL);
 	if (error != 0)
 	{
+#ifdef RMLUI_DEBUG
 		auto error_message = GetFreeTypeErrorString(error);
-		Log::Message(Log::LT_WARNING, "Unable to render glyph for character '%u' on the font face '%s %s'; error message: %s.", (unsigned int)character,
-			ft_face->family_name, ft_face->style_name, error_message);
-		return false;
+		Rml::Log::Message(Rml::Log::LT_WARNING, "Unable to render glyph at index '%u' in font face '%s %s'; FreeType error 0x%x: %s.",
+			(unsigned int)index, ft_face->family_name, ft_face->style_name, error, error_message);
+#else
+		Rml::Log::Message(Rml::Log::LT_WARNING, "Unable to render glyph at index '%u' in font face '%s %s'; FreeType error 0x%x.",
+			(unsigned int)index, ft_face->family_name, ft_face->style_name, error);
+#endif
 	}
 
 	auto result = glyphs.emplace(character, FontGlyph{});
