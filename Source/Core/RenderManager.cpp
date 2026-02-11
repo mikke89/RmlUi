@@ -66,6 +66,8 @@ Vector2i RenderManager::GetViewport() const
 
 Geometry RenderManager::MakeGeometry(Mesh&& mesh)
 {
+	if (!mesh)
+		return Geometry();
 	return Geometry(this, InsertGeometry(std::move(mesh)));
 }
 

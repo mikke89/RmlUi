@@ -113,6 +113,64 @@ TEST_CASE("background_border")
 	document->Close();
 }
 
+TEST_CASE("background_border.empty_vs_bordered_divs")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	constexpr int num_elements = 500;
+	String divs;
+	divs.reserve(num_elements * 6);
+	for (int i = 0; i < num_elements; i++)
+		divs += "<div/>";
+
+	String document_rml = R"(
+<rml>
+<head>
+    <link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<style>
+		#container > div {
+			width: 50px;
+			height: 20px;
+		}
+		#container.bordered > div {
+			border-width: 2px;
+			border-color: #ccc;
+		}
+	</style>
+</head>
+<body>
+<div id="container">
+)" + divs +
+		R"(
+</div>
+</body>
+</rml>
+)";
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	REQUIRE(document);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	Element* container = document->GetElementById("container");
+
+	nanobench::Bench bench;
+	bench.title("Empty vs bordered divs");
+	bench.relative(true);
+	bench.minEpochIterations(200);
+	bench.warmup(50);
+
+	bench.run("Render empty", [&] { context->Render(); });
+
+	container->SetClass("bordered", true);
+	TestsShell::RenderLoop();
+
+	bench.run("Render borders", [&] { context->Render(); });
+
+	document->Close();
+}
+
 TEST_CASE("box_shadow")
 {
 	Context* context = TestsShell::GetContext();
