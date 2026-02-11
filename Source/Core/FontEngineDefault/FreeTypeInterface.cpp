@@ -35,6 +35,7 @@ static const char* GetFreeTypeErrorString(FT_Error error_code)
 {
 #undef FTERRORS_H_
 #include "freetype/fterrors.h"
+	return "";
 }
 #endif
 
