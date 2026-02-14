@@ -10,9 +10,9 @@ RmlUi - now with added boosters taking control of the rocket, targeting *your* g
 [![Build](https://github.com/mikke89/RmlUi/actions/workflows/build.yml/badge.svg)](https://github.com/mikke89/RmlUi/actions/workflows/build.yml)
 [![Build status](https://ci.appveyor.com/api/projects/status/x95oi8mrb001pqhh/branch/master?svg=true)](https://ci.appveyor.com/project/mikke89/rmlui/branch/master)
 
-RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
+RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements.
 
-RmlUi aims at being a light-weight and performant library with its own layouting engine and few dependencies. In essence, RmlUi takes your HTML/CSS-like source files and turns them into vertices, indices and draw commands, and then you bring your own renderer to draw them. And of course there is full access to the element hierarchy/DOM, event handling, and all the interactivity and customizability you would expect. All of this directly from C++, or optionally from scripting languages using plugins. The core library compiles down to fractions of the size it takes to integrate a fully fledged web browser. 
+RmlUi aims at being a light-weight and performant library with its own layout engine and few dependencies. In essence, RmlUi takes your HTML/CSS-like source files and turns them into vertices, indices and draw commands, and then you bring your own renderer to draw them. And of course there is full access to the element hierarchy/DOM, event handling, and all the interactivity and customizability you would expect. All of this directly from C++, or optionally from scripting languages using plugins. The core library compiles down to fractions of the size it takes to integrate a fully fledged web browser. 
 
 RmlUi is based around the XHTML1 and CSS2 standards while integrating features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Take a look at the [conformance](#conformance) and [enhancements](#enhancements) sections below for details.
 
@@ -166,7 +166,7 @@ The provided backends on the other hand are not intended to be used directly by 
 
 **Basic windowing**: Open windows, react to resize events, submit inputs to the RmlUi context.\
 **Clipboard**: Read from and write to the system clipboard.\
-**High DPI**: Scale the [dp-ratio](https://mikke89.github.io/RmlUiDoc/pages/rcss/syntax#dp-unit) of RmlUi contexts based on the monitor's DPI settings. React to DPI-changes, either because of changed settings or when moving the window to another monitor. \
+**High DPI**: Scale the [dp-ratio](https://mikke89.github.io/RmlUiDoc/pages/rcss/syntax.html#dp-unit) of RmlUi contexts based on the monitor's DPI settings. React to DPI-changes, either because of changed settings or when moving the window to another monitor. \
 **Touch**: Process touch events, enable dragging and inertial scrolling with touch movement.
 
 ### Backends
@@ -268,7 +268,7 @@ class MyRenderInterface : public Rml::RenderInterface
     // RmlUi sends vertices, indices and draw commands through this interface for your
     // application to render how you'd like.
     /* ... */
-}
+};
 
 struct ApplicationData {
     bool show_text = true;
@@ -420,6 +420,12 @@ https://github.com/user-attachments/assets/c336e19b-3448-4d92-ad4a-72cf7ec7185c
 [Unvanquished](https://unvanquished.net/). A first-person shooter game with real-time strategy elements. Menus and HUD in RmlUi.
 
 ![Unvanquished 0.54 collage](https://user-images.githubusercontent.com/5490330/230487771-5108a273-8b76-4216-8324-d9e5af102622.jpg)
+
+### vkQuake + RmlUi 
+
+[vkQuake + RmlUi](https://github.com/Novum/vkQuake). A vkQuake fork that replaces Quake's menu and HUD systems with RmlUi. \[[teaser trailer](https://youtu.be/vEAeOuetTQ0)\]
+
+<img width="2247" height="1228" alt="vkQuake + RmlUi" src="https://github.com/user-attachments/assets/0ef7f033-6852-490b-9fe4-14100995b6a7" />
 
 ### alt:V installer
 
