@@ -690,7 +690,8 @@ private:
 	/// Start a transition of the given property on this element.
 	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.
 	/// @return True if the transition was added or replaced.
-	bool StartTransition(const Transition& transition, const Property& start_value, const Property& target_value);
+	bool StartTransition(const Transition& transition, std::vector<ElementAnimation>::iterator& existing_iterator, const Property& start_value,
+		const Property& target_value);
 
 	/// Removes all transitions that are no longer part of the element's 'transition' property.
 	void HandleTransitionProperty();
