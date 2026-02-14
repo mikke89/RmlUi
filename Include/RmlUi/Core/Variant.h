@@ -54,11 +54,11 @@ public:
 	~Variant();
 
 	// Construct by variant type
-	template <typename T, typename = std::enable_if_t<!std::is_same<Variant, std::decay_t<T>>::value>>
+	template <typename T, typename = std::enable_if_t<!std::is_same_v<Variant, std::decay_t<T>>>>
 	explicit Variant(T&& t);
 
 	// Assign by variant type
-	template <typename T, typename = std::enable_if_t<!std::is_same<Variant, std::decay_t<T>>::value>>
+	template <typename T, typename = std::enable_if_t<!std::is_same_v<Variant, std::decay_t<T>>>>
 	Variant& operator=(T&& t);
 
 	void Clear();
@@ -76,11 +76,8 @@ public:
 	/// the requested representation.
 	/// @param[out] value Data in the requested type.
 	/// @return True if the value was converted and returned, false if no data was stored in the variant.
-	template <typename T, typename std::enable_if_t<!std::is_enum<T>::value, int> = 0>
-	bool GetInto(T& value) const;
-
-	/// Enum overload for the data accessor, will convert any stored integral value to the requested enum type.
-	template <typename T, typename std::enable_if_t<std::is_enum<T>::value, int> = 0>
+	/// @note Can be used with enum types, will convert from stored integral value.
+	template <typename T>
 	bool GetInto(T& value) const;
 
 	/// Returns a reference to the variant's underlying type.
@@ -134,7 +131,7 @@ private:
 	void Set(const BoxShadowList& value);
 	void Set(BoxShadowList&& value);
 
-	template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
+	template <typename T, typename = std::enable_if_t<std::is_enum_v<T>>>
 	void Set(const T value);
 
 	static constexpr size_t LOCAL_DATA_SIZE = (sizeof(TransitionList) > sizeof(String) ? sizeof(TransitionList) : sizeof(String));

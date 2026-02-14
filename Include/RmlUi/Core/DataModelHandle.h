@@ -116,7 +116,7 @@ template <typename T>
 inline bool DataModelConstructor::RegisterScalar(DataTypeGetFunc<T> get_func, DataTypeSetFunc<T> set_func)
 {
 	// We allow custom getters/setters for enums, even though they are considered builtin data scalars.
-	static_assert(!is_builtin_data_scalar<T>::value || std::is_enum<T>::value,
+	static_assert(!is_builtin_data_scalar_v<T> || std::is_enum_v<T>,
 		"Cannot register scalar data type function. Arithmetic types and String are handled internally and does not need to be registered.");
 	const FamilyId id = Family<T>::Id();
 
@@ -150,7 +150,7 @@ inline bool DataModelConstructor::RegisterCustomDataVariableDefinition(UniquePtr
 template <typename T>
 inline StructHandle<T> DataModelConstructor::RegisterStruct()
 {
-	static_assert(std::is_class<T>::value, "Type must be a struct or class type.");
+	static_assert(std::is_class_v<T>, "Type must be a struct or class type.");
 	const FamilyId id = Family<T>::Id();
 
 	auto struct_definition = Rml::MakeUnique<StructDefinition>();

@@ -13,5 +13,8 @@ namespace Utilities {
 		seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 	}
 
+	template <typename T>
+	inline constexpr bool DependentFalse = false;
+
 } // namespace Utilities
 } // namespace Rml

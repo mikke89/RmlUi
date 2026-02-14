@@ -72,7 +72,7 @@ public:
 
 	// Convert color to premultiplied alpha.
 	template <typename IsPremultiplied = std::integral_constant<bool, PremultipliedAlpha>,
-		typename = typename std::enable_if_t<!IsPremultiplied::value && std::is_same<ColourType, byte>::value>>
+		typename = std::enable_if_t<!IsPremultiplied::value && std::is_same_v<ColourType, byte>>>
 	inline Colour<ColourType, AlphaDefault, true> ToPremultiplied() const
 	{
 		return {
@@ -84,7 +84,7 @@ public:
 	}
 	// Convert color to premultiplied alpha, after multiplying alpha by opacity.
 	template <typename IsPremultiplied = std::integral_constant<bool, PremultipliedAlpha>,
-		typename = typename std::enable_if_t<!IsPremultiplied::value && std::is_same<ColourType, byte>::value>>
+		typename = std::enable_if_t<!IsPremultiplied::value && std::is_same_v<ColourType, byte>>>
 	inline Colour<ColourType, AlphaDefault, true> ToPremultiplied(float opacity) const
 	{
 		const float new_alpha = alpha * opacity;
@@ -98,7 +98,7 @@ public:
 
 	// Convert color to non-premultiplied alpha.
 	template <typename IsPremultiplied = std::integral_constant<bool, PremultipliedAlpha>,
-		typename = typename std::enable_if_t<IsPremultiplied::value && std::is_same<ColourType, byte>::value>>
+		typename = std::enable_if_t<IsPremultiplied::value && std::is_same_v<ColourType, byte>>>
 	inline Colour<ColourType, AlphaDefault, false> ToNonPremultiplied() const
 	{
 		return {

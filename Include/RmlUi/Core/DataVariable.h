@@ -19,7 +19,7 @@ enum class DataVariableType { Scalar, Array, Struct };
 
 class RMLUICORE_API DataVariable {
 public:
-	DataVariable() {}
+	DataVariable() = default;
 	DataVariable(VariableDefinition* definition, void* ptr) : definition(definition), ptr(ptr) {}
 
 	explicit operator bool() const { return definition; }
@@ -234,46 +234,42 @@ public:
 		member_set_func_ptr(member_set_func_ptr)
 	{}
 
-	bool Get(void* ptr, Variant& variant) override { return GetDetail(ptr, variant); }
-	bool Set(void* ptr, const Variant& variant) override { return SetDetail(ptr, variant); }
+	bool Get(void* ptr, Variant& variant) override
+	{
+		if constexpr (IsVoidMemberFunc<MemberGetType>)
+		{
+			return false;
+		}
+		else
+		{
+			RMLUI_ASSERT(member_get_func_ptr);
+			auto&& value = (static_cast<Object*>(ptr)->*member_get_func_ptr)();
+			bool result = underlying_definition->Get(static_cast<void*>(&value), variant);
+			return result;
+		}
+	}
+
+	bool Set(void* ptr, const Variant& variant) override
+	{
+		if constexpr (IsVoidMemberFunc<MemberSetType>)
+		{
+			return false;
+		}
+		else
+		{
+			RMLUI_ASSERT(member_set_func_ptr);
+
+			UnderlyingType result;
+			if (!underlying_definition->Set(static_cast<void*>(&result), variant))
+				return false;
+
+			(static_cast<Object*>(ptr)->*member_set_func_ptr)(result);
+
+			return true;
+		}
+	}
 
 private:
-	template <typename T = MemberGetType, typename std::enable_if_t<IsVoidMemberFunc<T>::value, int> = 0>
-	bool GetDetail(void* /*ptr*/, Variant& /*variant*/)
-	{
-		return false;
-	}
-
-	template <typename T = MemberGetType, typename std::enable_if_t<!IsVoidMemberFunc<T>::value, int> = 0>
-	bool GetDetail(void* ptr, Variant& variant)
-	{
-		RMLUI_ASSERT(member_get_func_ptr);
-
-		auto&& value = (static_cast<Object*>(ptr)->*member_get_func_ptr)();
-		bool result = underlying_definition->Get(static_cast<void*>(&value), variant);
-		return result;
-	}
-
-	template <typename T = MemberSetType, typename std::enable_if_t<IsVoidMemberFunc<T>::value, int> = 0>
-	bool SetDetail(void* /*ptr*/, const Variant& /*variant*/)
-	{
-		return false;
-	}
-
-	template <typename T = MemberSetType, typename std::enable_if_t<!IsVoidMemberFunc<T>::value, int> = 0>
-	bool SetDetail(void* ptr, const Variant& variant)
-	{
-		RMLUI_ASSERT(member_set_func_ptr);
-
-		UnderlyingType result;
-		if (!underlying_definition->Set(static_cast<void*>(&result), variant))
-			return false;
-
-		(static_cast<Object*>(ptr)->*member_set_func_ptr)(result);
-
-		return true;
-	}
-
 	VariableDefinition* underlying_definition;
 	MemberGetType Object::* member_get_func_ptr;
 	MemberSetType Object::* member_set_func_ptr;

@@ -62,9 +62,9 @@ public:
 	{
 		using BasicReturnType = typename std::remove_reference<ReturnType>::type;
 		using BasicAssignType = typename std::remove_const<typename std::remove_reference<AssignType>::type>::type;
-		using UnderlyingType = typename std::conditional<IsVoidMemberFunc<ReturnType>::value, BasicAssignType, BasicReturnType>::type;
+		using UnderlyingType = typename std::conditional<IsVoidMemberFunc<ReturnType>, BasicAssignType, BasicReturnType>::type;
 
-		static_assert(IsVoidMemberFunc<ReturnType>::value || IsVoidMemberFunc<AssignType>::value ||
+		static_assert(IsVoidMemberFunc<ReturnType> || IsVoidMemberFunc<AssignType> ||
 				std::is_same<BasicReturnType, BasicAssignType>::value,
 			"Provided getter and setter functions must get and set the same type.");
 
@@ -153,11 +153,11 @@ bool StructHandle<Object>::CreateMemberScalarGetSetFuncDefinition(const String& 
 		"Struct member getter/setter functions must return/assign a type that is default constructible.");
 	static_assert(!std::is_const<UnderlyingType>::value, "Const qualified type illegal in data member getter functions.");
 
-	if (!IsVoidMemberFunc<MemberGetType>::value)
+	if (!IsVoidMemberFunc<MemberGetType>)
 	{
 		RMLUI_ASSERTMSG(member_get_func_ptr, "Expected member getter function, but none provided.");
 	}
-	if (!IsVoidMemberFunc<MemberSetType>::value)
+	if (!IsVoidMemberFunc<MemberSetType>)
 	{
 		RMLUI_ASSERTMSG(member_get_func_ptr, "Expected member setter function, but none provided.");
 	}
