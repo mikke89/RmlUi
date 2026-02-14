@@ -49,6 +49,17 @@ target_sources(rmlui_backend_Win32_VK INTERFACE
 )
 target_link_libraries(rmlui_backend_Win32_VK INTERFACE rmlui_backend_common_headers)
 
+add_library(rmlui_backend_Win32_DX11 INTERFACE)
+target_sources(rmlui_backend_Win32_DX11 INTERFACE
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Win32.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX11.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_Win32_DX11.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Win32.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX11.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_Windows.h"
+)
+target_link_libraries(rmlui_backend_Win32_DX11 INTERFACE rmlui_backend_common_headers d3d11.lib dxgi.lib d3dcompiler.lib)
+
 add_library(rmlui_backend_X11_GL2 INTERFACE)
 target_sources(rmlui_backend_X11_GL2 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_X11.cpp"
@@ -170,6 +181,17 @@ if(UNIX)
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
 	target_link_libraries(rmlui_backend_GLFW_GL3 INTERFACE ${CMAKE_DL_LIBS})
 endif()
+
+add_library(rmlui_backend_GLFW_DX11 INTERFACE)
+target_sources(rmlui_backend_GLFW_DX11 INTERFACE
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_GLFW.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX11.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_GLFW_DX11.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_GLFW.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX11.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_Windows.h"
+)
+target_link_libraries(rmlui_backend_GLFW_DX11 INTERFACE rmlui_backend_common_headers d3d11.lib dxgi.lib d3dcompiler.lib glfw)
 
 add_library(rmlui_backend_GLFW_VK INTERFACE)
 target_sources(rmlui_backend_GLFW_VK INTERFACE
