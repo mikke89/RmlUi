@@ -210,14 +210,14 @@ void DataModel::CopyAliases(Element* from_element, Element* to_element)
 {
 	if (from_element == to_element)
 		return;
-	auto existing_map = aliases.find(from_element);
 
+	auto existing_map = aliases.find(from_element);
 	if (existing_map != aliases.end())
 	{
 		// Need to create a copy to prevent errors during concurrent modification for 3rd party containers
-		auto copy = existing_map->second;
-		for (auto const& it : copy)
-			aliases[to_element][it.first] = std::move(it.second);
+		SmallUnorderedMap<String, DataAddress> copy = existing_map->second;
+		for (auto& [name, address] : copy)
+			aliases[to_element][name] = std::move(address);
 	}
 }
 

@@ -440,7 +440,6 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 		else
 		{
 			content_area.x = GetShrinkToFitWidth(element, containing_block);
-			override_shrink_to_fit_width = content_area.x;
 		}
 	}
 	// Otherwise, the margins that are set to auto will pick up the remaining width of the containing block.

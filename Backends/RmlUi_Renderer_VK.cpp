@@ -2657,7 +2657,7 @@ void RenderInterface_VK::Present() noexcept
 
 	VkResult status = vkQueuePresentKHR(m_p_queue_present, &info);
 
-	if (!(status == VK_SUCCESS))
+	if (status != VK_SUCCESS)
 	{
 		if (status == VK_ERROR_OUT_OF_DATE_KHR || status == VK_SUBOPTIMAL_KHR)
 		{
