@@ -146,6 +146,7 @@ The provided backends on the other hand are not intended to be used directly by 
 | Vulkan (VK)       |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Uncompressed TGA                                                  |
 | SDL GPU           |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 | SDLrenderer       |       ✔️        |     ❌     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| DirectX 11        |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2D layouts.\
 **Transforms**: Enables the `transform` and `perspective` properties to take effect.\
@@ -171,13 +172,13 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Backends
 
-| Platform \ Renderer | OpenGL 2       | OpenGL 3      | Vulkan        | SDL GPU      | SDLrenderer          |
-|---------------------|:----------------:|:---------------:|:---------------:|:--------------:|:----------------------:|
-| Win32               | ✔️<br>`Win32_GL2` |               | ✔️<br>`Win32_VK` |              |                      |
-| X11                 | ✔️<br>`X11_GL2`   |               |               |              |                      |
-| SFML                | ✔️<br>`SFML_GL2`  |               |               |              |                      |
-| GLFW                | ✔️<br>`GLFW_GL2`  | ✔️<br>`GLFW_GL3` | ✔️<br>`GLFW_VK`  |              |                      |
-| SDL¹                | ✔️<br>`SDL_GL2`   | ✔️²<br>`SDL_GL3` | ✔️<br>`SDL_VK`   | ✔️<br>`SDL_GPU` | ✔️<br>`SDL_SDLrenderer` |
+| Platform \ Renderer | OpenGL 2       | OpenGL 3      | Vulkan        | SDL GPU      | SDLrenderer          | DirectX11 |
+|---------------------|:----------------:|:---------------:|:---------------:|:--------------:|:----------------------:|:-----------:|
+| Win32               | ✔️<br>`Win32_GL2` |               | ✔️<br>`Win32_VK` |              |                      | ✔️<br>`Win32_DX11` |
+| X11                 | ✔️<br>`X11_GL2`   |               |               |              |                      |             |
+| SFML                | ✔️<br>`SFML_GL2`  |               |               |              |                      |             |
+| GLFW                | ✔️<br>`GLFW_GL2`  | ✔️<br>`GLFW_GL3` | ✔️<br>`GLFW_VK`  |              |                      | ✔️ <br>`GLFW_DX11` |
+| SDL¹                | ✔️<br>`SDL_GL2`   | ✔️²<br>`SDL_GL3` | ✔️<br>`SDL_VK`   | ✔️<br>`SDL_GPU` | ✔️<br>`SDL_SDLrenderer` |             |
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
