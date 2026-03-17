@@ -1063,6 +1063,8 @@ bool StyleSheetParser::ReadCharacter(char& buffer)
 
 					if (parse_buffer[parse_buffer_pos] == '/')
 						comment = false;
+					else
+						parse_buffer_pos--;
 				}
 			}
 			else

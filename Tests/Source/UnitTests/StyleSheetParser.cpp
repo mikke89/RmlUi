@@ -28,6 +28,28 @@ static const char spritesheet_with_path_string_encoding[] = R"(
 }
 )";
 
+static const char comments[] = R"(
+/* A single line comment */
+/* A multiline
+   comment */
+/** A comment starting with two '*' */
+/* A comment ending with two '*' **/
+/**
+ * A multiline comment
+ * starting with two '*'
+ * and ending with two '*'
+ **/
+@spritesheet test_sheet {
+	src: /assets/high_scores_alien_3.tga;
+	/* A comment in-between rules */
+	test00: 0px 0px 64px 64px;
+	test01: 64px 0px 64px 64px;
+	test10: 0px 64px 64px 64px; /* A comment after a rule */
+	test11: 64px 64px 64px 64px;
+	/* A comment before a rule */ resolution: 1x;
+}
+)";
+
 using namespace Rml;
 
 TEST_CASE("style_sheet_parser.spritesheet")
@@ -124,6 +146,55 @@ TEST_CASE("style_sheet_parser.spritesheet_with_path_string_encoding")
 		CHECK(sprite11->rectangle.TopLeft() == Vector2f(128.f, 128.f));
 		CHECK(sprite11->rectangle.BottomRight() == Vector2f(256.f, 256.f));
 		CHECK(sprite11->sprite_sheet->display_scale == 0.5f);
+	}
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("style_sheet_parser.comments")
+{
+	Context* context = TestsShell::GetContext();
+
+	{
+		StyleSheetContainer style_sheet_container;
+		StreamMemory comments_stream{reinterpret_cast<const byte*>(comments), sizeof(comments) - 1};
+		style_sheet_container.LoadStyleSheetContainer(&comments_stream, 0);
+
+		style_sheet_container.UpdateCompiledStyleSheet(context);
+		const auto* style_sheet = style_sheet_container.GetCompiledStyleSheet();
+		CHECK(style_sheet != nullptr);
+
+		const auto* sprite00 = style_sheet->GetSprite("test00");
+		CHECK(sprite00 != nullptr);
+		CHECK(sprite00->sprite_sheet->name == "test_sheet");
+		CHECK(sprite00->sprite_sheet->texture_source.GetSource() == "/assets/high_scores_alien_3.tga");
+		CHECK(sprite00->rectangle.TopLeft() == Vector2f(0.f, 0.f));
+		CHECK(sprite00->rectangle.BottomRight() == Vector2f(64.f, 64.f));
+		CHECK(sprite00->sprite_sheet->display_scale == 1.f);
+
+		const auto* sprite01 = style_sheet->GetSprite("test01");
+		CHECK(sprite01 != nullptr);
+		CHECK(sprite01->sprite_sheet->name == "test_sheet");
+		CHECK(sprite01->sprite_sheet->texture_source.GetSource() == "/assets/high_scores_alien_3.tga");
+		CHECK(sprite01->rectangle.TopLeft() == Vector2f(64.f, 0.f));
+		CHECK(sprite01->rectangle.BottomRight() == Vector2f(128.f, 64.f));
+		CHECK(sprite01->sprite_sheet->display_scale == 1.f);
+
+		const auto* sprite10 = style_sheet->GetSprite("test10");
+		CHECK(sprite10 != nullptr);
+		CHECK(sprite10->sprite_sheet->name == "test_sheet");
+		CHECK(sprite10->sprite_sheet->texture_source.GetSource() == "/assets/high_scores_alien_3.tga");
+		CHECK(sprite10->rectangle.TopLeft() == Vector2f(0.f, 64.f));
+		CHECK(sprite10->rectangle.BottomRight() == Vector2f(64.f, 128.f));
+		CHECK(sprite10->sprite_sheet->display_scale == 1.f);
+
+		const auto* sprite11 = style_sheet->GetSprite("test11");
+		CHECK(sprite11 != nullptr);
+		CHECK(sprite11->sprite_sheet->name == "test_sheet");
+		CHECK(sprite11->sprite_sheet->texture_source.GetSource() == "/assets/high_scores_alien_3.tga");
+		CHECK(sprite11->rectangle.TopLeft() == Vector2f(64.f, 64.f));
+		CHECK(sprite11->rectangle.BottomRight() == Vector2f(128.f, 128.f));
+		CHECK(sprite11->sprite_sheet->display_scale == 1.f);
 	}
 
 	TestsShell::ShutdownShell();
