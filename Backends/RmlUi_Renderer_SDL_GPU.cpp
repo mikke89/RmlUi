@@ -160,9 +160,9 @@ RenderInterface_SDL_GPU::RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Wind
 	info.min_filter = SDL_GPU_FILTER_LINEAR;
 	info.mag_filter = SDL_GPU_FILTER_LINEAR;
 	info.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
-	info.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-	info.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-	info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+	info.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+	info.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+	info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
 	linear_sampler = SDL_CreateGPUSampler(device, &info);
 	if (!linear_sampler)
 	{
