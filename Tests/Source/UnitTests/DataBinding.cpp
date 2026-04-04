@@ -672,7 +672,7 @@ TEST_CASE("data_binding.allow_missing_variables")
 <p id="unbound">{{ missing }}</p>
 <p id="aliased" data-alias-alt="greeting">{{ alt }}</p>
 <p id="set_bound" data-event-click="greeting = 'clicked'">click</p>
-<!-- <p id="set_missing" data-event-click="missing = 1">click</p> -->
+<p id="set_missing" data-event-click="missing = 'clicked'">click</p>
 <input id="input" type="text" data-value="greeting"/>
 <input id="input_missing" type="text" data-value="missing"/>
 </body>
@@ -724,12 +724,6 @@ TEST_CASE("data_binding.allow_missing_variables")
 	TestsShell::RenderLoop();
 	CHECK(document->GetElementById("unbound")->GetInnerRML() == "");
 
-	// Writing via data-value input to a missing variable is silently ignored.
-	document->GetElementById("input_missing")->Focus();
-	context->ProcessTextInput("test");
-	TestsShell::RenderLoop();
-	CHECK(document->GetElementById("unbound")->GetInnerRML() == "");
-
 	// Writing via data-value input updates the bound variable.
 	document->GetElementById("input")->Focus();
 	context->ProcessTextInput("world ");
@@ -738,6 +732,65 @@ TEST_CASE("data_binding.allow_missing_variables")
 	CHECK(greeting == "world dirty");
 	CHECK(document->GetElementById("bound")->GetInnerRML() == "world dirty");
 	CHECK(document->GetElementById("aliased")->GetInnerRML() == "world dirty");
+
+	Rml::String late_bound;
+	SUBCASE("late_bind_before_input")
+	{
+		// Late-bind a previously missing variable, then dirty it.
+		late_bound = "resolved";
+		constructor.Bind("missing", &late_bound);
+		handle.DirtyVariable("missing");
+		TestsShell::RenderLoop();
+
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "resolved");
+
+		// data-event-click assignment now works on the late-bound variable.
+		document->GetElementById("set_missing")->DispatchEvent(EventId::Click, Dictionary());
+		TestsShell::RenderLoop();
+
+		CHECK(late_bound == "clicked");
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "clicked");
+
+		// Writing via data-value input now updates the late-bound variable.
+		document->GetElementById("input_missing")->Focus();
+		context->ProcessTextInput("test ");
+		TestsShell::RenderLoop();
+
+		CHECK(late_bound == "test clicked");
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "test clicked");
+	}
+	SUBCASE("late_bind_after_input")
+	{
+		// Writing via data-value input to a missing variable is silently ignored.
+		document->GetElementById("input_missing")->Focus();
+		context->ProcessTextInput("test");
+		TestsShell::RenderLoop();
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "");
+
+		// Late-bind a previously missing variable, then dirty it.
+		late_bound = "resolved";
+		constructor.Bind("missing", &late_bound);
+		handle.DirtyVariable("missing");
+		TestsShell::RenderLoop();
+
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "resolved");
+
+		// data-event-click assignment now works on the late-bound variable.
+		document->GetElementById("set_missing")->DispatchEvent(EventId::Click, Dictionary());
+		TestsShell::RenderLoop();
+
+		CHECK(late_bound == "clicked");
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "clicked");
+
+		// The earlier input left a stale cursor in the widget. Text is inserted
+		// at the wrong position.
+		document->GetElementById("input_missing")->Focus();
+		context->ProcessTextInput("test ");
+		TestsShell::RenderLoop();
+
+		CHECK(late_bound == "clictest ked");
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "clictest ked");
+	}
 
 	document->Close();
 	TestsShell::ShutdownShell();
