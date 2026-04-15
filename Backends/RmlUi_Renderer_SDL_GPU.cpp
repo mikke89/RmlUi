@@ -152,7 +152,7 @@ void RenderInterface_SDL_GPU::CreatePipelines()
 }
 
 RenderInterface_SDL_GPU::RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Window* window) :
-	device(device), window(window), copy_pass(nullptr), render_pass(nullptr)
+	device(device), window(window), render_pass(nullptr), copy_pass(nullptr)
 {
 	CreatePipelines();
 
