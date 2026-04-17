@@ -4,7 +4,12 @@
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Types.h>
-#include <SDL3_image/SDL_image.h>
+
+#ifdef __has_include
+	#if __has_include(<SDL3_image/SDL_image.h>)
+		#include <SDL3_image/SDL_image.h>
+	#endif
+#endif
 
 using namespace Rml;
 
@@ -424,7 +429,11 @@ TextureHandle RenderInterface_SDL_GPU::LoadTexture(Vector2i& texture_dimensions,
 	const size_t i_ext = source.rfind('.');
 	Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
 
+#ifdef IMG_LoadTyped_IO
 	SDL_Surface* surface = IMG_LoadTyped_IO(SDL_IOFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
+#else
+	SDL_Surface* surface = SDL_LoadSurface_IO(SDL_IOFromMem(buffer.get(), int(buffer_size)), true);
+#endif
 	if (!surface)
 	{
 		return 0;

@@ -4,7 +4,11 @@
 #include <RmlUi/Core/Types.h>
 
 #if SDL_MAJOR_VERSION >= 3
-	#include <SDL3_image/SDL_image.h>
+	#ifdef __has_include
+		#if __has_include(<SDL3_image/SDL_image.h>)
+			#include <SDL3_image/SDL_image.h>
+		#endif
+	#endif
 #else
 	#include <SDL_image.h>
 #endif
@@ -128,7 +132,11 @@ Rml::TextureHandle RenderInterface_SDL::LoadTexture(Rml::Vector2i& texture_dimen
 	Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
 
 #if SDL_MAJOR_VERSION >= 3
+	#ifdef IMG_LoadTyped_IO
 	auto CreateSurface = [&]() { return IMG_LoadTyped_IO(SDL_IOFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str()); };
+	#else
+	auto CreateSurface = [&]() { return SDL_LoadSurface_IO(SDL_IOFromMem(buffer.get(), int(buffer_size)), true); };
+	#endif
 	auto GetSurfaceFormat = [](SDL_Surface* surface) { return surface->format; };
 	auto ConvertSurface = [](SDL_Surface* surface, SDL_PixelFormat format) { return SDL_ConvertSurface(surface, format); };
 	auto DestroySurface = [](SDL_Surface* surface) { SDL_DestroySurface(surface); };
