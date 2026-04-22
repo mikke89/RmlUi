@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../Include/RmlUi/Core/DataModelHandle.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
