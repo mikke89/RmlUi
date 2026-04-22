@@ -36,6 +36,11 @@ public:
 	/// Calls OnElementDestroy() on all plugins.
 	static void NotifyElementDestroy(Element* element);
 
+	/// Calls OnDataModelCreate() on all plugins.
+	static void NotifyDataModelCreate(Context* context, const String& name, DataModelHandle model);
+	/// Calls OnDataModelDestroy() on all plugins.
+	static void NotifyDataModelDestroy(Context* context, const String& name, DataModelHandle model);
+
 private:
 	PluginRegistry() = delete;
 };

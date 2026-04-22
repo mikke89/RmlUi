@@ -27,4 +27,8 @@ void Plugin::OnElementCreate(Element* /*element*/) {}
 
 void Plugin::OnElementDestroy(Element* /*element*/) {}
 
+void Plugin::OnDataModelCreate(Context* /*context*/, const String& /*name*/, DataModelHandle /*model*/) {}
+
+void Plugin::OnDataModelDestroy(Context* /*context*/, const String& /*name*/, DataModelHandle /*model*/) {}
+
 } // namespace Rml

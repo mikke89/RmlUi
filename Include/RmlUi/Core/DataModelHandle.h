@@ -21,6 +21,14 @@ public:
 
 	explicit operator bool() { return model; }
 
+	// Returns an opaque pointer that uniquely identifies the underlying data model for the lifetime of the model.
+	// Useful as a key when tracking data models externally (e.g. from a plugin) without needing to hash their names.
+	// Two handles compare equal if and only if they refer to the same data model.
+	const void* GetId() const { return model; }
+
+	friend bool operator==(DataModelHandle lhs, DataModelHandle rhs) { return lhs.model == rhs.model; }
+	friend bool operator!=(DataModelHandle lhs, DataModelHandle rhs) { return lhs.model != rhs.model; }
+
 private:
 	DataModel* model;
 };
