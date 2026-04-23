@@ -213,15 +213,18 @@ void Backend::Shutdown()
 {
 	RMLUI_ASSERT(data);
 
+    SDL_Window* window = data->window;
+    SDL_GLContext glcontext = data->glcontext;
+
+    data.reset();
+
 #if SDL_MAJOR_VERSION >= 3
-	SDL_GL_DestroyContext(data->glcontext);
+	SDL_GL_DestroyContext(glcontext);
 #else
-	SDL_GL_DeleteContext(data->glcontext);
+	SDL_GL_DeleteContext(glcontext);
 #endif
 
-	SDL_DestroyWindow(data->window);
-
-	data.reset();
+	SDL_DestroyWindow(window);
 
 	SDL_Quit();
 }
