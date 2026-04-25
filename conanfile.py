@@ -1,9 +1,11 @@
 from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
-    
+from conan.tools.files import copy
+import os
+
 class RmlUiConan(ConanFile):
     name = "rmlui" # The package name should be the library's name
-    version = "0.1.1"
+    version = "0.1.2"
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "shared": [True, False],
@@ -46,15 +48,19 @@ class RmlUiConan(ConanFile):
 
     def package(self):
         cmake = CMake(self)
+        copy(self, "*", dst=os.path.join(self.package_folder, "Backends"), 
+             src=os.path.join(self.source_folder, "Backends"))
         cmake.install()
 
     def package_info(self):
-            # Define the main RmlUi component
-            self.cpp_info.components["rmlui_backend_common_headers"].includedirs=["Backends"]
-            self.cpp_info.components["rmlui_backend_common_headers"].type = "header-library"
-            self.cpp_info.components["rml_core"].libs = ["rmlui"]
-            self.cpp_info.components["rml_core"].requires = ["freetype::freetype", "glfw::glfw"]
+        self.cpp_info.components["core"].libs = ["rmlui"]
+        self.cpp_info.components["core"].requires = ["freetype::freetype","glfw::glfw"]
+        if not self.options.shared:
+            self.cpp_info.components["core"].defines.append("RMLUI_STATIC_LIB")
+        self.cpp_info.components["debugger"].libs = ["rmlui_debugger"]
+        self.cpp_info.components["debugger"].requires = ["core"]
+
+        self.cpp_info.components["backend"].includedirs = ["Backends"]
+        
+        self.cpp_info.components["backend"].requires = ["core"]
             
-            # Define the Debugger component (since it was built)
-            self.cpp_info.components["rml_debugger"].libs = ["rmlui_debugger"]
-            self.cpp_info.components["rml_debugger"].requires = ["rml_core"]
