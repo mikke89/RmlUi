@@ -53,6 +53,20 @@
 				"RMLUI_SVG_PLUGIN": true,
 				"RMLUI_LUA_BINDINGS": true
 			}
-		}
+		},
+		    {
+      "name": "debug",
+	  "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+	  "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
 	]
 }

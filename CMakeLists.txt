@@ -2,6 +2,9 @@
 # https://github.com/mikke89/RmlUi/issues/198#issuecomment-1246957062
 cmake_minimum_required(VERSION 3.10...3.27)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+include(tools.config)
+
 project("RmlUi"
 	VERSION "6.3"
 	DESCRIPTION "C++ user interface library based on the HTML and CSS standards"
@@ -124,7 +127,7 @@ setup_binary_output_directories()
 setup_runtime_dependency_set_arg()
 
 add_subdirectory("Source")
-
+add_subdirectory("Backends")
 if(RMLUI_SAMPLES OR RMLUI_TESTS)
 	set(RMLUI_SHELL ON)
 endif()

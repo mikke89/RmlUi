@@ -251,3 +251,6 @@ if(RMLUI_IS_ROOT_PROJECT)
 		DESTINATION "${CMAKE_INSTALL_DATADIR}/Backends"
 	)
 endif()
+
+message(STATUS "Selected RmlUi backend: ${RMLUI_BACKEND}")
+install(TARGETS rmlui_backend_${RMLUI_BACKEND})

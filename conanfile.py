@@ -10,12 +10,14 @@ class RmlUiConan(ConanFile):
     options = {
         "shared": [True, False],
         "fPIC": [True, False],
-        "build_app": [True, False]
+        "build_app": [True, False],
+        "backend": ["GLFW_GL3"]
     }
     default_options = {
         "shared": False,
         "fPIC": True,
-        "build_app": False
+        "build_app": False,
+        "backend": "GLFW_GL3"
     }
     # Make sure to export ALL necessary source code.
     exports_sources = "CMakeLists.txt", "Source/*","Samples/*","CMake/*","Backends/*","Include/*"
@@ -37,7 +39,7 @@ class RmlUiConan(ConanFile):
         tc = CMakeToolchain(self)
         #NOTE: This is if you want to publish apps with libs too
         tc.variables["BUILD_APPLICATION"] = self.options.build_app
-        tc.variables["RMLUI_BACKEND"]="GLFW_GL3"
+        tc.variables["RMLUI_BACKEND"]=self.options.backend
         # tc.variables["RMLUI_IS_ROOT_PROJECT"]=True
         tc.generate()
 
@@ -48,8 +50,8 @@ class RmlUiConan(ConanFile):
 
     def package(self):
         cmake = CMake(self)
-        copy(self, "*", dst=os.path.join(self.package_folder, "Backends"), 
-             src=os.path.join(self.source_folder, "Backends"))
+        # copy(self, "*", dst=os.path.join(self.package_folder, "Backends"), 
+        #      src=os.path.join(self.source_folder, "Backends"))
         cmake.install()
 
     def package_info(self):
@@ -59,8 +61,8 @@ class RmlUiConan(ConanFile):
             self.cpp_info.components["core"].defines.append("RMLUI_STATIC_LIB")
         self.cpp_info.components["debugger"].libs = ["rmlui_debugger"]
         self.cpp_info.components["debugger"].requires = ["core"]
-
-        self.cpp_info.components["backend"].includedirs = ["Backends"]
+        self.cpp_info.components["backend"].includedirs = ["share/Backends"]
+        # self.cpp_info.components["backend"].includedirs = ["Backends"]
         
-        self.cpp_info.components["backend"].requires = ["core"]
+        # self.cpp_info.components["backend"].requires = ["core"]
             
