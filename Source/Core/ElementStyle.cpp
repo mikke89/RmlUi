@@ -13,6 +13,7 @@
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "ComputeProperty.h"
@@ -21,6 +22,143 @@
 #include <algorithm>
 
 namespace Rml {
+
+namespace {
+
+// Returns the index of the matching ')' for the '(' immediately before start_after_paren,
+// tracking nested parens so var(--x, var(--y)) is matched correctly. npos if unmatched.
+size_t FindMatchingClosingParen(const String& value, size_t start_after_paren)
+{
+	int depth = 1;
+	for (size_t i = start_after_paren; i < value.size(); ++i)
+	{
+		const char c = value[i];
+		if (c == '(')
+			depth++;
+		else if (c == ')')
+		{
+			if (--depth == 0)
+				return i;
+		}
+	}
+	return String::npos;
+}
+
+// Expand var(--name) and var(--name, fallback) references against the variable map reachable from
+// the element. Recursive (a variable's value may itself contain var()) with cycle detection: when
+// resolution would re-enter a name already on the expansion stack, the cycle propagates via
+// `cycle_at_this_call` so the originating var() can use its fallback.
+String SubstituteVariablesImpl(const String& value, const Element* element, SmallUnorderedSet<String>& in_progress,
+	bool& cycle_at_this_call);
+
+String SubstituteVariablesImpl(const String& value, const Element* element, SmallUnorderedSet<String>& in_progress,
+	bool& cycle_at_this_call)
+{
+	if (!element)
+		return value;
+
+	String out;
+	out.reserve(value.size());
+	size_t pos = 0;
+	while (true)
+	{
+		const size_t var_start = value.find("var(", pos);
+		if (var_start == String::npos)
+		{
+			out.append(value, pos, String::npos);
+			return out;
+		}
+		out.append(value, pos, var_start - pos);
+
+		const size_t paren_end = FindMatchingClosingParen(value, var_start + 4);
+		if (paren_end == String::npos)
+		{
+			out.append(value, var_start, String::npos);
+			return out;
+		}
+
+		const String contents = value.substr(var_start + 4, paren_end - (var_start + 4));
+		const size_t comma = contents.find(',');
+		String name, fallback;
+		if (comma != String::npos)
+		{
+			name = StringUtilities::StripWhitespace(contents.substr(0, comma));
+			fallback = StringUtilities::StripWhitespace(contents.substr(comma + 1));
+		}
+		else
+		{
+			name = StringUtilities::StripWhitespace(contents);
+		}
+
+		const bool would_recurse_into_self = (in_progress.count(name) > 0);
+		const String* resolved = (would_recurse_into_self ? nullptr : element->FindVariable(name));
+
+		if (resolved)
+		{
+			in_progress.insert(name);
+			bool inner_cycle = false;
+			const String inner_result = SubstituteVariablesImpl(*resolved, element, in_progress, inner_cycle);
+			in_progress.erase(name);
+
+			if (inner_cycle && !fallback.empty())
+			{
+				bool fallback_cycle = false;
+				out.append(SubstituteVariablesImpl(fallback, element, in_progress, fallback_cycle));
+				cycle_at_this_call = cycle_at_this_call || fallback_cycle;
+			}
+			else
+			{
+				out.append(inner_result);
+				cycle_at_this_call = cycle_at_this_call || inner_cycle;
+			}
+		}
+		else if (would_recurse_into_self)
+		{
+			cycle_at_this_call = true;
+			if (!fallback.empty())
+			{
+				bool fallback_cycle = false;
+				out.append(SubstituteVariablesImpl(fallback, element, in_progress, fallback_cycle));
+				cycle_at_this_call = cycle_at_this_call || fallback_cycle;
+			}
+		}
+		else if (!fallback.empty())
+		{
+			bool fallback_cycle = false;
+			out.append(SubstituteVariablesImpl(fallback, element, in_progress, fallback_cycle));
+			cycle_at_this_call = cycle_at_this_call || fallback_cycle;
+		}
+
+		pos = paren_end + 1;
+	}
+}
+
+String SubstituteVariables(const String& value, const Element* element)
+{
+	SmallUnorderedSet<String> in_progress;
+	bool cycle = false;
+	return SubstituteVariablesImpl(value, element, in_progress, cycle);
+}
+
+// If the property's parse was deferred because it contained a var() reference, substitute and re-parse now.
+// On success, the resolved Property is written into `storage` and returned. Otherwise the original is returned.
+const Property* ResolveVariableProperty(const Property* p, PropertyId id, Element* element, Property& storage)
+{
+	if (!p || !p->contains_variable)
+		return p;
+	if (!element)
+		return p;
+
+	const String resolved_text = SubstituteVariables(p->Get<String>(), element);
+	const PropertyDefinition* def = StyleSheetSpecification::GetProperty(id);
+	if (!def)
+		return p;
+	if (def->ParseValue(storage, resolved_text))
+		return &storage;
+	return p;
+}
+
+} // namespace
 
 inline PseudoClassState operator|(PseudoClassState lhs, PseudoClassState rhs)
 {
@@ -107,6 +245,13 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& pr
 				bool transition_added = false;
 				const Property* start_value = GetProperty(transition.id, element, inline_properties, old_definition);
 				const Property* target_value = GetProperty(transition.id, element, empty_properties, new_definition);
+				// Resolve var() at trigger time so the animation system stores typed endpoints
+				// it can interpolate, not raw String values the per-frame interpolator can't handle.
+				Property start_resolved, target_resolved;
+				if (start_value && start_value->contains_variable)
+					start_value = ResolveVariableProperty(start_value, transition.id, element, start_resolved);
+				if (target_value && target_value->contains_variable)
+					target_value = ResolveVariableProperty(target_value, transition.id, element, target_resolved);
 				if (start_value && target_value && (*start_value != *target_value))
 					transition_added = element->StartTransition(transition, *start_value, *target_value);
 				return transition_added;
@@ -507,7 +652,11 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	if (dirty_properties.Contains(PropertyId::FontSize))
 	{
 		if (auto p = GetLocalProperty(PropertyId::FontSize))
+		{
+			Property var_storage;
+			p = ResolveVariableProperty(p, PropertyId::FontSize, element, var_storage);
 			values.font_size(ComputeFontsize(p->GetNumericValue(), values, parent_values, document_values, dp_ratio, vp_dimensions));
+		}
 		else if (parent_values)
 			values.font_size(parent_values->font_size());
 
@@ -530,6 +679,8 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	{
 		if (auto p = GetLocalProperty(PropertyId::LineHeight))
 		{
+			Property var_storage;
+			p = ResolveVariableProperty(p, PropertyId::LineHeight, element, var_storage);
 			values.line_height(ComputeLineHeight(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 		}
 		else if (parent_values)
@@ -558,6 +709,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		auto name_property_pair = *it;
 		const PropertyId id = name_property_pair.first;
 		const Property* p = &name_property_pair.second;
+
+		Property var_storage;
+		p = ResolveVariableProperty(p, id, element, var_storage);
 
 		if (dirty_em_properties && p->unit == Unit::EM)
 			dirty_properties.Insert(id);

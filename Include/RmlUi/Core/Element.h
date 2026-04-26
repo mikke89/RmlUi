@@ -318,6 +318,12 @@ public:
 	/// Returns the element's context.
 	/// @return The context this element's document exists within.
 	Context* GetContext() const;
+
+	/// Look up a custom property visible to this element. Checks the context's variable map first
+	/// (which acts as a runtime override layer), then falls back to the owning document's variable map.
+	/// @param[in] name The variable name including the leading "--".
+	/// @return Pointer to the resolved value string, or nullptr if no such variable is in scope.
+	const String* FindVariable(const String& name) const;
 	/// Returns the element's render manager.
 	/// @return The render manager responsible for this element.
 	RenderManager* GetRenderManager() const;

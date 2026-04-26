@@ -54,6 +54,9 @@ public:
 	const PropertyDefinition* definition = nullptr;
 	int parser_index = -1;
 
+	// True when the value text contains a var() reference whose typed parse is deferred to compute time.
+	bool contains_variable = false;
+
 	SharedPtr<const PropertySource> source;
 };
 

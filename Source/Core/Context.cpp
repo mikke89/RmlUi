@@ -417,6 +417,40 @@ bool Context::IsThemeActive(const String& theme_name) const
 	return active_themes.count(theme_name);
 }
 
+void Context::SetVariable(const String& name, const String& value)
+{
+	auto it = custom_properties.find(name);
+	const bool changed = (it == custom_properties.end() || it->second != value);
+	custom_properties[name] = value;
+
+	if (changed)
+	{
+		for (int i = 0; i < root->GetNumChildren(true); ++i)
+		{
+			if (ElementDocument* document = root->GetChild(i)->GetOwnerDocument())
+				document->DirtyVariableConsumers();
+		}
+	}
+}
+
+void Context::RemoveVariable(const String& name)
+{
+	if (custom_properties.erase(name) == 0)
+		return;
+
+	for (int i = 0; i < root->GetNumChildren(true); ++i)
+	{
+		if (ElementDocument* document = root->GetChild(i)->GetOwnerDocument())
+			document->DirtyVariableConsumers();
+	}
+}
+
+const String* Context::FindVariable(const String& name) const
+{
+	auto it = custom_properties.find(name);
+	return it == custom_properties.end() ? nullptr : &it->second;
+}
+
 ElementDocument* Context::GetDocument(const String& id)
 {
 	for (int i = 0; i < root->GetNumChildren(); i++)

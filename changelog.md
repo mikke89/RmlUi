@@ -38,6 +38,7 @@ Introducing native touch input processing and inertial (momentum) scrolling. Thi
 
 ### RCSS
 
+- Add support for **custom properties** (`--name: value;`) and `var()` references in RCSS, as a deliberately **context/document-scoped** semantic dialect (not the W3C element-cascade model; see #517 for design rationale and #388 for the prior element-cascade attempt). Declare via `:root { --primary: red; }` in RCSS; reference via `var(--primary, fallback)` in any property value; override programmatically via `Context::SetVariable("--primary", "blue")` for runtime theme switching. Properties that do not use `var()` keep the existing parse and compute paths unchanged. Recommended pattern: pair with `@media (theme: x) { :root { --vars } }` for declarative theme palettes. #517
 - Add [`font-kerning`](https://mikke89.github.io/RmlUiDoc/pages/rcss/fonts.html#font-kerning) property. #843 (thanks @TriangulumDesire)
 - Add [`inset`](https://mikke89.github.io/RmlUiDoc/pages/rcss/visual_formatting_model.html#top_right_bottom_left) property. A shorthand for specifying the `top`, `right`, `bottom`, and `left` properties.
 - Add [`text-overflow`](https://mikke89.github.io/RmlUiDoc/pages/rcss/text.html#text-overflow) property. Includes support for ellipsis as well as custom strings. #849

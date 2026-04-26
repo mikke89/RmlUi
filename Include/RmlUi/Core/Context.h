@@ -99,6 +99,19 @@ public:
 	/// @return True if the theme is activated.
 	bool IsThemeActive(const String& theme_name) const;
 
+	/// Set a custom property on the context. Custom properties can be referenced from RCSS using the var() function.
+	/// @param[in] name The variable name including the leading "--" (e.g. "--primary").
+	/// @param[in] value The value as an RCSS-valid token string (e.g. "red", "16px", "1px solid black").
+	void SetVariable(const String& name, const String& value);
+	/// Remove a custom property previously set via SetVariable. Var() lookups will then fall through
+	/// to per-document defaults (RCSS-declared) on the next Update.
+	/// @param[in] name The variable name including the leading "--".
+	void RemoveVariable(const String& name);
+	/// Look up a custom property on the context.
+	/// @param[in] name The variable name including the leading "--".
+	/// @return Pointer to the stored value string, or nullptr if no such variable exists.
+	const String* FindVariable(const String& name) const;
+
 	/// Returns the first document in the context with the given id.
 	/// @param[in] id The id of the desired document.
 	/// @return The document (if it was found), or nullptr if no document exists with the ID.
@@ -306,6 +319,8 @@ private:
 	RenderManager* render_manager;
 
 	SmallUnorderedSet<String> active_themes;
+
+	SmallUnorderedMap<String, String> custom_properties;
 
 	ContextInstancer* instancer;
 

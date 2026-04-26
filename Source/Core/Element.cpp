@@ -858,6 +858,20 @@ Context* Element::GetContext() const
 	return nullptr;
 }
 
+const String* Element::FindVariable(const String& name) const
+{
+	// Context-level variables shadow document-level ones so that programmatic context->SetVariable
+	// acts as a global runtime override above any RCSS- or API-set document defaults.
+	if (Context* context = GetContext())
+	{
+		if (const String* value = context->FindVariable(name))
+			return value;
+	}
+	if (ElementDocument* document = GetOwnerDocument())
+		return document->FindVariable(name);
+	return nullptr;
+}
+
 RenderManager* Element::GetRenderManager() const
 {
 	if (Context* context = GetContext())

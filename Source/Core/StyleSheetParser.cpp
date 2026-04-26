@@ -134,12 +134,25 @@ private:
 	// The specification used to parse the values. Normally the default stylesheet specification, but not for e.g. all at-rules such as decorators.
 	const PropertySpecification& specification;
 
+	// Custom property (`--name: value;`) declarations collected here instead of in the typed dictionary.
+	SmallUnorderedMap<String, String> custom_properties;
+
 public:
 	PropertySpecificationParser(PropertyDictionary& properties, const PropertySpecification& specification) :
 		properties(properties), specification(specification)
 	{}
 
-	bool Parse(const String& name, const String& value) override { return specification.ParsePropertyDeclaration(properties, name, value); }
+	bool Parse(const String& name, const String& value) override
+	{
+		if (name.size() >= 2 && name[0] == '-' && name[1] == '-')
+		{
+			custom_properties[name] = value;
+			return true;
+		}
+		return specification.ParsePropertyDeclaration(properties, name, value);
+	}
+
+	const SmallUnorderedMap<String, String>& GetCustomProperties() const { return custom_properties; }
 };
 
 /*
@@ -730,6 +743,12 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					PropertyDictionary properties;
 					PropertySpecificationParser parser(properties, StyleSheetSpecification::GetPropertySpecification());
 					ReadProperties(parser);
+
+					// Collect any custom property (`--name: value;`) declarations into the stylesheet's
+					// variable map. The containing selector is not significant in this dialect:
+					// variables are document/context scoped, not cascaded onto matched elements.
+					for (const auto& kv : parser.GetCustomProperties())
+						current_block.stylesheet->custom_properties[kv.first] = kv.second;
 
 					StringList rule_name_list;
 					StringUtilities::ExpandString(rule_name_list, pre_token_str, ',', '(', ')');

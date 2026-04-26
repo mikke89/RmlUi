@@ -30,6 +30,7 @@ UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 	new_sheet->keyframes = keyframes;
 	new_sheet->named_decorator_map = named_decorator_map;
 	new_sheet->spritesheet_list = spritesheet_list;
+	new_sheet->custom_properties = custom_properties;
 
 	new_sheet->MergeStyleSheet(other_sheet);
 
@@ -60,6 +61,10 @@ void StyleSheet::MergeStyleSheet(const StyleSheet& other_sheet)
 	spritesheet_list.Reserve(spritesheet_list.NumSpriteSheets() + other_sheet.spritesheet_list.NumSpriteSheets(),
 		spritesheet_list.NumSprites() + other_sheet.spritesheet_list.NumSprites());
 	spritesheet_list.Merge(other_sheet.spritesheet_list);
+
+	// Custom property declarations: later definitions overwrite earlier ones (same as named decorators).
+	for (const auto& kv : other_sheet.custom_properties)
+		custom_properties[kv.first] = kv.second;
 }
 
 void StyleSheet::BuildNodeIndex()

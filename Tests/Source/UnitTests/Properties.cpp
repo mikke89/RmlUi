@@ -1,9 +1,11 @@
 #include "../Common/TestsInterface.h"
+#include <RmlUi/Core/ComputedValues.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/DecorationTypes.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/FontEngineInterface.h>
 #include <RmlUi/Core/PropertyDictionary.h>
 #include <RmlUi/Core/StyleSheetSpecification.h>
 #include <RmlUi/Core/StyleSheetTypes.h>
@@ -211,6 +213,420 @@ TEST_CASE("Properties")
 			CHECK(result.ToString() == test_case.expected_parsed_string);
 			CHECK(result.Get<ColorStopList>() == test_case.expected_color_stops);
 		}
+	}
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("Context custom properties")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	FontEngineInterface font_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	SetFontEngineInterface(&font_interface);
+
+	Rml::Initialise();
+
+	Context* context = Rml::CreateContext("main", Vector2i(1024, 768));
+	REQUIRE(context != nullptr);
+
+	SUBCASE("storage round-trip")
+	{
+		CHECK(context->FindVariable("--primary") == nullptr);
+
+		context->SetVariable("--primary", "red");
+		REQUIRE(context->FindVariable("--primary") != nullptr);
+		CHECK(*context->FindVariable("--primary") == "red");
+
+		context->SetVariable("--primary", "blue");
+		CHECK(*context->FindVariable("--primary") == "blue");
+
+		context->SetVariable("--secondary", "16px");
+		CHECK(*context->FindVariable("--primary") == "blue");
+		CHECK(*context->FindVariable("--secondary") == "16px");
+
+		CHECK(context->FindVariable("--undefined") == nullptr);
+	}
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("Property var() detection")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	FontEngineInterface font_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	SetFontEngineInterface(&font_interface);
+
+	Rml::Initialise();
+
+	Context* context = Rml::CreateContext("main", Vector2i(1024, 768));
+	REQUIRE(context != nullptr);
+	ElementDocument* document = context->CreateDocument();
+	REQUIRE(document != nullptr);
+
+	SUBCASE("var() reference defers typed parsing")
+	{
+		REQUIRE(document->SetProperty("color", "var(--primary)"));
+		const Property* p = document->GetProperty(PropertyId::Color);
+		REQUIRE(p != nullptr);
+		CHECK(p->contains_variable == true);
+		CHECK(p->unit == Unit::STRING);
+		CHECK(p->Get<String>() == "var(--primary)");
+	}
+
+	SUBCASE("plain value parses normally")
+	{
+		REQUIRE(document->SetProperty("color", "red"));
+		const Property* p = document->GetProperty(PropertyId::Color);
+		REQUIRE(p != nullptr);
+		CHECK(p->contains_variable == false);
+		CHECK(p->unit == Unit::COLOUR);
+	}
+
+	SUBCASE("var() inside a longer value also defers")
+	{
+		REQUIRE(document->SetProperty("background-color", "var(--bg, #fff)"));
+		const Property* p = document->GetProperty(PropertyId::BackgroundColor);
+		REQUIRE(p != nullptr);
+		CHECK(p->contains_variable == true);
+		CHECK(p->Get<String>() == "var(--bg, #fff)");
+	}
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("Variable resolution at compute time")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	FontEngineInterface font_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	SetFontEngineInterface(&font_interface);
+
+	Rml::Initialise();
+
+	Context* context = Rml::CreateContext("main", Vector2i(1024, 768));
+	REQUIRE(context != nullptr);
+	ElementDocument* document = context->CreateDocument();
+	REQUIRE(document != nullptr);
+
+	SUBCASE("simple var() substitutes into computed background-color")
+	{
+		context->SetVariable("--primary", "red");
+		REQUIRE(document->SetProperty("background-color", "var(--primary)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 0, 0, 255));
+	}
+
+	SUBCASE("fallback wins when variable undefined")
+	{
+		REQUIRE(document->SetProperty("background-color", "var(--missing, blue)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 0, 255, 255));
+	}
+
+	SUBCASE("named variable wins over fallback when both present")
+	{
+		context->SetVariable("--accent", "lime");
+		REQUIRE(document->SetProperty("background-color", "var(--accent, magenta)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 255, 0, 255));
+	}
+
+	SUBCASE("variable value containing var() is recursively resolved")
+	{
+		context->SetVariable("--accent", "red");
+		context->SetVariable("--bg", "var(--accent)");
+		REQUIRE(document->SetProperty("background-color", "var(--bg)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 0, 0, 255));
+	}
+
+	SUBCASE("cycle between two variables resolves to fallback without hanging")
+	{
+		context->SetVariable("--a", "var(--b)");
+		context->SetVariable("--b", "var(--a)");
+		REQUIRE(document->SetProperty("background-color", "var(--a, blue)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 0, 255, 255));
+	}
+
+	SUBCASE("nested fallback resolves when outer variable missing")
+	{
+		context->SetVariable("--inner", "yellow");
+		REQUIRE(document->SetProperty("background-color", "var(--missing, var(--inner, magenta))"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 255, 0, 255));
+	}
+
+	SUBCASE("document-scoped variable resolves")
+	{
+		document->SetVariable("--doc-color", "red");
+		REQUIRE(document->SetProperty("background-color", "var(--doc-color)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 0, 0, 255));
+	}
+
+	SUBCASE("context variable shadows document variable of the same name")
+	{
+		document->SetVariable("--shared", "blue");
+		context->SetVariable("--shared", "red");
+		REQUIRE(document->SetProperty("background-color", "var(--shared)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 0, 0, 255));
+	}
+
+	SUBCASE("context variable visible when document has no shadowing entry")
+	{
+		context->SetVariable("--ctx-only", "red");
+		REQUIRE(document->SetProperty("background-color", "var(--ctx-only)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 0, 0, 255));
+	}
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("RCSS custom property declarations")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	FontEngineInterface font_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	SetFontEngineInterface(&font_interface);
+
+	Rml::Initialise();
+
+	Context* context = Rml::CreateContext("main", Vector2i(1024, 768));
+	REQUIRE(context != nullptr);
+
+	const String rml_source =
+		"<rml>"
+		"<head>"
+		"<style>"
+		":root { --primary: red; --spacing: 16px; }"
+		"</style>"
+		"</head>"
+		"<body/>"
+		"</rml>";
+
+	ElementDocument* document = context->LoadDocumentFromMemory(rml_source);
+	REQUIRE(document != nullptr);
+
+	SUBCASE("declarations populate the document variable map")
+	{
+		REQUIRE(document->FindVariable("--primary") != nullptr);
+		CHECK(*document->FindVariable("--primary") == "red");
+		REQUIRE(document->FindVariable("--spacing") != nullptr);
+		CHECK(*document->FindVariable("--spacing") == "16px");
+	}
+
+	SUBCASE("RCSS-declared variables resolve through var() at compute time")
+	{
+		REQUIRE(document->SetProperty("background-color", "var(--primary)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 0, 0, 255));
+	}
+
+	SUBCASE("context variable overrides RCSS-declared default")
+	{
+		context->SetVariable("--primary", "blue");
+		REQUIRE(document->SetProperty("background-color", "var(--primary)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 0, 255, 255));
+	}
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("RCSS custom properties: @media theme integration")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	FontEngineInterface font_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	SetFontEngineInterface(&font_interface);
+
+	Rml::Initialise();
+
+	Context* context = Rml::CreateContext("main", Vector2i(1024, 768));
+	REQUIRE(context != nullptr);
+
+	const String rml_source =
+		"<rml>"
+		"<head>"
+		"<style>"
+		"@media (theme: dark) { :root { --primary: red; } }"
+		"</style>"
+		"</head>"
+		"<body/>"
+		"</rml>";
+
+	ElementDocument* document = context->LoadDocumentFromMemory(rml_source);
+	REQUIRE(document != nullptr);
+	REQUIRE(document->SetProperty("background-color", "var(--primary, blue)"));
+
+	SUBCASE("variable from @media block is absent when theme is inactive")
+	{
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 0, 255, 255));
+	}
+
+	SUBCASE("variable from @media block appears on activate, clears on deactivate")
+	{
+		context->ActivateTheme("dark", true);
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 0, 0, 255));
+
+		context->ActivateTheme("dark", false);
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 0, 255, 255));
+	}
+
+	SUBCASE("programmatic SetVariable persists across theme toggles")
+	{
+		document->SetVariable("--primary", "lime");
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 255, 0, 255));
+
+		context->ActivateTheme("dark", true);
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 255, 0, 255));
+
+		context->ActivateTheme("dark", false);
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 255, 0, 255));
+	}
+
+	SUBCASE("document RemoveVariable falls through to RCSS @media value")
+	{
+		document->SetVariable("--primary", "lime");
+		context->ActivateTheme("dark", true);
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 255, 0, 255));
+
+		document->RemoveVariable("--primary");
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 0, 0, 255));
+	}
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("RCSS custom properties: base + @media combine correctly")
+{
+	// Regression: variables declared in an always-on :root block must survive @media block
+	// activation. CombineStyleSheet must merge custom_properties along with keyframes / decorators.
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	FontEngineInterface font_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	SetFontEngineInterface(&font_interface);
+
+	Rml::Initialise();
+
+	Context* context = Rml::CreateContext("main", Vector2i(1024, 768));
+	REQUIRE(context != nullptr);
+
+	const String rml_source =
+		"<rml>"
+		"<head>"
+		"<style>"
+		":root { --bg: blue; --width: 16px; }"
+		"@media (theme: dark) { :root { --bg: red; } }"
+		"</style>"
+		"</head>"
+		"<body/>"
+		"</rml>";
+
+	ElementDocument* document = context->LoadDocumentFromMemory(rml_source);
+	REQUIRE(document != nullptr);
+	REQUIRE(document->SetProperty("background-color", "var(--bg)"));
+	REQUIRE(document->SetProperty("border-top-width", "var(--width)"));
+
+	SUBCASE("base structural var survives @media activation")
+	{
+		context->ActivateTheme("dark", true);
+		context->Update();
+		// --bg overridden by @media (red), --width inherited from base (16px), must NOT vanish.
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 0, 0, 255));
+		CHECK(document->GetComputedValues().border_top_width() == 16);
+	}
+
+	SUBCASE("base structural var still present after @media deactivation")
+	{
+		context->ActivateTheme("dark", true);
+		context->Update();
+		context->ActivateTheme("dark", false);
+		context->Update();
+		// --bg falls back to base (blue), --width still from base (16px).
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 0, 255, 255));
+		CHECK(document->GetComputedValues().border_top_width() == 16);
+	}
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("Variable resolution edge cases")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	FontEngineInterface font_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	SetFontEngineInterface(&font_interface);
+
+	Rml::Initialise();
+
+	Context* context = Rml::CreateContext("main", Vector2i(1024, 768));
+	REQUIRE(context != nullptr);
+	ElementDocument* document = context->CreateDocument();
+	REQUIRE(document != nullptr);
+
+	SUBCASE("multiple var() refs inside one function expression")
+	{
+		context->SetVariable("--r", "255");
+		context->SetVariable("--g", "128");
+		context->SetVariable("--b", "0");
+		REQUIRE(document->SetProperty("background-color", "rgb(var(--r), var(--g), var(--b))"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 128, 0, 255));
+	}
+
+	SUBCASE("var() inside a shorthand component is resolved per-component")
+	{
+		context->SetVariable("--col", "red");
+		REQUIRE(document->SetProperty("border-color", "var(--col)"));
+		context->Update();
+		CHECK(document->GetComputedValues().border_top_color() == Colourb(255, 0, 0, 255));
+	}
+
+	SUBCASE("Context::SetVariable triggers re-resolution on next Update")
+	{
+		// Property is set first; variable is undefined so the fallback resolves.
+		REQUIRE(document->SetProperty("background-color", "var(--late, blue)"));
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 0, 255, 255));
+
+		// Defining the variable later dirties consuming properties via DirtyVariableConsumers, so
+		// the next Update re-resolves them without the caller having to re-set the property.
+		context->SetVariable("--late", "lime");
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(0, 255, 0, 255));
+
+		// Changing the variable to a new value also triggers re-resolution.
+		context->SetVariable("--late", "red");
+		context->Update();
+		CHECK(document->GetComputedValues().background_color() == Colourb(255, 0, 0, 255));
 	}
 
 	Rml::Shutdown();

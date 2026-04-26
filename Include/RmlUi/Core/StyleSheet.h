@@ -57,6 +57,10 @@ public:
 	const DecoratorPtrList& InstanceDecorators(RenderManager& render_manager, const DecoratorDeclarationList& declaration_list,
 		const PropertySource* decorator_source) const;
 
+	/// Returns the custom property declarations collected from this stylesheet (any `--name: value;`
+	/// declaration encountered during parsing, regardless of which selector contained it).
+	const SmallUnorderedMap<String, String>& GetCustomProperties() const { return custom_properties; }
+
 private:
 	StyleSheet();
 
@@ -89,6 +93,9 @@ private:
 	// Cached decorator instances.
 	using DecoratorCache = UnorderedMap<String, Vector<SharedPtr<const Decorator>>>;
 	mutable DecoratorCache decorator_cache;
+
+	// Custom property (`--name: value;`) declarations collected during parsing.
+	SmallUnorderedMap<String, String> custom_properties;
 
 	friend Rml::StyleSheetParser;
 	friend Rml::StyleSheetContainer;

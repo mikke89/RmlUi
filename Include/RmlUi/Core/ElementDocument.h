@@ -69,6 +69,26 @@ public:
 	/// Sets the style sheet this document, and all of its children, uses.
 	void SetStyleSheetContainer(SharedPtr<StyleSheetContainer> style_sheet);
 
+	/// Set a custom property on this document programmatically. Persists across stylesheet recompiles
+	/// (e.g. theme toggles). Shadows RCSS-declared variables of the same name.
+	/// @param[in] name The variable name including the leading "--".
+	/// @param[in] value The value as an RCSS-valid token string.
+	void SetVariable(const String& name, const String& value);
+	/// Remove a custom property previously set via SetVariable. RCSS-declared variables of the same
+	/// name remain visible via FindVariable until their containing @media block deactivates.
+	/// @param[in] name The variable name including the leading "--".
+	void RemoveVariable(const String& name);
+	/// Look up a custom property visible to this document. Programmatic values set via SetVariable
+	/// are checked first; RCSS-declared values from the active compiled stylesheet are the fallback.
+	/// @param[in] name The variable name including the leading "--".
+	/// @return Pointer to the stored value string, or nullptr if no such variable is in scope.
+	const String* FindVariable(const String& name) const;
+
+	/// Mark every var()-consuming property in this document as needing re-resolution on the next
+	/// Update. Called by Context::SetVariable so runtime theme changes propagate without the caller
+	/// having to re-set individual properties.
+	void DirtyVariableConsumers();
+
 	/// Brings the document to the front of the document stack.
 	void PullToFront();
 	/// Sends the document to the back of the document stack.
@@ -168,6 +188,12 @@ private:
 
 	bool layout_dirty;
 	bool position_dirty;
+
+	// Programmatically-set variables (via SetVariable). Persist across stylesheet recompiles.
+	SmallUnorderedMap<String, String> custom_properties;
+	// RCSS-declared variables, re-derived from the compiled stylesheet on each DirtyMediaQueries
+	// pass so values from now-inactive @media blocks disappear.
+	SmallUnorderedMap<String, String> rcss_custom_properties;
 
 	friend class Rml::Context;
 	friend class Rml::Factory;

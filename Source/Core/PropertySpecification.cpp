@@ -219,6 +219,16 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 	if (!property_definition)
 		return false;
 
+	// If the value text contains a var() reference, defer typed parsing to compute time.
+	// The raw value is stored as a String and re-parsed once variable substitution has occurred.
+	if (property_value.find("var(") != String::npos)
+	{
+		Property deferred(property_value, Unit::STRING);
+		deferred.contains_variable = true;
+		dictionary.SetProperty(property_id, deferred);
+		return true;
+	}
+
 	StringList property_values;
 	ParsePropertyValues(property_values, property_value, SplitOption::None);
 	if (property_values.empty())
@@ -299,12 +309,12 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		for (int i = 0; i < 4; i++)
 		{
 			RMLUI_ASSERT(shorthand_definition->items[i].type == ShorthandItemType::Property);
-			Property new_property;
-			int value_index = box_side_to_value_index[i];
-			if (!shorthand_definition->items[i].property_definition->ParseValue(new_property, property_values[value_index]))
+			const int value_index = box_side_to_value_index[i];
+			// Route through ParsePropertyDeclaration so the var() detection hook handles values like
+			// `border-color: var(--col)` or `margin: 10px var(--gap)` per-component.
+			if (!ParsePropertyDeclaration(dictionary, shorthand_definition->items[i].property_definition->GetId(),
+					property_values[value_index]))
 				return false;
-
-			dictionary.SetProperty(shorthand_definition->items[i].property_definition->GetId(), new_property);
 		}
 	}
 	else if (shorthand_definition->type == ShorthandType::RecursiveRepeat)

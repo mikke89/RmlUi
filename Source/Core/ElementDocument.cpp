@@ -276,6 +276,33 @@ void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _sty
 	DirtyMediaQueries();
 }
 
+void ElementDocument::SetVariable(const String& name, const String& value)
+{
+	custom_properties[name] = value;
+}
+
+const String* ElementDocument::FindVariable(const String& name) const
+{
+	if (auto it = custom_properties.find(name); it != custom_properties.end())
+		return &it->second;
+	if (auto it = rcss_custom_properties.find(name); it != rcss_custom_properties.end())
+		return &it->second;
+	return nullptr;
+}
+
+void ElementDocument::RemoveVariable(const String& name)
+{
+	if (custom_properties.erase(name) > 0)
+		DirtyVariableConsumers();
+}
+
+void ElementDocument::DirtyVariableConsumers()
+{
+	// Dirty all var()-deferred properties (stored with Unit::STRING) so they re-resolve against
+	// the current variable map on the next ComputeValues.
+	GetStyle()->DirtyPropertiesWithUnitsRecursive(Unit::STRING);
+}
+
 void ElementDocument::ReloadStyleSheet()
 {
 	if (!context)
@@ -308,8 +335,18 @@ void ElementDocument::DirtyMediaQueries()
 
 		if (changed_style_sheet)
 		{
+			// Variables from now-inactive @media blocks must drop out, so rebuild rather than merge.
+			// Programmatic values set via SetVariable live in a separate map and persist.
+			rcss_custom_properties.clear();
+			if (StyleSheet* compiled = style_sheet_container->GetCompiledStyleSheet())
+			{
+				for (const auto& kv : compiled->GetCustomProperties())
+					rcss_custom_properties[kv.first] = kv.second;
+			}
+
 			DirtyDefinition(Element::DirtyNodes::Self);
 			OnStyleSheetChangeRecursive();
+			DirtyVariableConsumers();
 		}
 	}
 }
