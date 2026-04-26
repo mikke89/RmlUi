@@ -2,9 +2,6 @@
 # https://github.com/mikke89/RmlUi/issues/198#issuecomment-1246957062
 cmake_minimum_required(VERSION 3.10...3.27)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-include(tools.config)
-
 project("RmlUi"
 	VERSION "6.3"
 	DESCRIPTION "C++ user interface library based on the HTML and CSS standards"
