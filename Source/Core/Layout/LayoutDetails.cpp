@@ -69,16 +69,6 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 			ResolveValueOr(computed.max_width(), containing_block.x, FLT_MAX),
 			ResolveValueOr(computed.max_height(), containing_block.y, FLT_MAX),
 		};
-		if(min_size.x > max_size.x) {
-			max_size.x = min_size.x;
-			Log::Message(Log::LT_WARNING, "Element '%s' of '%s' has minimum width greater than the maximum.",
-				element->GetAddress().c_str(), element->GetOwnerDocument()->GetSourceURL().c_str());
-		}
-		if(min_size.y > max_size.y) {
-			max_size.y = min_size.y;
-			Log::Message(Log::LT_WARNING, "Element '%s' of '%s' has minimum height greater than the maximum.",
-				element->GetAddress().c_str(), element->GetOwnerDocument()->GetSourceURL().c_str());
-		}
 
 		// Adjust sizes for the given box sizing model.
 		if (computed.box_sizing() == Style::BoxSizing::BorderBox)
@@ -94,6 +84,8 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 			max_size.y = BorderSizeToContentSize(max_size.y, border_padding_height);
 			content_area.y = BorderSizeToContentSize(content_area.y, border_padding_height);
 		}
+
+		max_size = Math::Max(min_size, max_size);
 
 		if (content_area.x >= 0)
 			content_area.x = Math::Clamp(content_area.x, min_size.x, max_size.x);
