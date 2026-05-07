@@ -175,3 +175,101 @@ TEST_CASE("FlexFormatting.dp_ratio")
 
 	TestsShell::ShutdownShell();
 }
+
+static const String document_flex_scrollable_overflow_rml = R"(
+<rml>
+<head>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			width: 400px;
+			height: 300px;
+		}
+		.scroller {
+			display: flex;
+		}
+		.vertical {
+			flex-direction: column;
+			overflow-x: hidden;
+			overflow-y: auto;
+			width: 100px;
+			height: 80px;
+		}
+		.horizontal {
+			flex-direction: row;
+			overflow-x: auto;
+			overflow-y: hidden;
+			width: 80px;
+			height: 100px;
+		}
+		.item {
+			flex-shrink: 0;
+			width: 20px;
+			height: 100px;
+		}
+		.horizontal .item {
+			width: 100px;
+			height: 20px;
+		}
+		#padding_scroller {
+			padding-top: 7px;
+			padding-bottom: 13px;
+		}
+		#margin_item {
+			margin-bottom: 17px;
+		}
+		#horizontal_padding_scroller {
+			padding-left: 7px;
+			padding-right: 13px;
+		}
+		#horizontal_margin_item {
+			margin-right: 17px;
+		}
+	</style>
+</head>
+<body>
+	<div id="padding_scroller" class="scroller vertical">
+		<div class="item"/>
+	</div>
+	<div id="margin_scroller" class="scroller vertical">
+		<div id="margin_item" class="item"/>
+	</div>
+	<div id="horizontal_padding_scroller" class="scroller horizontal">
+		<div class="item"/>
+	</div>
+	<div id="horizontal_margin_scroller" class="scroller horizontal">
+		<div id="horizontal_margin_item" class="item"/>
+	</div>
+</body>
+</rml>
+)";
+
+TEST_CASE("FlexFormatting.scrollable_overflow")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_flex_scrollable_overflow_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	Element* padding_scroller = document->GetElementById("padding_scroller");
+	Element* margin_scroller = document->GetElementById("margin_scroller");
+	Element* horizontal_padding_scroller = document->GetElementById("horizontal_padding_scroller");
+	Element* horizontal_margin_scroller = document->GetElementById("horizontal_margin_scroller");
+	REQUIRE(padding_scroller);
+	REQUIRE(margin_scroller);
+	REQUIRE(horizontal_padding_scroller);
+	REQUIRE(horizontal_margin_scroller);
+
+	CHECK(padding_scroller->GetScrollHeight() == doctest::Approx(120.f));
+	CHECK(margin_scroller->GetScrollHeight() == doctest::Approx(117.f));
+	CHECK(horizontal_padding_scroller->GetScrollWidth() == doctest::Approx(120.f));
+	CHECK(horizontal_margin_scroller->GetScrollWidth() == doctest::Approx(117.f));
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
