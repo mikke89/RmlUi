@@ -9,10 +9,11 @@ enum class ScrollBehavior {
 };
 
 enum class ScrollAlignment {
-	Start,   // Align to the top or left edge of the parent element.
-	Center,  // Align to the center of the parent element.
-	End,     // Align to the bottom or right edge of the parent element.
-	Nearest, // Align with minimal scroll change.
+	Start,    // Align to the top or left edge of the scroll container.
+	Center,   // Align to the center of the scroll container.
+	End,      // Align to the bottom or right edge of the scroll container.
+	Nearest,  // Align with minimal scroll change.
+	Adaptive, // Do not scroll if already in view, otherwise align to the center of the scroll container.
 };
 
 enum class ScrollParentage {

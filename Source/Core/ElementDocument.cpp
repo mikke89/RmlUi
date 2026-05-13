@@ -579,7 +579,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			{
 				if (element->Focus(true))
 				{
-					element->ScrollIntoView(ScrollAlignment::Nearest);
+					element->ScrollIntoView(ScrollAlignment::Adaptive);
 					event.StopPropagation();
 				}
 			}
@@ -626,7 +626,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 				{
 					if (next->Focus(true))
 					{
-						next->ScrollIntoView(ScrollAlignment::Nearest);
+						next->ScrollIntoView(ScrollAlignment::Adaptive);
 						event.StopPropagation();
 					}
 				}
