@@ -111,7 +111,7 @@ Context::~Context()
 	ReleaseUnloadedDocuments();
 
 	for (const auto& pair : data_models)
-		PluginRegistry::NotifyDataModelDestroy(this, pair.first, DataModelHandle(pair.second.get()));
+		PluginRegistry::NotifyDataModelDestroy(this, pair.first);
 	data_models.clear();
 
 	root.reset();
@@ -1068,7 +1068,7 @@ DataModelConstructor Context::CreateDataModel(const String& name, DataTypeRegist
 	if (inserted)
 	{
 		DataModel* model = result.first->second.get();
-		PluginRegistry::NotifyDataModelCreate(this, name, DataModelHandle(model));
+		PluginRegistry::NotifyDataModelCreate(this, name);
 		return DataModelConstructor(model);
 	}
 
@@ -1106,7 +1106,7 @@ bool Context::RemoveDataModel(const String& name)
 	for (Element* element : elements)
 		element->SetDataModel(nullptr);
 
-	PluginRegistry::NotifyDataModelDestroy(this, it->first, DataModelHandle(model));
+	PluginRegistry::NotifyDataModelDestroy(this, it->first);
 
 	data_models.erase(it);
 

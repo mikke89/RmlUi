@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../Include/RmlUi/Core/DataModelHandle.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
@@ -38,9 +37,9 @@ public:
 	static void NotifyElementDestroy(Element* element);
 
 	/// Calls OnDataModelCreate() on all plugins.
-	static void NotifyDataModelCreate(Context* context, const String& name, DataModelHandle model);
+	static void NotifyDataModelCreate(Context* context, const String& name);
 	/// Calls OnDataModelDestroy() on all plugins.
-	static void NotifyDataModelDestroy(Context* context, const String& name, DataModelHandle model);
+	static void NotifyDataModelDestroy(Context* context, const String& name);
 
 private:
 	PluginRegistry() = delete;

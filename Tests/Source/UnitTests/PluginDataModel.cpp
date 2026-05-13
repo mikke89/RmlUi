@@ -14,14 +14,11 @@ class DataModelTrackingPlugin : public Plugin {
 public:
 	int GetEventClasses() override { return EVT_DATA_MODEL; }
 
-	void OnDataModelCreate(Context* context, const String& name, DataModelHandle model) override
-	{
-		created.push_back({context, name, static_cast<bool>(model)});
-	}
+	void OnDataModelCreate(Context* context, const String& name) override { created.push_back({context, name}); }
 
-	void OnDataModelDestroy(Context* context, const String& name, DataModelHandle model) override
+	void OnDataModelDestroy(Context* context, const String& name) override
 	{
-		destroyed.push_back({context, name, static_cast<bool>(model)});
+		destroyed.push_back({context, name});
 		// The data model should still be resolvable at this point.
 		model_resolvable_on_destroy = static_cast<bool>(context->GetDataModel(name));
 	}
@@ -29,7 +26,6 @@ public:
 	struct Entry {
 		Context* context;
 		String name;
-		bool handle_valid;
 	};
 
 	Vector<Entry> created;
@@ -54,7 +50,6 @@ TEST_CASE("plugin.data_model_notifications")
 		REQUIRE(plugin.created.size() == 1);
 		CHECK(plugin.created[0].context == context);
 		CHECK(plugin.created[0].name == "plugin_test_model");
-		CHECK(plugin.created[0].handle_valid);
 		CHECK(plugin.destroyed.empty());
 	}
 
@@ -74,7 +69,6 @@ TEST_CASE("plugin.data_model_notifications")
 		REQUIRE(plugin.destroyed.size() == 1);
 		CHECK(plugin.destroyed[0].context == context);
 		CHECK(plugin.destroyed[0].name == "plugin_test_model");
-		CHECK(plugin.destroyed[0].handle_valid);
 		CHECK(plugin.model_resolvable_on_destroy);
 	}
 
@@ -101,10 +95,10 @@ TEST_CASE("plugin.data_model_notifications")
 		Vector<String> names_destroyed_on_shutdown;
 		for (size_t i = destroyed_before; i < plugin.destroyed.size(); ++i)
 			names_destroyed_on_shutdown.push_back(plugin.destroyed[i].name);
-		CHECK(std::find(names_destroyed_on_shutdown.begin(), names_destroyed_on_shutdown.end(), "plugin_model_a") !=
-			names_destroyed_on_shutdown.end());
-		CHECK(std::find(names_destroyed_on_shutdown.begin(), names_destroyed_on_shutdown.end(), "plugin_model_b") !=
-			names_destroyed_on_shutdown.end());
+		CHECK(
+			std::find(names_destroyed_on_shutdown.begin(), names_destroyed_on_shutdown.end(), "plugin_model_a") != names_destroyed_on_shutdown.end());
+		CHECK(
+			std::find(names_destroyed_on_shutdown.begin(), names_destroyed_on_shutdown.end(), "plugin_model_b") != names_destroyed_on_shutdown.end());
 	}
 
 	Rml::UnregisterPlugin(&plugin);

@@ -122,16 +122,16 @@ void PluginRegistry::NotifyElementDestroy(Element* element)
 		plugin->OnElementDestroy(element);
 }
 
-void PluginRegistry::NotifyDataModelCreate(Context* context, const String& name, DataModelHandle model)
+void PluginRegistry::NotifyDataModelCreate(Context* context, const String& name)
 {
 	for (Plugin* plugin : plugin_vectors->data_model)
-		plugin->OnDataModelCreate(context, name, model);
+		plugin->OnDataModelCreate(context, name);
 }
 
-void PluginRegistry::NotifyDataModelDestroy(Context* context, const String& name, DataModelHandle model)
+void PluginRegistry::NotifyDataModelDestroy(Context* context, const String& name)
 {
 	for (Plugin* plugin : plugin_vectors->data_model)
-		plugin->OnDataModelDestroy(context, name, model);
+		plugin->OnDataModelDestroy(context, name);
 }
 
 } // namespace Rml

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "DataModelHandle.h"
 #include "Header.h"
 #include "Types.h"
 
@@ -55,11 +54,11 @@ public:
 	virtual void OnElementDestroy(Element* element);
 
 	/// Called when a new data model is created on a context.
-	virtual void OnDataModelCreate(Context* context, const String& name, DataModelHandle model);
+	virtual void OnDataModelCreate(Context* context, const String& name);
 	/// Called when a data model is about to be destroyed, either explicitly through Context::RemoveDataModel or
 	/// implicitly when the owning context is destroyed. At this point the data model is still accessible through
 	/// Context::GetDataModel, but will be unusable as soon as this callback returns.
-	virtual void OnDataModelDestroy(Context* context, const String& name, DataModelHandle model);
+	virtual void OnDataModelDestroy(Context* context, const String& name);
 };
 
 } // namespace Rml
