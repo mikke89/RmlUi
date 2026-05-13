@@ -33,7 +33,7 @@ if Options.datamodel == nil then
 		options_changed = false,
 		audios = {
 			{id="reverb", label="Reverb", checked=true},
-			{id="3d", label="3D Spatialisation"},
+			{id="3d", label="3D Spatialisation", checked=false},
 		}
 	})
 end
