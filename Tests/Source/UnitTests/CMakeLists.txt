@@ -23,6 +23,7 @@ add_executable(${TARGET_NAME}
 	main.cpp
 	Math.cpp
 	MediaQuery.cpp
+	Navigation.cpp
 	Properties.cpp
 	PropertySpecification.cpp
 	Selectors.cpp

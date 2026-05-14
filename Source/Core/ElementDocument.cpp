@@ -661,25 +661,26 @@ void ElementDocument::SetFocusableFromModal(bool focusable)
 	focusable_from_modal = focusable;
 }
 
-Element* ElementDocument::FindNextTabElement(Element* current_element, bool forward)
+Element* ElementDocument::FindNextTabElement(Element* current_element, bool forward, bool wrap_around)
 {
 	// This algorithm is quite sneaky, I originally thought a depth first search would work, but it appears not. What is
 	// required is to cut the tree in half along the nodes from current_element up the root and then either traverse the
 	// tree in a clockwise or anticlock wise direction depending if you're searching forward or backward respectively.
 
-	// If we're searching forward, check the immediate children of this node first off.
-	if (forward)
+	Element* document = current_element->GetOwnerDocument();
+
+	// If we're searching forward, check the immediate children of this node first off. If we're searching backward we
+	// only want to consider children if we are the document root.
+	if (forward || current_element == document)
 	{
-		for (int i = 0; i < current_element->GetNumChildren(); i++)
-			if (Element* result = SearchFocusSubtree(current_element->GetChild(i), forward))
-				return result;
+		if (Element* result = SearchFocusSubtreeChildren(current_element, forward))
+			return result;
 	}
 
 	// Now walk up the tree, testing either the bottom or top
 	// of the tree, depending on whether we're going forward
 	// or backward respectively.
 	bool search_enabled = false;
-	Element* document = current_element->GetOwnerDocument();
 	Element* child = current_element;
 	Element* parent = current_element->GetParentNode();
 	while (child != document)
@@ -708,21 +709,15 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 	}
 
 	// We could not find anything to focus along this direction.
+	if (!wrap_around)
+		return nullptr;
 
 	// If we can focus the document, then focus that now.
 	if (current_element != document && CanFocusElement(document) == CanFocus::Yes)
 		return document;
 
 	// Otherwise, search the entire document tree. This way we will wrap around.
-	const int num_children = document->GetNumChildren();
-	for (int i = 0; i < num_children; i++)
-	{
-		const int child_index = forward ? i : (num_children - i - 1);
-		if (Element* result = SearchFocusSubtree(document->GetChild(child_index), forward))
-			return result;
-	}
-
-	return nullptr;
+	return SearchFocusSubtreeChildren(document, forward);
 }
 
 Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward)
@@ -733,11 +728,15 @@ Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 	else if (can_focus == CanFocus::NoAndNoChildren)
 		return nullptr;
 
-	for (int i = 0; i < element->GetNumChildren(); i++)
+	return SearchFocusSubtreeChildren(element, forward);
+}
+
+Element* ElementDocument::SearchFocusSubtreeChildren(Element* element, bool forward)
+{
+	const int num_children = element->GetNumChildren();
+	for (int i = 0; i < num_children; i++)
 	{
-		int child_index = i;
-		if (!forward)
-			child_index = element->GetNumChildren() - i - 1;
+		const int child_index = (forward ? i : (num_children - i - 1));
 		if (Element* result = SearchFocusSubtree(element->GetChild(child_index), forward))
 			return result;
 	}
@@ -775,6 +774,7 @@ Element* ElementDocument::FindNextNavigationElement(Element* current_element, Na
 	{
 		const bool direction_is_horizontal = (direction == NavigationSearchDirection::Left || direction == NavigationSearchDirection::Right);
 		const bool direction_is_vertical = (direction == NavigationSearchDirection::Up || direction == NavigationSearchDirection::Down);
+		const bool direction_is_forward = (direction == NavigationSearchDirection::Down || direction == NavigationSearchDirection::Right);
 		switch (static_cast<Style::Nav>(property.value.Get<int>()))
 		{
 		case Style::Nav::None: return nullptr;
@@ -787,34 +787,33 @@ Element* ElementDocument::FindNextNavigationElement(Element* current_element, Na
 			if (!direction_is_vertical)
 				return nullptr;
 			break;
+		case Style::Nav::TreeOrder: return FindNextTabElement(current_element, direction_is_forward, false);
 		}
+
+		if (current_element == this)
+			return FindNextTabElement(current_element, direction_is_forward);
+
+		const Vector2f position = current_element->GetAbsoluteOffset(BoxArea::Border);
+		const Rectanglef bounding_box = Rectanglef::FromPositionSize(position, current_element->GetBox().GetSize(BoxArea::Border));
+
+		auto GetNearestScrollContainer = [this](Element* element) -> Element* {
+			for (element = element->GetParentNode(); element; element = element->GetParentNode())
+			{
+				if (IsScrollContainer(element))
+					return element;
+			}
+			return this;
+		};
+		Element* start_element = GetNearestScrollContainer(current_element);
+
+		SearchNavigationResult best_result;
+		SearchNavigationTarget(best_result, start_element, direction, bounding_box, current_element);
+		return best_result.element;
 	}
 	break;
-	default: return nullptr;
+	default: break;
 	}
-
-	if (current_element == this)
-	{
-		const bool direction_is_forward = (direction == NavigationSearchDirection::Down || direction == NavigationSearchDirection::Right);
-		return FindNextTabElement(this, direction_is_forward);
-	}
-
-	const Vector2f position = current_element->GetAbsoluteOffset(BoxArea::Border);
-	const Rectanglef bounding_box = Rectanglef::FromPositionSize(position, current_element->GetBox().GetSize(BoxArea::Border));
-
-	auto GetNearestScrollContainer = [this](Element* element) -> Element* {
-		for (element = element->GetParentNode(); element; element = element->GetParentNode())
-		{
-			if (IsScrollContainer(element))
-				return element;
-		}
-		return this;
-	};
-	Element* start_element = GetNearestScrollContainer(current_element);
-
-	SearchNavigationResult best_result;
-	SearchNavigationTarget(best_result, start_element, direction, bounding_box, current_element);
-	return best_result.element;
+	return nullptr;
 }
 
 } // namespace Rml

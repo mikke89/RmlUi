@@ -99,8 +99,9 @@ public:
 	/// Finds the next tabbable element in the document tree, starting at the given element, possibly wrapping around the document.
 	/// @param[in] current_element The element to start from.
 	/// @param[in] forward True to search forward, false to search backward.
+	/// @param[in] wrap_around True to continue searching wrapping around the document root.
 	/// @return The next tabbable element, or nullptr if none could be found.
-	Element* FindNextTabElement(Element* current_element, bool forward);
+	Element* FindNextTabElement(Element* current_element, bool forward, bool wrap_around = true);
 
 	/// Loads an inline script into the document. Note that the base implementation does nothing, but script plugins can hook into this method.
 	/// @param[in] content The script content.
@@ -134,6 +135,8 @@ protected:
 private:
 	/// Searches forwards or backwards for a focusable element in the given subtree.
 	Element* SearchFocusSubtree(Element* element, bool forward);
+	/// Searches children of the given subtree for a focusable child.
+	Element* SearchFocusSubtreeChildren(Element* element, bool forward);
 	/// Find the next element to navigate to, starting at the current element.
 	Element* FindNextNavigationElement(Element* current_element, NavigationSearchDirection direction, const Property& property);
 
