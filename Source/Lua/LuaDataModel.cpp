@@ -98,14 +98,16 @@ struct LuaDataModel {
 	int model_ref = LUA_NOREF;
 	int valuestore_ref = LUA_NOREF;
 	int tablestore_ref = LUA_NOREF;
+	int keystore_ref = LUA_NOREF;
 };
 
 struct TableProxy {
 	LuaDataModel* model;
 	int table_ref = LUA_NOREF;
+	int key_ref = LUA_NOREF;
 };
 
-static struct TableProxy* NewTableProxy(struct LuaDataModel* model);
+static struct TableProxy* NewTableProxy(struct LuaDataModel* model, int key_ref);
 static struct TableProxy* ToTableProxy(lua_State* L, int index)
 {
 	return (struct TableProxy*)luaL_testudata(L, index, RMLTABLEPROXY);
@@ -262,7 +264,7 @@ DataVariable LuaObjectDef::Child(void* ptr, const DataAddressEntry& address)
 	// -1 = value, -2 = key
 
 	if (lua_type(L, -1) == LUA_TTABLE)
-		NewTableProxy(model);
+		NewTableProxy(model, proxy->key_ref);
 	else if (lua_isnil(L, -1))
 	{
 		lua_pop(L, 2);
@@ -379,7 +381,7 @@ static int TableProxyGet(lua_State* L)
 
 	if (lua_type(L, -1) == LUA_TTABLE)
 	{
-		NewTableProxy(proxy->model);
+		NewTableProxy(proxy->model, proxy->key_ref);
 		// -1 = value
 		lua_pushvalue(L, -1);
 		// -1 = value, -2 = value
@@ -425,7 +427,7 @@ static int TableProxySet(lua_State* L)
 		lua_pushvalue(L, 3);
 		// -1 = value, -2 = tablestore entry, -3 = valuestore
 		if (lua_type(L, -1) == LUA_TTABLE)
-			NewTableProxy(proxy->model);
+			NewTableProxy(proxy->model, proxy->key_ref);
 		int child_ref = luaL_ref(L, -3);
 		// -1 = tablestore entry, -2 = valuestore
 		lua_pushvalue(L, 2);
@@ -451,8 +453,15 @@ static int TableProxySet(lua_State* L)
 	lua_pushvalue(L, 3);
 	// -1 = value
 	if (lua_type(L, -1) == LUA_TTABLE)
-		NewTableProxy(proxy->model);
+		NewTableProxy(proxy->model, proxy->key_ref);
 	SetValue(proxy->model, child_ref);
+
+	lua_rawgeti(L, LUA_REGISTRYINDEX, proxy->model->keystore_ref);
+	// -1 = keystore
+	lua_rawgeti(L, -1, proxy->key_ref);
+	// -1 = root key, -2 = keystore
+	proxy->model->handle.DirtyVariable(lua_tostring(L, -1));
+	lua_pop(L, 2);
 
 	return 0;
 }
@@ -482,7 +491,7 @@ static int TableProxyGc(lua_State* L)
 	return 0;
 }
 
-static struct TableProxy* NewTableProxy(struct LuaDataModel* model)
+static struct TableProxy* NewTableProxy(struct LuaDataModel* model, int key_ref)
 {
 	// -1 = table
 	lua_State* L = model->L;
@@ -501,6 +510,7 @@ static struct TableProxy* NewTableProxy(struct LuaDataModel* model)
 	// -1 = proxy
 	proxy->model = model;
 	proxy->table_ref = table_ref;
+	proxy->key_ref = key_ref;
 
 	if (luaL_newmetatable(L, RMLTABLEPROXY))
 	{
@@ -533,9 +543,10 @@ static void BindVariable(struct LuaDataModel* model)
 	// -1 = valuestore, -2 = value, -3 = key
 	lua_pushvalue(L, -2);
 	// -1 = value, -2 = valuestore, -3 = value, -4 = key
-	if (lua_type(L, -1) == LUA_TTABLE)
-		NewTableProxy(model);
+	value_proxy = lua_type(L, -1) == LUA_TTABLE ? NewTableProxy(model, LUA_REFNIL) : nullptr;
 	int ref = luaL_ref(L, -2);
+	if (value_proxy != nullptr)
+		value_proxy->key_ref = ref;
 	// -1 = valuestore, -2 = value, -3 = key
 	lua_pop(L, 1);
 	// -1 = value, -2 = key
@@ -552,6 +563,15 @@ static void BindVariable(struct LuaDataModel* model)
 	// -1 = ref, -2 = key, -3 = tablestore entry, -4 = value, -5 = key
 	lua_rawset(L, -3);
 	// -1 = tablestore entry, -2 = value, -3 = key
+	lua_pop(L, 1);
+	// -1 = value, -2 = key
+
+	lua_rawgeti(L, LUA_REGISTRYINDEX, model->keystore_ref);
+	// -1 = keystore, -2 = value, -3 = key
+	lua_pushvalue(L, -3);
+	// -1 = key, -2 = keystore, -3 = value, -4 = key
+	lua_rawseti(L, -2, ref);
+	// -1 = keystore, -2 = value, -3 = key
 	lua_pop(L, 1);
 	// -1 = value, -2 = key
 
@@ -610,7 +630,7 @@ static int lDataModelGet(lua_State* L)
 
 	if (lua_type(L, -1) == LUA_TTABLE)
 	{
-		NewTableProxy(model);
+		NewTableProxy(model, child_ref);
 		lua_pushvalue(L, -1);
 		lua_rawseti(L, -3, child_ref);
 	}
@@ -647,7 +667,7 @@ static int lDataModelSet(lua_State* L)
 	}
 
 	if (lua_type(L, -1) == LUA_TTABLE)
-		NewTableProxy(model);
+		NewTableProxy(model, child_ref);
 	SetValue(model, child_ref);
 
 	lua_pushvalue(L, 2);
@@ -687,6 +707,9 @@ bool OpenLuaDataModel(lua_State* L, Context* context, int name_index, int table_
 	lua_newtable(L);
 	lua_rawseti(L, -2, model->model_ref);
 	model->tablestore_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+
+	lua_newtable(L);
+	model->keystore_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	lua_pushnil(L);
 	while (lua_next(L, table_index) != 0)
@@ -730,6 +753,10 @@ void CloseLuaDataModel(lua_State* L)
 	lua_pushnil(L);
 	lua_rawseti(L, LUA_REGISTRYINDEX, model->tablestore_ref);
 	model->tablestore_ref = LUA_NOREF;
+
+	lua_pushnil(L);
+	lua_rawseti(L, LUA_REGISTRYINDEX, model->keystore_ref);
+	model->keystore_ref = LUA_NOREF;
 }
 
 } // namespace Lua
