@@ -677,6 +677,23 @@ static int lDataModelSet(lua_State* L)
 	return 0;
 }
 
+void PushDataModelsTable(lua_State* L)
+{
+	static constexpr auto datamodels_key = "datamodels";
+
+	lua_pushstring(L, datamodels_key);
+	lua_rawget(L, LUA_REGISTRYINDEX);
+
+	if (lua_type(L, -1) == LUA_TTABLE)
+		return;
+
+	lua_pop(L, 1);
+	lua_newtable(L);
+	lua_pushstring(L, datamodels_key);
+	lua_pushvalue(L, -2);
+	lua_rawset(L, LUA_REGISTRYINDEX);
+}
+
 bool OpenLuaDataModel(lua_State* L, Context* context, int name_index, int table_index)
 {
 	String name = luaL_checkstring(L, name_index);
@@ -728,23 +745,37 @@ bool OpenLuaDataModel(lua_State* L, Context* context, int name_index, int table_
 		luaL_setfuncs(L, l, 0);
 	}
 	lua_setmetatable(L, -2);
+	// -1 = data model
+
+	PushDataModelsTable(L);
+	// -1 = data models table, -2 = data model
+	lua_pushvalue(L, name_index);
+	// -1 = name, -2 = data models table, -3 = data model
+	lua_pushvalue(L, -3);
+	// -1 = data model, -2 = name, -3 = data models table, -4 = data model
+	lua_rawset(L, -3);
+	// -1 = data models table, -2 = data model
+	lua_pop(L, 1);
+	// -1 = data model
 
 	return true;
 }
 
-// If you create all the Data Models from lua, you can store these LuaDataModel objects in a table,
-// and call CloseLuaDataModel for each after Context released.
-// We don't put it in __gc, becuase LuaDataModel can be free before DataModel if you are not careful.
-// scalarDef will free by CloseLuaDataModel, but DataModel need it.
-void CloseLuaDataModel(lua_State* L)
+void CloseLuaDataModel(lua_State* L, Context* context, int name_index)
 {
-	luaL_checkudata(L, -1, RMLDATAMODEL);
-	struct LuaDataModel* model = (struct LuaDataModel*)lua_touserdata(L, -1);
-	model->L = nullptr;
-	delete model->objectDef;
-	model->objectDef = nullptr;
+	String name = luaL_checkstring(L, name_index);
 
-	model->model_ref = LUA_NOREF;
+	PushDataModelsTable(L);
+	// -1 = data models table
+	lua_pushvalue(L, name_index);
+	// -1 = name, -2 = data models table
+	lua_rawget(L, -2);
+	// -1 = data model / nil, -2 = data models table
+	struct LuaDataModel* model = (struct LuaDataModel*)luaL_testudata(L, -1, RMLDATAMODEL);
+	lua_pop(L, 2);
+
+	if (model == nullptr)
+		return;
 
 	lua_pushnil(L);
 	lua_rawseti(L, LUA_REGISTRYINDEX, model->valuestore_ref);
@@ -757,6 +788,24 @@ void CloseLuaDataModel(lua_State* L)
 	lua_pushnil(L);
 	lua_rawseti(L, LUA_REGISTRYINDEX, model->keystore_ref);
 	model->keystore_ref = LUA_NOREF;
+
+	model->L = nullptr;
+	delete model->objectDef;
+	model->objectDef = nullptr;
+
+	model->model_ref = LUA_NOREF;
+
+	PushDataModelsTable(L);
+	// -1 = data models table
+	lua_pushvalue(L, name_index);
+	// -1 = name, -2 = data models table
+	lua_pushnil(L);
+	// -1 = nil, -2 = name, -3 = data models table
+	lua_rawset(L, -3);
+	// -1 = data models table
+	lua_pop(L, 1);
+
+	context->RemoveDataModel(name);
 }
 
 } // namespace Lua
