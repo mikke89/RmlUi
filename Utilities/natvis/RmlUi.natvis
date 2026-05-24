@@ -58,4 +58,34 @@
       <Item Name="[value]" Condition="type == '*'">*((void**)data)</Item>
     </Expand>
   </Type>
+  <Type Name="Rml::PropertyIdSet">
+    <Intrinsic Name="popcount_s1" Expression="x - ((x &gt;&gt; 1) &amp; 0x5555555555555555ULL)">
+      <Parameter Name="x" Type="unsigned __int64" />
+    </Intrinsic>
+    <Intrinsic Name="popcount_s2" Expression="(x &amp; 0x3333333333333333ULL) + ((x &gt;&gt; 2) &amp; 0x3333333333333333ULL)">
+      <Parameter Name="x" Type="unsigned __int64" />
+    </Intrinsic>
+    <Intrinsic Name="popcount_s3" Expression="(x + (x &gt;&gt; 4)) &amp; 0x0F0F0F0F0F0F0F0FULL">
+      <Parameter Name="x" Type="unsigned __int64" />
+    </Intrinsic>
+    <Intrinsic Name="popcount64" Expression="(popcount_s3(popcount_s2(popcount_s1(x))) * 0x0101010101010101ULL) &gt;&gt; 56">
+      <Parameter Name="x" Type="unsigned __int64" />
+    </Intrinsic>
+    <Intrinsic Name="size" Expression="popcount64(defined_ids._Array[0]) + popcount64(defined_ids._Array[1])" />
+    <DisplayString Condition="size() == 0">{{ empty }}</DisplayString>
+    <DisplayString>{{ size={size()} }}</DisplayString>
+    <Expand>
+      <Item Name="[size]" ExcludeView="simple">size()</Item>
+      <CustomListItems MaxItemsPerView="128">
+        <Variable Name="i" InitialValue="1" />
+        <Loop>
+          <Break Condition="i &gt;= 128" />
+          <If Condition="(defined_ids._Array[i / 64] &amp; (1ULL &lt;&lt; (i % 64))) != 0">
+            <Item Name="[{i}]">(Rml::PropertyId)i,en</Item>
+          </If>
+          <Exec>i = i + 1</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
 </AutoVisualizer>
