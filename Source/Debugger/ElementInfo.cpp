@@ -73,7 +73,7 @@ void ElementInfo::OnUpdate()
 
 		constexpr float update_interval = 0.3f;
 
-		if (dt > update_interval || (force_update_once))
+		if (dt >= update_interval || force_update_once)
 		{
 			if (force_update_once && source_element)
 			{
@@ -86,6 +86,9 @@ void ElementInfo::OnUpdate()
 
 			UpdateSourceElement();
 		}
+
+		if (Context* context = GetContext())
+			context->RequestNextUpdate(update_interval);
 	}
 
 	if (title_dirty)
