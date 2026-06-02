@@ -40,6 +40,7 @@ struct ShorthandDefinition {
 	ShorthandId id;
 	ShorthandItemList items;
 	ShorthandType type;
+	bool inherited;
 };
 
 } // namespace Rml

@@ -89,7 +89,7 @@ bool PropertyParserFontEffect::ParseValue(Property& property, const String& font
 				// Create a unique hash value for the given type and values
 				size_t fingerprint = Hash<String>{}(type);
 				for (const auto& id_value : properties.GetProperties())
-					Utilities::HashCombine(fingerprint, id_value.second.Get<String>());
+					Utilities::HashCombine(fingerprint, id_value.second.ToString());
 
 				font_effect->SetFingerprint(fingerprint);
 

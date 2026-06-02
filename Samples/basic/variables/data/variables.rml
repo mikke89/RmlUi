@@ -1,0 +1,486 @@
+<rml>
+<head>
+<title>RCSS variables sample</title>
+<style>
+body
+{
+	--bg:          #f0ebd8;
+	--surface:     #ffffff;
+	--surface-alt: #e6dfc6;
+	--fg:          #1d1d1d;
+	--muted:       #6a6a6a;
+	--primary:     #b73a2a;
+	--secondary:   #1c8a73;
+	--accent:      #d35400;
+	--border:      #c8c2a8;
+
+	--success:     #15803d;
+	--warning:     #ca8a04;
+	--info:        #1d4ed8;
+	--danger:      #b91c1c;
+
+	--radius:      10px;
+	--radius-sm:   6px;
+
+	--gap-xs:      4px;
+	--gap-sm:      8px;
+	--gap:         16px;
+	--gap-lg:      24px;
+	--gap-xl:      40px;
+
+	--text-display:  38px;
+	--text-heading:  24px;
+	--text-body:     17px;
+	--text-small:    13px;
+	--text-eyebrow:  12px;
+
+	--strip-thick:   6px;
+}
+
+@media (theme: dark)
+{
+	body
+	{
+		--bg:          #18181b;
+		--surface:     #27272a;
+		--surface-alt: #3f3f46;
+		--fg:          #f4f4f5;
+		--muted:       #a1a1aa;
+		--primary:     #f87171;
+		--secondary:   #2dd4bf;
+		--accent:      #fbbf24;
+		--border:      #52525b;
+
+		--success:     #4ade80;
+		--warning:     #f59e0b;
+		--info:        #60a5fa;
+		--danger:      #ef4444;
+	}
+}
+
+@media (theme: high-contrast)
+{
+	body
+	{
+		--bg:          #000000;
+		--surface:     #0a0a0a;
+		--surface-alt: #1a1a1a;
+		--fg:          #ffffff;
+		--muted:       #cccccc;
+		--primary:     #ffff00;
+		--secondary:   #00ffff;
+		--accent:      #ff00ff;
+		--border:      #ffffff;
+
+		--success:     #00ff00;
+		--warning:     #ffaa00;
+		--info:        #4488ff;
+		--danger:      #ff4444;
+	}
+}
+
+body
+{
+	display: block;
+	width: 1024px;
+	height: 768px;
+	font-family: LatoLatin;
+	font-size: var(--text-body);
+	background-color: var(--bg);
+	color: var(--fg);
+	padding: var(--gap-lg);
+}
+
+.shell
+{
+	display: block;
+	width: 880px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.row
+{
+	display: flex;
+	flex-direction: row;
+	margin-bottom: var(--gap);
+}
+
+.col-main
+{
+	flex: 0 0 540px;
+	margin-right: var(--gap);
+}
+
+.col-aside
+{
+	flex: 0 0 324px;
+}
+
+/* ---- Banner -------------------------------------------------------- */
+
+.banner
+{
+	display: block;
+	background-color: var(--primary);
+	color: var(--bg);
+	border-radius: var(--radius);
+	padding: var(--gap);
+	margin-bottom: var(--gap);
+}
+
+.banner-eyebrow
+{
+	display: block;
+	color: var(--bg);
+	font-size: var(--text-eyebrow);
+	font-weight: bold;
+	margin-bottom: var(--gap-sm);
+}
+
+.banner-title
+{
+	display: block;
+	color: var(--bg);
+	font-size: var(--text-display);
+	font-weight: bold;
+	margin-bottom: var(--gap-xs);
+}
+
+.banner-subtitle
+{
+	display: block;
+	color: var(--bg);
+	font-size: var(--text-body);
+}
+
+/* ---- Hero ---------------------------------------------------------- */
+
+.hero
+{
+	display: block;
+	background-color: var(--surface);
+	border-color: var(--border);
+	border-width: 1px;
+	border-radius: var(--radius);
+	padding: var(--gap);
+}
+
+.hero-eyebrow
+{
+	display: block;
+	color: var(--secondary);
+	font-size: var(--text-eyebrow);
+	font-weight: bold;
+	margin-bottom: var(--gap-sm);
+}
+
+.hero-heading
+{
+	display: block;
+	color: var(--fg);
+	font-size: var(--text-heading);
+	font-weight: bold;
+	margin-bottom: var(--gap-sm);
+}
+
+.hero-body
+{
+	display: block;
+	color: var(--muted);
+	font-size: var(--text-body);
+	margin-bottom: var(--gap);
+}
+
+/* ---- Buttons ------------------------------------------------------- */
+
+.button
+{
+	display: inline-block;
+	background-color: var(--primary);
+	color: var(--bg);
+	border-color: var(--primary);
+	border-width: 2px;
+	border-radius: var(--radius-sm);
+	font-size: var(--text-body);
+	font-weight: bold;
+	padding: var(--gap-sm) var(--gap);
+	margin-right: var(--gap-sm);
+	transition: background-color color border-color 0.18s quadratic-in-out;
+}
+
+.button:hover
+{
+	background-color: var(--accent);
+	color: var(--bg);
+	border-color: var(--accent);
+}
+
+.button.ghost
+{
+	background-color: transparent;
+	color: var(--fg);
+	border-color: var(--border);
+}
+
+.button.ghost:hover
+{
+	background-color: var(--surface-alt);
+	color: var(--fg);
+	border-color: var(--secondary);
+}
+
+/* ---- Alerts: showcase the semantic palette (success / warning / info / danger) ---- */
+
+.alerts
+{
+	display: block;
+	background-color: var(--surface);
+	border-color: var(--border);
+	border-width: 1px;
+	border-radius: var(--radius);
+	padding: var(--gap);
+}
+
+.alerts-title
+{
+	display: block;
+	color: var(--muted);
+	font-size: var(--text-eyebrow);
+	font-weight: bold;
+	margin-bottom: var(--gap-sm);
+}
+
+.alert
+{
+	display: block;
+	background-color: var(--surface-alt);
+	border-color: var(--border);
+	border-width: 1px;
+	border-radius: var(--radius-sm);
+	padding: var(--gap-sm);
+	margin-bottom: var(--gap-xs);
+	font-size: var(--text-small);
+	color: var(--fg);
+}
+
+.alert-dot
+{
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 999px;
+	margin-right: var(--gap-sm);
+}
+
+.alert.info    .alert-dot { background-color: var(--info); }
+.alert.success .alert-dot { background-color: var(--success); }
+.alert.warning .alert-dot { background-color: var(--warning); }
+.alert.danger  .alert-dot { background-color: var(--danger); }
+
+.alert-tag
+{
+	display: inline-block;
+	font-weight: bold;
+	margin-right: var(--gap-sm);
+}
+
+.alert.info    .alert-tag { color: var(--info); }
+.alert.success .alert-tag { color: var(--success); }
+.alert.warning .alert-tag { color: var(--warning); }
+.alert.danger  .alert-tag { color: var(--danger); }
+
+/* ---- Stat grid ----------------------------------------------------- */
+
+.stats
+{
+	display: flex;
+	flex-direction: row;
+	margin-bottom: var(--gap);
+}
+
+.stat-card
+{
+	flex: 0 0 248px;
+	background-color: var(--surface);
+	border-color: var(--border);
+	border-width: 1px;
+	border-radius: var(--radius);
+	padding: var(--gap);
+	margin-right: var(--gap);
+}
+
+.stat-card.last
+{
+	margin-right: 0;
+}
+
+.stat-label
+{
+	display: block;
+	color: var(--secondary);
+	font-size: var(--text-eyebrow);
+	font-weight: bold;
+	margin-bottom: var(--gap-xs);
+}
+
+.stat-value
+{
+	display: block;
+	color: var(--accent);
+	font-size: var(--text-display);
+	font-weight: bold;
+	margin-bottom: var(--gap-xs);
+}
+
+.stat-trend
+{
+	display: block;
+	color: var(--secondary);
+	font-size: var(--text-small);
+}
+
+/* ---- Toolbar ------------------------------------------------------- */
+
+.toolbar
+{
+	display: block;
+	background-color: var(--surface-alt);
+	border-color: var(--border);
+	border-width: 1px;
+	border-radius: var(--radius);
+	padding: var(--gap);
+	margin-bottom: var(--gap);
+}
+
+.toolbar-row
+{
+	display: block;
+}
+
+.toolbar-row.second
+{
+	margin-top: var(--gap-sm);
+}
+
+.toolbar-label
+{
+	display: inline-block;
+	color: var(--muted);
+	font-size: var(--text-eyebrow);
+	font-weight: bold;
+	margin-right: var(--gap-sm);
+}
+
+.kbd
+{
+	display: inline-block;
+	background-color: var(--bg);
+	color: var(--fg);
+	border-color: var(--border);
+	border-width: 1px;
+	border-radius: var(--radius-sm);
+	font-size: var(--text-small);
+	font-weight: bold;
+	padding: 2px var(--gap-sm);
+	margin-right: var(--gap-xs);
+}
+
+.kbd-action
+{
+	display: inline-block;
+	color: var(--fg);
+	font-size: var(--text-small);
+	margin-right: var(--gap);
+}
+
+/* ---- Footer -------------------------------------------------------- */
+
+.footer
+{
+	display: block;
+	color: var(--muted);
+	font-size: var(--text-small);
+	padding-top: var(--gap);
+	border-top-color: var(--border);
+	border-top-width: 1px;
+}
+
+</style>
+</head>
+<body>
+<div class="shell">
+	<div class="banner">
+		<div class="banner-eyebrow">SECTOR 7-G · AETHER COMMAND</div>
+		<div class="banner-title">Resupply rendezvous in progress</div>
+		<div class="banner-subtitle">Convoy ETA two hours. Shields nominal. All hands accounted for.</div>
+	</div>
+
+	<div class="row">
+		<div class="col-main">
+			<div class="hero">
+				<div class="hero-eyebrow">CURRENT MISSION</div>
+				<div class="hero-heading">Hold position until the supply convoy arrives.</div>
+				<div class="hero-body">Select your next action. Hover the buttons to trigger smooth color transitions, influenced by the current accent color.</div>
+				<div class="button">Continue mission</div>
+				<div class="button ghost">View briefing</div>
+			</div>
+		</div>
+		<div class="col-aside">
+			<div class="alerts">
+				<div class="alerts-title">SYSTEM STATUS</div>
+				<div class="alert info">
+					<span class="alert-dot"/><span class="alert-tag">INFO</span>Convoy ETA 14:00.
+				</div>
+				<div class="alert success">
+					<span class="alert-dot"/><span class="alert-tag">OK</span>Sector clear.
+				</div>
+				<div class="alert warning">
+					<span class="alert-dot"/><span class="alert-tag">WARN</span>Ion storm in sector 8.
+				</div>
+				<div class="alert danger">
+					<span class="alert-dot"/><span class="alert-tag">FAULT</span>Relay 4 intermittent.
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="stats">
+		<div class="stat-card">
+			<div class="stat-label">ENERGY</div>
+			<div class="stat-value">87%</div>
+			<div class="stat-trend">+3% over last cycle</div>
+		</div>
+		<div class="stat-card">
+			<div class="stat-label">SHIELDS</div>
+			<div class="stat-value">100%</div>
+			<div class="stat-trend">Holding at maximum</div>
+		</div>
+		<div class="stat-card last">
+			<div class="stat-label">CREW</div>
+			<div class="stat-value">42</div>
+			<div class="stat-trend">All hands accounted</div>
+		</div>
+	</div>
+
+	<div class="toolbar">
+		<div class="toolbar-row">
+			<span class="toolbar-label">THEME</span>
+			<span class="kbd">1</span><span class="kbd-action">Dark</span>
+			<span class="kbd">2</span><span class="kbd-action">Light</span>
+			<span class="kbd">3</span><span class="kbd-action">High contrast</span>
+		</div>
+		<div class="toolbar-row second">
+			<span class="toolbar-label">OVERRIDE</span>
+			<span class="kbd">R</span><span class="kbd-action">Random accent</span>
+			<span class="kbd">C</span><span class="kbd-action">Clear</span>
+			<span class="kbd">ESC</span><span class="kbd-action">Quit</span>
+		</div>
+	</div>
+
+	<div class="footer">
+		Themes declared in @media (theme: x) { body { --var: value } } blocks. Context::ActivateTheme switches between them. Element::SetProperty provides a runtime override layer.
+	</div>
+</div>
+</body>
+</rml>

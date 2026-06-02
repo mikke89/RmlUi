@@ -5,7 +5,7 @@
 
 namespace Rml {
 
-class PropertiesIterator;
+class AllPropertiesIterator;
 
 /**
     Provides an iterator for properties defined in the element's style or definition.
@@ -13,7 +13,7 @@ class PropertiesIterator;
     Warning: Modifying the underlying style invalidates the iterator.
 
     Usage:
-        for(auto it = element.IterateLocalProperties(); !it.AtEnd(); ++it) { ... }
+        for(auto it = element.IterateLocalProperties(nullptr); !it.AtEnd(); ++it) { ... }
 
     Note: Not an std-style iterator. Implemented as a wrapper over the internal
     iterator to avoid exposing internal headers to the user.
@@ -21,7 +21,9 @@ class PropertiesIterator;
 
 class RMLUICORE_API PropertiesIteratorView {
 public:
-	PropertiesIteratorView(UniquePtr<PropertiesIterator> ptr);
+	using ValueType = Pair<String, const Property&>;
+
+	PropertiesIteratorView(UniquePtr<AllPropertiesIterator> ptr);
 	PropertiesIteratorView(PropertiesIteratorView&& other) noexcept;
 	PropertiesIteratorView& operator=(PropertiesIteratorView&& other) noexcept;
 	PropertiesIteratorView(const PropertiesIteratorView& other) = delete;
@@ -34,12 +36,11 @@ public:
 	// @warning The getters and operator++ can only be called if the iterator is not at the end.
 	bool AtEnd() const;
 
-	PropertyId GetId() const;
-	const String& GetName() const;
-	const Property& GetProperty() const;
+	// Returns the property name and value pair.
+	Pair<String, const Property&> operator*() const;
 
 private:
-	UniquePtr<PropertiesIterator> ptr;
+	UniquePtr<AllPropertiesIterator> ptr;
 };
 
 } // namespace Rml

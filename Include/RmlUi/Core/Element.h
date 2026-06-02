@@ -184,10 +184,12 @@ public:
 	/// @param[in] name The name of the local property definition to remove.
 	void RemoveProperty(const String& name);
 	void RemoveProperty(PropertyId id);
-	/// Returns one of this element's properties. If the property is not defined for this element and not inherited
-	/// from an ancestor, the default value will be returned.
+	/// Returns one of this element's properties. If the property is not defined for this element and not inherited from an ancestor,
+	/// the default value will be returned. Cascading variables ("var()") are fully resolved.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
+	/// @note When resolving any cascading variables ("var()") in the property, correctness is only guaranteed after a context update.
+	/// @lifetime The returned pointer is invalidated on any following call into RmlUi, please copy by value to store the property around.
 	const Property* GetProperty(const String& name);
 	const Property* GetProperty(PropertyId id);
 	/// Returns the values of one of this element's properties.
@@ -195,10 +197,10 @@ public:
 	/// @return The value of this property.
 	template <typename T>
 	T GetProperty(const String& name);
-	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
-	/// returned.
+	/// Returns one of this element's local style properties. Cascading variables ("var()") are not resolved.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
+	/// @lifetime The returned pointer is invalidated on any following call into RmlUi, please copy by value to store the property around.
 	const Property* GetLocalProperty(const String& name);
 	const Property* GetLocalProperty(PropertyId id);
 	/// Returns the local style properties. Does not include properties applied from any locally set classes.
@@ -249,9 +251,10 @@ public:
 	bool AddAnimationKey(PropertyId id, const Property& target_value, float duration, Tween tween = Tween{});
 
 	/// Iterator for the local (non-inherited) properties defined on this element.
+	/// @param[in] filter_inherited_by If set, only iterates properties that are inherited by the given element.
 	/// @warning Modifying the element's properties or classes invalidates the iterator.
 	/// @return Iterator to the first property defined on this element.
-	PropertiesIteratorView IterateLocalProperties() const;
+	PropertiesIteratorView IterateLocalProperties(Element* filter_inherited_by) const;
 	///@}
 
 	/** @name Pseudo-classes

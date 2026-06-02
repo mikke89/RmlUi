@@ -16,6 +16,7 @@
 #include "ComputeProperty.h"
 #include "ControlledLifetimeResource.h"
 #include "ElementMeta.h"
+#include "ElementStyle.h"
 #include "EventSpecification.h"
 #include "FileInterfaceDefault.h"
 #include "Layout/LayoutPools.h"
@@ -132,6 +133,7 @@ bool Initialise()
 
 	font_interface->Initialize();
 
+	ElementStyle::Initialize();
 	StyleSheetSpecification::Initialise();
 	StyleSheetParser::Initialise();
 	StyleSheetFactory::Initialise();
@@ -174,6 +176,7 @@ void Shutdown()
 	StyleSheetFactory::Shutdown();
 	StyleSheetParser::Shutdown();
 	StyleSheetSpecification::Shutdown();
+	ElementStyle::Shutdown();
 
 	font_interface->Shutdown();
 
