@@ -1,5 +1,4 @@
 #include "RmlUi_Renderer_VK.h"
-#include "RmlUi_Vulkan/ShadersCompiledSPV.h"
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
@@ -24,7 +23,7 @@ VkValidationFeatureEnableEXT debug_validation_features_ext_requested[] = {
 };
 
 #ifdef RMLUI_VK_DEBUG
-static Rml::String FormatByteSize(VkDeviceSize size) noexcept
+inline Rml::String FormatByteSize(VkDeviceSize size) noexcept
 {
 	constexpr VkDeviceSize K = VkDeviceSize(1024);
 	if (size < K)
@@ -57,20 +56,58 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugUtilsMessageS
 }
 #endif
 
+enum class ProgramId : int {
+	None,
+	Color_Stencil_Always,
+	Color_Stencil_Equal,
+	Color_Stencil_Set,
+	Color_Stencil_SetInverse,
+	Color_Stencil_Intersect,
+	Color_Stencil_Disabled,
+	Texture_Stencil_Always,
+	Texture_Stencil_Equal,
+	Texture_Stencil_Disabled,
+	Gradient,
+	Creation,
+	// this is for presenting our msaa render target texture for NO MSAA RT
+	// if you do not correctly stuff DX12 validation will say about different
+	// sample count like it is expected 1 (because no MSAA) but your RT target texture was created with
+	// sample count = 2, so it is not a correct way of using it
+	Passthrough,
+	Passthrough_NoDepthStencil,
+	Passthrough_Opacity,
+	Passthrough_MSAA,
+	Passthrough_MSAA_Equal,
+	Passthrough_NoBlend,          // for MSAA RT
+	Passthrough_NoBlendAndNoMSAA, // for RT that's not MSAA
+	ColorMatrix,
+	BlendMask,
+	Blur,
+	DropShadow,
+	Count
+};
+
 RenderInterface_VK::RenderInterface_VK() :
 	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false},
 	m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{}, m_semaphore_index{},
 	m_semaphore_index_previous{}, m_image_index{}, m_p_instance{}, m_p_device{}, m_p_physical_device{}, m_p_surface{}, m_p_swapchain{},
 	m_p_allocator{}, m_p_current_command_buffer{}, m_p_descriptor_set_layout_vertex_transform{}, m_p_descriptor_set_layout_texture{},
-	m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
-	m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn{}, m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures{},
-	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
-	m_p_sampler_linear{}, m_scissor{}, m_scissor_original{}, m_viewport{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
+	m_p_pipeline_layout{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_linear{}, m_scissor{}, m_scissor_original{}, m_viewport{},
+	m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
 #ifdef RMLUI_VK_DEBUG
 	m_debug_messenger{},
 #endif
 	m_swapchain_format{}, m_texture_depthstencil{}, m_pending_for_deletion_textures_by_frames{}
-{}
+{
+	for (unsigned char i = 0; i < kSwapchainBackBufferCount; ++i)
+	{
+		m_pending_for_deletion_textures_by_frames[i].reserve(128);
+	}
+
+	m_pending_for_deletion_geometries.reserve(128);
+
+	std::memset(m_shaders, 0, sizeof(m_shaders));
+}
 
 RenderInterface_VK::~RenderInterface_VK() {}
 
@@ -208,37 +245,39 @@ void RenderInterface_VK::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rm
 	vkCmdBindDescriptorSets(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_p_pipeline_layout, 0, real_size_of_sets, p_sets, 1,
 		&pDescriptorOffsets);
 
+	/*
 	if (m_is_use_stencil_pipeline)
 	{
-		vkCmdBindPipeline(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn);
+	    vkCmdBindPipeline(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn);
 	}
 	else
 	{
-		if (p_texture)
-		{
-			if (m_is_apply_to_regular_geometry_stencil)
-			{
-				vkCmdBindPipeline(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-					m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures);
-			}
-			else
-			{
-				vkCmdBindPipeline(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_p_pipeline_with_textures);
-			}
-		}
-		else
-		{
-			if (m_is_apply_to_regular_geometry_stencil)
-			{
-				vkCmdBindPipeline(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-					m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures);
-			}
-			else
-			{
-				vkCmdBindPipeline(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_p_pipeline_without_textures);
-			}
-		}
+	    if (p_texture)
+	    {
+	        if (m_is_apply_to_regular_geometry_stencil)
+	        {
+	            vkCmdBindPipeline(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+	                m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures);
+	        }
+	        else
+	        {
+	            vkCmdBindPipeline(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_p_pipeline_with_textures);
+	        }
+	    }
+	    else
+	    {
+	        if (m_is_apply_to_regular_geometry_stencil)
+	        {
+	            vkCmdBindPipeline(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+	                m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures);
+	        }
+	        else
+	        {
+	            vkCmdBindPipeline(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_p_pipeline_without_textures);
+	        }
+	    }
 	}
+	*/
 
 	vkCmdBindVertexBuffers(m_p_current_command_buffer, 0, 1, &p_casted_compiled_geometry->m_p_vertex.buffer,
 		&p_casted_compiled_geometry->m_p_vertex.offset);
@@ -357,6 +396,49 @@ void RenderInterface_VK::SetScissorRegion(Rml::Rectanglei region)
 	}
 }
 
+void RenderInterface_VK::EnableClipMask(bool enable) {}
+
+void RenderInterface_VK::RenderToClipMask(Rml::ClipMaskOperation mask_op, Rml::CompiledGeometryHandle geom, Rml::Vector2f translation) {}
+
+Rml::LayerHandle RenderInterface_VK::PushLayer()
+{
+	return Rml::LayerHandle();
+}
+
+void RenderInterface_VK::CompositeLayers(Rml::LayerHandle src, Rml::LayerHandle dest, Rml::BlendMode blend,
+	Rml::Span<const Rml::CompiledFilterHandle> filters)
+{}
+
+void RenderInterface_VK::PopLayer() {}
+
+Rml::TextureHandle RenderInterface_VK::SaveLayerAsTexture()
+{
+	return Rml::TextureHandle();
+}
+
+Rml::CompiledFilterHandle RenderInterface_VK::SaveLayerAsMaskImage()
+{
+	return Rml::CompiledFilterHandle();
+}
+
+Rml::CompiledFilterHandle RenderInterface_VK::CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters)
+{
+	return Rml::CompiledFilterHandle();
+}
+
+void RenderInterface_VK::ReleaseFilter(Rml::CompiledFilterHandle filter) {}
+
+Rml::CompiledShaderHandle RenderInterface_VK::CompileShader(const Rml::String& name, const Rml::Dictionary& parameters)
+{
+	return Rml::CompiledShaderHandle();
+}
+
+void RenderInterface_VK::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle, Rml::Vector2f translation,
+	Rml::TextureHandle texture)
+{}
+
+void RenderInterface_VK::ReleaseShader(Rml::CompiledShaderHandle effect_handle) {}
+
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
 #pragma pack(1)
 struct TGAHeader {
@@ -463,45 +545,86 @@ Rml::TextureHandle RenderInterface_VK::GenerateTexture(Rml::Span<const Rml::byte
 	return CreateTexture(source_data, source_dimensions, source_name);
 }
 
-/*
-    How vulkan works with textures efficiently?
-
-    You need to create buffer that has CPU memory accessibility it means it uses your RAM memory for storing data and it has only CPU visibility (RAM)
-    After you create buffer that has GPU memory accessibility it means it uses by your video hardware and it has only VRAM (Video RAM) visibility
-
-    So you copy data to CPU_buffer and after you copy that thing to GPU_buffer, but delete CPU_buffer
-
-    So it means you "uploaded" data to GPU
-
-    Again, you need to "write" data into CPU buffer after you need to copy that data from buffer to GPU buffer and after that buffer go to GPU.
-
-    RAW_POINTER_DATA_BYTES_LITERALLY->COPY_TO->CPU->COPY_TO->GPU->Releasing_CPU <= that's how works uploading textures in Vulkan if you want to have
-    efficient handling otherwise it is cpu_to_gpu visibility and it means you create only ONE buffer that is accessible for CPU and for GPU, but it
-    will cause the worst performance...
-*/
 Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i dimensions, const Rml::String& name)
 {
 	RMLUI_ZoneScopedN("Vulkan - GenerateTexture");
 
-	RMLUI_VK_ASSERTMSG(!source.empty(), "you pushed not valid data for copying to buffer");
-	RMLUI_VK_ASSERTMSG(m_p_allocator, "you have to initialize Vma Allocator for this method");
+	RMLUI_ASSERT(!source.empty() && "you pushed not valid data for copying to buffer");
+	RMLUI_ASSERT(m_p_allocator && "you have to initialize Vma Allocator for this method");
 	(void)name;
 
 	int width = dimensions.x;
 	int height = dimensions.y;
 
-	RMLUI_VK_ASSERTMSG(width, "invalid width");
-	RMLUI_VK_ASSERTMSG(height, "invalid height");
+	RMLUI_ASSERT(width > 0 && "invalid width");
+	RMLUI_ASSERT(height > 0 && "invalid height");
+
+	Rml::TextureHandle temp_result = 0;
+
+	if (source.empty())
+		return temp_result;
+
+	if (m_p_allocator == nullptr)
+		return temp_result;
+
+	if (width <= 0)
+		return temp_result;
+
+	if (height <= 0)
+		return temp_result;
 
 	VkDeviceSize image_size = source.size();
 	VkFormat format = VkFormat::VK_FORMAT_R8G8B8A8_UNORM;
 
-	buffer_data_t cpu_buffer = CreateResource_StagingBuffer(image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+	// since it is only pointers & pod we can construct on stack the instance
+	unsigned char temp_mem[sizeof(buffer_data_t)];
+
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+	bool is_used_from_upload_manager = true;
+#else
+	bool is_used_from_upload_manager = false;
+#endif
+
+	buffer_data_t* p_selected_cpu_buffer = nullptr;
+
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+	if (image_size > m_upload_manager.Get_UploadBufferSize())
+#endif
+	{
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+		Rml::Log::Message(Rml::Log::Type::LT_WARNING,
+			"! [Vulkan]: you are trying to upload huge texture = %zu bytes (%d Mb), so if you can't optimize its size for loading then ignore this "
+			"message, otherwise we "
+			"expect you to upload using staging buffer from UploadResourceManager instance",
+			image_size, image_size / (1024 * 1024));
+#endif
+
+		p_selected_cpu_buffer = new (temp_mem) buffer_data_t();
+
+		buffer_data_t cpu_buffer = CreateResource_StagingBuffer(image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+
+		p_selected_cpu_buffer->m_p_vk_buffer = cpu_buffer.m_p_vk_buffer;
+		p_selected_cpu_buffer->m_p_vma_allocation = cpu_buffer.m_p_vma_allocation;
+
+		is_used_from_upload_manager = false;
+	}
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+	else
+	{
+		// probably we don't need to clear cpu buffer like memset(0) because if we needed it gives some overhead if uploading buffer is bigger than
+		// 2x2K texture size since 2048 * 2048 * 8 and fast upload requests might reduce some performance, but generally saying we don't need to do
+		// that since we have extent and our memory representation is linear, but again if on some driver implementations the behaviour differs
+		// (because I don't do memset(0))  report to @wh1t3lord please, describe your driver and gpu card and platform os
+		p_selected_cpu_buffer = &m_upload_manager.Get_UploadBuffer();
+	}
+#endif
+
+	RMLUI_ASSERT(p_selected_cpu_buffer && "expected to be true otherwise fatal error");
 
 	void* data;
-	vmaMapMemory(m_p_allocator, cpu_buffer.m_p_vma_allocation, &data);
+	vmaMapMemory(m_p_allocator, p_selected_cpu_buffer->m_p_vma_allocation, &data);
 	memcpy(data, source.data(), static_cast<size_t>(image_size));
-	vmaUnmapMemory(m_p_allocator, cpu_buffer.m_p_vma_allocation);
+	vmaUnmapMemory(m_p_allocator, p_selected_cpu_buffer->m_p_vma_allocation);
 
 	VkExtent3D extent_image = {};
 	extent_image.width = static_cast<uint32_t>(width);
@@ -521,6 +644,7 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 	info.samples = VK_SAMPLE_COUNT_1_BIT;
 	info.tiling = VK_IMAGE_TILING_OPTIMAL;
 	info.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 	VmaAllocationCreateInfo info_allocation = {};
 	info_allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -544,35 +668,7 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 	vmaSetAllocationName(m_p_allocator, p_allocation, name.c_str());
 #endif
 
-	/*
-	 * So Vulkan works only through VkCommandBuffer, it is for remembering API commands what you want to call from GPU
-	 * So on CPU side you need to create a scope that consists of two things
-	 * vkBeginCommandBuffer
-	 * ... <= here your commands what you want to place into your command buffer and send it to GPU through vkQueueSubmit function
-	 * vkEndCommandBuffer
-	 *
-	 * So commands start to work ONLY when you called the vkQueueSubmit otherwise you just "place" commands into your command buffer but you
-	 * didn't issue any thing in order to start the work on GPU side. ALWAYS remember that just sumbit means execute async mode, so you have to wait
-	 * operations before they exeecute fully otherwise you will get some errors or write/read concurrent state and all other stuff, vulkan validation
-	 * will notify you :) (in most cases)
-	 *
-	 * BUT you need always sync what you have done when you called your vkQueueSubmit function, so it is wait method, but generally you can create
-	 * another queue and isolate all stuff tbh
-	 *
-	 * So understing these principles you understand how to work with API and your GPU
-	 *
-	 * There's nothing hard, but it makes all stuff on programmer side if you remember OpenGL and how it was easy to load texture upload it and create
-	 * buffers and it In OpenGL all stuff is handled by driver and other things, not a programmer definitely
-	 *
-	 * What we do here? We need to change the layout of our image. it means where we want to use it. So in our case we want to see that this image
-	 * will be in shaders Because the initial state of create object is VK_IMAGE_LAYOUT_UNDEFINED means you can't just pass that VkImage handle to
-	 * your functions and wait that it comes to shaders for exmaple No it doesn't work like that you have to have the explicit states of your resource
-	 * and where it goes
-	 *
-	 * In our case we want to see in our pixel shader so we need to change transfer into this flag VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, because we
-	 * want to copy so it means some transfer thing, but after we say it goes to pixel after our copying operation
-	 */
-	m_upload_manager.UploadToGPU([p_image, extent_image, cpu_buffer](VkCommandBuffer p_cmd) {
+	m_upload_manager.UploadToGPU([p_image, extent_image, p_selected_cpu_buffer](VkCommandBuffer p_cmd) {
 		VkImageSubresourceRange range = {};
 		range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		range.baseMipLevel = 0;
@@ -602,7 +698,7 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 		region.imageSubresource.layerCount = 1;
 		region.imageExtent = extent_image;
 
-		vkCmdCopyBufferToImage(p_cmd, cpu_buffer.m_p_vk_buffer, p_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+		vkCmdCopyBufferToImage(p_cmd, p_selected_cpu_buffer->m_p_vk_buffer, p_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 		VkImageMemoryBarrier info_barrier_shader_read = {};
 		info_barrier_shader_read.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -618,7 +714,10 @@ Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> 
 			&info_barrier_shader_read);
 	});
 
-	DestroyResource_StagingBuffer(cpu_buffer);
+	if (is_used_from_upload_manager == false)
+	{
+		DestroyResource_StagingBuffer(*p_selected_cpu_buffer);
+	}
 
 	VkImageViewCreateInfo info_image_view = {};
 	info_image_view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -679,22 +778,15 @@ void RenderInterface_VK::BeginFrame()
 
 	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkBeginCommandBuffer");
 
-	VkClearValue for_filling_back_buffer_color;
-	VkClearValue for_stencil_depth;
-
-	for_stencil_depth.depthStencil = {1.0f, 0};
-	for_filling_back_buffer_color.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-
-	const VkClearValue p_color_rt[] = {for_filling_back_buffer_color, for_stencil_depth};
-
 	VkRenderPassBeginInfo info_pass = {};
 
 	info_pass.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	info_pass.pNext = nullptr;
 	info_pass.renderPass = m_p_render_pass;
 	info_pass.framebuffer = m_swapchain_frame_buffers[m_image_index];
-	info_pass.pClearValues = p_color_rt;
-	info_pass.clearValueCount = 2;
+	// method ::Clear is used for explicit state that handles clearing of current backbuffer and depthstencil textures
+	info_pass.pClearValues = nullptr;
+	info_pass.clearValueCount = 0;
 	info_pass.renderArea.offset.x = 0;
 	info_pass.renderArea.offset.y = 0;
 	info_pass.renderArea.extent.width = m_width;
@@ -721,6 +813,25 @@ void RenderInterface_VK::EndFrame()
 	Present();
 
 	m_p_current_command_buffer = nullptr;
+}
+
+void RenderInterface_VK::Clear()
+{
+	RMLUI_ASSERT(m_p_current_command_buffer);
+
+	if (m_p_current_command_buffer)
+	{
+		VkClearAttachment attaches[2];
+
+		attaches[0].clearValue.color = {{RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE}};
+		attaches[0].colorAttachment = VK_IMAGE_ASPECT_COLOR_BIT;
+
+		attaches[1].clearValue = {
+			{RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE, RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE}};
+		attaches[1].colorAttachment = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+		vkCmdClearAttachments(m_p_current_command_buffer, 2, attaches, 0, nullptr);
+	}
 }
 
 void RenderInterface_VK::SetViewport(int width, int height)
@@ -756,7 +867,7 @@ void RenderInterface_VK::SetViewport(int width, int height)
 	m_height = window_extent.height;
 
 	Initialize_Swapchain(window_extent);
-	CreateResourcesDependentOnSize(window_extent);
+	Create_ResourcesDependentOnSize(window_extent);
 }
 
 bool RenderInterface_VK::IsSwapchainValid()
@@ -940,6 +1051,9 @@ void RenderInterface_VK::Initialize_PhysicalDevice(VkPhysicalDeviceProperties& o
 
 	RMLUI_VK_ASSERTMSG(selected_physical_device, "there's no suitable physical device for rendering, abort this application");
 
+	if (selected_physical_device == nullptr)
+		return;
+
 	m_p_physical_device = selected_physical_device->m_p_physical_device;
 	vkGetPhysicalDeviceProperties(m_p_physical_device, &out_physical_device_properties);
 
@@ -991,7 +1105,10 @@ void RenderInterface_VK::Initialize_Swapchain(VkExtent2D window_extent) noexcept
 
 void RenderInterface_VK::Initialize_Surface(CreateSurfaceCallback create_surface_callback) noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_instance, "you must initialize your VkInstance");
+	RMLUI_ASSERT(m_p_instance && "you must initialize your VkInstance");
+
+	if (m_p_instance == nullptr)
+		return;
 
 	bool result = create_surface_callback(m_p_instance, &m_p_surface);
 	RMLUI_VK_ASSERTMSG(result && m_p_surface, "failed to call create_surface_callback");
@@ -999,8 +1116,8 @@ void RenderInterface_VK::Initialize_Surface(CreateSurfaceCallback create_surface
 
 void RenderInterface_VK::Initialize_QueueIndecies() noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_physical_device, "you must initialize your physical device");
-	RMLUI_VK_ASSERTMSG(m_p_surface, "you must initialize VkSurfaceKHR before calling this method");
+	RMLUI_ASSERT(m_p_physical_device && "you must initialize your physical device");
+	RMLUI_ASSERT(m_p_surface && "you must initialize VkSurfaceKHR before calling this method");
 
 	uint32_t queue_family_count = 0;
 
@@ -1084,7 +1201,7 @@ void RenderInterface_VK::Initialize_QueueIndecies() noexcept
 
 void RenderInterface_VK::Initialize_Queues() noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_device, "you must initialize VkDevice before using this method");
+	RMLUI_ASSERT(m_p_device && "you must initialize VkDevice before using this method");
 
 	vkGetDeviceQueue(m_p_device, m_queue_index_graphics, 0, &m_p_queue_graphics);
 
@@ -1107,7 +1224,7 @@ void RenderInterface_VK::Initialize_Queues() noexcept
 
 void RenderInterface_VK::Initialize_SyncPrimitives() noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_device, "you must initialize your device");
+	RMLUI_ASSERT(m_p_device && "you must initialize your device");
 
 	m_executed_fences.resize(kSwapchainBackBufferCount);
 	m_semaphores_finished_render.resize(kSwapchainBackBufferCount);
@@ -1150,21 +1267,22 @@ void RenderInterface_VK::Initialize_Resources(const VkPhysicalDeviceProperties& 
 	const VkDeviceSize min_buffer_alignment = physical_device_properties.limits.minUniformBufferOffsetAlignment;
 	m_memory_pool.Initialize(kVideoMemoryForAllocation, min_buffer_alignment, m_p_allocator, m_p_device);
 
-	m_upload_manager.Initialize(m_p_device, m_p_queue_graphics, m_queue_index_graphics);
+	m_upload_manager.Initialize(m_p_device, m_p_queue_graphics, m_p_allocator, m_queue_index_graphics,
+		RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_SIZE);
 	m_manager_descriptors.Initialize(m_p_device, 100, 100, 10, 10);
 
-	CreateShaders();
-	CreateDescriptorSetLayout();
-	CreatePipelineLayout();
-	CreateSamplers();
-	CreateDescriptorSets();
+	Create_Shaders();
+	Create_DescriptorSetLayout();
+	Create_PipelineLayout();
+	Create_Samplers();
+	Create_DescriptorSets();
 }
 
 void RenderInterface_VK::Initialize_Allocator() noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_device, "you must have a valid VkDevice here");
-	RMLUI_VK_ASSERTMSG(m_p_physical_device, "you must have a valid VkPhysicalDevice here");
-	RMLUI_VK_ASSERTMSG(m_p_instance, "you must have a valid VkInstance here");
+	RMLUI_ASSERT(m_p_device && "you must have a valid VkDevice here");
+	RMLUI_ASSERT(m_p_physical_device && "you must have a valid VkPhysicalDevice here");
+	RMLUI_ASSERT(m_p_instance && "you must have a valid VkInstance here");
 
 	VmaVulkanFunctions vulkanFunctions = {};
 	vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
@@ -1226,7 +1344,7 @@ void RenderInterface_VK::Destroy_SyncPrimitives() noexcept
 void RenderInterface_VK::Destroy_Resources() noexcept
 {
 	m_command_buffer_ring.Shutdown();
-	m_upload_manager.Shutdown();
+	m_upload_manager.Shutdown(m_p_allocator);
 
 	if (m_p_descriptor_set)
 	{
@@ -1333,7 +1451,7 @@ bool RenderInterface_VK::AddLayerToInstance(Rml::Vector<const char*>& result, co
 {
 	if (p_instance_layer_name == nullptr)
 	{
-		RMLUI_VK_ASSERTMSG(p_instance_layer_name, "you have an invalid layer");
+		RMLUI_ASSERT(p_instance_layer_name && "you have an invalid layer");
 		return false;
 	}
 
@@ -1449,7 +1567,10 @@ bool RenderInterface_VK::AddExtensionToDevice(Rml::Vector<const char*>& result, 
 
 void RenderInterface_VK::CreatePropertiesFor_Device(ExtensionPropertiesList& result) noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_physical_device, "you must initialize your physical device. Call InitializePhysicalDevice first");
+	RMLUI_ASSERT(m_p_physical_device && "you must initialize your physical device. Call InitializePhysicalDevice first");
+
+	if (m_p_physical_device == nullptr)
+		return;
 
 	uint32_t extension_count = 0;
 	VkResult status = vkEnumerateDeviceExtensionProperties(m_p_physical_device, nullptr, &extension_count, nullptr);
@@ -1588,7 +1709,7 @@ void RenderInterface_VK::CollectPhysicalDevices(PhysicalDeviceWrapperList& out_p
 const RenderInterface_VK::PhysicalDeviceWrapper* RenderInterface_VK::ChoosePhysicalDevice(const PhysicalDeviceWrapperList& physical_devices,
 	VkPhysicalDeviceType device_type) noexcept
 {
-	RMLUI_VK_ASSERTMSG(physical_devices.empty() == false,
+	RMLUI_ASSERT(physical_devices.empty() == false &&
 		"you must have one videocard at least or early calling of this method, try call this after CollectPhysicalDevices");
 
 	for (const auto& device : physical_devices)
@@ -1656,8 +1777,8 @@ VkSurfaceFormatKHR RenderInterface_VK::ChooseSwapchainFormat() noexcept
 		VK_FORMAT_ASTC_12x12_UNORM_BLOCK,
 	};
 
-	RMLUI_VK_ASSERTMSG(m_p_physical_device, "you must initialize your physical device, before calling this method");
-	RMLUI_VK_ASSERTMSG(m_p_surface, "you must initialize your surface, before calling this method");
+	RMLUI_ASSERT(m_p_physical_device && "you must initialize your physical device, before calling this method");
+	RMLUI_ASSERT(m_p_surface && "you must initialize your surface, before calling this method");
 
 	uint32_t surface_count = 0;
 	VkResult status = vkGetPhysicalDeviceSurfaceFormatsKHR(m_p_physical_device, m_p_surface, &surface_count, nullptr);
@@ -1737,10 +1858,10 @@ int RenderInterface_VK::Choose_SwapchainImageCount(uint32_t user_swapchain_count
 	auto caps = GetSurfaceCapabilities();
 
 	// don't worry if you get this assert just ignore it the method will fix the count ;)
-	RMLUI_VK_ASSERTMSG(user_swapchain_count_for_creation >= caps.minImageCount,
+	RMLUI_ASSERT(user_swapchain_count_for_creation >= caps.minImageCount &&
 		"can't be, you must have a valid count that bounds from minImageCount to maxImageCount! Otherwise you will get a validation error that "
 		"specifies that you created a swapchain with invalid image count");
-	RMLUI_VK_ASSERTMSG(user_swapchain_count_for_creation <= caps.maxImageCount,
+	RMLUI_ASSERT(user_swapchain_count_for_creation <= caps.maxImageCount &&
 		"can't be, you must have a valid count that bounds from minImageCount to maxImageCount! Otherwise you will get a validation error that "
 		"specifies that you created a swapchain with invalid image count");
 
@@ -1758,9 +1879,9 @@ int RenderInterface_VK::Choose_SwapchainImageCount(uint32_t user_swapchain_count
 // VK_PRESENT_MODE_FIFO_KHR system must support this mode at least so by default we want to use it otherwise user can specify his mode
 VkPresentModeKHR RenderInterface_VK::GetPresentMode(VkPresentModeKHR required) noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_device, "[Vulkan] you must initialize your device, before calling this method");
-	RMLUI_VK_ASSERTMSG(m_p_physical_device, "[Vulkan] you must initialize your physical device, before calling this method");
-	RMLUI_VK_ASSERTMSG(m_p_surface, "[Vulkan] you must initialize your surface, before calling this method");
+	RMLUI_ASSERT(m_p_device && "you must initialize your device, before calling this method");
+	RMLUI_ASSERT(m_p_physical_device && "you must initialize your physical device, before calling this method");
+	RMLUI_ASSERT(m_p_surface && "you must initialize your surface, before calling this method");
 
 	VkPresentModeKHR result = required;
 
@@ -1786,9 +1907,9 @@ VkPresentModeKHR RenderInterface_VK::GetPresentMode(VkPresentModeKHR required) n
 
 VkSurfaceCapabilitiesKHR RenderInterface_VK::GetSurfaceCapabilities() noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_device, "[Vulkan] you must initialize your device, before calling this method");
-	RMLUI_VK_ASSERTMSG(m_p_physical_device, "[Vulkan] you must initialize your physical device, before calling this method");
-	RMLUI_VK_ASSERTMSG(m_p_surface, "[Vulkan] you must initialize your surface, before calling this method");
+	RMLUI_ASSERT(m_p_device && "you must initialize your device, before calling this method");
+	RMLUI_ASSERT(m_p_physical_device && "you must initialize your physical device, before calling this method");
+	RMLUI_ASSERT(m_p_surface && "you must initialize your surface, before calling this method");
 
 	VkSurfaceCapabilitiesKHR result;
 	VkResult status = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_p_physical_device, m_p_surface, &result);
@@ -1797,24 +1918,42 @@ VkSurfaceCapabilitiesKHR RenderInterface_VK::GetSurfaceCapabilities() noexcept
 	return result;
 }
 
-void RenderInterface_VK::CreateShaders() noexcept
+void RenderInterface_VK::Create_Shaders() noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
+	RMLUI_ASSERT(m_p_device && "you must initialize VkDevice before calling this method");
 
 	struct shader_data_t {
-		const uint32_t* m_data;
-		size_t m_data_size;
-		VkShaderStageFlagBits m_shader_type;
+		const uint32_t* m_data = nullptr;
+		size_t m_data_size = 0;
+		VkShaderStageFlagBits m_shader_type = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 	};
 
-	const Rml::Vector<shader_data_t> shaders = {
-		{reinterpret_cast<const uint32_t*>(shader_vert), sizeof(shader_vert), VK_SHADER_STAGE_VERTEX_BIT},
-		{reinterpret_cast<const uint32_t*>(shader_frag_color), sizeof(shader_frag_color), VK_SHADER_STAGE_FRAGMENT_BIT},
-		{reinterpret_cast<const uint32_t*>(shader_frag_texture), sizeof(shader_frag_texture), VK_SHADER_STAGE_FRAGMENT_BIT},
-	};
+	// let it be on stack don't use constexpr because it will grow compiled library size
+	shader_data_t shaders[static_cast<int>(eVKShaderID::total_size)];
+	shaders[static_cast<int>(eVKShaderID::shader_vert_main)] = {reinterpret_cast<const uint32_t*>(shader_vert_main), sizeof(shader_vert_main),
+		VK_SHADER_STAGE_VERTEX_BIT};
+	shaders[static_cast<int>(eVKShaderID::shader_frag_color)] = {reinterpret_cast<const uint32_t*>(shader_frag_color), sizeof(shader_frag_color),
+		VK_SHADER_STAGE_FRAGMENT_BIT};
+	shaders[static_cast<int>(eVKShaderID::shader_frag_texture)] = {reinterpret_cast<const uint32_t*>(shader_frag_texture),
+		sizeof(shader_frag_texture), VK_SHADER_STAGE_FRAGMENT_BIT};
+
+	static_assert(sizeof(m_shaders) / sizeof(m_shaders[0]) >= sizeof(shaders) / sizeof(shaders[0]),
+		"something is wrong, different amount of shaders!");
+
+	// absolutely lowest probability (why we need so much shaders it is better then merge all shaders file into one and use some kind of uber-shader
+	// approach in order to reduce amount of shaders tbh?) of that happening but for users let it be as reminder
+	static_assert(sizeof(m_shaders) / sizeof(m_shaders[0]) <= std::numeric_limits<unsigned char>::max(), "type overflow replace type in code!");
+
+	unsigned char max_size = static_cast<unsigned char>((sizeof(m_shaders) / sizeof(m_shaders[0])));
+	unsigned char iter = 0;
 
 	for (const shader_data_t& shader_data : shaders)
 	{
+		RMLUI_ASSERT(shader_data.m_data_size > 0 && "you forgot to initialize some of shader slot");
+
+		if (iter >= max_size)
+			break;
+
 		VkShaderModuleCreateInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		info.pCode = shader_data.m_data;
@@ -1825,14 +1964,15 @@ void RenderInterface_VK::CreateShaders() noexcept
 
 		RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "[Vulkan] failed to vkCreateShaderModule");
 
-		m_shaders.push_back(p_module);
+		m_shaders[iter] = p_module;
+		++iter;
 	}
 }
 
-void RenderInterface_VK::CreateDescriptorSetLayout() noexcept
+void RenderInterface_VK::Create_DescriptorSetLayout() noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
-	RMLUI_VK_ASSERTMSG(!m_p_descriptor_set_layout_vertex_transform && !m_p_descriptor_set_layout_texture, "[Vulkan] Already initialized");
+	RMLUI_ASSERT(m_p_device && "you must initialize VkDevice before calling this method");
+	RMLUI_ASSERT(!m_p_descriptor_set_layout_vertex_transform && !m_p_descriptor_set_layout_texture && "Already initialized");
 
 	{
 		VkDescriptorSetLayoutBinding binding_for_vertex_transform = {};
@@ -1867,7 +2007,7 @@ void RenderInterface_VK::CreateDescriptorSetLayout() noexcept
 	}
 }
 
-void RenderInterface_VK::CreatePipelineLayout() noexcept
+void RenderInterface_VK::Create_PipelineLayout() noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_descriptor_set_layout_vertex_transform, "[Vulkan] You must initialize VkDescriptorSetLayout before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_descriptor_set_layout_texture,
@@ -1888,7 +2028,7 @@ void RenderInterface_VK::CreatePipelineLayout() noexcept
 	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "[Vulkan] failed to vkCreatePipelineLayout");
 }
 
-void RenderInterface_VK::CreateDescriptorSets() noexcept
+void RenderInterface_VK::Create_DescriptorSets() noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_device, "[Vulkan] you have to initialize your VkDevice before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_descriptor_set_layout_vertex_transform,
@@ -1898,7 +2038,7 @@ void RenderInterface_VK::CreateDescriptorSets() noexcept
 	m_memory_pool.SetDescriptorSet(1, sizeof(shader_vertex_user_data_t), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, m_p_descriptor_set);
 }
 
-void RenderInterface_VK::CreateSamplers() noexcept
+void RenderInterface_VK::Create_Samplers() noexcept
 {
 	VkSamplerCreateInfo info = {};
 
@@ -1918,6 +2058,9 @@ void RenderInterface_VK::Create_Pipelines() noexcept
 	RMLUI_VK_ASSERTMSG(m_p_pipeline_layout, "must be initialized");
 	RMLUI_VK_ASSERTMSG(m_p_render_pass, "must be initialized");
 
+	Create_Pipeline_Color();
+
+	/*
 	VkPipelineInputAssemblyStateCreateInfo info_assembly_state = {};
 	info_assembly_state.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	info_assembly_state.pNext = nullptr;
@@ -2072,6 +2215,238 @@ void RenderInterface_VK::Create_Pipelines() noexcept
 	info_depth.front = info_depth.back;
 
 	status = vkCreateGraphicsPipelines(m_p_device, nullptr, 1, &info, nullptr,
+	    &m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures);
+	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
+	info_shader.module = m_shaders[static_cast<int>(shader_id_t::Fragment_WithoutTextures)];
+	shaders_that_will_be_used_in_pipeline[1] = info_shader;
+	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.passOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.compareMask = 1;
+	info_depth.back.writeMask = 1;
+	info_depth.back.reference = 1;
+	info_depth.front = info_depth.back;
+
+	status = vkCreateGraphicsPipelines(m_p_device, nullptr, 1, &info, nullptr, &m_p_pipeline_without_textures);
+	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
+	info_depth.back.passOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.compareOp = VK_COMPARE_OP_EQUAL;
+	info_depth.back.compareMask = 1;
+	info_depth.back.writeMask = 1;
+	info_depth.back.reference = 1;
+	info_depth.front = info_depth.back;
+
+	status = vkCreateGraphicsPipelines(m_p_device, nullptr, 1, &info, nullptr,
+	    &m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures);
+	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
+	info_color_blend_att.colorWriteMask = 0x0;
+	info_depth.back.passOp = VK_STENCIL_OP_REPLACE;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
+	info_depth.back.compareMask = 1;
+	info_depth.back.writeMask = 1;
+	info_depth.back.reference = 1;
+	info_depth.front = info_depth.back;
+
+	status = vkCreateGraphicsPipelines(m_p_device, nullptr, 1, &info, nullptr, &m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn);
+	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
+#ifdef RMLUI_DEBUG
+	VkDebugUtilsObjectNameInfoEXT info_debug = {};
+
+	info_debug.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+	info_debug.pObjectName = "pipeline_stencil for region where geometry will be drawn";
+	info_debug.objectType = VkObjectType::VK_OBJECT_TYPE_PIPELINE;
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_without_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_without_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_with_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_with_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+#endif
+*/
+}
+
+void RenderInterface_VK::Create_Pipeline_Color()
+{
+	VkPipelineInputAssemblyStateCreateInfo info_assembly_state = {};
+	info_assembly_state.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	info_assembly_state.pNext = nullptr;
+	info_assembly_state.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	info_assembly_state.primitiveRestartEnable = VK_FALSE;
+	info_assembly_state.flags = 0;
+
+	VkPipelineRasterizationStateCreateInfo info_raster_state = {};
+	info_raster_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	info_raster_state.pNext = nullptr;
+	info_raster_state.polygonMode = VK_POLYGON_MODE_FILL;
+	info_raster_state.cullMode = VK_CULL_MODE_NONE;
+	info_raster_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	info_raster_state.rasterizerDiscardEnable = VK_FALSE;
+	info_raster_state.depthBiasEnable = VK_FALSE;
+	info_raster_state.lineWidth = 1.0f;
+
+	VkPipelineColorBlendAttachmentState info_color_blend_att = {};
+	info_color_blend_att.colorWriteMask = 0xf;
+	info_color_blend_att.blendEnable = VK_TRUE;
+	info_color_blend_att.srcColorBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_ONE;
+	info_color_blend_att.dstColorBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	info_color_blend_att.colorBlendOp = VkBlendOp::VK_BLEND_OP_ADD;
+	info_color_blend_att.srcAlphaBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_ONE;
+	info_color_blend_att.dstAlphaBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	info_color_blend_att.alphaBlendOp = VkBlendOp::VK_BLEND_OP_SUBTRACT;
+
+	VkPipelineColorBlendStateCreateInfo info_color_blend_state = {};
+	info_color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	info_color_blend_state.pNext = nullptr;
+	info_color_blend_state.attachmentCount = 1;
+	info_color_blend_state.pAttachments = &info_color_blend_att;
+
+	VkPipelineDepthStencilStateCreateInfo info_depth = {};
+	info_depth.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	info_depth.pNext = nullptr;
+	info_depth.depthTestEnable = VK_FALSE;
+	info_depth.depthWriteEnable = VK_FALSE;
+	info_depth.depthBoundsTestEnable = VK_FALSE;
+	info_depth.maxDepthBounds = 1.0f;
+
+	info_depth.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+
+	info_depth.stencilTestEnable = VK_TRUE;
+	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.passOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.compareMask = 1;
+	info_depth.back.writeMask = 1;
+	info_depth.back.reference = 1;
+	info_depth.front = info_depth.back;
+
+	VkPipelineViewportStateCreateInfo info_viewport = {};
+	info_viewport.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	info_viewport.pNext = nullptr;
+	info_viewport.viewportCount = 1;
+	info_viewport.scissorCount = 1;
+	info_viewport.flags = 0;
+
+	VkPipelineMultisampleStateCreateInfo info_multisample = {};
+	info_multisample.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	info_multisample.pNext = nullptr;
+	info_multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	info_multisample.flags = 0;
+
+	Rml::Array<VkDynamicState, 2> dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+
+	VkPipelineDynamicStateCreateInfo info_dynamic_state = {};
+	info_dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	info_dynamic_state.pNext = nullptr;
+	info_dynamic_state.pDynamicStates = dynamicStateEnables.data();
+	info_dynamic_state.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size());
+	info_dynamic_state.flags = 0;
+
+	Rml::Array<VkPipelineShaderStageCreateInfo, 2> shaders_that_will_be_used_in_pipeline;
+
+	VkPipelineShaderStageCreateInfo info_shader = {};
+	info_shader.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	info_shader.pNext = nullptr;
+	info_shader.pName = "main";
+	info_shader.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	info_shader.module = m_shaders[static_cast<int>(eVKShaderID::shader_vert_main)];
+
+	shaders_that_will_be_used_in_pipeline[0] = info_shader;
+
+	info_shader.module = m_shaders[static_cast<int>(eVKShaderID::shader_frag_texture)];
+	info_shader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	shaders_that_will_be_used_in_pipeline[1] = info_shader;
+
+	VkPipelineVertexInputStateCreateInfo info_vertex = {};
+	info_vertex.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	info_vertex.pNext = nullptr;
+	info_vertex.flags = 0;
+
+	Rml::Array<VkVertexInputAttributeDescription, 3> info_shader_vertex_attributes;
+	// describe info about our vertex and what is used in vertex shader as "layout(location = X) in"
+
+	VkVertexInputBindingDescription info_vertex_input_binding = {};
+	info_vertex_input_binding.binding = 0;
+	info_vertex_input_binding.stride = sizeof(Rml::Vertex);
+	info_vertex_input_binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	info_shader_vertex_attributes[0].binding = 0;
+	info_shader_vertex_attributes[0].location = 0;
+	info_shader_vertex_attributes[0].format = VK_FORMAT_R32G32_SFLOAT;
+	info_shader_vertex_attributes[0].offset = offsetof(Rml::Vertex, position);
+
+	info_shader_vertex_attributes[1].binding = 0;
+	info_shader_vertex_attributes[1].location = 1;
+	info_shader_vertex_attributes[1].format = VK_FORMAT_R8G8B8A8_UNORM;
+	info_shader_vertex_attributes[1].offset = offsetof(Rml::Vertex, colour);
+
+	info_shader_vertex_attributes[2].binding = 0;
+	info_shader_vertex_attributes[2].location = 2;
+	info_shader_vertex_attributes[2].format = VK_FORMAT_R32G32_SFLOAT;
+	info_shader_vertex_attributes[2].offset = offsetof(Rml::Vertex, tex_coord);
+
+	info_vertex.pVertexAttributeDescriptions = info_shader_vertex_attributes.data();
+	info_vertex.vertexAttributeDescriptionCount = static_cast<uint32_t>(info_shader_vertex_attributes.size());
+	info_vertex.pVertexBindingDescriptions = &info_vertex_input_binding;
+	info_vertex.vertexBindingDescriptionCount = 1;
+
+	VkGraphicsPipelineCreateInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	info.pNext = nullptr;
+	info.pInputAssemblyState = &info_assembly_state;
+	info.pRasterizationState = &info_raster_state;
+	info.pColorBlendState = &info_color_blend_state;
+	info.pMultisampleState = &info_multisample;
+	info.pViewportState = &info_viewport;
+	info.pDepthStencilState = &info_depth;
+	info.pDynamicState = &info_dynamic_state;
+	info.stageCount = static_cast<uint32_t>(shaders_that_will_be_used_in_pipeline.size());
+	info.pStages = shaders_that_will_be_used_in_pipeline.data();
+	info.pVertexInputState = &info_vertex;
+	info.layout = m_p_pipeline_layout;
+	info.renderPass = m_p_render_pass;
+	info.subpass = 0;
+
+	auto status = vkCreateGraphicsPipelines(m_p_device, nullptr, 1, &info, nullptr, &m_p_pipeline_with_textures);
+	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
+	info_depth.back.passOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.compareOp = VK_COMPARE_OP_EQUAL;
+	info_depth.back.compareMask = 1;
+	info_depth.back.writeMask = 1;
+	info_depth.back.reference = 1;
+	info_depth.front = info_depth.back;
+
+	status = vkCreateGraphicsPipelines(m_p_device, nullptr, 1, &info, nullptr,
 		&m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures);
 	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
 
@@ -2147,12 +2522,30 @@ void RenderInterface_VK::Create_Pipelines() noexcept
 #endif
 }
 
-void RenderInterface_VK::CreateSwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept
+void RenderInterface_VK::Create_Pipeline_Texture() {}
+
+void RenderInterface_VK::Create_Pipeline_Gradient() {}
+
+void RenderInterface_VK::Create_Pipeline_Creation() {}
+
+void RenderInterface_VK::Create_Pipeline_Passthrough() {}
+
+void RenderInterface_VK::Create_Pipeline_Passthrough_NoBlend() {}
+
+void RenderInterface_VK::Create_Pipeline_ColorMatrix() {}
+
+void RenderInterface_VK::Create_Pipeline_BlendMask() {}
+
+void RenderInterface_VK::Create_Pipeline_Blur() {}
+
+void RenderInterface_VK::Create_Pipeline_DropShadow() {}
+
+void RenderInterface_VK::Create_SwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_render_pass, "you must create a VkRenderPass before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_device, "you must have a valid VkDevice here");
 
-	CreateSwapchainImageViews();
+	Create_SwapchainImageViews();
 	Create_DepthStencilImage();
 	Create_DepthStencilImageViews();
 
@@ -2187,7 +2580,7 @@ void RenderInterface_VK::CreateSwapchainFrameBuffers(const VkExtent2D& real_rend
 	}
 }
 
-void RenderInterface_VK::CreateSwapchainImages() noexcept
+void RenderInterface_VK::Create_SwapchainImages() noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_swapchain, "[Vulkan] you must initialize VkSwapchainKHR before calling this method");
@@ -2204,9 +2597,9 @@ void RenderInterface_VK::CreateSwapchainImages() noexcept
 	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "[Vulkan] failed to vkGetSwapchainImagesKHR (filling vector)");
 }
 
-void RenderInterface_VK::CreateSwapchainImageViews() noexcept
+void RenderInterface_VK::Create_SwapchainImageViews() noexcept
 {
-	CreateSwapchainImages();
+	Create_SwapchainImages();
 
 	m_swapchain_image_views.resize(m_swapchain_images.size());
 
@@ -2307,7 +2700,7 @@ void RenderInterface_VK::Create_DepthStencilImageViews() noexcept
 	m_texture_depthstencil.m_p_vk_image_view = p_image_view;
 }
 
-void RenderInterface_VK::CreateResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept
+void RenderInterface_VK::Create_ResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept
 {
 	m_viewport.height = static_cast<float>(real_render_image_size.height);
 	m_viewport.width = static_cast<float>(real_render_image_size.width);
@@ -2334,8 +2727,8 @@ void RenderInterface_VK::CreateResourcesDependentOnSize(const VkExtent2D& real_r
 
 	SetTransform(nullptr);
 
-	CreateRenderPass();
-	CreateSwapchainFrameBuffers(real_render_image_size);
+	Create_RenderPass();
+	Create_SwapchainFrameBuffers(real_render_image_size);
 	Create_Pipelines();
 }
 
@@ -2468,13 +2861,20 @@ void RenderInterface_VK::DestroyRenderPass() noexcept
 
 void RenderInterface_VK::Destroy_Pipelines() noexcept
 {
-	RMLUI_VK_ASSERTMSG(m_p_device, "must exist here");
+	RMLUI_ASSERT(m_p_device && "must exist here");
 
+	if (m_p_device == nullptr)
+		return;
+
+	RMLUI_ASSERT(false && "todo: finish this");
+
+	/*
 	vkDestroyPipeline(m_p_device, m_p_pipeline_with_textures, nullptr);
 	vkDestroyPipeline(m_p_device, m_p_pipeline_without_textures, nullptr);
 	vkDestroyPipeline(m_p_device, m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn, nullptr);
 	vkDestroyPipeline(m_p_device, m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures, nullptr);
 	vkDestroyPipeline(m_p_device, m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures, nullptr);
+	*/
 }
 
 void RenderInterface_VK::DestroyDescriptorSets() noexcept {}
@@ -2487,7 +2887,7 @@ void RenderInterface_VK::DestroySamplers() noexcept
 	vkDestroySampler(m_p_device, m_p_sampler_linear, nullptr);
 }
 
-void RenderInterface_VK::CreateRenderPass() noexcept
+void RenderInterface_VK::Create_RenderPass() noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_device, "you must have a valid VkDevice here");
 
@@ -2669,6 +3069,8 @@ void RenderInterface_VK::Present() noexcept
 		}
 	}
 }
+
+void RenderInterface_VK::UseProgram(ProgramId id) {}
 
 VkFormat RenderInterface_VK::Get_SupportedDepthFormat()
 {
@@ -3015,3 +3417,148 @@ void RenderInterface_VK::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geometry
 #define GLAD_VULKAN_IMPLEMENTATION
 #define VMA_IMPLEMENTATION
 #include "RmlUi_Include_Vulkan.h"
+
+namespace Gfx {
+struct FramebufferData {};
+} // namespace Gfx
+
+RenderInterface_VK::RenderLayerStack::RenderLayerStack() :
+	m_msaa_sample_count{RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT}, m_layers_size{}, m_width{}, m_height{}, m_p_owner{},
+	m_p_shared_depth_stencil_for_layers{}
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::RenderLayerStack");
+
+	this->m_fb_postprocess.resize(4);
+
+	// in order to prevent calling dtor when doing push_back on m_fb_layers
+	// we need to reserve memory, like how much we do expect elements in array (vector)
+	// otherwise you will get validation assert in dtor of FramebufferData struct and
+	// that validation supposed to be for memory leaks or wrong resource handling (like you forgot to delete resource somehow)
+	// if you didn't get it check this: https://en.cppreference.com/w/cpp/container/vector/reserve
+
+	// otherwise if your default implementation requires more layers by default, thus we have a field at compile-time (or at runtime as dynamic
+	// extension) RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
+	this->m_fb_layers.resize(RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS);
+
+	this->m_p_shared_depth_stencil_for_layers = new Gfx::FramebufferData();
+}
+
+RenderInterface_VK::RenderLayerStack::~RenderLayerStack()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::Destructor");
+
+	this->m_p_owner = nullptr;
+
+	if (this->m_p_shared_depth_stencil_for_layers)
+	{
+		delete this->m_p_shared_depth_stencil_for_layers;
+		this->m_p_shared_depth_stencil_for_layers = nullptr;
+	}
+}
+
+void RenderInterface_VK::RenderLayerStack::Initialize(RenderInterface_VK* p_owner)
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::Initialize");
+
+	RMLUI_ASSERT(p_owner && "you must pass a valid pointer of backend!");
+
+#ifdef RMLUI_DEBUG
+	Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[RenderLayerStack]: msaa sample count = %d", int(m_msaa_sample_count));
+#endif
+}
+
+void RenderInterface_VK::RenderLayerStack::Shutdown()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::Shutdown");
+
+	this->DestroyFramebuffers();
+}
+
+Rml::LayerHandle RenderInterface_VK::RenderLayerStack::PushLayer()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::PushLayer");
+	RMLUI_ASSERT(this->m_layers_size <= static_cast<int>(this->m_fb_layers.size()) && "overflow of layers!");
+
+	return Rml::LayerHandle();
+}
+
+void RenderInterface_VK::RenderLayerStack::PopLayer()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::PopLayer");
+	RMLUI_ASSERT(this->m_layers_size > 0 && "calculations are wrong, debug your code please!");
+
+	this->m_layers_size -= 1;
+}
+
+const Gfx::FramebufferData& RenderInterface_VK::RenderLayerStack::GetLayer(Rml::LayerHandle layer) const
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::GetLayer");
+	RMLUI_ASSERT(static_cast<size_t>(layer) < static_cast<size_t>(this->m_layers_size) &&
+		"overflow or not correct calculation or something is broken, debug the code!");
+
+	return this->m_fb_layers.at(static_cast<size_t>(layer));
+}
+
+const Gfx::FramebufferData& RenderInterface_VK::RenderLayerStack::GetTopLayer() const
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::GetTopLayer");
+	RMLUI_ASSERT(this->m_layers_size > 0 && "early calling!");
+
+	return this->m_fb_layers[this->m_layers_size - 1];
+}
+
+const Gfx::FramebufferData& RenderInterface_VK::RenderLayerStack::Get_SharedDepthStencil_Layers()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::Get_SharedDepthStencil_Layers");
+	RMLUI_ASSERT(this->m_p_shared_depth_stencil_for_layers && "early calling!");
+	return *this->m_p_shared_depth_stencil_for_layers;
+}
+
+Rml::LayerHandle RenderInterface_VK::RenderLayerStack::GetTopLayerHandle() const
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::GetTopLayerHandle");
+	RMLUI_ASSERT(m_layers_size > 0 && "early calling or something is broken!");
+	return static_cast<Rml::LayerHandle>(m_layers_size - 1);
+}
+
+void RenderInterface_VK::RenderLayerStack::SwapPostprocessPrimarySecondary()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::SwapPostprocessPrimarySecondary");
+
+	std::swap(this->m_fb_postprocess[0], this->m_fb_postprocess[1]);
+}
+
+void RenderInterface_VK::RenderLayerStack::BeginFrame(int new_width, int new_height)
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::BeginFrame");
+
+	RMLUI_ASSERT(this->m_layers_size == 0 && "something is wrong and you forgot to clear/delete something!");
+
+	if (this->m_width != new_width || this->m_height != new_height)
+	{
+		this->m_width = new_width;
+		this->m_height = new_height;
+
+		this->DestroyFramebuffers();
+	}
+
+	this->PushLayer();
+}
+
+void RenderInterface_VK::RenderLayerStack::EndFrame()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::EndFrame");
+
+	RMLUI_ASSERT(this->m_layers_size == 1 && "order is wrong or something is broken!");
+	this->PopLayer();
+}
+
+void RenderInterface_VK::RenderLayerStack::DestroyFramebuffers()
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderLayerStack::DestroyFramebuffers");
+}
+
+const Gfx::FramebufferData& RenderInterface_VK::RenderLayerStack::EnsureFramebufferPostprocess(int index)
+{
+	return Gfx::FramebufferData();
+}

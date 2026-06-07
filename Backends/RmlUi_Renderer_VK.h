@@ -9,17 +9,11 @@
 
 #include "RmlUi_Include_Vulkan.h"
 
-#ifdef RMLUI_DEBUG
-	#define RMLUI_VK_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(statement, msg)
+enum class ProgramId;
 
-// Uncomment the following line to enable additional Vulkan debugging.
-// #define RMLUI_VK_DEBUG
-#else
-	#define RMLUI_VK_ASSERTMSG(statement, msg) static_cast<void>(statement)
-#endif
-
-// Your specified API version. Ideally, this will be dynamic in the future.
-#define RMLUI_VK_API_VERSION VK_API_VERSION_1_0
+namespace Gfx {
+struct FramebufferData;
+}
 
 class RenderInterface_VK : public Rml::RenderInterface {
 public:
@@ -38,6 +32,7 @@ public:
 	void EndFrame();
 
 	void SetViewport(int width, int height);
+	void Clear();
 	bool IsSwapchainValid();
 	void RecreateSwapchain();
 
@@ -65,9 +60,27 @@ public:
 	/// Called by RmlUi when it wants to set the current transform matrix to a new matrix.
 	void SetTransform(const Rml::Matrix4f* transform) override;
 
+	void EnableClipMask(bool enable) override;
+	void RenderToClipMask(Rml::ClipMaskOperation mask_op, Rml::CompiledGeometryHandle geom, Rml::Vector2f translation) override;
+
+	Rml::LayerHandle PushLayer() override;
+	void CompositeLayers(Rml::LayerHandle src, Rml::LayerHandle dest, Rml::BlendMode blend,
+		Rml::Span<const Rml::CompiledFilterHandle> filters) override;
+	void PopLayer() override;
+
+	Rml::TextureHandle SaveLayerAsTexture() override;
+	Rml::CompiledFilterHandle SaveLayerAsMaskImage() override;
+
+	Rml::CompiledFilterHandle CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters) override;
+	void ReleaseFilter(Rml::CompiledFilterHandle filter) override;
+
+	Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) override;
+	void RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle, Rml::Vector2f translation,
+		Rml::TextureHandle texture) override;
+	void ReleaseShader(Rml::CompiledShaderHandle effect_handle) override;
+
 private:
 	enum class shader_type_t : int { Vertex, Fragment, Unknown = -1 };
-	enum class shader_id_t : int { Vertex, Fragment_WithoutTextures, Fragment_WithTextures };
 
 	struct shader_vertex_user_data_t {
 		// Member objects are order-sensitive to match shader.
@@ -103,25 +116,54 @@ private:
 	};
 
 	class UploadResourceManager {
+		struct upload_buffer_data_t {
+			size_t creation_size;
+			buffer_data_t vk_buffer;
+		};
+
 	public:
-		UploadResourceManager() : m_p_device{}, m_p_fence{}, m_p_command_buffer{}, m_p_command_pool{}, m_p_graphics_queue{} {}
+		UploadResourceManager() :
+			m_p_device{}, m_p_fence{}, m_p_command_buffer{}, m_p_command_pool{}, m_p_graphics_queue{}
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+			,
+			m_upload_buffer{}
+#endif
+		{}
 		~UploadResourceManager() {}
 
-		void Initialize(VkDevice p_device, VkQueue p_queue, uint32_t queue_family_index)
+		void Initialize(VkDevice p_device, VkQueue p_queue, VmaAllocator p_allocator, uint32_t queue_family_index, size_t staging_buffer_size)
 		{
 			RMLUI_VK_ASSERTMSG(p_queue, "you have to pass a valid VkQueue");
 			RMLUI_VK_ASSERTMSG(p_device, "you have to pass a valid VkDevice for creation resources");
+			RMLUI_VK_ASSERTMSG(staging_buffer_size > 0, "you must initialize valid staging buffer!");
+			RMLUI_VK_ASSERTMSG(p_allocator, "you must pass a valid vmaAllocator instance");
 
 			m_p_device = p_device;
 			m_p_graphics_queue = p_queue;
 
-			Create_All(queue_family_index);
+			Create_All(queue_family_index, p_allocator, staging_buffer_size);
 		}
 
-		void Shutdown()
+		void Shutdown(VmaAllocator p_allocator)
 		{
+			RMLUI_ASSERT(p_allocator && "must be valid");
+
 			vkDestroyFence(m_p_device, m_p_fence, nullptr);
 			vkDestroyCommandPool(m_p_device, m_p_command_pool, nullptr);
+
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+			if (p_allocator)
+			{
+				if (m_upload_buffer.vk_buffer.m_p_vk_buffer && m_upload_buffer.vk_buffer.m_p_vma_allocation)
+				{
+					vmaDestroyBuffer(p_allocator, m_upload_buffer.vk_buffer.m_p_vk_buffer, m_upload_buffer.vk_buffer.m_p_vma_allocation);
+
+					m_upload_buffer.creation_size = 0;
+					m_upload_buffer.vk_buffer.m_p_vk_buffer = nullptr;
+					m_upload_buffer.vk_buffer.m_p_vma_allocation = nullptr;
+				}
+			}
+#endif
 		}
 
 		template <typename Func>
@@ -149,6 +191,12 @@ private:
 			Submit();
 			Wait();
 		}
+
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+		const buffer_data_t& Get_UploadBuffer() const noexcept { return m_upload_buffer.vk_buffer; }
+		buffer_data_t& Get_UploadBuffer() noexcept { return m_upload_buffer.vk_buffer; }
+		size_t Get_UploadBufferSize() const noexcept { return m_upload_buffer.creation_size; }
+#endif
 
 	private:
 		void Create_Fence() noexcept
@@ -179,6 +227,42 @@ private:
 			RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkAllocateCommandBuffers");
 		}
 
+		void Create_StagingBuffer(VmaAllocator p_allocator, size_t requested_size, upload_buffer_data_t* init_buffer)
+		{
+			RMLUI_ASSERT(p_allocator && "expected to be valid pointer");
+			RMLUI_ASSERT(init_buffer && "expected to be valid pointer");
+
+			if (p_allocator)
+			{
+				VkBufferCreateInfo info = {};
+				info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+				info.pNext = nullptr;
+				info.size = static_cast<VkDeviceSize>(requested_size);
+				info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+				VmaAllocationCreateInfo info_alloc = {};
+				info_alloc.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+
+				VkBuffer p_buffer = nullptr;
+				VmaAllocation p_allocation = nullptr;
+				VmaAllocationInfo info_stats = {};
+
+				VkResult status = vmaCreateBuffer(p_allocator, &info, &info_alloc, &p_buffer, &p_allocation, &info_stats);
+				RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vmaCreateBuffer");
+
+				if (init_buffer)
+				{
+					RMLUI_ASSERT(init_buffer->creation_size == 0 && "must be not initialized instance or you forget to clear this instance");
+					RMLUI_ASSERT(
+						init_buffer->vk_buffer.m_p_vk_buffer == nullptr && "must be not initialized instance or you forget to clear this instance");
+
+					init_buffer->creation_size = info.size;
+					init_buffer->vk_buffer.m_p_vk_buffer = p_buffer;
+					init_buffer->vk_buffer.m_p_vma_allocation = p_allocation;
+				}
+			}
+		}
+
 		void Create_CommandPool(uint32_t queue_family_index) noexcept
 		{
 			VkCommandPoolCreateInfo info = {};
@@ -193,11 +277,14 @@ private:
 			RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateCommandPool");
 		}
 
-		void Create_All(uint32_t queue_family_index) noexcept
+		void Create_All(uint32_t queue_family_index, VmaAllocator p_allocator, size_t staging_buffer_size) noexcept
 		{
 			Create_Fence();
 			Create_CommandPool(queue_family_index);
 			Create_CommandBuffer();
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+			Create_StagingBuffer(p_allocator, staging_buffer_size, &m_upload_buffer);
+#endif
 		}
 
 		void Wait() noexcept
@@ -234,6 +321,13 @@ private:
 		VkCommandBuffer m_p_command_buffer;
 		VkCommandPool m_p_command_pool;
 		VkQueue m_p_graphics_queue;
+
+#if RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED == 1
+		// system talks with these buffers when we want to upload texture
+		// we avoid reallocation, but if the requested resource is bigger than upload buffer we temporarely create that staging temp buffer and then
+		// delete, but this buffer we don't delete until session of RenderInterface_VK instance is not ended
+		upload_buffer_data_t m_upload_buffer;
+#endif
 	};
 
 	// @ main manager for "allocating" vertex, index, uniform stuff
@@ -379,6 +473,48 @@ private:
 		VkDescriptorPool m_p_descriptor_pool;
 	};
 
+	class RenderLayerStack {
+	public:
+		RenderLayerStack();
+		~RenderLayerStack();
+
+		void Initialize(RenderInterface_VK* p_owner);
+		void Shutdown();
+
+		Rml::LayerHandle PushLayer();
+		void PopLayer();
+
+		const Gfx::FramebufferData& GetLayer(Rml::LayerHandle layer) const;
+		const Gfx::FramebufferData& GetTopLayer() const;
+		const Gfx::FramebufferData& Get_SharedDepthStencil_Layers();
+		//	const Gfx::FramebufferData& Get_SharedDepthStencil_Postprocess();
+		Rml::LayerHandle GetTopLayerHandle() const;
+
+		const Gfx::FramebufferData& GetPostprocessPrimary() { return EnsureFramebufferPostprocess(0); }
+		const Gfx::FramebufferData& GetPostprocessSecondary() { return EnsureFramebufferPostprocess(1); }
+		const Gfx::FramebufferData& GetPostprocessTertiary() { return EnsureFramebufferPostprocess(2); }
+		const Gfx::FramebufferData& GetBlendMask() { return EnsureFramebufferPostprocess(3); }
+
+		void SwapPostprocessPrimarySecondary();
+
+		void BeginFrame(int new_width, int new_height);
+		void EndFrame();
+
+	private:
+		void DestroyFramebuffers();
+		const Gfx::FramebufferData& EnsureFramebufferPostprocess(int index);
+
+	private:
+		unsigned char m_msaa_sample_count;
+		int m_layers_size;
+		int m_width;
+		int m_height;
+		RenderInterface_VK* m_p_owner;
+		Gfx::FramebufferData* m_p_shared_depth_stencil_for_layers;
+		Rml::Vector<Gfx::FramebufferData> m_fb_layers;
+		Rml::Vector<Gfx::FramebufferData> m_fb_postprocess;
+	};
+
 	struct PhysicalDeviceWrapper {
 		VkPhysicalDevice m_p_physical_device;
 		VkPhysicalDeviceProperties m_physical_device_properties;
@@ -443,24 +579,36 @@ private:
 
 	VkExtent2D GetValidSurfaceExtent() noexcept;
 
-	void CreateShaders() noexcept;
-	void CreateDescriptorSetLayout() noexcept;
-	void CreatePipelineLayout() noexcept;
-	void CreateDescriptorSets() noexcept;
-	void CreateSamplers() noexcept;
+	void Create_Shaders() noexcept;
+	void Create_DescriptorSetLayout() noexcept;
+	void Create_PipelineLayout() noexcept;
+	void Create_DescriptorSets() noexcept;
+	void Create_Samplers() noexcept;
 	void Create_Pipelines() noexcept;
-	void CreateRenderPass() noexcept;
 
-	void CreateSwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
+	void Create_Pipeline_Color();
+	void Create_Pipeline_Texture();
+	void Create_Pipeline_Gradient();
+	void Create_Pipeline_Creation();
+	void Create_Pipeline_Passthrough();
+	void Create_Pipeline_Passthrough_NoBlend();
+	void Create_Pipeline_ColorMatrix();
+	void Create_Pipeline_BlendMask();
+	void Create_Pipeline_Blur();
+	void Create_Pipeline_DropShadow();
+
+	void Create_RenderPass() noexcept;
+
+	void Create_SwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
 
 	// This method is called in Views, so don't call it manually
-	void CreateSwapchainImages() noexcept;
-	void CreateSwapchainImageViews() noexcept;
+	void Create_SwapchainImages() noexcept;
+	void Create_SwapchainImageViews() noexcept;
 
 	void Create_DepthStencilImage() noexcept;
 	void Create_DepthStencilImageViews() noexcept;
 
-	void CreateResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept;
+	void Create_ResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept;
 
 	buffer_data_t CreateResource_StagingBuffer(VkDeviceSize size, VkBufferUsageFlags flags) noexcept;
 	void DestroyResource_StagingBuffer(const buffer_data_t& data) noexcept;
@@ -486,6 +634,8 @@ private:
 
 	void Submit() noexcept;
 	void Present() noexcept;
+
+	void UseProgram(ProgramId id);
 
 	VkFormat Get_SupportedDepthFormat();
 
@@ -517,11 +667,13 @@ private:
 	VkDescriptorSetLayout m_p_descriptor_set_layout_vertex_transform;
 	VkDescriptorSetLayout m_p_descriptor_set_layout_texture;
 	VkPipelineLayout m_p_pipeline_layout;
+	/*
 	VkPipeline m_p_pipeline_with_textures;
 	VkPipeline m_p_pipeline_without_textures;
 	VkPipeline m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn;
 	VkPipeline m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures;
 	VkPipeline m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures;
+	*/
 	VkDescriptorSet m_p_descriptor_set;
 	VkRenderPass m_p_render_pass;
 	VkSampler m_p_sampler_linear;
@@ -550,7 +702,7 @@ private:
 	Rml::Vector<VkFramebuffer> m_swapchain_frame_buffers;
 	Rml::Vector<VkImage> m_swapchain_images;
 	Rml::Vector<VkImageView> m_swapchain_image_views;
-	Rml::Vector<VkShaderModule> m_shaders;
+	VkShaderModule m_shaders[static_cast<int>(eVKShaderID::total_size)];
 	Rml::Array<Rml::Vector<texture_data_t*>, kSwapchainBackBufferCount> m_pending_for_deletion_textures_by_frames;
 
 	// vma handles that thing, so there's no need for frame splitting

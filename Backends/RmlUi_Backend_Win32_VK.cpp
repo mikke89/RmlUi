@@ -233,6 +233,7 @@ void Backend::BeginFrame()
 {
 	RMLUI_ASSERT(data);
 	data->render_interface.BeginFrame();
+	data->render_interface.Clear();
 }
 
 void Backend::PresentFrame()
