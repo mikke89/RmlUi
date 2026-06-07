@@ -4,11 +4,13 @@
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/Types.h"
+#include <optional>
 
 namespace Rml {
 
 class ElementDefinition;
-class PropertiesIterator;
+class PlainPropertiesIterator;
+class AllPropertiesIterator;
 enum class RelativeTarget;
 
 enum class PseudoClassState : uint8_t { Clear = 0, Set = 1, Override = 2 };
@@ -63,22 +65,44 @@ public:
 	/// @param[in] id The ID  of the new property.
 	/// @param[in] property The parsed property to set.
 	bool SetProperty(PropertyId id, const Property& property);
-	/// Removes a local property override on the element; its value will revert to that defined in
-	/// the style sheet.
+	/// Sets a local custom property override on the element to a pre-parsed value.
+	/// @param[in] name The name of the new property.
+	/// @param[in] property The parsed property to set.
+	void SetCustomProperty(const String& name, const Property& property);
+	/// Sets a local var expression shorthand override on the element to a pre-parsed value.
+	/// @param[in] id The shorthand id.
+	/// @param[in] property The var shorthand value with Unit::VAR_EXPRESSION.
+	void SetVarShorthand(ShorthandId id, const Property& property);
+	/// Removes a local property override on the element; its value will revert to that defined in the style sheet.
 	/// @param[in] id The ID of the local property definition to remove.
 	void RemoveProperty(PropertyId id);
-	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
-	/// be found that we can inherit the property from, the default value will be returned.
+	/// Removes a local custom property override on the element; its value will revert to that defined in the style sheet.
+	/// @param[in] name The name of the local custom property to remove.
+	void RemoveCustomProperty(const String& name);
+	/// Removes a local var shorthand override on the element.
+	void RemoveVarShorthand(ShorthandId id);
+	/// Returns one of this element's properties, with lookup into parents for inherited properties.
 	/// @param[in] id The ID of the property to fetch the value for.
-	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
+	/// @return The value of this property for this element, or the default value if none is declared.
 	const Property* GetProperty(PropertyId id) const;
-	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
-	/// returned.
+	/// Returns one of this element's custom properties, with lookup into parents.
+	/// @param[in] name The name of the property to fetch the value for (including "--" prefix).
+	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
+	const Property* GetCustomProperty(const String& name) const;
+	/// Returns one of this element's properties.
 	/// @param[in] id The ID of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(PropertyId id) const;
-	/// Returns the local style properties, excluding any properties from local class.
-	const PropertyMap& GetLocalStyleProperties() const;
+	/// Returns one of this element's custom properties.
+	/// @param[in] name The name of the property to fetch the value for (including "--" prefix).
+	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
+	const Property* GetLocalCustomProperty(const String& name) const;
+	/// Returns one of this element's local shorthands.
+	/// @param[in]  id The ID of the shorthand to fetch the value for.
+	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
+	const Property* GetLocalShorthand(ShorthandId id) const;
+	/// Returns the local style properties, excluding any properties from local classes.
+	const PropertyDictionary& GetLocalStyleProperties() const;
 
 	/// Resolves a numeric value with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
 	/// @param[in] value The value to be resolved.
@@ -104,24 +128,88 @@ public:
 	/// Returns true if any properties are dirty such that computed values need to be recomputed
 	bool AnyPropertiesDirty() const;
 
+	/// Resolves variables and var expression shorthands for a single property taken from a keyframe block.
+	/// @param[in] id The property being resolved.
+	/// @param[in] property The property value to resolve, sourced from the keyframe block.
+	/// @param[in] block_properties The properties of the keyframe block being processed.
+	/// @param[in,out] block_substituted_shorthands Lazily populated cache of expanded shorthands for the current block.
+	/// @param[out] variable_dependencies The set of variables referenced during resolution. Can be reused to avoid allocations.
+	/// @param[out] property_storage Backing storage for a resolved property, the returned result may point to this.
+	/// @return The resolved property, or nullptr on failure.
+	const Property* ResolveKeyFrameProperty(PropertyId id, const Property* property, const PropertyDictionary& block_properties,
+		std::optional<PropertyDictionary>& block_substituted_shorthands, SmallUnorderedSet<String>& variable_dependencies,
+		Property& property_storage);
+
 	/// Turns the local and inherited properties into computed values for this element. These values can in turn be used during the layout procedure.
 	/// Must be called in correct order, always parent before its children.
 	PropertyIdSet ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values,
 		const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions);
 
-	/// Returns an iterator for iterating the local properties of this element.
+	const Property* GetSpecifiedProperty(PropertyId id) { return GetSpecifiedProperty(GetPropertySources(), id).property; }
+	const Property* GetSpecifiedCustomProperty(const String& name) { return GetSpecifiedCustomProperty(GetPropertySources(), name).property; }
+	const Property* GetSpecifiedShorthand(ShorthandId id) { return GetSpecifiedShorthand(GetPropertySources(), id).property; }
+
+	/// Returns an iterator for iterating the plain local properties of this element.
 	/// Note: Modifying the element's style invalidates its iterator.
-	PropertiesIterator Iterate() const;
+	PlainPropertiesIterator Iterate() const;
+	/// Make an iterator for all properties including custom and shorthand properties.
+	UniquePtr<AllPropertiesIterator> IterateAll(Element* filter_inherited_by) const;
+
+	static void Initialize();
+	static void Shutdown();
 
 private:
-	// Sets a list of properties as dirty.
+	struct PropertySources {
+		Element* element;
+		const ElementDefinition* definition;
+		const PropertyDictionary& inline_properties;
+	};
+	struct DirtyPropertiesRef {
+		PropertyIdSet& properties;
+		const UnorderedSet<String>& variables;
+		const UnorderedSet<ShorthandId>& var_shorthands;
+	};
+	struct PropertyElementPair {
+		const Property* property = nullptr;
+		Element* element = nullptr;
+	};
+
+	PropertySources GetPropertySources() const;
+	DirtyPropertiesRef GetDirtyPropertiesRef();
+
 	void DirtyProperties(const PropertyIdSet& properties);
 
+	const Property* ResolveVariables(PropertyId id, const Property* property, SmallUnorderedSet<String>& variable_dependencies,
+		Property& property_storage);
+
+	void ComputeValue(Style::ComputedValues& values, float dp_ratio, Vector2f vp_dimensions, float font_size, float document_font_size,
+		bool& dirty_font_face_handle, PropertyId id, const Property* p);
+
 	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary& inline_properties, const ElementDefinition* definition);
-	static const Property* GetProperty(PropertyId id, const Element* element, const PropertyDictionary& inline_properties,
+	static const Property* GetLocalCustomProperty(const String& name, const PropertyDictionary& inline_properties,
 		const ElementDefinition* definition);
-	static void TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& inline_properties,
-		const ElementDefinition* old_definition, const ElementDefinition* new_definition);
+	static const Property* GetLocalShorthand(ShorthandId id, const PropertyDictionary& inline_properties, const ElementDefinition* definition);
+
+	// Specified property: The property value before being computed. Includes the cascade, excludes variable substitution.
+	static PropertyElementPair GetSpecifiedProperty(const PropertySources& sources, PropertyId id);
+	static PropertyElementPair GetSpecifiedCustomProperty(const PropertySources& sources, const String& name);
+	static PropertyElementPair GetSpecifiedShorthand(const PropertySources& sources, ShorthandId id);
+
+	enum class SubstitutionResult { Substituted, NoVariablesFound, Error };
+	static SubstitutionResult SubstituteVariableOnce(const PropertySources& sources, const String& value,
+		SmallUnorderedSet<String>& variable_dependencies, SmallUnorderedSet<String>& cycle_chain, String& result);
+	static bool SubstituteVariables(const PropertySources& sources, String value, SmallUnorderedSet<String>& variable_dependencies,
+		SmallUnorderedSet<String>& cycle_chain, String& result);
+
+	static const Property* ResolveVariables(const PropertySources& sources, const PropertyDictionary& substituted_shorthands, PropertyId id,
+		const Property* property, SmallUnorderedSet<String>& variable_dependencies, Property& property_storage);
+	static const Property* ResolveVariablesWithShorthandExpansion(const PropertySources& sources, PropertyId id, const Property* property,
+		std::optional<PropertyDictionary>& substituted_shorthands, SmallUnorderedSet<String>& variable_dependencies, Property& property_storage);
+
+	static void ExpandVarShorthands(PropertyDictionary& out_substituted_shorthands, const PropertySources& sources,
+		std::optional<DirtyPropertiesRef> dirty_properties);
+
+	static void TransitionPropertyChanges(const PropertySources& sources, PropertyIdSet& changed_properties, const ElementDefinition* new_definition);
 
 	// Element these properties belong to
 	Element* element;
@@ -131,12 +219,16 @@ private:
 	// This element's current pseudo-classes.
 	PseudoClassMap pseudo_classes;
 
-	// Any properties that have been overridden in this element.
-	PropertyDictionary inline_properties;
 	// The definition of this element, provides applicable properties from the stylesheet.
 	SharedPtr<const ElementDefinition> definition;
+	// Any properties that have been overridden in this element.
+	PropertyDictionary inline_properties;
+	// Properties computed from shorthands with variables, here resolved.
+	PropertyDictionary expanded_shorthands;
 
 	PropertyIdSet dirty_properties;
+	UnorderedSet<String> dirty_variables;
+	UnorderedSet<ShorthandId> dirty_var_shorthands;
 };
 
 } // namespace Rml

@@ -233,8 +233,15 @@ ElementPtr Element::Clone() const
 		clone_attributes.erase("class");
 		clone->SetAttributes(clone_attributes);
 
-		for (auto& id_property : GetStyle()->GetLocalStyleProperties())
+		const PropertyDictionary& local_properties = GetStyle()->GetLocalStyleProperties();
+		for (auto& id_property : local_properties.GetProperties())
 			clone->SetProperty(id_property.first, id_property.second);
+
+		for (auto& id_property : local_properties.GetCustomProperties())
+			clone->SetProperty(id_property.first, id_property.second.ToString());
+
+		for (auto& [shorthand_id, property] : local_properties.GetVarShorthands())
+			clone->SetProperty(StyleSheetSpecification::GetShorthandName(shorthand_id), property.ToString());
 
 		clone->GetStyle()->SetClassNames(GetStyle()->GetClassNames());
 
@@ -594,6 +601,14 @@ bool Element::SetProperty(const String& name, const String& value)
 		if (!meta->style.SetProperty(property.first, property.second))
 			return false;
 	}
+	for (auto& property : properties.GetCustomProperties())
+	{
+		meta->style.SetCustomProperty(property.first, property.second);
+	}
+	for (auto& [shorthand_id, property] : properties.GetVarShorthands())
+	{
+		meta->style.SetVarShorthand(shorthand_id, property);
+	}
 	return true;
 }
 
@@ -604,18 +619,28 @@ bool Element::SetProperty(PropertyId id, const Property& property)
 
 void Element::RemoveProperty(const String& name)
 {
-	auto property_id = StyleSheetSpecification::GetPropertyId(name);
+	const PropertyId property_id = StyleSheetSpecification::GetPropertyId(name);
 	if (property_id != PropertyId::Invalid)
-		meta->style.RemoveProperty(property_id);
-	else
 	{
-		auto shorthand_id = StyleSheetSpecification::GetShorthandId(name);
-		if (shorthand_id != ShorthandId::Invalid)
-		{
-			auto property_id_set = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand_id);
-			for (auto it = property_id_set.begin(); it != property_id_set.end(); ++it)
-				meta->style.RemoveProperty(*it);
-		}
+		meta->style.RemoveProperty(property_id);
+		return;
+	}
+
+	if (StringUtilities::StartsWith(name, "--"))
+	{
+		meta->style.RemoveCustomProperty(name);
+		return;
+	}
+
+	const ShorthandId shorthand_id = StyleSheetSpecification::GetShorthandId(name);
+	if (shorthand_id != ShorthandId::Invalid)
+	{
+		const PropertyIdSet property_id_set = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand_id);
+		for (const PropertyId id : property_id_set)
+			meta->style.RemoveProperty(id);
+
+		meta->style.RemoveVarShorthand(shorthand_id);
+		return;
 	}
 }
 
@@ -626,7 +651,14 @@ void Element::RemoveProperty(PropertyId id)
 
 const Property* Element::GetProperty(const String& name)
 {
-	return meta->style.GetProperty(StyleSheetSpecification::GetPropertyId(name));
+	const PropertyId property_id = StyleSheetSpecification::GetPropertyId(name);
+	if (property_id != PropertyId::Invalid)
+		return meta->style.GetProperty(property_id);
+
+	if (StringUtilities::StartsWith(name, "--"))
+		return meta->style.GetCustomProperty(name);
+
+	return nullptr;
 }
 
 const Property* Element::GetProperty(PropertyId id)
@@ -636,7 +668,14 @@ const Property* Element::GetProperty(PropertyId id)
 
 const Property* Element::GetLocalProperty(const String& name)
 {
-	return meta->style.GetLocalProperty(StyleSheetSpecification::GetPropertyId(name));
+	const PropertyId property_id = StyleSheetSpecification::GetPropertyId(name);
+	if (property_id != PropertyId::Invalid)
+		return meta->style.GetLocalProperty(property_id);
+
+	if (StringUtilities::StartsWith(name, "--"))
+		return meta->style.GetLocalCustomProperty(name);
+
+	return nullptr;
 }
 
 const Property* Element::GetLocalProperty(PropertyId id)
@@ -646,7 +685,7 @@ const Property* Element::GetLocalProperty(PropertyId id)
 
 const PropertyMap& Element::GetLocalStyleProperties()
 {
-	return meta->style.GetLocalStyleProperties();
+	return meta->style.GetLocalStyleProperties().GetProperties();
 }
 
 float Element::ResolveLength(NumericValue value)
@@ -758,9 +797,9 @@ bool Element::Project(Vector2f& point) const noexcept
 	return false;
 }
 
-PropertiesIteratorView Element::IterateLocalProperties() const
+PropertiesIteratorView Element::IterateLocalProperties(Element* filter_inherited_by) const
 {
-	return PropertiesIteratorView(MakeUnique<PropertiesIterator>(meta->style.Iterate()));
+	return PropertiesIteratorView(meta->style.IterateAll(filter_inherited_by));
 }
 
 void Element::SetPseudoClass(const String& pseudo_class, bool activate)
@@ -1721,6 +1760,12 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 
 				for (const auto& name_value : properties.GetProperties())
 					meta->style.SetProperty(name_value.first, name_value.second);
+
+				for (const auto& name_value : properties.GetCustomProperties())
+					meta->style.SetCustomProperty(name_value.first, name_value.second);
+
+				for (const auto& [shorthand_id, property] : properties.GetVarShorthands())
+					meta->style.SetVarShorthand(shorthand_id, property);
 			}
 			else if (value.GetType() != Variant::NONE)
 				Log::Message(Log::LT_WARNING, "Invalid 'style' attribute, string type required. In element: %s", GetAddress().c_str());
@@ -2027,22 +2072,36 @@ void Element::GetRML(String& content)
 		}
 	}
 
-	const PropertyMap& local_properties = meta->style.GetLocalStyleProperties();
-	if (!local_properties.empty())
+	const PropertyDictionary& local_properties = meta->style.GetLocalStyleProperties();
+	if (!local_properties.Empty())
 		content += " style=\"";
 
-	for (const auto& pair : local_properties)
+	for (const auto& [id, property] : local_properties.GetProperties())
 	{
-		const PropertyId id = pair.first;
-		const Property& property = pair.second;
-
+		// Skip placeholders for shorthands that are pending substitution, the shorthand itself is serialized below.
+		if (property.unit == Unit::SHORTHAND_PLACEHOLDER)
+			continue;
 		content += StyleSheetSpecification::GetPropertyName(id);
 		content += ": ";
 		content += StringUtilities::EncodeRml(property.ToString());
 		content += "; ";
 	}
+	for (const auto& [name, property] : local_properties.GetCustomProperties())
+	{
+		content += name;
+		content += ": ";
+		content += StringUtilities::EncodeRml(property.ToString());
+		content += "; ";
+	}
+	for (const auto& [shorthand_id, property] : local_properties.GetVarShorthands())
+	{
+		content += StyleSheetSpecification::GetShorthandName(shorthand_id);
+		content += ": ";
+		content += StringUtilities::EncodeRml(property.ToString());
+		content += "; ";
+	}
 
-	if (!local_properties.empty())
+	if (!local_properties.Empty())
 		content.back() = '\"';
 
 	if (HasChildNodes())
@@ -2669,7 +2728,7 @@ void Element::HandleTransitionProperty()
 			});
 		}
 
-		// We can decide what to do with cancelled transitions here.
+		// We can decide what to do with canceled transitions here.
 		for (auto it = it_remove; it != animations.end(); ++it)
 			RemoveProperty(it->GetPropertyId());
 
@@ -2700,7 +2759,7 @@ void Element::HandleAnimationProperty()
 				auto it_remove = std::partition(animations.begin(), animations.end(),
 					[](const ElementAnimation& animation) { return animation.GetOrigin() != ElementAnimationOrigin::Animation; });
 
-				// We can decide what to do with cancelled animations here.
+				// We can decide what to do with canceled animations here.
 				for (auto it = it_remove; it != animations.end(); ++it)
 					RemoveProperty(it->GetPropertyId());
 
@@ -2710,6 +2769,7 @@ void Element::HandleAnimationProperty()
 			// Start animations
 			if (animation_list)
 			{
+				Property property_storage;
 				for (const auto& animation : *animation_list)
 				{
 					const Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
@@ -2717,29 +2777,53 @@ void Element::HandleAnimationProperty()
 					{
 						auto& property_ids = keyframes_ptr->property_ids;
 						auto& blocks = keyframes_ptr->blocks;
+						SmallUnorderedSet<String> variable_dependencies;
+						std::optional<PropertyDictionary> substituted_shorthands_cache;
+						int previous_block_index = -1;
 
-						bool has_from_key = (blocks[0].normalized_time == 0);
-						bool has_to_key = (blocks.back().normalized_time == 1);
+						auto ResolveProperty = [&](PropertyId id, const Property* property, int block_index) {
+							if (!property)
+								return property;
+							if (block_index != previous_block_index)
+							{
+								substituted_shorthands_cache.reset();
+								previous_block_index = block_index;
+							}
+							return meta->style.ResolveKeyFrameProperty(id, property, blocks[block_index].properties, substituted_shorthands_cache,
+								variable_dependencies, property_storage);
+						};
+
+						const bool has_from_key = (blocks.front().normalized_time == 0);
+						const bool has_to_key = (blocks.back().normalized_time == 1);
 
 						// If the first key defines initial conditions for a given property, use those values, else, use this element's current
 						// values.
 						for (PropertyId id : property_ids)
-							StartAnimation(id, (has_from_key ? blocks[0].properties.GetProperty(id) : nullptr), animation.num_iterations,
-								animation.alternate, animation.delay, true);
+						{
+							const Property* property = ResolveProperty(id, (has_from_key ? blocks.front().properties.GetProperty(id) : nullptr), 0);
+							StartAnimation(id, property, animation.num_iterations, animation.alternate, animation.delay, true);
+						}
 
 						// Add middle keys: Need to skip the first and last keys if they set the initial and end conditions, respectively.
 						for (int i = (has_from_key ? 1 : 0); i < (int)blocks.size() + (has_to_key ? -1 : 0); i++)
 						{
 							// Add properties of current key to animation
 							float time = blocks[i].normalized_time * animation.duration;
-							for (auto& property : blocks[i].properties.GetProperties())
-								AddAnimationKeyTime(property.first, &property.second, time, animation.tween);
+							for (const auto& [id, unresolved_property] : blocks[i].properties.GetProperties())
+							{
+								const Property* property = ResolveProperty(id, &unresolved_property, i);
+								AddAnimationKeyTime(id, property, time, animation.tween);
+							}
 						}
 
 						// If the last key defines end conditions for a given property, use those values, else, use this element's current values.
 						float time = animation.duration;
 						for (PropertyId id : property_ids)
-							AddAnimationKeyTime(id, (has_to_key ? blocks.back().properties.GetProperty(id) : nullptr), time, animation.tween);
+						{
+							const Property* property =
+								ResolveProperty(id, (has_to_key ? blocks.back().properties.GetProperty(id) : nullptr), (int)blocks.size() - 1);
+							AddAnimationKeyTime(id, property, time, animation.tween);
+						}
 					}
 				}
 			}

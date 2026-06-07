@@ -78,12 +78,14 @@ struct ElementStyleProxyPairs {
 		{
 			return 0;
 		}
-		const String& key = self->m_view.GetName();
-		const Property& property = self->m_view.GetProperty();
-		String val;
-		property.definition->GetValue(val, property);
+		const auto& [key, property] = *self->m_view;
+		String value;
+		if (property.definition)
+			property.definition->GetValue(value, property);
+		else
+			value = property.ToString();
 		lua_pushlstring(L, key.c_str(), key.size());
-		lua_pushlstring(L, val.c_str(), val.size());
+		lua_pushlstring(L, value.c_str(), value.size());
 		++self->m_view;
 		return 2;
 	}
@@ -108,7 +110,7 @@ struct ElementStyleProxyPairs {
 		new (storage) ElementStyleProxyPairs(obj);
 		return 1;
 	}
-	ElementStyleProxyPairs(ElementStyleProxy* obj) : m_view(obj->owner->IterateLocalProperties()) {}
+	ElementStyleProxyPairs(ElementStyleProxy* obj) : m_view(obj->owner->IterateLocalProperties(nullptr)) {}
 	PropertiesIteratorView m_view;
 };
 

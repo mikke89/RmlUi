@@ -11,7 +11,9 @@
 using namespace ankerl;
 using namespace Rml;
 
-static const String document_rml = R"(
+TEST_CASE("WidgetTextInput")
+{
+	const String document_rml = R"(
 <rml>
 <head>
 	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
@@ -36,8 +38,6 @@ static const String document_rml = R"(
 </rml>
 )";
 
-TEST_CASE("WidgetTextInput")
-{
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
