@@ -959,8 +959,9 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				baseline_set = true;
 			}
 
-			// The cell contents may overflow, propagate this to the flex container.
-			const Vector2f overflow_size = item_offset + item_layout_box->GetVisibleOverflowSize();
+			// The item and its contents may overflow, propagate this to the flex container.
+			const Vector2f item_margin_overflow_size = item.box.GetPosition(BoxArea::Margin) + item.box.GetSize(BoxArea::Margin);
+			const Vector2f overflow_size = item_offset + Math::Max(item_layout_box->GetVisibleOverflowSize(), item_margin_overflow_size);
 
 			flex_content_overflow_size = Math::Max(flex_content_overflow_size, overflow_size);
 		}
