@@ -88,7 +88,7 @@ jobs:
           echo "Using vcpkg triplet: $env:VCPKG_DEFAULT_TRIPLET"
           C:\vcpkg\vcpkg install glfw3[core] freetype[core] lua[core] lunasvg[core]
           cd Dependencies\rlottie
-          cmake -B build -G "$env:GENERATOR" -A ${{ matrix.architecture == 'win32' && 'Win32' || 'x64' }} -DBUILD_SHARED_LIBS=ON -DLOTTIE_MODULE=OFF
+          cmake -B build -G "$env:GENERATOR" -A ${{ matrix.architecture == 'win32' && 'Win32' || 'x64' }} -DBUILD_SHARED_LIBS=ON -DLOTTIE_MODULE=OFF -DCMAKE_POLICY_VERSION_MINIMUM="3.5"
           cmake --build build --target rlottie --config Release -- "/clp:ErrorsOnly"
 
       - name: Configure CMake
