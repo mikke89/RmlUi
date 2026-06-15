@@ -8,6 +8,7 @@
 #include "../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/RenderManager.h"
+#include "ElementStyle.h"
 
 namespace Rml {
 
@@ -20,7 +21,7 @@ BoxShadowGeometryInfo GeometryBoxShadow::Resolve(Element* element, const CornerS
 	Vector2f element_offset_in_texture;
 	Vector2i texture_dimensions;
 
-	const Property* p_box_shadow = element->GetLocalProperty(PropertyId::BoxShadow);
+	const Property* p_box_shadow = element->GetStyle()->GetLocalPropertyWithResolvedVariables(PropertyId::BoxShadow);
 	RMLUI_ASSERT(p_box_shadow->value.GetType() == Variant::BOXSHADOWLIST);
 	BoxShadowList shadow_list = p_box_shadow->value.Get<BoxShadowList>();
 

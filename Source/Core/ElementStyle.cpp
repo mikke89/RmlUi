@@ -682,6 +682,16 @@ const Property* ElementStyle::GetLocalProperty(PropertyId id) const
 	return GetLocalProperty(id, inline_properties, definition.get());
 }
 
+const Property* ElementStyle::GetLocalPropertyWithResolvedVariables(PropertyId id) const
+{
+	const Property* property = GetLocalProperty(id, inline_properties, definition.get());
+	if (!property)
+		return nullptr;
+
+	SmallUnorderedSet<String> variable_dependencies;
+	return ResolveVariables(id, property, variable_dependencies, element_style_data->returned_property_storage);
+}
+
 const Property* ElementStyle::GetLocalCustomProperty(const String& name) const
 {
 	return GetLocalCustomProperty(name, inline_properties, definition.get());
@@ -1032,7 +1042,7 @@ void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 }
 
 const Property* ElementStyle::ResolveVariables(PropertyId id, const Property* property, SmallUnorderedSet<String>& variable_dependencies,
-	Property& property_storage)
+	Property& property_storage) const
 {
 	return ResolveVariables(GetPropertySources(), expanded_shorthands, id, property, variable_dependencies, property_storage);
 }

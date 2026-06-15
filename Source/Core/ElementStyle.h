@@ -93,6 +93,10 @@ public:
 	/// @param[in] id The ID of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(PropertyId id) const;
+	/// Returns one of this element's properties, with any variables fully resolved.
+	/// @param[in] id The ID of the property to fetch the value for.
+	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
+	const Property* GetLocalPropertyWithResolvedVariables(PropertyId id) const;
 	/// Returns one of this element's custom properties.
 	/// @param[in] name The name of the property to fetch the value for (including "--" prefix).
 	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
@@ -180,7 +184,7 @@ private:
 	void DirtyProperties(const PropertyIdSet& properties);
 
 	const Property* ResolveVariables(PropertyId id, const Property* property, SmallUnorderedSet<String>& variable_dependencies,
-		Property& property_storage);
+		Property& property_storage) const;
 
 	void ComputeValue(Style::ComputedValues& values, float dp_ratio, Vector2f vp_dimensions, float font_size, float document_font_size,
 		bool& dirty_font_face_handle, PropertyId id, const Property* p);

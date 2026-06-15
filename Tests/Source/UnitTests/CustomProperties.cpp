@@ -1,6 +1,11 @@
 #include "../Common/TestsInterface.h"
 #include "../Common/TestsShell.h"
 #include "RmlUi/Core/ComputedValues.h"
+#include "RmlUi/Core/DecorationTypes.h"
+#include "RmlUi/Core/PropertyDictionary.h"
+#include "RmlUi/Core/StyleSheetTypes.h"
+#include "RmlUi/Core/Transform.h"
+#include "RmlUi/Core/TransformPrimitive.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/DataModelHandle.h>
@@ -1353,6 +1358,162 @@ TEST_CASE("custom_properties.variable_resolution_edge_cases")
 		CHECK(document->GetComputedValues().padding_right().value == 10);
 		CHECK(document->GetComputedValues().padding_bottom().value == 10);
 		CHECK(document->GetComputedValues().padding_left().value == 10);
+	}
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("custom_properties.misc_properties")
+{
+	// Some of the following properties resolve variables directly from the ElementStyle.
+	static const char* const rml_template = R"(
+<rml>
+<head>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+	body {
+		inset: 0;
+		background: #ccc;
+	}
+%s
+	</style>
+</head>
+<body>
+	<div/>
+</body>
+</rml>
+)";
+
+	Context* context = TestsShell::GetContext();
+	ElementDocument* document = nullptr;
+
+	SUBCASE("box-shadow")
+	{
+		document = context->LoadDocumentFromMemory(CreateString(rml_template, R"(
+	body { --shadow-80: #0f0; }
+	div {
+		width: 500px;
+		height: 400px;
+		background: red;
+		box-shadow: var(--shadow-80) 0dp 8dp 24dp 0dp;
+	}
+)"));
+		document->Show();
+		Element* div = document->GetFirstChild();
+
+		CHECK(div->GetComputedValues().has_box_shadow());
+		CHECK(div->GetProperty(PropertyId::BoxShadow)->Get<BoxShadowList>() ==
+			BoxShadowList{BoxShadow{
+				ColourbPremultiplied{0, 255, 0, 255},
+				NumericValue{0, Unit::DP},
+				NumericValue{8, Unit::DP},
+				NumericValue{24, Unit::DP},
+				NumericValue{0, Unit::DP},
+				false,
+			}});
+	}
+
+	SUBCASE("flex")
+	{
+		document = context->LoadDocumentFromMemory(CreateString(rml_template, R"(
+	body { --flex-value: 2 3 40px; display: flex; }
+	div { flex: var(--flex-value); }
+)"));
+		document->Show();
+		Element* div = document->GetFirstChild();
+		CHECK(div->GetComputedValues().flex_grow() == 2.f);
+		CHECK(div->GetComputedValues().flex_shrink() == 3.f);
+		CHECK(div->GetComputedValues().flex_basis().type == Style::LengthPercentageAuto::Length);
+		CHECK(div->GetComputedValues().flex_basis().value == 40.f);
+		CHECK(div->GetProperty(PropertyId::FlexGrow)->Get<float>() == 2.f);
+		CHECK(div->GetProperty(PropertyId::FlexShrink)->Get<float>() == 3.f);
+		CHECK(div->GetProperty(PropertyId::FlexBasis)->ToString() == "40px");
+	}
+
+	SUBCASE("flex-grow")
+	{
+		document = context->LoadDocumentFromMemory(CreateString(rml_template, R"(
+	body { --grow: 3; display: flex; }
+	div { flex-grow: var(--grow); }
+)"));
+		document->Show();
+		Element* div = document->GetFirstChild();
+
+		CHECK(div->GetComputedValues().flex_grow() == 3.f);
+		CHECK(div->GetProperty(PropertyId::FlexGrow)->Get<float>() == 3.f);
+
+		div->SetProperty("--grow", "5");
+		TestsShell::RenderLoop();
+		CHECK(div->GetComputedValues().flex_grow() == 5.f);
+		CHECK(div->GetProperty(PropertyId::FlexGrow)->Get<float>() == 5.f);
+	}
+
+	SUBCASE("transform")
+	{
+		document = context->LoadDocumentFromMemory(CreateString(rml_template, R"(
+	body { --translate: 50px; }
+	div { width: 500px; height: 400px; transform: translateX(var(--translate)); }
+)"));
+		document->Show();
+		Element* div = document->GetFirstChild();
+		CHECK(div->GetProperty(PropertyId::Transform)->ToString() == "translateX(50px)");
+
+		TransformPtr transform = div->GetComputedValues().transform();
+		REQUIRE(transform.get());
+		REQUIRE(transform->GetNumPrimitives() == 1);
+		CHECK(transform->GetPrimitive(0).type == TransformPrimitive::TRANSLATEX);
+	}
+
+	SUBCASE("decorator")
+	{
+		document = context->LoadDocumentFromMemory(CreateString(rml_template, R"(
+	body { --decorator-color: #00f; }
+	div { width: 500px; height: 400px; decorator: linear-gradient(to right, #f00, var(--decorator-color)); }
+)"));
+		document->Show();
+		Element* div = document->GetFirstChild();
+		const Property* decorator_property = div->GetProperty(PropertyId::Decorator);
+		DecoratorsPtr decorators = decorator_property->Get<DecoratorsPtr>();
+		REQUIRE(decorators.get());
+		REQUIRE(decorators->list.size() == 1);
+		CHECK(decorators->list[0].type == "linear-gradient");
+
+		const Property* color_stops_property = nullptr;
+		for (const auto& id_property : decorators->list.front().properties.GetProperties())
+		{
+			if (id_property.second.unit == Unit::COLORSTOPLIST)
+				color_stops_property = &id_property.second;
+		}
+		REQUIRE(color_stops_property);
+		ColorStopList color_stops = color_stops_property->Get<ColorStopList>();
+		REQUIRE(color_stops.size() == 2);
+		CHECK(color_stops[0].color == ColourbPremultiplied(255, 0, 0));
+		CHECK(color_stops[1].color == ColourbPremultiplied(0, 0, 255));
+	}
+
+	SUBCASE("filter")
+	{
+		document = context->LoadDocumentFromMemory(CreateString(rml_template, R"(
+	body { --blur-radius: 10px; }
+	div { width: 500px; height: 400px; background: red; filter: blur(var(--blur-radius)); }
+)"));
+		document->Show();
+		Element* div = document->GetFirstChild();
+		const Property* filter_property = div->GetProperty(PropertyId::Filter);
+		FiltersPtr filters = filter_property->Get<FiltersPtr>();
+		REQUIRE(filters.get());
+		REQUIRE(filters->list.size() == 1);
+		CHECK(filters->list[0].type == "blur");
+
+		const Property* sigma_property = nullptr;
+		for (const auto& id_property : filters->list.front().properties.GetProperties())
+		{
+			if (id_property.second.unit == Unit::PX)
+				sigma_property = &id_property.second;
+		}
+		REQUIRE(sigma_property);
+		CHECK(sigma_property->Get<float>() == 10.f);
 	}
 
 	document->Close();

@@ -14,6 +14,7 @@
 #include "DataModel.h"
 #include "DataView.h"
 #include "ElementBackgroundBorder.h"
+#include "ElementStyle.h"
 #include "Layout/LayoutDetails.h"
 #include "Layout/LayoutEngine.h"
 #include "TransformState.h"
@@ -241,7 +242,7 @@ bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* elemen
 		// Note: Does not currently include ink overflow due to filters, as that is handled manually in ElementEffects.
 		box_area = BoxArea::Border;
 
-		if (const Property* p_box_shadow = element->GetLocalProperty(PropertyId::BoxShadow))
+		if (const Property* p_box_shadow = element->GetStyle()->GetLocalPropertyWithResolvedVariables(PropertyId::BoxShadow))
 		{
 			RMLUI_ASSERT(p_box_shadow->value.GetType() == Variant::BOXSHADOWLIST);
 			const BoxShadowList& shadow_list = p_box_shadow->value.GetReference<BoxShadowList>();
