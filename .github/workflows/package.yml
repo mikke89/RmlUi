@@ -14,7 +14,7 @@ jobs:
         build_type: [Debug, Release]
 
     env:
-      GENERATOR: Visual Studio 17 2022
+      GENERATOR: Visual Studio 18 2026
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture == 'win32' && 'x86' || 'x64' }}-${{ matrix.library_linkage == 'Dynamic' && 'windows' || 'windows-static-md' }}
 
     steps:
@@ -70,7 +70,7 @@ jobs:
         architecture: [win32, win64]
 
     env:
-      GENERATOR: Visual Studio 17 2022
+      GENERATOR: Visual Studio 18 2026
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture == 'win32' && 'x86' || 'x64' }}-windows${{ matrix.architecture == 'win64' && '-release' || '' }}
 
     steps:
