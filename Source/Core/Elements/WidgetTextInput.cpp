@@ -1618,6 +1618,8 @@ void WidgetTextInput::SetKeyboardActive(bool active)
 	{
 		system->DeactivateKeyboard();
 	}
+
+	keyboard_showed = active;
 }
 
 float WidgetTextInput::GetLineHeight() const
