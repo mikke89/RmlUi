@@ -234,13 +234,13 @@ ElementPtr Element::Clone() const
 		clone->SetAttributes(clone_attributes);
 
 		const PropertyDictionary& local_properties = GetStyle()->GetLocalStyleProperties();
-		for (auto& id_property : local_properties.GetProperties())
+		for (const auto& id_property : local_properties.GetProperties())
 			clone->SetProperty(id_property.first, id_property.second);
 
-		for (auto& id_property : local_properties.GetCustomProperties())
+		for (const auto& id_property : local_properties.GetCustomProperties())
 			clone->SetProperty(id_property.first, id_property.second.ToString());
 
-		for (auto& [shorthand_id, property] : local_properties.GetVarShorthands())
+		for (const auto& [shorthand_id, property] : local_properties.GetVarShorthands())
 			clone->SetProperty(StyleSheetSpecification::GetShorthandName(shorthand_id), property.ToString());
 
 		clone->GetStyle()->SetClassNames(GetStyle()->GetClassNames());
@@ -305,7 +305,7 @@ String Element::GetAddress(bool include_pseudo_classes, bool include_parents) co
 	if (include_pseudo_classes)
 	{
 		const PseudoClassMap& pseudo_classes = meta->style.GetActivePseudoClasses();
-		for (auto& pseudo_class : pseudo_classes)
+		for (const auto& pseudo_class : pseudo_classes)
 		{
 			address += ":";
 			address += pseudo_class.first;
@@ -596,16 +596,16 @@ bool Element::SetProperty(const String& name, const String& value)
 		Log::Message(Log::LT_WARNING, "Syntax error parsing inline property declaration '%s: %s;'.", name.c_str(), value.c_str());
 		return false;
 	}
-	for (auto& property : properties.GetProperties())
+	for (const auto& property : properties.GetProperties())
 	{
 		if (!meta->style.SetProperty(property.first, property.second))
 			return false;
 	}
-	for (auto& property : properties.GetCustomProperties())
+	for (const auto& property : properties.GetCustomProperties())
 	{
 		meta->style.SetCustomProperty(property.first, property.second);
 	}
-	for (auto& [shorthand_id, property] : properties.GetVarShorthands())
+	for (const auto& [shorthand_id, property] : properties.GetVarShorthands())
 	{
 		meta->style.SetVarShorthand(shorthand_id, property);
 	}
@@ -833,7 +833,7 @@ StringList Element::GetActivePseudoClasses() const
 	const PseudoClassMap& pseudo_classes = meta->style.GetActivePseudoClasses();
 	StringList names;
 	names.reserve(pseudo_classes.size());
-	for (auto& pseudo_class : pseudo_classes)
+	for (const auto& pseudo_class : pseudo_classes)
 	{
 		names.push_back(pseudo_class.first);
 	}
@@ -909,8 +909,15 @@ RenderManager* Element::GetRenderManager() const
 
 void Element::SetAttributes(const ElementAttributes& _attributes)
 {
+#ifndef RMLUI_USE_CPP23_FLAT_CONTAINERS
 	attributes.reserve(attributes.size() + _attributes.size());
-	for (auto& pair : _attributes)
+#else
+	auto storage = std::move(attributes).extract();
+	storage.keys  .reserve(attributes.size() + _attributes.size());
+	storage.values.reserve(attributes.size() + _attributes.size());
+	attributes.replace(std::move(storage.keys), std::move(storage.values));
+#endif
+	for (const auto& pair : _attributes)
 		attributes[pair.first] = pair.second;
 
 	OnAttributeChange(_attributes);
@@ -2054,7 +2061,7 @@ void Element::GetRML(String& content)
 	content += "<";
 	content += tag;
 
-	for (auto& pair : attributes)
+	for (const auto& pair : attributes)
 	{
 		const String& name = pair.first;
 		if (name == "style")

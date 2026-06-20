@@ -8,6 +8,9 @@
  * define) to the path of that file.
  */
 
+#define RMLUI_NO_THIRDPARTY_CONTAINERS
+#define RMLUI_USE_CPP23_FLAT_CONTAINERS
+
 #ifdef RMLUI_CUSTOM_CONFIGURATION_FILE
 	#include RMLUI_CUSTOM_CONFIGURATION_FILE
 #else
@@ -22,7 +25,10 @@
 	#include <unordered_map>
 	#include <utility>
 	#include <vector>
-
+	#ifdef RMLUI_USE_CPP23_FLAT_CONTAINERS
+		#include <flat_set>
+		#include <flat_map>
+	#endif
 	#ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
 		#include <set>
 		#include <unordered_set>
@@ -66,18 +72,29 @@ template <typename Key, typename Value>
 using UnorderedMultimap = std::unordered_multimap<Key, Value>;
 
 	#ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
+template <typename T>
+using UnorderedSet = std::unordered_set<T>;
 template <typename Key, typename Value>
 using UnorderedMap = std::unordered_map<Key, Value>;
+		#ifdef RMLUI_USE_CPP23_FLAT_CONTAINERS
+template <typename Key, typename Value>
+using SmallUnorderedMap = std::flat_map<Key, Value>;
+template <typename Key, typename Value>
+using SmallOrderedMap   = std::flat_map<Key, Value>;
+template <typename T>
+using SmallUnorderedSet = std::flat_set<T>;
+template <typename T>
+using SmallOrderedSet   = std::flat_set<T>;
+		#else
 template <typename Key, typename Value>
 using SmallUnorderedMap = UnorderedMap<Key, Value>;
 template <typename Key, typename Value>
 using SmallOrderedMap = StableMap<Key, Value>;
 template <typename T>
-using UnorderedSet = std::unordered_set<T>;
-template <typename T>
 using SmallUnorderedSet = std::unordered_set<T>;
 template <typename T>
 using SmallOrderedSet = std::set<T>;
+		#endif // RMLUI_USE_CPP23_FLAT_CONTAINERS
 	#else
 template <typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map<Key, Value>;
@@ -92,6 +109,7 @@ using SmallUnorderedSet = itlib::flat_set<T>;
 template <typename T>
 using SmallOrderedSet = itlib::flat_set<T>;
 	#endif // RMLUI_NO_THIRDPARTY_CONTAINERS
+
 
 // Utilities.
 template <typename T>

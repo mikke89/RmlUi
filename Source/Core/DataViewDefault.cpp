@@ -482,7 +482,14 @@ bool DataViewFor::Initialize(DataModel& model, Element* element, const String& i
 		Log::Message(Log::LT_WARNING, "Expected attributes for data-for view missing from element: %s", element->GetAddress().c_str());
 		return false;
 	}
+#ifndef RMLUI_USE_CPP23_FLAT_CONTAINERS
 	attributes.reserve(element_attributes.size() - num_data_for_attributes);
+#else
+	auto storage = std::move(attributes).extract();
+	storage.keys  .reserve(element_attributes.size() - num_data_for_attributes);
+	storage.values.reserve(element_attributes.size() - num_data_for_attributes);
+	attributes.replace(std::move(storage.keys), std::move(storage.values));
+#endif
 	for (const auto& attribute : element->GetAttributes())
 	{
 		if (attribute.first == "data-for" || attribute.first == "rmlui-inner-rml")

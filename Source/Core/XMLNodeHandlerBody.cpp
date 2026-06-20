@@ -19,7 +19,7 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& /*nam
 	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
 	if (document && document == element)
 	{
-		for (auto& pair : attributes)
+		for (const auto& pair : attributes)
 		{
 			Variant* attribute = document->GetAttribute(pair.first);
 			if (attribute && *attribute != pair.second && pair.first != "template")

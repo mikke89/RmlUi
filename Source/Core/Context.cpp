@@ -1534,7 +1534,14 @@ void Context::GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdent
 
 void Context::GenerateMouseEventParameters(Dictionary& parameters, int button_index)
 {
+#ifndef RMLUI_USE_CPP23_FLAT_CONTAINERS
 	parameters.reserve(3);
+#else
+	auto storage = std::move(parameters).extract();
+	storage.keys  .reserve(3);
+	storage.values.reserve(3);
+	parameters.replace(std::move(storage.keys), std::move(storage.values));
+#endif
 	parameters["mouse_x"] = mouse_position.x;
 	parameters["mouse_y"] = mouse_position.y;
 	if (button_index >= 0)

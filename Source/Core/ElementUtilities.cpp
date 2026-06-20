@@ -403,7 +403,7 @@ bool ElementUtilities::ApplyDataViewsControllers(Element* element)
 	// the information needed to initialize them in the following container.
 	Vector<ViewControllerInitializer> initializer_list;
 
-	for (auto& attribute : element->GetAttributes())
+	for (const auto& attribute : element->GetAttributes())
 	{
 		// Data views and controllers are declared by the following element attribute:
 		//     data-[type]-[modifier]="[expression]"

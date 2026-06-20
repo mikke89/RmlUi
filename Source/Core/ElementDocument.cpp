@@ -326,7 +326,7 @@ void ElementDocument::PushToBack()
 		context->PushDocumentToBack(this);
 }
 
-void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag, ScrollFlag scroll_flag)
+void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag , ScrollFlag scroll_flag)
 {
 	switch (modal_flag)
 	{

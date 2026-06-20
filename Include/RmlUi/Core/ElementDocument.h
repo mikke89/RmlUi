@@ -78,7 +78,7 @@ public:
 	/// @param[in] modal_flag Flag controlling the modal state of the document, see the 'ModalFlag' description for details.
 	/// @param[in] focus_flag Flag controlling the focus, see the 'FocusFlag' description for details.
 	/// @param[in] scroll_flag Flag controlling scrolling, see the 'ScrollFlag' description for details.
-	void Show(ModalFlag modal_flag = ModalFlag::None, FocusFlag focus_flag = FocusFlag::Auto, ScrollFlag scroll_flag = ScrollFlag::Auto);
+	void Show(ModalFlag modal_flag = ModalFlag::None, FocusFlag focus_flag = FocusFlag::Auto  ,ScrollFlag scroll_flag = ScrollFlag::Auto);
 	/// Hide the document.
 	void Hide();
 	/// Close the document.

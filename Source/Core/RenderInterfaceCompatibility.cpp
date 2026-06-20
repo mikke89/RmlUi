@@ -102,7 +102,7 @@ void RenderInterfaceAdapter::RenderGeometry(CompiledGeometryHandle handle, Vecto
 void RenderInterfaceAdapter::ReleaseGeometry(CompiledGeometryHandle handle)
 {
 	AdaptedGeometry* geometry = reinterpret_cast<AdaptedGeometry*>(handle);
-	for (auto& pair : geometry->textures)
+	for (const auto& pair : geometry->textures)
 		legacy.ReleaseCompiledGeometry(pair.second);
 
 	delete reinterpret_cast<AdaptedGeometry*>(geometry);

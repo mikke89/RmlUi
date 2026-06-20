@@ -387,7 +387,7 @@ void ReleaseTextures(RenderInterface* match_render_interface)
 {
 	if (!core_data)
 		return;
-	for (auto& render_manager : core_data->render_managers)
+	for (const auto& render_manager : core_data->render_managers)
 	{
 		if (!match_render_interface || render_manager.first == match_render_interface)
 			RenderManagerAccess::ReleaseAllTextures(render_manager.second.get());
@@ -399,7 +399,7 @@ bool ReleaseTexture(const String& source, RenderInterface* match_render_interfac
 	bool result = false;
 	if (!core_data)
 		return result;
-	for (auto& render_manager : core_data->render_managers)
+	for (const auto& render_manager : core_data->render_managers)
 	{
 		if (!match_render_interface || render_manager.first == match_render_interface)
 		{
@@ -414,7 +414,7 @@ void ReleaseCompiledGeometry(RenderInterface* match_render_interface)
 {
 	if (!core_data)
 		return;
-	for (auto& render_manager : core_data->render_managers)
+	for (const auto& render_manager : core_data->render_managers)
 	{
 		if (!match_render_interface || render_manager.first == match_render_interface)
 			RenderManagerAccess::ReleaseAllCompiledGeometry(render_manager.second.get());

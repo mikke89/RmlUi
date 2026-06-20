@@ -217,7 +217,7 @@ void DataModel::CopyAliases(Element* from_element, Element* to_element)
 	{
 		// Need to create a copy to prevent errors during concurrent modification for 3rd party containers
 		SmallUnorderedMap<String, DataAddress> copy = existing_map->second;
-		for (auto& [name, address] : copy)
+		for (const auto& [name, address] : copy)
 			aliases[to_element][name] = std::move(address);
 	}
 }
@@ -338,7 +338,13 @@ bool DataModel::IsVariableDirty(const String& variable_name) const
 
 void DataModel::DirtyAllVariables()
 {
+#ifndef RMLUI_USE_CPP23_FLAT_CONTAINERS
 	dirty_variables.reserve(variables.size());
+#else
+	auto storage = std::move(dirty_variables).extract();
+	storage.reserve(variables.size());
+	dirty_variables.replace(std::move(storage));
+#endif
 	for (const auto& variable : variables)
 	{
 		dirty_variables.emplace(variable.first);
