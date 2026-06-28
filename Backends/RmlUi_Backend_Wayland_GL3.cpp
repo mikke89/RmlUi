@@ -336,9 +336,6 @@ static void KeyboardHandleKey(void*, wl_keyboard*, uint32_t, uint32_t, uint32_t 
 	const xkb_keycode_t keycode = key + 8;
 	const bool pressed = (state == WL_KEYBOARD_KEY_STATE_PRESSED);
 
-	xkb_state_update_key(data->keyboard_state.state, keycode, pressed ? XKB_KEY_DOWN : XKB_KEY_UP);
-	data->keyboard_state.modifiers = RmlWayland::ConvertKeyModifiers(data->keyboard_state.state);
-
 	if (pressed)
 	{
 		SubmitKeyDown(keycode);
