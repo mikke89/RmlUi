@@ -190,6 +190,44 @@ if(RMLUI_BACKEND MATCHES "^X11")
 	find_package("X11")
 endif()
 
+# Wayland
+if(RMLUI_BACKEND MATCHES "^Wayland")
+	find_package(PkgConfig REQUIRED)
+
+	pkg_check_modules(RMLUI_WAYLAND_CLIENT REQUIRED IMPORTED_TARGET wayland-client)
+	pkg_check_modules(RMLUI_WAYLAND_CURSOR REQUIRED IMPORTED_TARGET wayland-cursor)
+	pkg_check_modules(RMLUI_WAYLAND_EGL REQUIRED IMPORTED_TARGET wayland-egl)
+	pkg_check_modules(RMLUI_WAYLAND_PROTOCOLS REQUIRED IMPORTED_TARGET wayland-protocols)
+	pkg_check_modules(RMLUI_XKBCOMMON REQUIRED IMPORTED_TARGET xkbcommon)
+	pkg_check_modules(RMLUI_EGL REQUIRED IMPORTED_TARGET egl)
+
+	find_program(WAYLAND_SCANNER_EXECUTABLE wayland-scanner)
+	if(NOT WAYLAND_SCANNER_EXECUTABLE)
+		message(FATAL_ERROR "wayland-scanner could not be found.")
+	endif()
+
+	execute_process(
+		COMMAND "${PKG_CONFIG_EXECUTABLE}" --variable=pkgdatadir wayland-protocols
+		OUTPUT_VARIABLE RMLUI_WAYLAND_PROTOCOLS_DIR
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	set(RMLUI_XDG_SHELL_PROTOCOL "${RMLUI_WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml")
+	if(NOT EXISTS "${RMLUI_XDG_SHELL_PROTOCOL}")
+		message(FATAL_ERROR "Could not find xdg-shell.xml at ${RMLUI_XDG_SHELL_PROTOCOL}")
+	endif()
+	set(RMLUI_XDG_DECORATION_PROTOCOL "${RMLUI_WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml")
+	if(NOT EXISTS "${RMLUI_XDG_DECORATION_PROTOCOL}")
+		message(FATAL_ERROR "Could not find xdg-decoration-unstable-v1.xml at ${RMLUI_XDG_DECORATION_PROTOCOL}")
+	endif()
+
+	report_dependency_found("RMLUI_WAYLAND_CLIENT" PkgConfig::RMLUI_WAYLAND_CLIENT)
+	report_dependency_found("RMLUI_WAYLAND_CURSOR" PkgConfig::RMLUI_WAYLAND_CURSOR)
+	report_dependency_found("RMLUI_WAYLAND_EGL" PkgConfig::RMLUI_WAYLAND_EGL)
+	report_dependency_found("RMLUI_WAYLAND_PROTOCOLS" PkgConfig::RMLUI_WAYLAND_PROTOCOLS)
+	report_dependency_found("RMLUI_XKBCOMMON" PkgConfig::RMLUI_XKBCOMMON)
+	report_dependency_found("RMLUI_EGL" PkgConfig::RMLUI_EGL)
+endif()
+
 # --- Rendering APIs ---
 
 # OpenGL
