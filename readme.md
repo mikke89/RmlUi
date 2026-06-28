@@ -162,6 +162,7 @@ The provided backends on the other hand are not intended to be used directly by 
 |----------|:---------------:|:---------:|:--------:|:-----:|-------------------------------------------------------------------------------|
 | Win32    |       ✔️        |    ✔️     |    ✔️    |   ❌   | High DPI only supported on Windows 10 and newer.                              |
 | X11      |       ✔️        |    ✔️     |    ❌     |   ❌   |                                                                               |
+| Wayland  |       ✔️        |    ⚠️     |    ❌     |   ❌   | Clipboard is process-local only.                                              |
 | SFML     |       ✔️        |    ⚠️     |    ❌     |   ❌   | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
 | GLFW     |       ✔️        |    ✔️     |    ✔️    |   ❌   |                                                                               |
 | SDL      |       ✔️        |    ✔️     |    ✔️    |  ✔️   | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3.                   |
@@ -177,6 +178,7 @@ The provided backends on the other hand are not intended to be used directly by 
 |---------------------|:-----------------:|:----------------:|:----------------:|:---------------:|:-----------------------:|:------------------:|
 | Win32               | ✔️<br>`Win32_GL2` |                  | ✔️<br>`Win32_VK` |                 |                         | ✔️<br>`Win32_DX12` |
 | X11                 |  ✔️<br>`X11_GL2`  |                  |                  |                 |                         |                    |
+| Wayland             |                   | ✔️<br>`Wayland_GL3` |                  |                 |                         |                    |
 | SFML                | ✔️<br>`SFML_GL2`  |                  |                  |                 |                         |                    |
 | GLFW                | ✔️<br>`GLFW_GL2`  | ✔️<br>`GLFW_GL3` | ✔️<br>`GLFW_VK`  |                 |                         | ✔️<br>`GLFW_DX12`  |
 | SDL¹                |  ✔️<br>`SDL_GL2`  | ✔️²<br>`SDL_GL3` |  ✔️<br>`SDL_VK`  | ✔️<br>`SDL_GPU` | ✔️<br>`SDL_SDLrenderer` |  ✔️<br>`SDL_DX12`  |
