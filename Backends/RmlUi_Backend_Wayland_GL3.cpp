@@ -13,16 +13,34 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 
 static constexpr int MinimumWindowWidth = 1;
 static constexpr int MinimumWindowHeight = 1;
+using Clock = std::chrono::steady_clock;
+
+struct KeyboardRepeatState {
+	bool active = false;
+	xkb_keycode_t keycode = 0;
+	int32_t rate = 0;
+	int32_t delay = 0;
+	Clock::time_point next_time;
+	std::chrono::milliseconds interval {0};
+
+	void Stop()
+	{
+		active = false;
+		keycode = 0;
+	}
+};
 
 struct BackendData {
 	RmlWayland::Globals globals;
 	Rml::UniquePtr<SystemInterface_Wayland> system_interface;
 	RmlWayland::KeyboardState keyboard_state;
+	KeyboardRepeatState repeat_state;
 	Rml::UniquePtr<RenderInterface_GL3> render_interface;
 
 	wl_display* display = nullptr;
@@ -216,6 +234,7 @@ static void KeyboardHandleKeymap(void*, wl_keyboard*, uint32_t format, int32_t f
 		return;
 
 	data->keyboard_state.SetKeymapFromString(static_cast<const char*>(mapped));
+	data->repeat_state.Stop();
 	munmap(mapped, size);
 }
 
@@ -225,6 +244,83 @@ static void KeyboardHandleLeave(void*, wl_keyboard*, uint32_t, wl_surface*) {}
 static bool IsTextInputCodepoint(uint32_t codepoint)
 {
 	return codepoint >= 0x20 && !(codepoint >= 0x7f && codepoint <= 0x9f);
+}
+
+static void SubmitKeyDown(xkb_keycode_t keycode)
+{
+	if (!data->context || !data->keyboard_state.state)
+		return;
+
+	const xkb_keysym_t sym = xkb_state_key_get_one_sym(data->keyboard_state.state, keycode);
+	const Rml::Input::KeyIdentifier rml_key = RmlWayland::ConvertKeySym(sym);
+	const int modifiers = data->keyboard_state.modifiers;
+	const float native_dp_ratio = 1.f;
+
+	if (data->key_down_callback && !data->key_down_callback(data->context, rml_key, modifiers, native_dp_ratio, true))
+		return;
+
+	bool propagates = true;
+	if (rml_key != Rml::Input::KI_UNKNOWN)
+		propagates = data->context->ProcessKeyDown(rml_key, modifiers);
+
+	const uint32_t codepoint = xkb_state_key_get_utf32(data->keyboard_state.state, keycode);
+	if (rml_key == Rml::Input::KI_RETURN || rml_key == Rml::Input::KI_NUMPADENTER)
+		propagates &= data->context->ProcessTextInput('\n');
+	else if (IsTextInputCodepoint(codepoint) && !(modifiers & Rml::Input::KM_CTRL))
+		propagates &= data->context->ProcessTextInput(Rml::Character(codepoint));
+
+	if (propagates && data->key_down_callback)
+		data->key_down_callback(data->context, rml_key, modifiers, native_dp_ratio, false);
+}
+
+static void StartKeyRepeat(xkb_keycode_t keycode)
+{
+	KeyboardRepeatState& repeat = data->repeat_state;
+	repeat.Stop();
+
+	if (repeat.rate <= 0 || !data->keyboard_state.keymap || !xkb_keymap_key_repeats(data->keyboard_state.keymap, keycode))
+		return;
+
+	repeat.active = true;
+	repeat.keycode = keycode;
+	repeat.interval = std::chrono::milliseconds(std::max(1, 1000 / repeat.rate));
+	repeat.next_time = Clock::now() + std::chrono::milliseconds(std::max(0, repeat.delay));
+}
+
+static void ProcessKeyRepeats()
+{
+	KeyboardRepeatState& repeat = data->repeat_state;
+	if (!repeat.active)
+		return;
+
+	const Clock::time_point now = Clock::now();
+	if (now < repeat.next_time)
+		return;
+
+	int repeated_keys = 0;
+	do
+	{
+		SubmitKeyDown(repeat.keycode);
+		repeat.next_time += repeat.interval;
+		repeated_keys += 1;
+	} while (repeat.active && repeat.next_time <= now && repeated_keys < 32);
+
+	if (repeated_keys == 32)
+		repeat.next_time = now + repeat.interval;
+}
+
+static double GetKeyRepeatTimeout(double timeout_seconds)
+{
+	const KeyboardRepeatState& repeat = data->repeat_state;
+	if (!repeat.active)
+		return timeout_seconds;
+
+	const Clock::time_point now = Clock::now();
+	if (now >= repeat.next_time)
+		return 0.0;
+
+	const double repeat_timeout = std::chrono::duration<double>(repeat.next_time - now).count();
+	return Rml::Math::Min(timeout_seconds, repeat_timeout);
 }
 
 static void KeyboardHandleKey(void*, wl_keyboard*, uint32_t, uint32_t, uint32_t key, uint32_t state)
@@ -238,31 +334,19 @@ static void KeyboardHandleKey(void*, wl_keyboard*, uint32_t, uint32_t, uint32_t 
 	xkb_state_update_key(data->keyboard_state.state, keycode, pressed ? XKB_KEY_DOWN : XKB_KEY_UP);
 	data->keyboard_state.modifiers = RmlWayland::ConvertKeyModifiers(data->keyboard_state.state);
 
-	const xkb_keysym_t sym = xkb_state_key_get_one_sym(data->keyboard_state.state, keycode);
-	const Rml::Input::KeyIdentifier rml_key = RmlWayland::ConvertKeySym(sym);
-	const int modifiers = data->keyboard_state.modifiers;
-	const float native_dp_ratio = 1.f;
-
 	if (pressed)
 	{
-		if (data->key_down_callback && !data->key_down_callback(data->context, rml_key, modifiers, native_dp_ratio, true))
-			return;
-
-		bool propagates = true;
-		if (rml_key != Rml::Input::KI_UNKNOWN)
-			propagates = data->context->ProcessKeyDown(rml_key, modifiers);
-
-		const uint32_t codepoint = xkb_state_key_get_utf32(data->keyboard_state.state, keycode);
-		if (rml_key == Rml::Input::KI_RETURN || rml_key == Rml::Input::KI_NUMPADENTER)
-			propagates &= data->context->ProcessTextInput('\n');
-		else if (IsTextInputCodepoint(codepoint) && !(modifiers & Rml::Input::KM_CTRL))
-			propagates &= data->context->ProcessTextInput(Rml::Character(codepoint));
-
-		if (propagates && data->key_down_callback)
-			data->key_down_callback(data->context, rml_key, modifiers, native_dp_ratio, false);
+		SubmitKeyDown(keycode);
+		StartKeyRepeat(keycode);
 	}
-	else if (rml_key != Rml::Input::KI_UNKNOWN)
+	else
 	{
+		if (data->repeat_state.active && data->repeat_state.keycode == keycode)
+			data->repeat_state.Stop();
+
+		const xkb_keysym_t sym = xkb_state_key_get_one_sym(data->keyboard_state.state, keycode);
+		const Rml::Input::KeyIdentifier rml_key = RmlWayland::ConvertKeySym(sym);
+		const int modifiers = data->keyboard_state.modifiers;
 		data->context->ProcessKeyUp(rml_key, modifiers);
 	}
 }
@@ -272,7 +356,13 @@ static void KeyboardHandleModifiers(void*, wl_keyboard*, uint32_t, uint32_t depr
 	data->keyboard_state.UpdateModifiers(depressed, latched, locked, group);
 }
 
-static void KeyboardHandleRepeatInfo(void*, wl_keyboard*, int32_t, int32_t) {}
+static void KeyboardHandleRepeatInfo(void*, wl_keyboard*, int32_t rate, int32_t delay)
+{
+	data->repeat_state.rate = rate;
+	data->repeat_state.delay = delay;
+	if (rate <= 0)
+		data->repeat_state.Stop();
+}
 
 static const wl_keyboard_listener keyboard_listener = {
 	KeyboardHandleKeymap,
@@ -563,9 +653,12 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->context = context;
 	data->key_down_callback = key_down_callback;
 
-	const double timeout_seconds = power_save ? Rml::Math::Min(context->GetNextUpdateDelay(), 10.0) : 0.0;
+	double timeout_seconds = power_save ? Rml::Math::Min(context->GetNextUpdateDelay(), 10.0) : 0.0;
+	timeout_seconds = GetKeyRepeatTimeout(timeout_seconds);
 	if (!DispatchWaylandEvents(timeout_seconds))
 		data->running = false;
+
+	ProcessKeyRepeats();
 
 	data->context = nullptr;
 	data->key_down_callback = nullptr;
