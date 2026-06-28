@@ -560,19 +560,25 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 {
 	RMLUI_ASSERT(!data);
 
-	if (!InitializeWayland(window_name, width, height, allow_resize))
+	const auto shutdown_on_failure = [] {
+		if (data)
+			Backend::Shutdown();
 		return false;
+	};
+
+	if (!InitializeWayland(window_name, width, height, allow_resize))
+		return shutdown_on_failure();
 
 	if (!InitializeEGL())
-		return false;
+		return shutdown_on_failure();
 
 	Rml::String renderer_message;
 	if (!RmlGL3::Initialize(&renderer_message))
-		return false;
+		return shutdown_on_failure();
 
 	data->render_interface = Rml::MakeUnique<RenderInterface_GL3>();
 	if (!data->render_interface || !*data->render_interface)
-		return false;
+		return shutdown_on_failure();
 
 	data->render_interface->SetViewport(data->width, data->height);
 	data->system_interface->LogMessage(Rml::Log::LT_INFO, renderer_message);
