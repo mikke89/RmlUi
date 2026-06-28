@@ -77,6 +77,71 @@ target_sources(rmlui_backend_X11_GL2 INTERFACE
 # https://cmake.org/cmake/help/latest/module/FindX11.html
 target_link_libraries(rmlui_backend_X11_GL2 INTERFACE rmlui_backend_common_headers OpenGL::GL ${X11_LIBRARIES})
 
+if(RMLUI_BACKEND MATCHES "^Wayland")
+	set(RMLUI_WAYLAND_PROTOCOLS_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/WaylandProtocols")
+	set(RMLUI_XDG_SHELL_CLIENT_HEADER "${RMLUI_WAYLAND_PROTOCOLS_OUTPUT_DIR}/xdg-shell-client-protocol.h")
+	set(RMLUI_XDG_SHELL_PRIVATE_CODE "${RMLUI_WAYLAND_PROTOCOLS_OUTPUT_DIR}/xdg-shell-protocol.c")
+	set(RMLUI_XDG_DECORATION_CLIENT_HEADER "${RMLUI_WAYLAND_PROTOCOLS_OUTPUT_DIR}/xdg-decoration-client-protocol.h")
+	set(RMLUI_XDG_DECORATION_PRIVATE_CODE "${RMLUI_WAYLAND_PROTOCOLS_OUTPUT_DIR}/xdg-decoration-protocol.c")
+
+	add_custom_command(
+		OUTPUT
+			"${RMLUI_XDG_SHELL_CLIENT_HEADER}"
+			"${RMLUI_XDG_SHELL_PRIVATE_CODE}"
+			"${RMLUI_XDG_DECORATION_CLIENT_HEADER}"
+			"${RMLUI_XDG_DECORATION_PRIVATE_CODE}"
+		COMMAND "${CMAKE_COMMAND}" -E make_directory "${RMLUI_WAYLAND_PROTOCOLS_OUTPUT_DIR}"
+		COMMAND "${WAYLAND_SCANNER_EXECUTABLE}" client-header "${RMLUI_XDG_SHELL_PROTOCOL}" "${RMLUI_XDG_SHELL_CLIENT_HEADER}"
+		COMMAND "${WAYLAND_SCANNER_EXECUTABLE}" private-code "${RMLUI_XDG_SHELL_PROTOCOL}" "${RMLUI_XDG_SHELL_PRIVATE_CODE}"
+		COMMAND "${WAYLAND_SCANNER_EXECUTABLE}" client-header "${RMLUI_XDG_DECORATION_PROTOCOL}" "${RMLUI_XDG_DECORATION_CLIENT_HEADER}"
+		COMMAND "${WAYLAND_SCANNER_EXECUTABLE}" private-code "${RMLUI_XDG_DECORATION_PROTOCOL}" "${RMLUI_XDG_DECORATION_PRIVATE_CODE}"
+		DEPENDS "${RMLUI_XDG_SHELL_PROTOCOL}" "${RMLUI_XDG_DECORATION_PROTOCOL}"
+		VERBATIM
+	)
+	set_source_files_properties(
+		"${RMLUI_XDG_SHELL_CLIENT_HEADER}"
+		"${RMLUI_XDG_SHELL_PRIVATE_CODE}"
+		"${RMLUI_XDG_DECORATION_CLIENT_HEADER}"
+		"${RMLUI_XDG_DECORATION_PRIVATE_CODE}"
+		PROPERTIES GENERATED TRUE
+	)
+	add_custom_target(rmlui_backend_wayland_protocols DEPENDS
+		"${RMLUI_XDG_SHELL_CLIENT_HEADER}"
+		"${RMLUI_XDG_SHELL_PRIVATE_CODE}"
+		"${RMLUI_XDG_DECORATION_CLIENT_HEADER}"
+		"${RMLUI_XDG_DECORATION_PRIVATE_CODE}"
+	)
+endif()
+
+if(RMLUI_BACKEND MATCHES "^Wayland")
+	add_library(rmlui_backend_Wayland_GL3 INTERFACE)
+	target_sources(rmlui_backend_Wayland_GL3 INTERFACE
+		"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Wayland.cpp"
+		"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_GL3.cpp"
+		"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_Wayland_GL3.cpp"
+		"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Wayland.h"
+		"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_GL3.h"
+		"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_GL3.h"
+		"${RMLUI_XDG_SHELL_CLIENT_HEADER}"
+		"${RMLUI_XDG_SHELL_PRIVATE_CODE}"
+		"${RMLUI_XDG_DECORATION_CLIENT_HEADER}"
+		"${RMLUI_XDG_DECORATION_PRIVATE_CODE}"
+	)
+	target_include_directories(rmlui_backend_Wayland_GL3 INTERFACE "${RMLUI_WAYLAND_PROTOCOLS_OUTPUT_DIR}")
+	add_dependencies(rmlui_backend_Wayland_GL3 rmlui_backend_wayland_protocols)
+	target_link_libraries(rmlui_backend_Wayland_GL3 INTERFACE
+		rmlui_backend_common_headers
+		PkgConfig::RMLUI_WAYLAND_CLIENT
+		PkgConfig::RMLUI_WAYLAND_CURSOR
+		PkgConfig::RMLUI_WAYLAND_EGL
+		PkgConfig::RMLUI_XKBCOMMON
+		PkgConfig::RMLUI_EGL
+	)
+	if(UNIX)
+		target_link_libraries(rmlui_backend_Wayland_GL3 INTERFACE ${CMAKE_DL_LIBS})
+	endif()
+endif()
+
 add_library(rmlui_backend_SDL_GL2 INTERFACE)
 target_sources(rmlui_backend_SDL_GL2 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.cpp"

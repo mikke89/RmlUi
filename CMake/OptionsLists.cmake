@@ -11,6 +11,7 @@ set(RMLUI_BACKEND_OPTIONS
 	"SDL_DX12"
 	"GLFW_DX12"
 	"X11_GL2"
+	"Wayland_GL3"
 	"SDL_GL2"
 	"SDL_GL3"
 	"SDL_VK"
