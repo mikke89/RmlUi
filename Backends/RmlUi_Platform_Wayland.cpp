@@ -156,6 +156,22 @@ void KeyboardState::SetKeymapFromString(const char* keymap_string)
 	modifiers = 0;
 }
 
+void KeyboardState::Reset()
+{
+	modifiers = 0;
+
+	xkb_state* new_state = nullptr;
+	if (keymap)
+		new_state = xkb_state_new(keymap);
+
+	if (state)
+		xkb_state_unref(state);
+	state = new_state;
+
+	if (keymap && !state)
+		Rml::Log::Message(Rml::Log::LT_WARNING, "Failed to reset Wayland keyboard state.");
+}
+
 void KeyboardState::UpdateModifiers(uint32_t depressed, uint32_t latched, uint32_t locked, uint32_t group)
 {
 	if (!state)

@@ -239,7 +239,12 @@ static void KeyboardHandleKeymap(void*, wl_keyboard*, uint32_t format, int32_t f
 }
 
 static void KeyboardHandleEnter(void*, wl_keyboard*, uint32_t, wl_surface*, wl_array*) {}
-static void KeyboardHandleLeave(void*, wl_keyboard*, uint32_t, wl_surface*) {}
+
+static void KeyboardHandleLeave(void*, wl_keyboard*, uint32_t, wl_surface*)
+{
+	data->repeat_state.Stop();
+	data->keyboard_state.Reset();
+}
 
 static bool IsTextInputCodepoint(uint32_t codepoint)
 {
@@ -395,6 +400,8 @@ static void SeatHandleCapabilities(void*, wl_seat* seat, uint32_t capabilities)
 	}
 	else if (!(capabilities & WL_SEAT_CAPABILITY_KEYBOARD) && data->keyboard)
 	{
+		data->repeat_state.Stop();
+		data->keyboard_state.Reset();
 		wl_keyboard_destroy(data->keyboard);
 		data->keyboard = nullptr;
 	}

@@ -60,6 +60,7 @@ struct KeyboardState {
 	KeyboardState();
 	~KeyboardState();
 	void SetKeymapFromString(const char* keymap_string);
+	void Reset();
 	void UpdateModifiers(uint32_t depressed, uint32_t latched, uint32_t locked, uint32_t group);
 };
 
