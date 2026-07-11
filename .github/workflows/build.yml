@@ -105,7 +105,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Install Dependencies
-      run: brew install lua sdl2 sdl2_image glfw
+      run: brew install lua sdl3 sdl3_image glfw
 
     - name: Configure CMake
       run: >-
