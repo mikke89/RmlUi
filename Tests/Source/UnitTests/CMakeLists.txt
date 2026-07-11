@@ -13,6 +13,7 @@ add_executable(${TARGET_NAME}
 	ElementBackgroundBorder.cpp
 	ElementDocument.cpp
 	ElementHandle.cpp
+	ElementFormControlInput.cpp
 	ElementFormControlSelect.cpp
 	ElementImage.cpp
 	ElementStyle.cpp
