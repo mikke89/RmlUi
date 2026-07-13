@@ -6,6 +6,7 @@
 #include "../../../Include/RmlUi/Core/Types.h"
 #include "ContainerBox.h"
 #include "LayoutDetails.h"
+#include "LayoutMeasureCache.h"
 #include <algorithm>
 #include <float.h>
 #include <numeric>
@@ -89,6 +90,11 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 
 Vector2f FlexFormattingContext::GetMaxContentSize(Element* element)
 {
+	LayoutMeasureCache* measure_cache = LayoutMeasureCache::GetActiveCache();
+	Vector2f max_content_size;
+	if (measure_cache && measure_cache->FindMaxContentSize(element, max_content_size))
+		return max_content_size;
+
 	// A large but finite number is used here, since layouting doesn't always work well with infinities.
 	const Vector2f infinity(10000.0f, 10000.0f);
 	RootBox root(infinity);
@@ -105,6 +111,10 @@ Vector2f FlexFormattingContext::GetMaxContentSize(Element* element)
 	Vector2f flex_resulting_content_size, content_overflow_size;
 	float flex_baseline = 0.f;
 	context.Format(flex_resulting_content_size, content_overflow_size, flex_baseline);
+
+	if (measure_cache)
+		measure_cache->StoreMaxContentSize(element, flex_resulting_content_size);
+
 	return flex_resulting_content_size;
 }
 
@@ -206,6 +216,24 @@ static float GetInnerUsedMainSize(const FlexItem& item)
 static float GetInnerUsedCrossSize(const FlexItem& item)
 {
 	return Math::Max(item.used_cross_size - item.cross.sum_edges, 0.f);
+}
+
+// Formats the element as a block box to determine its content height, memoized on the content width of the measure box.
+static float GetFormattedContentHeight(ContainerBox* parent_container, Element* element, const Box* measure_box)
+{
+	const float content_width = (measure_box ? measure_box->GetSize().x : -1.f);
+	LayoutMeasureCache* measure_cache = LayoutMeasureCache::GetActiveCache();
+	float formatted_content_height = 0.f;
+	if (measure_cache && content_width >= 0.f && measure_cache->FindFormattedContentHeight(element, content_width, formatted_content_height))
+		return formatted_content_height;
+
+	FormattingContext::FormatIndependent(parent_container, element, measure_box, FormattingContextType::Block);
+	formatted_content_height = element->GetBox().GetSize().y;
+
+	if (measure_cache && content_width >= 0.f)
+		measure_cache->StoreFormattedContentHeight(element, content_width, formatted_content_height);
+
+	return formatted_content_height;
 }
 
 void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector2f& flex_content_overflow_size, float& flex_baseline) const
@@ -331,9 +359,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			if (initial_box_size.x < 0.f && flex_available_content_size.x >= 0.f)
 				format_box.SetContent(Vector2f(flex_available_content_size.x - item.cross.sum_edges, initial_box_size.y));
 
-			FormattingContext::FormatIndependent(flex_container_box, element, (format_box.GetSize().x >= 0 ? &format_box : nullptr),
-				FormattingContextType::Block);
-			item.inner_flex_base_size = element->GetBox().GetSize().y;
+			item.inner_flex_base_size =
+				GetFormattedContentHeight(flex_container_box, element, (format_box.GetSize().x >= 0 ? &format_box : nullptr));
 
 			// Apply the automatic block size as minimum size (§4.5). Strictly speaking, we should also apply this to
 			// the other branches in column mode (and inline min-content size in row mode). However, the formatting step
@@ -674,8 +701,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				if (content_size.y < 0.0f)
 				{
 					item.box.SetContent(Vector2f(GetInnerUsedMainSize(item), content_size.y));
-					FormattingContext::FormatIndependent(flex_container_box, item.element, &item.box, FormattingContextType::Block);
-					item.hypothetical_cross_size = item.element->GetBox().GetSize().y + item.cross.sum_edges;
+					item.hypothetical_cross_size = GetFormattedContentHeight(flex_container_box, item.element, &item.box) + item.cross.sum_edges;
 				}
 				else
 				{
