@@ -157,6 +157,7 @@ void WidgetTextInputContext::CommitComposition(StringView composition)
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent)
 {
 	keyboard_showed = false;
+	lines = {Line{}};
 
 	parent = _parent;
 	parent->SetProperty(PropertyId::WhiteSpace, Property(Style::WhiteSpace::Pre));

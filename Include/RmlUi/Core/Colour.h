@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Header.h"
+#include <type_traits>
 
 namespace Rml {
 
