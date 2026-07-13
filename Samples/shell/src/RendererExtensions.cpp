@@ -10,7 +10,6 @@
 		#include <RmlUi_Include_Windows.h>
 		#include <gl/Gl.h>
 	#elif defined RMLUI_PLATFORM_MACOSX
-		#include <AGL/agl.h>
 		#include <OpenGL/gl.h>
 		#include <OpenGL/glext.h>
 	#elif defined RMLUI_PLATFORM_UNIX
