@@ -17,10 +17,16 @@ SystemInterface_GLFW::SystemInterface_GLFW(GLFWwindow* window) : window(window)
 #if GLFW_HAS_EXTRA_CURSORS
 	cursor_move = glfwCreateStandardCursor(GLFW_RESIZE_ALL_CURSOR);
 	cursor_resize = glfwCreateStandardCursor(GLFW_RESIZE_NWSE_CURSOR);
+	cursor_resize_nesw = glfwCreateStandardCursor(GLFW_RESIZE_NESW_CURSOR);
+	cursor_resize_ew = glfwCreateStandardCursor(GLFW_RESIZE_EW_CURSOR);
+	cursor_resize_ns = glfwCreateStandardCursor(GLFW_RESIZE_NS_CURSOR);
 	cursor_unavailable = glfwCreateStandardCursor(GLFW_NOT_ALLOWED_CURSOR);
 #else
 	cursor_move = cursor_pointer;
 	cursor_resize = cursor_pointer;
+	cursor_resize_nesw = cursor_pointer;
+	cursor_resize_ew = cursor_pointer;
+	cursor_resize_ns = cursor_pointer;
 	cursor_unavailable = nullptr;
 #endif
 }
@@ -33,6 +39,9 @@ SystemInterface_GLFW::~SystemInterface_GLFW()
 #if GLFW_HAS_EXTRA_CURSORS
 	glfwDestroyCursor(cursor_move);
 	glfwDestroyCursor(cursor_resize);
+	glfwDestroyCursor(cursor_resize_nesw);
+	glfwDestroyCursor(cursor_resize_ew);
+	glfwDestroyCursor(cursor_resize_ns);
 	glfwDestroyCursor(cursor_unavailable);
 #endif
 }
@@ -52,8 +61,14 @@ void SystemInterface_GLFW::SetMouseCursor(const Rml::String& cursor_name)
 		cursor = cursor_move;
 	else if (cursor_name == "pointer")
 		cursor = cursor_pointer;
-	else if (cursor_name == "resize")
+	else if (cursor_name == "resize" || cursor_name == "nwse-resize")
 		cursor = cursor_resize;
+	else if (cursor_name == "nesw-resize")
+		cursor = cursor_resize_nesw;
+	else if (cursor_name == "ew-resize")
+		cursor = cursor_resize_ew;
+	else if (cursor_name == "ns-resize")
+		cursor = cursor_resize_ns;
 	else if (cursor_name == "cross")
 		cursor = cursor_cross;
 	else if (cursor_name == "text")

@@ -27,6 +27,9 @@ private:
 	GLFWcursor* cursor_text = nullptr;
 	GLFWcursor* cursor_move = nullptr;
 	GLFWcursor* cursor_resize = nullptr;
+	GLFWcursor* cursor_resize_nesw = nullptr;
+	GLFWcursor* cursor_resize_ew = nullptr;
+	GLFWcursor* cursor_resize_ns = nullptr;
 	GLFWcursor* cursor_unavailable = nullptr;
 };
 
