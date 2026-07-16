@@ -8,6 +8,7 @@
 #include "../../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../../Include/RmlUi/Core/URL.h"
+#include "../ElementStyle.h"
 #include <algorithm>
 
 namespace Rml {
@@ -316,7 +317,7 @@ bool ElementProgress::LoadTexture()
 
 	String name;
 
-	if (const Property* property = GetLocalProperty(PropertyId::FillImage))
+	if (const Property* property = GetStyle()->GetLocalPropertyWithResolvedVariables(PropertyId::FillImage))
 		name = property->Get<String>();
 
 	RenderManager* render_manager = GetRenderManager();
