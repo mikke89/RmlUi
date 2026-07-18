@@ -1,6 +1,7 @@
 #pragma once
 
 #include <RmlUi/Core/RenderInterface.h>
+#include <deque>
 
 #ifndef RMLUI_PLATFORM_WIN32
 	#error "DirectX 12 renderer only supported on Windows"
@@ -581,6 +582,7 @@ private:
 	void Free_Texture(TextureHandleType* p_handle);
 
 	void Update_PendingForDeletion_Geometry();
+	void Update_PendingForDeletion_Textures();
 
 	void BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_id);
 
@@ -675,8 +677,14 @@ private:
 	Rml::Array<size_t, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_constant_buffer_count_per_frame;
 	Rml::Array<size_t, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_vertex_and_index_buffer_count_per_frame;
 	// per object (per draw)
-	Rml::Array<Rml::Vector<ConstantBufferType>, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_constantbuffers;
-	Rml::Vector<GeometryHandleType*> m_pending_for_deletion_geometry;
+	// std::deque is used on purpose: emplace_back must never invalidate ConstantBufferType* handed out earlier in the
+	// frame (geometry override constant buffers point into this storage), which std::vector reallocation would break.
+	Rml::Array<std::deque<ConstantBufferType>, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_constantbuffers;
+	// Resources deferred for destruction. Each entry is stamped with the fence value that will be signaled at the end
+	// of the frame in which it was released; the memory is only recycled once the fence has passed that value, i.e.
+	// when the GPU has finished every frame that could still reference it.
+	Rml::Vector<Rml::Pair<GeometryHandleType*, uint64_t>> m_pending_for_deletion_geometry;
+	Rml::Vector<Rml::Pair<TextureHandleType*, uint64_t>> m_pending_for_deletion_textures;
 
 	DXGI_SAMPLE_DESC m_desc_sample;
 	D3D12_CPU_DESCRIPTOR_HANDLE m_handle_shaders;
