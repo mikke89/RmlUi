@@ -814,7 +814,7 @@ void ElementStyle::DirtyPropertiesWithUnits(Units units)
 		auto name_property_pair = *it;
 		PropertyId id = name_property_pair.first;
 		const Property& property = name_property_pair.second;
-		if (Any(property.unit & units))
+		if (Any(property.unit & units) || property.unit == Unit::VAR_EXPRESSION || property.unit == Unit::SHORTHAND_PLACEHOLDER)
 			DirtyProperty(id);
 	}
 }
