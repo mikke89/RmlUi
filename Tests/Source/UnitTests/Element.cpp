@@ -5,6 +5,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/ElementScroll.h>
 #include <RmlUi/Core/Factory.h>
 #include <doctest.h>
 
@@ -442,5 +443,45 @@ TEST_CASE("Element.ScrollIntoView")
 	}
 
 	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("Element.ScrollbarDestruction")
+{
+	const String document_rml = R"(
+<rml>
+<head>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		#scroll {
+			display: block;
+			width: 200px;
+			height: 100px;
+			overflow-y: scroll;
+		}
+		#scroll div {
+			height: 300px;
+		}
+	</style>
+</head>
+<body>
+	<div id="scroll"><div/></div>
+</body>
+</rml>
+)";
+
+	// Run under address sanitizer to verify that destruction of ElementScroll do not lead to use-after-free within ~Element.
+	Context* context = TestsShell::GetContext();
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	document->Show();
+
+	Element* scroll = document->GetElementById("scroll");
+	REQUIRE(scroll->GetElementScroll()->GetScrollbar(ElementScroll::VERTICAL) != nullptr);
+
+	scroll->GetParentNode()->RemoveChild(scroll);
+
+	document->Close();
+	context->Update();
+
 	TestsShell::ShutdownShell();
 }

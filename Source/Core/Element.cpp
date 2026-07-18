@@ -108,10 +108,11 @@ Element::~Element()
 		child->SetParent(nullptr);
 	}
 
+	// Destroy meta objects before clearing children. In particular, ElementScroll may still refer to some of our children.
+	ElementMetaPool::element_meta_pool->pool.DestroyAndDeallocate(meta);
+
 	children.clear();
 	num_non_dom_children = 0;
-
-	ElementMetaPool::element_meta_pool->pool.DestroyAndDeallocate(meta);
 }
 
 void Element::Update(float dp_ratio, Vector2f vp_dimensions)
