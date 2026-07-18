@@ -1,6 +1,7 @@
 #include "BlockFormattingContext.h"
 #include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/Element.h"
+#include "../../../Include/RmlUi/Core/ElementText.h"
 #include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../../Include/RmlUi/Core/StyleSheetSpecification.h"
@@ -84,6 +85,21 @@ static OuterDisplayType GetOuterDisplayType(Style::Display display)
 	return OuterDisplayType::Invalid;
 }
 
+static bool FormatRootTextElement(BlockContainer* container, ElementText* text_element)
+{
+	// Text nodes may themselves be formatted as independent block containers, for example when they are direct children
+	// of flex containers. In that case, use the text node as the root's inline content so it generates line boxes.
+	const Vector2f containing_block = LayoutDetails::GetContainingBlock(container, text_element->GetPosition()).size;
+
+	Box box;
+	LayoutDetails::BuildBox(box, containing_block, text_element, BuildBoxMode::Inline);
+
+	const InlineBoxHandle inline_box_handle = container->AddInlineElement(text_element, box);
+	container->CloseInlineElement(inline_box_handle);
+
+	return true;
+}
+
 UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box)
 {
 	RMLUI_ASSERT(parent_container && element);
@@ -116,6 +132,13 @@ UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_contain
 	for (int layout_iteration = 0; layout_iteration < 3; layout_iteration++)
 	{
 		bool all_children_formatted = true;
+
+		if (auto text_element = rmlui_dynamic_cast<ElementText*>(element))
+		{
+			if (!FormatRootTextElement(container.get(), text_element))
+				all_children_formatted = false;
+		}
+
 		for (int i = 0; i < element->GetNumChildren() && all_children_formatted; i++)
 		{
 			if (!FormatBlockContainerChild(container.get(), element->GetChild(i)))

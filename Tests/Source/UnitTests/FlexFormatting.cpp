@@ -3,6 +3,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/ElementText.h>
 #include <doctest.h>
 
 using namespace Rml;
@@ -170,6 +171,78 @@ TEST_CASE("FlexFormatting.dp_ratio")
 		CHECK(window->GetBox().GetSize().x == window_width);
 		CHECK(window->GetBox().GetSize().y == doctest::Approx((window_width / native_width) * native_height));
 	}
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+static const String document_flex_text_items_rml = R"(
+<rml>
+<head>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			width: 400px;
+			height: 300px;
+			font-family: LatoLatin;
+			font-size: 20px;
+			line-height: 24px;
+		}
+		.flex {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 180px;
+			height: 80px;
+		}
+		.wrap {
+			width: 72px;
+			justify-content: flex-start;
+		}
+	</style>
+</head>
+<body>
+	<div id="direct" class="flex">Direct text</div>
+	<div id="wrapped" class="flex"><span id="wrapped_span">Direct text</span></div>
+	<div id="direct_wrap" class="flex wrap">Alpha beta gamma</div>
+</body>
+</rml>
+)";
+
+TEST_CASE("FlexFormatting.text_items")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_flex_text_items_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	Element* direct = document->GetElementById("direct");
+	Element* wrapped_span = document->GetElementById("wrapped_span");
+	Element* direct_wrap = document->GetElementById("direct_wrap");
+	REQUIRE(direct);
+	REQUIRE(wrapped_span);
+	REQUIRE(direct_wrap);
+
+	REQUIRE(direct->GetNumChildren() == 1);
+	ElementText* direct_text = rmlui_dynamic_cast<ElementText*>(direct->GetChild(0));
+	ElementText* wrapped_text = rmlui_dynamic_cast<ElementText*>(wrapped_span->GetChild(0));
+	ElementText* direct_wrap_text = rmlui_dynamic_cast<ElementText*>(direct_wrap->GetChild(0));
+	REQUIRE(direct_text);
+	REQUIRE(wrapped_text);
+	REQUIRE(direct_wrap_text);
+
+	REQUIRE(direct_text->GetLines().size() == 1);
+	REQUIRE(wrapped_text->GetLines().size() == 1);
+	CHECK(direct_text->GetLines()[0].text == wrapped_text->GetLines()[0].text);
+	CHECK(direct_text->GetBox().GetSize().x == doctest::Approx(wrapped_span->GetBox().GetSize().x));
+	CHECK(direct_text->GetBox().GetSize().y == doctest::Approx(wrapped_span->GetBox().GetSize().y));
+
+	CHECK(direct_wrap_text->GetLines().size() > 1);
 
 	document->Close();
 
