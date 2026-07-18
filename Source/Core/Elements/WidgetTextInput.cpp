@@ -16,6 +16,7 @@
 #include "../../../Include/RmlUi/Core/TextInputContext.h"
 #include "../../../Include/RmlUi/Core/TextInputHandler.h"
 #include "../Clock.h"
+#include "../ElementStyle.h"
 #include "ElementTextSelection.h"
 #include <algorithm>
 #include <limits.h>
@@ -398,7 +399,7 @@ void WidgetTextInput::UpdateSelectionColours()
 	// Determine what the colour of the selected text is. If our 'selection' element has the 'color'
 	// attribute set, then use that. Otherwise, use the inverse of our own text colour.
 	Colourb colour;
-	const Property* colour_property = selection_element->GetLocalProperty(PropertyId::Color);
+	const Property* colour_property = selection_element->GetStyle()->GetLocalPropertyWithResolvedVariables(PropertyId::Color);
 	if (colour_property)
 		colour = colour_property->Get<Colourb>();
 	else
@@ -415,7 +416,7 @@ void WidgetTextInput::UpdateSelectionColours()
 	// If the 'background-color' property has been set on the 'selection' element, use that as the
 	// background colour for the selected text. Otherwise, use the inverse of the selected text
 	// colour.
-	colour_property = selection_element->GetLocalProperty(PropertyId::BackgroundColor);
+	colour_property = selection_element->GetStyle()->GetLocalPropertyWithResolvedVariables(PropertyId::BackgroundColor);
 	if (colour_property)
 		colour = colour_property->Get<Colourb>();
 	else
