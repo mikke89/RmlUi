@@ -11,6 +11,7 @@
 			border-bottom: 2dp #aaa;
 			margin-bottom: 15dp;
 		}
+		.container:last-of-type { border-bottom: 0; margin-bottom: 0; }
 		.box {
 			margin: 0 10dp;
 			width: 100dp;

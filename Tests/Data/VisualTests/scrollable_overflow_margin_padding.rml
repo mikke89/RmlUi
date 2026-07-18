@@ -1,0 +1,101 @@
+<rml>
+<head>
+	<title>Scrollable overflow - margins and padding</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-overflow/#scrollable" />
+	<meta name="Description" content="A scroll container's scrollable overflow includes the margins of its direct children and its own padding. Deeper descendants that overflow their parent's border box are included by their border box only." />
+	<style>
+		body { color: #222; font-size: 13dp; }
+		h1 { font-weight: bold; margin: 1.0em 0 0.3em; padding-bottom: 2dp; border-bottom: 1dp #999; }
+		.cases { display: flex; flex-wrap: wrap; }
+		.case { margin: 0 14dp 6dp 0; }
+		.case p { font-size: 0.8em; color: #555; margin: 0 0 2dp; }
+
+		.scroller {
+			width: 90dp;
+			height: 80dp;
+			border: 2dp #383;
+			background: #dfd;
+			overflow: auto;
+		}
+		.col { display: flex; flex-direction: column; }
+		.row { display: flex; flex-direction: row; }
+
+		.child {
+			flex-shrink: 0;
+			width: 60dp;
+			height: 60dp;
+			background: #fc8;
+			border: 1dp #a50;
+		}
+
+		/* --- permutations, applied via extra classes --- */
+		/* Border box already overflows on the scroll axis. */
+		.v .child { height: 120dp; }
+		.h .child { width: 120dp; }
+
+		/* Margin-only overflow: border box fits, trailing margin pushes it past the padding edge. */
+		.v.marginonly .child { height: 65dp; margin-bottom: 25dp; }
+		.h.marginonly .child { width: 65dp; margin-right: 25dp; }
+
+		/* Trailing child margin, added on top of a border box that already overflows. */
+		.v.cmargin .child { margin-bottom: 25dp; }
+		.h.cmargin .child { margin-right: 25dp; }
+
+		/* End-side padding on the scroll container. */
+		.v.cpad { padding-bottom: 25dp; }
+		.h.cpad { padding-right: 25dp; }
+
+		/* Both container end padding and child trailing margin. */
+		.v.both { padding-bottom: 25dp; }
+		.v.both .child { margin-bottom: 25dp; }
+		.h.both { padding-right: 25dp; }
+		.h.both .child { margin-right: 25dp; }
+
+		/* Nested descendant overflow: the grandchild overflows the child's (visible) border box. The container's end
+		   padding and the child's margin must NOT be added around the grandchild's border box. */
+		.nested .child { overflow: visible; }
+		.v.nested { padding-bottom: 25dp; }
+		.v.nested .child { height: 40dp; margin-bottom: 25dp; }
+		.v.nested .grandchild { width: 40dp; height: 120dp; }
+		.h.nested { padding-right: 25dp; }
+		.h.nested .child { width: 40dp; margin-right: 25dp; }
+		.h.nested .grandchild { width: 120dp; height: 40dp; }
+		.grandchild { background: #8cf; border: 1dp #05a; }
+	</style>
+</head>
+
+<body>
+<h1>Flex column (vertical scroll)</h1>
+<div class="cases">
+	<div class="case"><p>border overflow</p><div class="scroller col v"><div class="child"/></div></div>
+	<div class="case"><p>margin only</p><div class="scroller col v marginonly"><div class="child"/></div></div>
+	<div class="case"><p>+ child margin</p><div class="scroller col v cmargin"><div class="child"/></div></div>
+	<div class="case"><p>+ container padding</p><div class="scroller col v cpad"><div class="child"/></div></div>
+	<div class="case"><p>+ both</p><div class="scroller col v both"><div class="child"/></div></div>
+	<div class="case"><p>nested overflow</p><div class="scroller col v nested"><div class="child"><div class="grandchild"/></div></div></div>
+</div>
+
+<h1>Flex row (horizontal scroll)</h1>
+<div class="cases">
+	<div class="case"><p>border overflow</p><div class="scroller row h"><div class="child"/></div></div>
+	<div class="case"><p>margin only</p><div class="scroller row h marginonly"><div class="child"/></div></div>
+	<div class="case"><p>+ child margin</p><div class="scroller row h cmargin"><div class="child"/></div></div>
+	<div class="case"><p>+ container padding</p><div class="scroller row h cpad"><div class="child"/></div></div>
+	<div class="case"><p>+ both</p><div class="scroller row h both"><div class="child"/></div></div>
+	<div class="case"><p>nested overflow</p><div class="scroller row h nested"><div class="child"><div class="grandchild"/></div></div></div>
+</div>
+
+<h1>Block (vertical scroll)</h1>
+<div class="cases">
+	<div class="case"><p>border overflow</p><div class="scroller v"><div class="child"/></div></div>
+	<div class="case"><p>margin only</p><div class="scroller v marginonly"><div class="child"/></div></div>
+	<div class="case"><p>+ child margin</p><div class="scroller v cmargin"><div class="child"/></div></div>
+	<div class="case"><p>+ container padding</p><div class="scroller v cpad"><div class="child"/></div></div>
+	<div class="case"><p>+ both</p><div class="scroller v both"><div class="child"/></div></div>
+	<div class="case"><p>nested overflow</p><div class="scroller v nested"><div class="child"><div class="grandchild"/></div></div></div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>
