@@ -2121,8 +2121,11 @@ void Element::GetRML(String& content)
 	}
 }
 
-void Element::SetOwnerDocument(ElementDocument* document)
+void Element::SetOwnerDocument(ElementDocument* document, bool force_set)
 {
+	if (owner_document == document)
+		return;
+
 	if (owner_document && !document)
 	{
 		// We are detaching from the document and thereby also the context.
@@ -2130,12 +2133,12 @@ void Element::SetOwnerDocument(ElementDocument* document)
 			context->OnElementDetach(this);
 	}
 
-	// If this element is a document, then never change owner_document.
-	if (owner_document != this && owner_document != document)
+	// If this element is a document, then never change owner_document, except if forced.
+	if (owner_document != this || force_set)
 	{
 		owner_document = document;
 		for (ElementPtr& child : children)
-			child->SetOwnerDocument(document);
+			child->SetOwnerDocument(document, false);
 	}
 }
 
@@ -2188,7 +2191,7 @@ void Element::SetParent(Element* _parent)
 	if (transform_state || (parent && parent->transform_state))
 		DirtyTransformState(true, true);
 
-	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr);
+	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr, false);
 
 	if (!parent)
 	{

@@ -132,12 +132,17 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 	position_dirty = false;
 
 	ForceLocalStackingContext();
-	SetOwnerDocument(this);
+	SetOwnerDocument(this, true);
 
 	SetProperty(PropertyId::Position, Property(Style::Position::Absolute));
 }
 
-ElementDocument::~ElementDocument() = default;
+ElementDocument::~ElementDocument()
+{
+	// Once we return from here no further calls should be performed into ElementDocument, even during ~Element. To ensure this,
+	// remove this document as owner from this and descendants.
+	SetOwnerDocument(nullptr, true);
+}
 
 void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 {

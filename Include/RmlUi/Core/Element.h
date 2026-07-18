@@ -650,7 +650,7 @@ protected:
 	// Dirty the element style definition, including all descendants of the specified nodes.
 	void DirtyDefinition(DirtyNodes dirty_nodes);
 
-	void SetOwnerDocument(ElementDocument* document);
+	void SetOwnerDocument(ElementDocument* document, bool force_set);
 
 	void OnStyleSheetChangeRecursive();
 

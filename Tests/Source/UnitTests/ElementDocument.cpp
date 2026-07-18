@@ -428,4 +428,30 @@ TEST_CASE("ScrollFlag")
 	TestsShell::ShutdownShell();
 }
 
+TEST_CASE("DocumentDestruction")
+{
+	// Verify validity of document destruction under UBSAN, ensure no virtual calls during ~Element go back down to ElementDocument.
+	Context* context = TestsShell::GetContext();
+
+	ElementDocument* document = context->LoadDocumentFromMemory(R"(
+<rml>
+<head>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+</head>
+<body>
+	<div id="parent">
+		<div class="child"><span/></div>
+		<div class="child"/>
+	</div>
+</body>
+</rml>
+)");
+	document->Show();
+	context->Update();
+
+	document->Close();
+	context->Update();
+	TestsShell::ShutdownShell();
+}
+
 TEST_SUITE_END();
