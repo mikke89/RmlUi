@@ -50,6 +50,40 @@ jobs:
       run: ctest
 
 
+  Linux-sanitizers:
+    runs-on: ubuntu-24.04
+
+    env:
+      CC: clang
+      CXX: clang++
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install Dependencies
+      run: |-
+        sudo apt-get update
+        sudo apt-get install cmake ninja-build clang libsdl2-dev libsdl2-image-dev libfreetype6-dev
+
+    - name: Configure CMake
+      run: >-
+        cmake -B Build -G Ninja --preset dev -Wdev -Werror=dev -DRMLUI_WARNINGS_AS_ERRORS=ON -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DBUILD_SHARED_LIBS=OFF -DRMLUI_BACKEND=SDL_GL2
+        -DCMAKE_C_FLAGS="-fsanitize=address,undefined"
+        -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined"
+        -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+
+    - name: Build
+      run: cmake --build Build --target rmlui_unit_tests
+
+    - name: Test
+      env:
+        ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
+        UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        LSAN_OPTIONS: suppressions=${{ github.workspace }}/Utilities/lsan.supp:print_suppressions=1
+      run: ./Build/rmlui_unit_tests
+
+
   Linux-legacy:
     runs-on: ubuntu-22.04
 
