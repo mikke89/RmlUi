@@ -196,7 +196,8 @@ bool ContainerBox::SubmitBox(const Vector2f content_overflow_size, const Box& bo
 		element->SetBox(box);
 
 		// Scrollable overflow is the set of things extending our padding area, for which scrolling could be provided.
-		const Vector2f scrollable_overflow_size = Math::Max(padding_size - scrollbar_size, padding_top_left + content_overflow_size);
+		const Vector2f scrollable_content_size = padding_top_left + content_overflow_size + padding_bottom_right;
+		const Vector2f scrollable_overflow_size = Math::Max(padding_size - scrollbar_size, scrollable_content_size);
 		// Set the overflow size but defer clamping of the scroll offset, see `LayoutEngine::FormatElement`.
 		element->SetScrollableOverflowRectangle(scrollable_overflow_size, false);
 
