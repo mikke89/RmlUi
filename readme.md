@@ -6,7 +6,7 @@ RmlUi - now with added boosters taking control of the rocket, targeting *your* g
 
 ---
 
-[![Chat on Gitter](https://badges.gitter.im/RmlUi/community.svg)](https://gitter.im/RmlUi/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![project chat](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://rmlui.zulipchat.com)
 [![Build](https://github.com/mikke89/RmlUi/actions/workflows/build.yml/badge.svg)](https://github.com/mikke89/RmlUi/actions/workflows/build.yml)
 [![Build status](https://ci.appveyor.com/api/projects/status/x95oi8mrb001pqhh/branch/master?svg=true)](https://ci.appveyor.com/project/mikke89/rmlui/branch/master)
 

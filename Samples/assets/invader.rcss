@@ -318,7 +318,7 @@ input.text:focus-visible, input.password:focus-visible
 {
 	decorator: tiled-horizontal( text-focus-l, text-focus-c, auto );
 }
-input.text::placeholder, input.password::placeholder
+input.text:placeholder-shown, input.password:placeholder-shown
 {
 	color: #888;
 }

@@ -73,7 +73,7 @@ void ElementInfo::OnUpdate()
 
 		constexpr float update_interval = 0.3f;
 
-		if (dt > update_interval || (force_update_once))
+		if (dt >= update_interval || force_update_once)
 		{
 			if (force_update_once && source_element)
 			{
@@ -86,6 +86,9 @@ void ElementInfo::OnUpdate()
 
 			UpdateSourceElement();
 		}
+
+		if (Context* context = GetContext())
+			context->RequestNextUpdate(update_interval);
 	}
 
 	if (title_dirty)
@@ -613,17 +616,10 @@ void ElementInfo::BuildElementPropertiesRML(String& property_rml, Element* eleme
 {
 	NamedPropertyList property_list;
 
-	for (auto it = element->IterateLocalProperties(); !it.AtEnd(); ++it)
+	for (auto it = element->IterateLocalProperties(primary_element != element ? primary_element : nullptr); !it.AtEnd(); ++it)
 	{
-		PropertyId property_id = it.GetId();
-		const String& property_name = it.GetName();
-		const Property* prop = &it.GetProperty();
-
-		// Check that this property isn't overridden or just not inherited.
-		if (primary_element->GetProperty(property_id) != prop)
-			continue;
-
-		property_list.push_back(NamedProperty{property_name, prop});
+		const auto& [property_name, property] = *it;
+		property_list.push_back(NamedProperty{property_name, &property});
 	}
 
 	std::sort(property_list.begin(), property_list.end(), [](const NamedProperty& a, const NamedProperty& b) {
@@ -635,13 +631,7 @@ void ElementInfo::BuildElementPropertiesRML(String& property_rml, Element* eleme
 			return false;
 		if (a.second->specificity > b.second->specificity)
 			return true;
-		if (a.second->definition && !b.second->definition)
-			return false;
-		if (!a.second->definition && b.second->definition)
-			return true;
-		const String& a_name = StyleSheetSpecification::GetPropertyName(a.second->definition->GetId());
-		const String& b_name = StyleSheetSpecification::GetPropertyName(b.second->definition->GetId());
-		return a_name < b_name;
+		return a.first < b.first;
 	});
 
 	if (!property_list.empty())

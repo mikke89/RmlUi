@@ -29,7 +29,7 @@ jobs:
           - cmake_options: -DRMLUI_BACKEND=GLFW_VK -DCMAKE_BUILD_TYPE=Debug -DRMLUI_VK_DEBUG=ON -DRMLUI_PRECOMPILED_HEADERS=OFF
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Dependencies
       run: |-
@@ -48,6 +48,40 @@ jobs:
       if: ${{ matrix.enable_testing }}
       working-directory: ${{github.workspace}}/Build
       run: ctest
+
+
+  Linux-sanitizers:
+    runs-on: ubuntu-24.04
+
+    env:
+      CC: clang
+      CXX: clang++
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install Dependencies
+      run: |-
+        sudo apt-get update
+        sudo apt-get install cmake ninja-build clang libsdl2-dev libsdl2-image-dev libfreetype6-dev
+
+    - name: Configure CMake
+      run: >-
+        cmake -B Build -G Ninja --preset dev -Wdev -Werror=dev -DRMLUI_WARNINGS_AS_ERRORS=ON -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DBUILD_SHARED_LIBS=OFF -DRMLUI_BACKEND=SDL_GL2
+        -DCMAKE_C_FLAGS="-fsanitize=address,undefined"
+        -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined"
+        -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+
+    - name: Build
+      run: cmake --build Build --target rmlui_unit_tests
+
+    - name: Test
+      env:
+        ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
+        UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        LSAN_OPTIONS: suppressions=${{ github.workspace }}/Utilities/lsan.supp:print_suppressions=1
+      run: ./Build/rmlui_unit_tests
 
 
   Linux-legacy:
@@ -72,7 +106,7 @@ jobs:
           - cmake_options: -DRMLUI_BACKEND=native -DCMAKE_BUILD_TYPE=Debug -DRMLUI_VK_DEBUG=ON
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Dependencies
         run: |-
@@ -102,10 +136,10 @@ jobs:
           - cmake_options: -DRMLUI_BACKEND=GLFW_GL2
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Dependencies
-      run: brew install lua sdl2 sdl2_image glfw
+      run: brew install lua sdl3 sdl3_image glfw
 
     - name: Configure CMake
       run: >-
@@ -140,7 +174,7 @@ jobs:
             build_type: Debug
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Dependencies
       run: C:\vcpkg\vcpkg install freetype[core] sdl3[core,vulkan] sdl3-image[core] glfw3 lua[core] luajit
@@ -163,7 +197,7 @@ jobs:
       MSYSTEM: MINGW64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Dependencies
         run: |-
@@ -187,7 +221,7 @@ jobs:
   Emscripten:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Dependencies
       run: |-

@@ -1,4 +1,5 @@
 #include "StyleSheetParser.h"
+#include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
@@ -17,6 +18,101 @@
 #include <string.h>
 
 namespace Rml {
+
+static bool IsEscapedCharacter(const String& string, size_t index)
+{
+	if (index == 0 || index > string.size())
+		return false;
+
+	size_t num_preceding_backslashes = 0;
+	for (size_t i = index; i > 0 && string[i - 1] == '\\'; --i)
+		num_preceding_backslashes += 1;
+
+	return (num_preceding_backslashes % 2) == 1;
+}
+
+static String UnescapeSelectorToken(StringView token)
+{
+	String result;
+	result.reserve(token.size());
+
+	for (const char* p = token.begin(); p != token.end(); ++p)
+	{
+		const char c = *p;
+		if (c == '\\' && (p + 1) != token.end())
+		{
+			result += *(p + 1);
+			++p;
+		}
+		else
+		{
+			result += c;
+		}
+	}
+
+	return result;
+}
+
+static String ExtractUnescapedSelectorToken(const String& string, size_t begin, size_t end)
+{
+	return UnescapeSelectorToken(StringView(string, begin, end - begin));
+}
+
+static size_t FindAttributeSelectorEnd(const String& rule, size_t start_index)
+{
+	char quote = 0;
+	for (size_t index = start_index + 1; index < rule.size(); index++)
+	{
+		const char c = rule[index];
+		if ((c == '\'' || c == '"') && !IsEscapedCharacter(rule, index))
+		{
+			if (!quote)
+				quote = c;
+			else if (quote == c)
+				quote = 0;
+		}
+		else if (c == ']' && !quote && !IsEscapedCharacter(rule, index))
+		{
+			return index;
+		}
+	}
+
+	return String::npos;
+}
+
+static size_t FindFirstUnescaped(const String& string, size_t begin, size_t end, StringView tokens)
+{
+	for (size_t index = begin; index < end; index++)
+	{
+		if (std::find(tokens.begin(), tokens.end(), string[index]) != tokens.end() && !IsEscapedCharacter(string, index))
+			return index;
+	}
+
+	return String::npos;
+}
+
+static void ParseAttributeSelector(AttributeSelector& attribute, const String& rule, size_t begin, size_t end)
+{
+	static const StringView attribute_operators = "=~|^$*";
+
+	const size_t i_operator = FindFirstUnescaped(rule, begin, end, attribute_operators);
+	const size_t i_name_end = Math::Min(i_operator, end);
+	attribute.name = UnescapeSelectorToken(StringUtilities::StripWhitespace(rule.substr(begin, i_name_end - begin)));
+
+	if (i_operator == String::npos)
+		return;
+
+	const char c = rule[i_operator];
+	attribute.type = AttributeSelectorType(c);
+
+	// Move cursor past operator. Non-'=' symbols are always followed by '=' so move two characters.
+	size_t i_value_begin = i_operator + (c == '=' ? 1 : 2);
+	String value = StringUtilities::StripWhitespace(rule.substr(i_value_begin, end - i_value_begin));
+	if (value.size() >= 2 && ((value.front() == '"' && value.back() == '"') || (value.front() == '\'' && value.back() == '\'')))
+		value = value.substr(1, value.size() - 2);
+
+	attribute.value = UnescapeSelectorToken(value);
+}
 
 class AbstractPropertyParser : NonCopyMoveable {
 protected:
@@ -179,10 +275,66 @@ public:
 	}
 };
 
+/*
+ * Font faces need a special parser because they have unique properties that
+ * aren't admissible in other property declaration contexts.
+ */
+class FontFacePropertyParser final : public AbstractPropertyParser {
+private:
+	// The dictionary to store the properties in.
+	PropertyDictionary* properties = nullptr;
+	PropertySpecification specification;
+
+	static PropertyId CastId(FontFaceId id) { return static_cast<PropertyId>(id); }
+
+public:
+	StringList sources;
+
+	const PropertySpecification& GetPropertySpecification() { return specification; }
+
+	FontFacePropertyParser() : specification(5, 0)
+	{
+		// standard
+		specification.RegisterProperty("font-family", "", false, false, CastId(FontFaceId::FontFamily)).AddParser("string");
+		specification.RegisterProperty("font-weight", "all", false, false, CastId(FontFaceId::FontWeight))
+			.AddParser("keyword", "all=0, normal=400, bold=700")
+			.AddParser("number");
+		specification.RegisterProperty("font-style", "normal", false, false, CastId(FontFaceId::FontStyle)).AddParser("keyword", "normal, italic");
+		// src handled by Parse
+
+		// extended
+		specification.RegisterProperty("-rmlui-fallback-face", "false", false, false, CastId(FontFaceId::FallbackFace))
+			.AddParser("keyword", "false, true");
+		specification.RegisterProperty("-rmlui-face-index", "0", false, false, CastId(FontFaceId::FaceIndex)).AddParser("number");
+	}
+
+	void SetTargetProperties(PropertyDictionary* _properties) { properties = _properties; }
+
+	void Clear()
+	{
+		properties = nullptr;
+		sources.clear();
+	}
+
+	bool Parse(const String& name, const String& value) override
+	{
+		RMLUI_ASSERT(properties);
+
+		if (name == "src")
+		{
+			StringUtilities::ExpandString(sources, value);
+			return true;
+		}
+
+		return specification.ParsePropertyDeclaration(*properties, name, value);
+	}
+};
+
 struct StyleSheetParserData {
 	// The following parsers are reasonably heavy to initialize, so we construct them during library initialization.
 	SpritesheetPropertyParser spritesheet;
 	MediaQueryPropertyParser media_query;
+	FontFacePropertyParser font_face;
 };
 
 static ControlledLifetimeResource<StyleSheetParserData> style_sheet_property_parsers;
@@ -256,7 +408,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 		Log::Message(Log::LT_WARNING, "Invalid keyframes identifier '%s' at %s:%d", identifier.c_str(), stream_file_name.c_str(), line_number);
 		return false;
 	}
-	if (properties.GetNumProperties() == 0)
+	if (properties.Empty())
 		return true;
 
 	StringList rule_list;
@@ -371,6 +523,47 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, NamedDecorator
 	return true;
 }
 
+bool StyleSheetParser::ParseFontFaceBlock(const SharedPtr<const PropertySource>& source)
+{
+	auto& font_face_property_parser = style_sheet_property_parsers->font_face;
+
+	PropertyDictionary properties;
+	font_face_property_parser.SetTargetProperties(&properties);
+
+	ReadProperties(font_face_property_parser);
+
+	// Set non-defined properties to their defaults
+	font_face_property_parser.GetPropertySpecification().SetPropertyDefaults(properties);
+	properties.SetSourceOfAllProperties(source);
+
+	// check required properties
+	if (!properties.GetProperty(static_cast<Rml::PropertyId>(Rml::FontFaceId::FontFamily)))
+	{
+		Log::Message(Log::LT_WARNING, "@font-face block missing font-family at %s:%d.", stream_file_name.c_str(), line_number);
+		return false;
+	}
+
+	if (font_face_property_parser.sources.empty())
+	{
+		Log::Message(Log::LT_WARNING, "@font-face block missing src at %s:%d.", stream_file_name.c_str(), line_number);
+		return false;
+	}
+
+	auto get_property = [&properties](FontFaceId id) { return properties.GetProperty(static_cast<PropertyId>(id)); };
+	const String family = get_property(FontFaceId::FontFamily)->Get<String>();
+	const bool is_fallback = get_property(FontFaceId::FallbackFace)->Get<bool>();
+	const int face_index = get_property(FontFaceId::FaceIndex)->Get<int>();
+	const Style::FontWeight weight = get_property(FontFaceId::FontWeight)->Get<Style::FontWeight>();
+	const Style::FontStyle style = get_property(FontFaceId::FontStyle)->Get<Style::FontStyle>();
+
+	for (const String& src : font_face_property_parser.sources)
+	{
+		Rml::LoadFontFace(src, family, style, weight, is_fallback, face_index);
+	}
+
+	return true;
+}
+
 bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDictionary& properties, MediaQueryModifier& modifier)
 {
 	style_sheet_property_parsers->media_query.SetTargetProperties(&properties);
@@ -426,7 +619,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
 
 			// allow an empty string to pass through only if we had just parsed a modifier.
-			if (current_string != "and" && (properties.GetNumProperties() != 0 || !current_string.empty()))
+			if (current_string != "and" && (!properties.Empty() || !current_string.empty()))
 			{
 				Log::Message(Log::LT_WARNING, "Unexpected '%s' in @media query list at %s:%d. Expected 'and'.", current_string.c_str(),
 					stream_file_name.c_str(), line_number);
@@ -482,7 +675,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 		}
 	}
 
-	if (properties.GetNumProperties() == 0)
+	if (properties.Empty())
 	{
 		Log::Message(Log::LT_WARNING, "Media query list parsing yielded no properties at %s:%d.", stream_file_name.c_str(), line_number);
 	}
@@ -544,7 +737,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					// Add style nodes to the root of the tree
 					for (size_t i = 0; i < rule_name_list.size(); i++)
 					{
-						auto source = MakeShared<PropertySource>(stream_file_name, rule_line_number, rule_name_list[i]);
+						auto source = MakeShared<PropertySource>(stream_file_name, rule_line_number, UnescapeSelectorToken(rule_name_list[i]));
 						properties.SetSourceOfAllProperties(source);
 						if (!ImportProperties(current_block.stylesheet->root.get(), rule_name_list[i], properties, rule_count))
 						{
@@ -657,6 +850,15 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 						current_block = {std::move(feature_map), UniquePtr<StyleSheet>(new StyleSheet()), modifier};
 
 						inside_media_block = true;
+						state = State::Global;
+					}
+					else if (at_rule_identifier == "font-face")
+					{
+						auto source = MakeShared<PropertySource>(stream_file_name, (int)line_number, pre_token_str);
+						ParseFontFaceBlock(source);
+						style_sheet_property_parsers->font_face.Clear();
+
+						at_rule_name.clear();
 						state = State::Global;
 					}
 					else
@@ -905,7 +1107,7 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, const S
 
 			if (rule[start_index] == '[')
 			{
-				end_index = rule.find(']', start_index + 1);
+				end_index = FindAttributeSelectorEnd(rule, start_index);
 				if (end_index == String::npos)
 					return nullptr;
 				end_index += 1;
@@ -925,28 +1127,25 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, const S
 				for (; end_index < rule.size(); end_index++)
 				{
 					static const String identifiers = "#.:[ >+~";
-					if (parenthesis_count == 0 && identifiers.find(rule[end_index]) != String::npos)
+					if (parenthesis_count == 0 && identifiers.find(rule[end_index]) != String::npos && !IsEscapedCharacter(rule, end_index))
 						break;
 
-					if (rule[end_index] == '(')
+					if (rule[end_index] == '(' && !IsEscapedCharacter(rule, end_index))
 						parenthesis_count += 1;
-					else if (rule[end_index] == ')')
+					else if (rule[end_index] == ')' && !IsEscapedCharacter(rule, end_index))
 						parenthesis_count -= 1;
 				}
 			}
 
 			if (end_index > start_index)
 			{
-				const char* p_begin = rule.data() + start_index;
-				const char* p_end = rule.data() + end_index;
-
 				switch (rule[start_index])
 				{
-				case '#': selector.id = String(p_begin + 1, p_end); break;
-				case '.': selector.class_names.push_back(String(p_begin + 1, p_end)); break;
+				case '#': selector.id = ExtractUnescapedSelectorToken(rule, start_index + 1, end_index); break;
+				case '.': selector.class_names.push_back(ExtractUnescapedSelectorToken(rule, start_index + 1, end_index)); break;
 				case ':':
 				{
-					String pseudo_class_name = String(p_begin + 1, p_end);
+					String pseudo_class_name = ExtractUnescapedSelectorToken(rule, start_index + 1, end_index);
 					StructuralSelector node_selector = StyleSheetFactory::GetSelector(pseudo_class_name);
 					if (node_selector.type != StructuralSelectorType::Invalid)
 						selector.structural_selectors.push_back(node_selector);
@@ -962,34 +1161,12 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, const S
 						return nullptr;
 
 					AttributeSelector attribute;
-
-					static const String attribute_operators = "=~|^$*]";
-					size_t i_cursor = Math::Min(static_cast<size_t>(rule.find_first_of(attribute_operators, i_attr_begin)), i_attr_end);
-					attribute.name = rule.substr(i_attr_begin, i_cursor - i_attr_begin);
-
-					if (i_cursor < i_attr_end)
-					{
-						const char c = rule[i_cursor];
-						attribute.type = AttributeSelectorType(c);
-
-						// Move cursor past operator. Non-'=' symbols are always followed by '=' so move two characters.
-						i_cursor += (c == '=' ? 1 : 2);
-
-						size_t i_value_end = i_attr_end;
-						if (i_cursor < i_attr_end && (rule[i_cursor] == '"' || rule[i_cursor] == '\''))
-						{
-							i_cursor += 1;
-							i_value_end -= 1;
-						}
-
-						if (i_cursor < i_value_end)
-							attribute.value = rule.substr(i_cursor, i_value_end - i_cursor);
-					}
+					ParseAttributeSelector(attribute, rule, i_attr_begin, i_attr_end);
 
 					selector.attributes.push_back(std::move(attribute));
 				}
 				break;
-				default: selector.tag = String(p_begin, p_end); break;
+				default: selector.tag = ExtractUnescapedSelectorToken(rule, start_index, end_index); break;
 				}
 			}
 

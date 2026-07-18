@@ -16,6 +16,10 @@ public:
 	bool LoadFontFace(const String& file_name, int face_index, bool fallback_face, Style::FontWeight weight) override;
 
 	/// Adds a new font face to the database using the provided family, style and weight.
+	bool LoadFontFace(const String& file_name, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+		bool fallback_face) override;
+
+	/// Adds a new font face to the database using the provided family, style and weight.
 	bool LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
 		bool fallback_face) override;
 

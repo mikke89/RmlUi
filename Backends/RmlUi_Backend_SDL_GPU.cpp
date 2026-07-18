@@ -19,6 +19,7 @@ struct BackendData {
 
 	SystemInterface_SDL system_interface;
 	RenderInterface_SDL_GPU render_interface;
+	TextInputMethodEditor_SDL text_input_method_editor;
 
 	SDL_Window* window = nullptr;
 	SDL_GPUDevice* device = nullptr;
@@ -31,6 +32,8 @@ static Rml::UniquePtr<BackendData> data;
 bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize)
 {
 	RMLUI_ASSERT(!data);
+
+	SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "composition");
 
 	if (!SDL_Init(SDL_INIT_VIDEO))
 		return false;
@@ -90,6 +93,8 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	const char* renderer_name = SDL_GetGPUDeviceDriver(device);
 	data->system_interface.LogMessage(Rml::Log::LT_INFO, Rml::CreateString("Using SDL device driver: %s", renderer_name));
 
+	Rml::SetTextInputHandler(&data->text_input_method_editor);
+
 	return true;
 }
 
@@ -128,6 +133,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	auto GetDisplayScale = []() { return SDL_GetWindowDisplayScale(data->window); };
 	constexpr auto event_quit = SDL_EVENT_QUIT;
 	constexpr auto event_key_down = SDL_EVENT_KEY_DOWN;
+	constexpr auto event_text_editing = SDL_EVENT_TEXT_EDITING;
 	bool has_event = false;
 
 	bool result = data->running;
@@ -166,6 +172,12 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 			// The key was not consumed by the context either, try keyboard shortcuts of lower priority.
 			if (key_down_callback && !key_down_callback(context, key, key_modifier, native_dp_ratio, false))
 				break;
+		}
+		break;
+		case event_text_editing:
+		{
+			propagate_event = false;
+			data->text_input_method_editor.HandleEdit(ev.edit);
 		}
 		break;
 		default: break;

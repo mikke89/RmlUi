@@ -1,5 +1,10 @@
 #include "../Common/TestsShell.h"
+#include "../../../Source/Core/ElementDefinition.h"
+#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/Factory.h>
+#include <RmlUi/Core/ID.h>
 #include <RmlUi/Core/Spritesheet.h>
 #include <RmlUi/Core/StreamMemory.h>
 #include <RmlUi/Core/StyleSheet.h>
@@ -47,6 +52,12 @@ static const char comments[] = R"(
 	test10: 0px 64px 64px 64px; /* A comment after a rule */
 	test11: 64px 64px 64px 64px;
 	/* A comment before a rule */ resolution: 1x;
+}
+)";
+
+static const char selector_list_with_escaped_comma[] = R"(
+.escaped\,class, #normal_match {
+	width: 10px;
 }
 )";
 
@@ -195,6 +206,52 @@ TEST_CASE("style_sheet_parser.comments")
 		CHECK(sprite11->rectangle.TopLeft() == Vector2f(64.f, 64.f));
 		CHECK(sprite11->rectangle.BottomRight() == Vector2f(128.f, 128.f));
 		CHECK(sprite11->sprite_sheet->display_scale == 1.f);
+	}
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("style_sheet_parser.selector_list_with_escaped_comma")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	StyleSheetContainer style_sheet_container;
+	StreamMemory stylesheet_stream{reinterpret_cast<const byte*>(selector_list_with_escaped_comma), sizeof(selector_list_with_escaped_comma) - 1};
+	REQUIRE(style_sheet_container.LoadStyleSheetContainer(&stylesheet_stream, 0));
+
+	style_sheet_container.UpdateCompiledStyleSheet(context);
+	const auto* style_sheet = style_sheet_container.GetCompiledStyleSheet();
+	REQUIRE(style_sheet != nullptr);
+
+	{
+		ElementPtr class_match = Factory::InstanceElement(nullptr, "*", "div", {});
+		ElementPtr normal_match = Factory::InstanceElement(nullptr, "*", "div", {});
+		ElementPtr no_match = Factory::InstanceElement(nullptr, "*", "div", {});
+		REQUIRE(class_match);
+		REQUIRE(normal_match);
+		REQUIRE(no_match);
+
+		class_match->SetClassNames("escaped,class");
+		normal_match->SetId("normal_match");
+		no_match->SetId("no_match");
+
+		SharedPtr<const ElementDefinition> class_definition = style_sheet->GetElementDefinition(class_match.get());
+		SharedPtr<const ElementDefinition> normal_definition = style_sheet->GetElementDefinition(normal_match.get());
+		SharedPtr<const ElementDefinition> no_definition = style_sheet->GetElementDefinition(no_match.get());
+
+		REQUIRE(bool(class_definition));
+		REQUIRE(bool(normal_definition));
+		CHECK_FALSE(bool(no_definition));
+
+		const Property* class_width = class_definition->GetProperty(PropertyId::Width);
+		const Property* normal_width = normal_definition->GetProperty(PropertyId::Width);
+		REQUIRE(class_width);
+		REQUIRE(normal_width);
+		REQUIRE(bool(class_width->source));
+		REQUIRE(bool(normal_width->source));
+		CHECK(class_width->source->rule_name == ".escaped,class");
+		CHECK(normal_width->source->rule_name == "#normal_match");
 	}
 
 	TestsShell::ShutdownShell();

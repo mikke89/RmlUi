@@ -2,6 +2,7 @@
 
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/SystemInterface.h>
+#include <RmlUi/Core/TextInputHandler.h>
 #include <RmlUi/Core/Types.h>
 
 #if RMLUI_SDL_VERSION_MAJOR == 3
@@ -62,3 +63,16 @@ int ConvertMouseButton(int sdl_mouse_button);
 int GetKeyModifierState();
 
 } // namespace RmlSDL
+
+class TextInputMethodEditor_SDL final : public Rml::TextInputHandler {
+public:
+	void OnActivate(Rml::TextInputContext* input_context) override;
+	void OnDeactivate(Rml::TextInputContext* input_context) override;
+	void OnDestroy(Rml::TextInputContext* input_context) override;
+
+	void HandleEdit(const SDL_TextEditingEvent& ev);
+
+private:
+	Rml::TextInputContext* context = nullptr;
+	int start = 0, end = 0;
+};

@@ -9,6 +9,18 @@
 
 namespace Rml {
 
+static bool IsEscapedCharacter(const String& string, size_t index)
+{
+	if (index == 0 || index > string.size())
+		return false;
+
+	size_t num_preceding_backslashes = 0;
+	for (size_t i = index; i > 0 && string[i - 1] == '\\'; --i)
+		num_preceding_backslashes += 1;
+
+	return (num_preceding_backslashes % 2) == 1;
+}
+
 static int FormatString(String& string, const char* format, va_list argument_list)
 {
 	constexpr size_t InternalBufferSize = 256;
@@ -236,11 +248,6 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 	const char* end_ptr = ptr;
 
 	size_t num_delimiter_values = std::count(string.begin(), string.end(), delimiter);
-	if (num_delimiter_values == 0)
-	{
-		string_list.push_back(StripWhitespace(string));
-		return;
-	}
 	string_list.reserve(string_list.size() + num_delimiter_values + 1);
 
 	while (*ptr)
@@ -287,25 +294,29 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 	bool ignore_repeated_delimiters)
 {
 	int quote_mode_depth = 0;
+	const char* begin_ptr = string.c_str();
 	const char* ptr = string.c_str();
 	const char* start_ptr = nullptr;
 	const char* end_ptr = ptr;
 
 	while (*ptr)
 	{
+		const size_t index = size_t(ptr - begin_ptr);
+		const bool escaped = IsEscapedCharacter(string, index);
+
 		// Increment the quote depth for each quote character encountered
-		if (*ptr == quote_character)
+		if (*ptr == quote_character && !escaped)
 		{
 			++quote_mode_depth;
 		}
 		// And decrement it for every unquote character
-		else if (*ptr == unquote_character)
+		else if (*ptr == unquote_character && !escaped)
 		{
 			--quote_mode_depth;
 		}
 
 		// If we encounter a delimiter while not in quote mode, add the item to the list
-		if (*ptr == delimiter && quote_mode_depth == 0)
+		if (*ptr == delimiter && quote_mode_depth == 0 && !escaped)
 		{
 			if (start_ptr)
 				string_list.emplace_back(start_ptr, end_ptr + 1);

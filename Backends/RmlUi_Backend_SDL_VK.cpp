@@ -26,6 +26,7 @@ struct BackendData {
 
 	SystemInterface_SDL system_interface;
 	RenderInterface_VK render_interface;
+	TextInputMethodEditor_SDL text_input_method_editor;
 
 	SDL_Window* window = nullptr;
 
@@ -38,9 +39,11 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	RMLUI_ASSERT(!data);
 
 #if SDL_MAJOR_VERSION >= 3
+	SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "composition");
 	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 		return false;
 #else
+	SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
 		return false;
 #endif
@@ -131,6 +134,8 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	data->render_interface.SetViewport(width, height);
 
+	Rml::SetTextInputHandler(&data->text_input_method_editor);
+
 	return true;
 }
 
@@ -202,6 +207,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	auto GetDisplayScale = []() { return SDL_GetWindowDisplayScale(data->window); };
 	constexpr auto event_quit = SDL_EVENT_QUIT;
 	constexpr auto event_key_down = SDL_EVENT_KEY_DOWN;
+	constexpr auto event_text_editing = SDL_EVENT_TEXT_EDITING;
 	constexpr auto event_window_size_changed = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED;
 	bool has_event = false;
 #else
@@ -218,6 +224,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	auto GetDisplayScale = []() { return 1.f; };
 	constexpr auto event_quit = SDL_QUIT;
 	constexpr auto event_key_down = SDL_KEYDOWN;
+	constexpr auto event_text_editing = SDL_TEXTEDITING;
 	constexpr auto event_window_size_changed = SDL_WINDOWEVENT_SIZE_CHANGED;
 	int has_event = 0;
 #endif
@@ -258,6 +265,12 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 			// The key was not consumed by the context either, try keyboard shortcuts of lower priority.
 			if (key_down_callback && !key_down_callback(context, key, key_modifier, native_dp_ratio, false))
 				break;
+		}
+		break;
+		case event_text_editing:
+		{
+			propagate_event = false;
+			data->text_input_method_editor.HandleEdit(ev.edit);
 		}
 		break;
 

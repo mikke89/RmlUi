@@ -110,6 +110,10 @@ Context::~Context()
 
 	ReleaseUnloadedDocuments();
 
+	for (const auto& pair : data_models)
+		PluginRegistry::NotifyDataModelDestroy(this, pair.first);
+	data_models.clear();
+
 	root.reset();
 
 	cursor_proxy.reset();
@@ -1050,7 +1054,7 @@ void Context::SetInstancer(ContextInstancer* _instancer)
 	instancer = _instancer;
 }
 
-DataModelConstructor Context::CreateDataModel(const String& name, DataTypeRegister* data_type_register)
+DataModelConstructor Context::CreateDataModel(const String& name, DataTypeRegister* data_type_register, bool allow_missing_variables)
 {
 	if (!data_type_register)
 	{
@@ -1059,10 +1063,14 @@ DataModelConstructor Context::CreateDataModel(const String& name, DataTypeRegist
 		data_type_register = default_data_type_register.get();
 	}
 
-	auto result = data_models.emplace(name, MakeUnique<DataModel>(data_type_register));
+	auto result = data_models.emplace(name, MakeUnique<DataModel>(data_type_register, allow_missing_variables));
 	bool inserted = result.second;
 	if (inserted)
-		return DataModelConstructor(result.first->second.get());
+	{
+		DataModel* model = result.first->second.get();
+		PluginRegistry::NotifyDataModelCreate(this, name);
+		return DataModelConstructor(model);
+	}
 
 	Log::Message(Log::LT_ERROR, "Data model name '%s' already exists.", name.c_str());
 	return DataModelConstructor();
@@ -1097,6 +1105,8 @@ bool Context::RemoveDataModel(const String& name)
 
 	for (Element* element : elements)
 		element->SetDataModel(nullptr);
+
+	PluginRegistry::NotifyDataModelDestroy(this, it->first);
 
 	data_models.erase(it);
 

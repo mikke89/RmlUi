@@ -58,8 +58,11 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 			return Math::Max(begin_offset, end_offset);
 		else if (begin_offset > 0.f && end_offset > 0.f)
 			return Math::Min(begin_offset, end_offset);
-		else
-			return 0.f; // Shouldn't happen
+		return 0.f; // Shouldn't happen
+	case ScrollAlignment::Adaptive:
+		if (begin_offset >= 0.f && end_offset <= 0.f)
+			return 0.f; // Element is already visible, don't scroll
+		return (begin_offset + end_offset) / 2.0f;
 	}
 	return 0.f;
 }
@@ -105,10 +108,11 @@ Element::~Element()
 		child->SetParent(nullptr);
 	}
 
+	// Destroy meta objects before clearing children. In particular, ElementScroll may still refer to some of our children.
+	ElementMetaPool::element_meta_pool->pool.DestroyAndDeallocate(meta);
+
 	children.clear();
 	num_non_dom_children = 0;
-
-	ElementMetaPool::element_meta_pool->pool.DestroyAndDeallocate(meta);
 }
 
 void Element::Update(float dp_ratio, Vector2f vp_dimensions)
@@ -230,8 +234,15 @@ ElementPtr Element::Clone() const
 		clone_attributes.erase("class");
 		clone->SetAttributes(clone_attributes);
 
-		for (auto& id_property : GetStyle()->GetLocalStyleProperties())
+		const PropertyDictionary& local_properties = GetStyle()->GetLocalStyleProperties();
+		for (auto& id_property : local_properties.GetProperties())
 			clone->SetProperty(id_property.first, id_property.second);
+
+		for (auto& id_property : local_properties.GetCustomProperties())
+			clone->SetProperty(id_property.first, id_property.second.ToString());
+
+		for (auto& [shorthand_id, property] : local_properties.GetVarShorthands())
+			clone->SetProperty(StyleSheetSpecification::GetShorthandName(shorthand_id), property.ToString());
 
 		clone->GetStyle()->SetClassNames(GetStyle()->GetClassNames());
 
@@ -591,6 +602,14 @@ bool Element::SetProperty(const String& name, const String& value)
 		if (!meta->style.SetProperty(property.first, property.second))
 			return false;
 	}
+	for (auto& property : properties.GetCustomProperties())
+	{
+		meta->style.SetCustomProperty(property.first, property.second);
+	}
+	for (auto& [shorthand_id, property] : properties.GetVarShorthands())
+	{
+		meta->style.SetVarShorthand(shorthand_id, property);
+	}
 	return true;
 }
 
@@ -601,18 +620,28 @@ bool Element::SetProperty(PropertyId id, const Property& property)
 
 void Element::RemoveProperty(const String& name)
 {
-	auto property_id = StyleSheetSpecification::GetPropertyId(name);
+	const PropertyId property_id = StyleSheetSpecification::GetPropertyId(name);
 	if (property_id != PropertyId::Invalid)
-		meta->style.RemoveProperty(property_id);
-	else
 	{
-		auto shorthand_id = StyleSheetSpecification::GetShorthandId(name);
-		if (shorthand_id != ShorthandId::Invalid)
-		{
-			auto property_id_set = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand_id);
-			for (auto it = property_id_set.begin(); it != property_id_set.end(); ++it)
-				meta->style.RemoveProperty(*it);
-		}
+		meta->style.RemoveProperty(property_id);
+		return;
+	}
+
+	if (StringUtilities::StartsWith(name, "--"))
+	{
+		meta->style.RemoveCustomProperty(name);
+		return;
+	}
+
+	const ShorthandId shorthand_id = StyleSheetSpecification::GetShorthandId(name);
+	if (shorthand_id != ShorthandId::Invalid)
+	{
+		const PropertyIdSet property_id_set = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand_id);
+		for (const PropertyId id : property_id_set)
+			meta->style.RemoveProperty(id);
+
+		meta->style.RemoveVarShorthand(shorthand_id);
+		return;
 	}
 }
 
@@ -623,7 +652,14 @@ void Element::RemoveProperty(PropertyId id)
 
 const Property* Element::GetProperty(const String& name)
 {
-	return meta->style.GetProperty(StyleSheetSpecification::GetPropertyId(name));
+	const PropertyId property_id = StyleSheetSpecification::GetPropertyId(name);
+	if (property_id != PropertyId::Invalid)
+		return meta->style.GetProperty(property_id);
+
+	if (StringUtilities::StartsWith(name, "--"))
+		return meta->style.GetCustomProperty(name);
+
+	return nullptr;
 }
 
 const Property* Element::GetProperty(PropertyId id)
@@ -633,7 +669,14 @@ const Property* Element::GetProperty(PropertyId id)
 
 const Property* Element::GetLocalProperty(const String& name)
 {
-	return meta->style.GetLocalProperty(StyleSheetSpecification::GetPropertyId(name));
+	const PropertyId property_id = StyleSheetSpecification::GetPropertyId(name);
+	if (property_id != PropertyId::Invalid)
+		return meta->style.GetLocalProperty(property_id);
+
+	if (StringUtilities::StartsWith(name, "--"))
+		return meta->style.GetLocalCustomProperty(name);
+
+	return nullptr;
 }
 
 const Property* Element::GetLocalProperty(PropertyId id)
@@ -643,7 +686,7 @@ const Property* Element::GetLocalProperty(PropertyId id)
 
 const PropertyMap& Element::GetLocalStyleProperties()
 {
-	return meta->style.GetLocalStyleProperties();
+	return meta->style.GetLocalStyleProperties().GetProperties();
 }
 
 float Element::ResolveLength(NumericValue value)
@@ -755,9 +798,9 @@ bool Element::Project(Vector2f& point) const noexcept
 	return false;
 }
 
-PropertiesIteratorView Element::IterateLocalProperties() const
+PropertiesIteratorView Element::IterateLocalProperties(Element* filter_inherited_by) const
 {
-	return PropertiesIteratorView(MakeUnique<PropertiesIterator>(meta->style.Iterate()));
+	return PropertiesIteratorView(meta->style.IterateAll(filter_inherited_by));
 }
 
 void Element::SetPseudoClass(const String& pseudo_class, bool activate)
@@ -1718,6 +1761,12 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 
 				for (const auto& name_value : properties.GetProperties())
 					meta->style.SetProperty(name_value.first, name_value.second);
+
+				for (const auto& name_value : properties.GetCustomProperties())
+					meta->style.SetCustomProperty(name_value.first, name_value.second);
+
+				for (const auto& [shorthand_id, property] : properties.GetVarShorthands())
+					meta->style.SetVarShorthand(shorthand_id, property);
 			}
 			else if (value.GetType() != Variant::NONE)
 				Log::Message(Log::LT_WARNING, "Invalid 'style' attribute, string type required. In element: %s", GetAddress().c_str());
@@ -1827,15 +1876,20 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	);
 	const bool filter_or_mask_changed = (changed_properties.Contains(PropertyId::Filter) || changed_properties.Contains(PropertyId::BackdropFilter) ||
 		changed_properties.Contains(PropertyId::MaskImage));
+	const bool perspective_changed = changed_properties.Contains(PropertyId::Perspective) ||
+		changed_properties.Contains(PropertyId::PerspectiveOriginX) || changed_properties.Contains(PropertyId::PerspectiveOriginY);
+	const bool transform_changed = changed_properties.Contains(PropertyId::Transform) || changed_properties.Contains(PropertyId::TransformOriginX) ||
+		changed_properties.Contains(PropertyId::TransformOriginY) || changed_properties.Contains(PropertyId::TransformOriginZ);
 
 	// Update the z-index and stacking context.
-	if (changed_properties.Contains(PropertyId::ZIndex) || filter_or_mask_changed)
+	if (changed_properties.Contains(PropertyId::ZIndex) || filter_or_mask_changed || perspective_changed || transform_changed)
 	{
 		const Style::ZIndex z_index_property = meta->computed_values.z_index();
 
 		const float new_z_index = (z_index_property.type == Style::ZIndex::Auto ? 0.f : z_index_property.value);
 		const bool enable_local_stacking_context = (z_index_property.type != Style::ZIndex::Auto || local_stacking_context_forced ||
-			meta->computed_values.has_filter() || meta->computed_values.has_backdrop_filter() || meta->computed_values.has_mask_image());
+			meta->computed_values.has_filter() || meta->computed_values.has_backdrop_filter() || meta->computed_values.has_mask_image() ||
+			meta->computed_values.has_local_transform() || meta->computed_values.has_local_perspective());
 
 		if (z_index != new_z_index || local_stacking_context != enable_local_stacking_context)
 		{
@@ -1902,22 +1956,11 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		meta->effects.DirtyEffectsData();
 	}
 
-	// Check for `perspective' and `perspective-origin' changes
-	if (changed_properties.Contains(PropertyId::Perspective) ||        //
-		changed_properties.Contains(PropertyId::PerspectiveOriginX) || //
-		changed_properties.Contains(PropertyId::PerspectiveOriginY))
-	{
+	if (perspective_changed)
 		DirtyTransformState(true, false);
-	}
 
-	// Check for `transform' and `transform-origin' changes
-	if (changed_properties.Contains(PropertyId::Transform) ||        //
-		changed_properties.Contains(PropertyId::TransformOriginX) || //
-		changed_properties.Contains(PropertyId::TransformOriginY) || //
-		changed_properties.Contains(PropertyId::TransformOriginZ))
-	{
+	if (transform_changed)
 		DirtyTransformState(false, true);
-	}
 
 	// Check for `animation' changes
 	if (changed_properties.Contains(PropertyId::Animation))
@@ -2030,22 +2073,36 @@ void Element::GetRML(String& content)
 		}
 	}
 
-	const PropertyMap& local_properties = meta->style.GetLocalStyleProperties();
-	if (!local_properties.empty())
+	const PropertyDictionary& local_properties = meta->style.GetLocalStyleProperties();
+	if (!local_properties.Empty())
 		content += " style=\"";
 
-	for (const auto& pair : local_properties)
+	for (const auto& [id, property] : local_properties.GetProperties())
 	{
-		const PropertyId id = pair.first;
-		const Property& property = pair.second;
-
+		// Skip placeholders for shorthands that are pending substitution, the shorthand itself is serialized below.
+		if (property.unit == Unit::SHORTHAND_PLACEHOLDER)
+			continue;
 		content += StyleSheetSpecification::GetPropertyName(id);
 		content += ": ";
 		content += StringUtilities::EncodeRml(property.ToString());
 		content += "; ";
 	}
+	for (const auto& [name, property] : local_properties.GetCustomProperties())
+	{
+		content += name;
+		content += ": ";
+		content += StringUtilities::EncodeRml(property.ToString());
+		content += "; ";
+	}
+	for (const auto& [shorthand_id, property] : local_properties.GetVarShorthands())
+	{
+		content += StyleSheetSpecification::GetShorthandName(shorthand_id);
+		content += ": ";
+		content += StringUtilities::EncodeRml(property.ToString());
+		content += "; ";
+	}
 
-	if (!local_properties.empty())
+	if (!local_properties.Empty())
 		content.back() = '\"';
 
 	if (HasChildNodes())
@@ -2064,8 +2121,11 @@ void Element::GetRML(String& content)
 	}
 }
 
-void Element::SetOwnerDocument(ElementDocument* document)
+void Element::SetOwnerDocument(ElementDocument* document, bool force_set)
 {
+	if (owner_document == document)
+		return;
+
 	if (owner_document && !document)
 	{
 		// We are detaching from the document and thereby also the context.
@@ -2073,12 +2133,12 @@ void Element::SetOwnerDocument(ElementDocument* document)
 			context->OnElementDetach(this);
 	}
 
-	// If this element is a document, then never change owner_document.
-	if (owner_document != this && owner_document != document)
+	// If this element is a document, then never change owner_document, except if forced.
+	if (owner_document != this || force_set)
 	{
 		owner_document = document;
 		for (ElementPtr& child : children)
-			child->SetOwnerDocument(document);
+			child->SetOwnerDocument(document, false);
 	}
 }
 
@@ -2131,7 +2191,7 @@ void Element::SetParent(Element* _parent)
 	if (transform_state || (parent && parent->transform_state))
 		DirtyTransformState(true, true);
 
-	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr);
+	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr, false);
 
 	if (!parent)
 	{
@@ -2421,15 +2481,20 @@ void Element::AddToStackingContext(Vector<StackingContextChild>& stacking_childr
 
 void Element::DirtyStackingContext()
 {
-	// Find the first ancestor that has a local stacking context, that is our stacking context parent.
+	if (Element* stacking_context_parent = ClosestStackingContextContainer())
+		stacking_context_parent->stacking_context_dirty = true;
+}
+
+Element* Element::ClosestStackingContextContainer()
+{
+	// Find the first ancestor, or this, that has a local stacking context. That is our stacking context container.
 	Element* stacking_context_parent = this;
 	while (stacking_context_parent && !stacking_context_parent->local_stacking_context)
 	{
 		stacking_context_parent = stacking_context_parent->GetParentNode();
 	}
 
-	if (stacking_context_parent)
-		stacking_context_parent->stacking_context_dirty = true;
+	return stacking_context_parent;
 }
 
 void Element::DirtyDefinition(DirtyNodes dirty_nodes)
@@ -2667,7 +2732,7 @@ void Element::HandleTransitionProperty()
 			});
 		}
 
-		// We can decide what to do with cancelled transitions here.
+		// We can decide what to do with canceled transitions here.
 		for (auto it = it_remove; it != animations.end(); ++it)
 			RemoveProperty(it->GetPropertyId());
 
@@ -2698,7 +2763,7 @@ void Element::HandleAnimationProperty()
 				auto it_remove = std::partition(animations.begin(), animations.end(),
 					[](const ElementAnimation& animation) { return animation.GetOrigin() != ElementAnimationOrigin::Animation; });
 
-				// We can decide what to do with cancelled animations here.
+				// We can decide what to do with canceled animations here.
 				for (auto it = it_remove; it != animations.end(); ++it)
 					RemoveProperty(it->GetPropertyId());
 
@@ -2708,6 +2773,7 @@ void Element::HandleAnimationProperty()
 			// Start animations
 			if (animation_list)
 			{
+				Property property_storage;
 				for (const auto& animation : *animation_list)
 				{
 					const Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
@@ -2715,29 +2781,53 @@ void Element::HandleAnimationProperty()
 					{
 						auto& property_ids = keyframes_ptr->property_ids;
 						auto& blocks = keyframes_ptr->blocks;
+						SmallUnorderedSet<String> variable_dependencies;
+						std::optional<PropertyDictionary> substituted_shorthands_cache;
+						int previous_block_index = -1;
 
-						bool has_from_key = (blocks[0].normalized_time == 0);
-						bool has_to_key = (blocks.back().normalized_time == 1);
+						auto ResolveProperty = [&](PropertyId id, const Property* property, int block_index) {
+							if (!property)
+								return property;
+							if (block_index != previous_block_index)
+							{
+								substituted_shorthands_cache.reset();
+								previous_block_index = block_index;
+							}
+							return meta->style.ResolveKeyFrameProperty(id, property, blocks[block_index].properties, substituted_shorthands_cache,
+								variable_dependencies, property_storage);
+						};
+
+						const bool has_from_key = (blocks.front().normalized_time == 0);
+						const bool has_to_key = (blocks.back().normalized_time == 1);
 
 						// If the first key defines initial conditions for a given property, use those values, else, use this element's current
 						// values.
 						for (PropertyId id : property_ids)
-							StartAnimation(id, (has_from_key ? blocks[0].properties.GetProperty(id) : nullptr), animation.num_iterations,
-								animation.alternate, animation.delay, true);
+						{
+							const Property* property = ResolveProperty(id, (has_from_key ? blocks.front().properties.GetProperty(id) : nullptr), 0);
+							StartAnimation(id, property, animation.num_iterations, animation.alternate, animation.delay, true);
+						}
 
 						// Add middle keys: Need to skip the first and last keys if they set the initial and end conditions, respectively.
 						for (int i = (has_from_key ? 1 : 0); i < (int)blocks.size() + (has_to_key ? -1 : 0); i++)
 						{
 							// Add properties of current key to animation
 							float time = blocks[i].normalized_time * animation.duration;
-							for (auto& property : blocks[i].properties.GetProperties())
-								AddAnimationKeyTime(property.first, &property.second, time, animation.tween);
+							for (const auto& [id, unresolved_property] : blocks[i].properties.GetProperties())
+							{
+								const Property* property = ResolveProperty(id, &unresolved_property, i);
+								AddAnimationKeyTime(id, property, time, animation.tween);
+							}
 						}
 
 						// If the last key defines end conditions for a given property, use those values, else, use this element's current values.
 						float time = animation.duration;
 						for (PropertyId id : property_ids)
-							AddAnimationKeyTime(id, (has_to_key ? blocks.back().properties.GetProperty(id) : nullptr), time, animation.tween);
+						{
+							const Property* property =
+								ResolveProperty(id, (has_to_key ? blocks.back().properties.GetProperty(id) : nullptr), (int)blocks.size() - 1);
+							AddAnimationKeyTime(id, property, time, animation.tween);
+						}
 					}
 				}
 			}
@@ -2902,12 +2992,13 @@ void Element::UpdateTransformState()
 			// believe the motivation is. Then we would need to subtract the absolute zero-offsets during geometry submit whenever we have transforms.
 		}
 
-		if (parent && parent->transform_state)
+		Element* stacking_parent = parent ? parent->ClosestStackingContextContainer() : nullptr;
+		if (stacking_parent && stacking_parent->transform_state)
 		{
 			// Apply the parent's local perspective and transform.
 			// @performance: If we have no local transform and no parent perspective, we can effectively just point to the parent transform instead of
 			// copying it.
-			const TransformState& parent_state = *parent->transform_state;
+			const TransformState& parent_state = *stacking_parent->transform_state;
 
 			if (auto parent_perspective = parent_state.GetLocalPerspective())
 			{
@@ -2938,8 +3029,8 @@ void Element::UpdateTransformState()
 	// A change in perspective or transform will require an update to children transforms as well.
 	if (perspective_or_transform_changed)
 	{
-		for (size_t i = 0; i < children.size(); i++)
-			children[i]->DirtyTransformState(false, true);
+		for (Element* stacking_child : stacking_context)
+			stacking_child->DirtyTransformState(false, true);
 	}
 
 	// No reason to keep the transform state around if transform and perspective have been removed.

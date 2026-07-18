@@ -3,6 +3,7 @@
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Core/SystemInterface.h>
+#include <RmlUi/Core/TextInputContext.h>
 
 static Rml::TouchList TouchEventToTouchList(SDL_Event& ev, Rml::Context* context, SDL_FingerID finger_id)
 {
@@ -518,4 +519,51 @@ int RmlSDL::GetKeyModifierState()
 		retval |= Rml::Input::KM_CAPSLOCK;
 
 	return retval;
+}
+
+void TextInputMethodEditor_SDL::OnActivate(Rml::TextInputContext* input_context)
+{
+	context = input_context;
+}
+
+void TextInputMethodEditor_SDL::OnDeactivate(Rml::TextInputContext* input_context)
+{
+	if (context == input_context)
+		context = nullptr;
+}
+
+void TextInputMethodEditor_SDL::OnDestroy(Rml::TextInputContext* input_context)
+{
+	if (context == input_context)
+		context = nullptr;
+}
+
+void TextInputMethodEditor_SDL::HandleEdit(const SDL_TextEditingEvent& ev)
+{
+	if (context == nullptr)
+		return;
+
+	auto string = Rml::String(ev.text);
+	auto length = static_cast<int>(Rml::StringUtilities::LengthUTF8(string));
+
+	auto composing = start != end;
+
+	if (!composing)
+		context->GetSelectionRange(start, end);
+
+	if (composing || length > 0)
+		context->SetText(string, start, end);
+
+	end = start + length;
+	context->SetCompositionRange(start, end);
+
+	if (length > 0 && ev.start >= 0 && ev.length >= 0)
+		context->SetSelectionRange(start + ev.start, start + ev.start + ev.length);
+	else if (composing)
+		context->SetCursorPosition(end);
+
+	// When committing, SDL sends a text editing event with an empty string and a
+	// separate text input event with the committed text.
+	if (composing && length == 0)
+		context->CommitComposition(Rml::StringView());
 }

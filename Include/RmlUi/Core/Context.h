@@ -255,8 +255,10 @@ public:
 	/// The returned constructor can be used to bind data variables. Elements can bind to the model using the attribute 'data-model="name"'.
 	/// @param[in] name The name of the data model.
 	/// @param[in] data_type_register The data type register to use for the data model, or null to use the default register.
+	/// @param[in] allow_missing_variables If true, allows variables to be bound after document load. Views referencing
+	///            not-yet-bound variables will silently produce default values until the variable is bound and dirtied.
 	/// @return A constructor for the data model, or empty if it could not be created.
-	DataModelConstructor CreateDataModel(const String& name, DataTypeRegister* data_type_register = nullptr);
+	DataModelConstructor CreateDataModel(const String& name, DataTypeRegister* data_type_register = nullptr, bool allow_missing_variables = false);
 	/// Retrieves the constructor for an existing data model.
 	/// The returned constructor can be used to add additional bindings to an existing model.
 	/// @param[in] name The name of the data model.

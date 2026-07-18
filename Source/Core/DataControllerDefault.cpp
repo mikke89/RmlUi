@@ -23,7 +23,7 @@ bool DataControllerValue::Initialize(DataModel& model, Element* element, const S
 	if (variable_address.empty())
 		return false;
 
-	if (model.GetVariable(variable_address))
+	if (model.AllowMissingVariables() || model.GetVariable(variable_address))
 		address = std::move(variable_address);
 
 	element->AddEventListener(EventId::Change, this);

@@ -1,13 +1,15 @@
-﻿#include "SystemFontWin32.h"
+﻿#include <RmlUi/Core/Platform.h>
+#if !defined RMLUI_IME_SAMPLE_USE_NOTO_FONTS
+	#include "SystemFontWin32.h"
+#endif
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
 #include <PlatformExtensions.h>
 #include <RmlUi_Backend.h>
-#include <RmlUi_Include_Windows.h>
 #include <Shell.h>
 
-#if !defined RMLUI_PLATFORM_WIN32
-	#error "This sample works only on Windows!"
+#if !defined RMLUI_IME_SAMPLE_USE_NOTO_FONTS && !defined RMLUI_PLATFORM_WIN32
+	#error "No Asian language fonts available. Please set RMLUI_IME_SAMPLE_USE_NOTO_FONTS to use Noto fonts."
 #endif
 
 static void LoadFonts()
@@ -23,14 +25,35 @@ static void LoadFonts()
 		{"assets/LatoLatin-BoldItalic.ttf", false},
 	};
 
+#if !defined RMLUI_IME_SAMPLE_USE_NOTO_FONTS
 	for (const Rml::String& path : GetSelectedSystemFonts())
 		font_faces.push_back({path, true});
+#endif
 
 	for (const FontFace& face : font_faces)
 		Rml::LoadFontFace(face.filename, face.fallback_face);
+
+#if defined RMLUI_IME_SAMPLE_USE_NOTO_FONTS
+	Rml::Vector<FontFace> noto_font_faces = {
+		{"assets/external/NotoSansSC[wght].ttf", true},
+		{"assets/external/NotoSansJP[wght].ttf", true},
+		{"assets/external/NotoSansKR[wght].ttf", true},
+		{"assets/external/NotoSansThai[wdth,wght].ttf", true},
+		{"assets/external/NotoSansArabic[wdth,wght].ttf", true},
+		{"assets/NotoEmoji-Regular.ttf", true},
+	};
+
+	for (const FontFace& face : noto_font_faces)
+		Rml::LoadFontFace(face.filename, face.fallback_face, Rml::Style::FontWeight::Normal);
+#endif
 }
 
+#if defined RMLUI_PLATFORM_WIN32
+	#include <RmlUi_Include_Windows.h>
 int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instance_handle*/, char* /*command_line*/, int /*command_show*/)
+#else
+int main(int /*argc*/, char** /*argv*/)
+#endif
 {
 	const int window_width = 1024;
 	const int window_height = 768;

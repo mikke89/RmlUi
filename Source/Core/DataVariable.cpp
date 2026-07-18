@@ -163,4 +163,9 @@ DataVariable BasePointerDefinition::Child(void* ptr, const DataAddressEntry& add
 	return underlying_definition->Child(DereferencePointer(ptr), address);
 }
 
+StringList BasePointerDefinition::ReflectMemberNames()
+{
+	return underlying_definition->ReflectMemberNames();
+}
+
 } // namespace Rml

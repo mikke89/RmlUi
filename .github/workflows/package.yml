@@ -14,11 +14,11 @@ jobs:
         build_type: [Debug, Release]
 
     env:
-      GENERATOR: Visual Studio 17 2022
+      GENERATOR: Visual Studio 18 2026
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture == 'win32' && 'x86' || 'x64' }}-${{ matrix.library_linkage == 'Dynamic' && 'windows' || 'windows-static-md' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Dependencies
         run: |-
@@ -55,7 +55,7 @@ jobs:
         run: cmake --install Build --config ${{ matrix.build_type }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-${{ matrix.architecture }}-${{ matrix.library_linkage }}-${{ matrix.build_type }}
           path: ${{github.workspace}}/Install/
@@ -70,13 +70,13 @@ jobs:
         architecture: [win32, win64]
 
     env:
-      GENERATOR: Visual Studio 17 2022
+      GENERATOR: Visual Studio 18 2026
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture == 'win32' && 'x86' || 'x64' }}-windows${{ matrix.architecture == 'win64' && '-release' || '' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         name: Checkout dependency rlottie
         with:
           repository: 'Samsung/rlottie'
@@ -88,7 +88,7 @@ jobs:
           echo "Using vcpkg triplet: $env:VCPKG_DEFAULT_TRIPLET"
           C:\vcpkg\vcpkg install glfw3[core] freetype[core] lua[core] lunasvg[core]
           cd Dependencies\rlottie
-          cmake -B build -G "$env:GENERATOR" -A ${{ matrix.architecture == 'win32' && 'Win32' || 'x64' }} -DBUILD_SHARED_LIBS=ON -DLOTTIE_MODULE=OFF
+          cmake -B build -G "$env:GENERATOR" -A ${{ matrix.architecture == 'win32' && 'Win32' || 'x64' }} -DBUILD_SHARED_LIBS=ON -DLOTTIE_MODULE=OFF -DCMAKE_POLICY_VERSION_MINIMUM="3.5"
           cmake --build build --target rlottie --config Release -- "/clp:ErrorsOnly"
 
       - name: Configure CMake
@@ -137,7 +137,7 @@ jobs:
           https://github.com/Samsung/rlottie/blob/d40008707addacb636ff435236d31c694ce2b6cf/src/vector/vinterpolator.cpp
           '@ > "Install/Dependencies/rlottie/vinterpolator.txt"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: samples-${{ matrix.architecture }}
           path: |
@@ -157,27 +157,27 @@ jobs:
 
     steps:
       # Download artifacts in a well-defined order, with release binaries last.
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: samples-${{ matrix.architecture }}
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: build-${{ matrix.architecture }}-Dynamic-Debug
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: build-${{ matrix.architecture }}-Static-Debug
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: build-${{ matrix.architecture }}-Dynamic-Release
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: build-${{ matrix.architecture }}-Static-Release
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: RmlUi-vs2022-${{ matrix.architecture }}
           path: ./

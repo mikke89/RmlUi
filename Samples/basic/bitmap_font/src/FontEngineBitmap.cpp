@@ -15,7 +15,7 @@ void Shutdown()
 	fonts.clear();
 }
 
-bool LoadFontFace(const String& file_name)
+bool LoadFontFace(const String& file_name, const String& family)
 {
 	// Load the xml meta file into memory
 	Rml::UniquePtr<byte[]> data;
@@ -54,6 +54,12 @@ bool LoadFontFace(const String& file_name)
 		// Fill the remaining metrics
 		parser.metrics.underline_position = 3.f;
 		parser.metrics.underline_thickness = 1.f;
+	}
+
+	// Check inputs from RCSS
+	if (!family.empty())
+	{
+		parser.family = family;
 	}
 
 	// Construct and add the font face

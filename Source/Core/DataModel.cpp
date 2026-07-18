@@ -92,7 +92,8 @@ static String DataAddressToString(const DataAddress& address)
 	return result;
 }
 
-DataModel::DataModel(DataTypeRegister* data_type_register) : data_type_register(data_type_register)
+DataModel::DataModel(DataTypeRegister* data_type_register, bool allow_missing_variables) :
+	data_type_register(data_type_register), allow_missing_variables(allow_missing_variables)
 {
 	views = MakeUnique<DataViews>();
 	controllers = MakeUnique<DataControllers>();
@@ -263,6 +264,9 @@ DataAddress DataModel::ResolveAddress(const String& address_str, Element* elemen
 		ancestor = ancestor->GetParentNode();
 	}
 
+	if (allow_missing_variables)
+		return address;
+
 	Log::Message(Log::LT_WARNING, "Could not find variable name '%s' in data model.", address_str.c_str());
 
 	return DataAddress();
@@ -313,7 +317,7 @@ bool DataModel::GetVariableInto(const DataAddress& address, Variant& out_value) 
 {
 	DataVariable variable = GetVariable(address);
 	bool result = (variable && variable.Get(out_value));
-	if (!result)
+	if (!result && !allow_missing_variables)
 		Log::Message(Log::LT_WARNING, "Could not get value from data variable '%s'.", DataAddressToString(address).c_str());
 	return result;
 }
@@ -321,7 +325,8 @@ bool DataModel::GetVariableInto(const DataAddress& address, Variant& out_value) 
 void DataModel::DirtyVariable(const String& variable_name)
 {
 	RMLUI_ASSERTMSG(LegalVariableName(variable_name) == nullptr, "Illegal variable name provided. Only top-level variables can be dirtied.");
-	RMLUI_ASSERTMSG(variables.count(variable_name) == 1, "In DirtyVariable: Variable name not found among added variables.");
+	RMLUI_ASSERTMSG(allow_missing_variables || variables.count(variable_name) == 1,
+		"In DirtyVariable: Variable name not found among added variables.");
 	dirty_variables.emplace(variable_name);
 }
 

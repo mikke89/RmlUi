@@ -334,9 +334,9 @@ struct Arrays {
 
 DataModelHandle model_handle;
 
-bool InitializeDataBindings(Context* context)
+bool InitializeDataBindings(Context* context, bool allow_missing_variables = false)
 {
-	Rml::DataModelConstructor constructor = context->CreateDataModel("basics");
+	Rml::DataModelConstructor constructor = context->CreateDataModel("basics", nullptr, allow_missing_variables);
 	if (!constructor)
 		return false;
 
@@ -534,7 +534,14 @@ TEST_CASE("data_binding")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	REQUIRE(InitializeDataBindings(context));
+	bool allow_missing_variables = false;
+	SUBCASE("default") {}
+	SUBCASE("allow_missing_variables")
+	{
+		allow_missing_variables = true;
+	}
+
+	REQUIRE(InitializeDataBindings(context, allow_missing_variables));
 
 	ElementDocument* document = context->LoadDocumentFromMemory(data_binding_rml);
 	REQUIRE(document);
@@ -564,7 +571,14 @@ TEST_CASE("data_binding.inside_string")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	REQUIRE(InitializeDataBindings(context));
+	bool allow_missing_variables = false;
+	SUBCASE("default") {}
+	SUBCASE("allow_missing_variables")
+	{
+		allow_missing_variables = true;
+	}
+
+	REQUIRE(InitializeDataBindings(context, allow_missing_variables));
 
 	ElementDocument* document = context->LoadDocumentFromMemory(inside_string_rml);
 	REQUIRE(document);
@@ -584,7 +598,14 @@ TEST_CASE("data_binding.aliasing")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	REQUIRE(InitializeDataBindings(context));
+	bool allow_missing_variables = false;
+	SUBCASE("default") {}
+	SUBCASE("allow_missing_variables")
+	{
+		allow_missing_variables = true;
+	}
+
+	REQUIRE(InitializeDataBindings(context, allow_missing_variables));
 
 	ElementDocument* document = context->LoadDocumentFromMemory(aliasing_rml);
 	REQUIRE(document);
@@ -632,6 +653,146 @@ TEST_CASE("data_binding.dynamic_variables")
 	document->Close();
 	*globals.i1 = 1;
 
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("data_binding.allow_missing_variables")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	static const String document_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/template" href="/assets/window.rml"/>
+</head>
+<body template="window" data-model="late">
+<p id="bound">{{ greeting }}</p>
+<p id="unbound">{{ missing }}</p>
+<p id="aliased" data-alias-alt="greeting">{{ alt }}</p>
+<p id="set_bound" data-event-click="greeting = 'clicked'">click</p>
+<p id="set_missing" data-event-click="missing = 'clicked'">click</p>
+<input id="input" type="text" data-value="greeting"/>
+<input id="input_missing" type="text" data-value="missing"/>
+</body>
+</rml>
+)";
+
+	Rml::DataModelConstructor constructor = context->CreateDataModel("late", nullptr, true);
+	REQUIRE(constructor);
+
+	Rml::String greeting = "hi";
+	constructor.Bind("greeting", &greeting);
+	DataModelHandle handle = constructor.GetModelHandle();
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	CHECK(document->GetElementById("bound")->GetInnerRML() == "hi");
+	CHECK(document->GetElementById("unbound")->GetInnerRML() == "");
+	CHECK(document->GetElementById("aliased")->GetInnerRML() == "hi");
+	CHECK(document->GetElementById("input")->GetAttribute<String>("value", "") == "hi");
+
+	// data-event-click assignment to a bound variable.
+	document->GetElementById("set_bound")->DispatchEvent(EventId::Click, Dictionary());
+	TestsShell::RenderLoop();
+
+	CHECK(greeting == "clicked");
+	CHECK(document->GetElementById("bound")->GetInnerRML() == "clicked");
+	CHECK(document->GetElementById("aliased")->GetInnerRML() == "clicked");
+
+	// TODO: Test data-event-click assignment to a missing variable.
+	//       Currently triggers RMLUI_ERROR in the expression evaluator.
+	// document->GetElementById("set_missing")->DispatchEvent(EventId::Click, Dictionary());
+	// TestsShell::RenderLoop();
+	// CHECK(document->GetElementById("unbound")->GetInnerRML() == "");
+
+	// DirtyVariable on a bound variable propagates the update.
+	greeting = "dirty";
+	handle.DirtyVariable("greeting");
+	TestsShell::RenderLoop();
+
+	CHECK(document->GetElementById("bound")->GetInnerRML() == "dirty");
+	CHECK(document->GetElementById("aliased")->GetInnerRML() == "dirty");
+
+	// DirtyVariable on a missing variable is silently ignored.
+	handle.DirtyVariable("missing");
+	TestsShell::RenderLoop();
+	CHECK(document->GetElementById("unbound")->GetInnerRML() == "");
+
+	// Writing via data-value input updates the bound variable.
+	document->GetElementById("input")->Focus();
+	context->ProcessTextInput("world ");
+	TestsShell::RenderLoop();
+
+	CHECK(greeting == "world dirty");
+	CHECK(document->GetElementById("bound")->GetInnerRML() == "world dirty");
+	CHECK(document->GetElementById("aliased")->GetInnerRML() == "world dirty");
+
+	Rml::String late_bound;
+	SUBCASE("late_bind_before_input")
+	{
+		// Late-bind a previously missing variable, then dirty it.
+		late_bound = "resolved";
+		constructor.Bind("missing", &late_bound);
+		handle.DirtyVariable("missing");
+		TestsShell::RenderLoop();
+
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "resolved");
+
+		// data-event-click assignment now works on the late-bound variable.
+		document->GetElementById("set_missing")->DispatchEvent(EventId::Click, Dictionary());
+		TestsShell::RenderLoop();
+
+		CHECK(late_bound == "clicked");
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "clicked");
+
+		// Writing via data-value input now updates the late-bound variable.
+		document->GetElementById("input_missing")->Focus();
+		context->ProcessTextInput("test ");
+		TestsShell::RenderLoop();
+
+		CHECK(late_bound == "test clicked");
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "test clicked");
+	}
+	SUBCASE("late_bind_after_input")
+	{
+		// Writing via data-value input to a missing variable is silently ignored.
+		document->GetElementById("input_missing")->Focus();
+		context->ProcessTextInput("test");
+		TestsShell::RenderLoop();
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "");
+
+		// Late-bind a previously missing variable, then dirty it.
+		late_bound = "resolved";
+		constructor.Bind("missing", &late_bound);
+		handle.DirtyVariable("missing");
+		TestsShell::RenderLoop();
+
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "resolved");
+
+		// data-event-click assignment now works on the late-bound variable.
+		document->GetElementById("set_missing")->DispatchEvent(EventId::Click, Dictionary());
+		TestsShell::RenderLoop();
+
+		CHECK(late_bound == "clicked");
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "clicked");
+
+		// The earlier input left a stale cursor in the widget. Text is inserted
+		// at the wrong position.
+		document->GetElementById("input_missing")->Focus();
+		context->ProcessTextInput("test ");
+		TestsShell::RenderLoop();
+
+		CHECK(late_bound == "clictest ked");
+		CHECK(document->GetElementById("unbound")->GetInnerRML() == "clictest ked");
+	}
+
+	document->Close();
 	TestsShell::ShutdownShell();
 }
 

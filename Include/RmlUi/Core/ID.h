@@ -185,6 +185,22 @@ enum class MediaQueryId : uint8_t {
 	NumDefinedIds
 };
 
+enum class FontFaceId : uint8_t {
+	Invalid,
+
+    // standard
+	FontFamily,
+	FontWeight,
+	FontStyle,
+	Src,
+
+    // extended
+    FallbackFace,
+    FaceIndex,
+
+	NumDefinedIds
+};
+
 enum class EventId : uint16_t {
 	Invalid,
 

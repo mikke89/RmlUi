@@ -16,6 +16,7 @@
 #include "ComputeProperty.h"
 #include "ControlledLifetimeResource.h"
 #include "ElementMeta.h"
+#include "ElementStyle.h"
 #include "EventSpecification.h"
 #include "FileInterfaceDefault.h"
 #include "Layout/LayoutPools.h"
@@ -132,6 +133,7 @@ bool Initialise()
 
 	font_interface->Initialize();
 
+	ElementStyle::Initialize();
 	StyleSheetSpecification::Initialise();
 	StyleSheetParser::Initialise();
 	StyleSheetFactory::Initialise();
@@ -174,6 +176,7 @@ void Shutdown()
 	StyleSheetFactory::Shutdown();
 	StyleSheetParser::Shutdown();
 	StyleSheetSpecification::Shutdown();
+	ElementStyle::Shutdown();
 
 	font_interface->Shutdown();
 
@@ -335,6 +338,11 @@ int GetNumContexts()
 bool LoadFontFace(const String& file_path, bool fallback_face, Style::FontWeight weight, int face_index)
 {
 	return font_interface->LoadFontFace(file_path, face_index, fallback_face, weight);
+}
+
+bool LoadFontFace(const String& file_path, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, int face_index)
+{
+	return font_interface->LoadFontFace(file_path, face_index, family, style, weight, fallback_face);
 }
 
 bool LoadFontFace(Span<const byte> data, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, int face_index)

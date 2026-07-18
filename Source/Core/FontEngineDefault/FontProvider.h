@@ -16,6 +16,12 @@ class FontFaceHandleDefault;
 
 class FontProvider {
 public:
+	enum class FontFaceLoadResult {
+		Success,   /// A new font was added to the global font face list.
+		Duplicate, /// The font is valid but is already in the font face list.
+		Error      /// An error occurred while trying to load this font face.
+	};
+
 	static bool Initialise();
 	static void Shutdown();
 
@@ -31,6 +37,10 @@ public:
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	static bool LoadFontFace(const String& file_name, int face_index, bool fallback_face, Style::FontWeight weight = Style::FontWeight::Auto);
+
+	/// Adds a new font face from a file.
+	static bool LoadFontFace(const String& file_name, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+		bool fallback_face);
 
 	/// Adds a new font face from memory.
 	static bool LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
@@ -54,8 +64,8 @@ private:
 	bool LoadFontFace(Span<const byte> data, int face_index, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source,
 		String font_family, Style::FontStyle style, Style::FontWeight weight);
 
-	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face,
-		UniquePtr<byte[]> face_memory);
+	FontFaceLoadResult AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight,
+		bool fallback_face, UniquePtr<byte[]> face_memory);
 
 	using FontFaceList = Vector<FontFace*>;
 	using FontFamilyMap = UnorderedMap<String, UniquePtr<FontFamily>>;

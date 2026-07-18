@@ -523,7 +523,7 @@ progress {
 	background-color: #aca;
 	color: #999;
 }
-#controls textarea::placeholder
+#controls textarea:placeholder-shown
 {
 	font-effect: outline(2dp #aba);
 	color: #fafafa;
@@ -551,11 +551,26 @@ progress {
 {
 	background-color: transparent;
 }
+
+/* font-face sample */
+@font-face
+{
+	font-family: "monospace";
+	src: "assets/RobotoMono-Regular.ttf", "assets/RobotoMono-Bold.ttf";
+}
+
+@font-face
+{
+	font-family: "monospace";
+	src: "assets/RobotoMono-Italic.ttf", "assets/RobotoMono-BoldItalic.ttf";
+	font-style: italic;
+}
+
 #sandbox textarea
 {
 	font-size: 13dp;
 	color: #222;
-	font-family: rmlui-debugger-font;
+	font-family: monospace;
 	box-sizing: border-box;
 	width: 100%;
 	height: 100%;

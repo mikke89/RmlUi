@@ -1,0 +1,2 @@
+# Suppressions for LeakSanitizer
+leak:UnitTests/DataBinding.cpp

@@ -175,6 +175,8 @@ public:
 	int Size(void* ptr) override;
 	DataVariable Child(void* ptr, const DataAddressEntry& address) override;
 
+	StringList ReflectMemberNames() override;
+
 protected:
 	virtual void* DereferencePointer(void* ptr) = 0;
 

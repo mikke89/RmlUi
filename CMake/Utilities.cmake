@@ -111,6 +111,10 @@ function(set_common_target_options target)
 				target_compile_options(${target} PRIVATE /MP)
 			endif()
 		endif()
+		if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+			# Triggers on Rml::Colour assignment in GCC 16.
+			target_compile_options(${target} PRIVATE -Wno-stringop-overflow)
+		endif()
 	endif()
 
 	if(RMLUI_WARNINGS_AS_ERRORS)

@@ -16,6 +16,7 @@
 #include "../../../Include/RmlUi/Core/TextInputContext.h"
 #include "../../../Include/RmlUi/Core/TextInputHandler.h"
 #include "../Clock.h"
+#include "../ElementStyle.h"
 #include "ElementTextSelection.h"
 #include <algorithm>
 #include <limits.h>
@@ -157,6 +158,7 @@ void WidgetTextInputContext::CommitComposition(StringView composition)
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent)
 {
 	keyboard_showed = false;
+	lines = {Line{}};
 
 	parent = _parent;
 	parent->SetProperty(PropertyId::WhiteSpace, Property(Style::WhiteSpace::Pre));
@@ -397,7 +399,7 @@ void WidgetTextInput::UpdateSelectionColours()
 	// Determine what the colour of the selected text is. If our 'selection' element has the 'color'
 	// attribute set, then use that. Otherwise, use the inverse of our own text colour.
 	Colourb colour;
-	const Property* colour_property = selection_element->GetLocalProperty(PropertyId::Color);
+	const Property* colour_property = selection_element->GetStyle()->GetLocalPropertyWithResolvedVariables(PropertyId::Color);
 	if (colour_property)
 		colour = colour_property->Get<Colourb>();
 	else
@@ -414,7 +416,7 @@ void WidgetTextInput::UpdateSelectionColours()
 	// If the 'background-color' property has been set on the 'selection' element, use that as the
 	// background colour for the selected text. Otherwise, use the inverse of the selected text
 	// colour.
-	colour_property = selection_element->GetLocalProperty(PropertyId::BackgroundColor);
+	colour_property = selection_element->GetStyle()->GetLocalPropertyWithResolvedVariables(PropertyId::BackgroundColor);
 	if (colour_property)
 		colour = colour_property->Get<Colourb>();
 	else
@@ -1006,7 +1008,7 @@ void WidgetTextInput::ExpandSelection()
 const String& WidgetTextInput::GetValue() const
 {
 	static const String empty_value;
-	if (parent->IsPseudoClassSet(":placeholder"))
+	if (parent->IsPseudoClassSet("placeholder-shown"))
 		return empty_value;
 
 	return text_element->GetText();
@@ -1021,7 +1023,7 @@ void WidgetTextInput::SetValueOrPlaceholder(const String& value, const String& p
 		UpdateSelection(false);
 	}
 
-	parent->SetPseudoClass(":placeholder", showing_placeholder);
+	parent->SetPseudoClass("placeholder-shown", showing_placeholder);
 	text_element->SetText(showing_placeholder ? placeholder : value);
 
 	ForceFormattingOnNextLayout();
@@ -1472,7 +1474,7 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 	};
 
 	float alignment_offset;
-	if (parent->IsPseudoClassSet(":placeholder"))
+	if (parent->IsPseudoClassSet("placeholder-shown"))
 		alignment_offset = AlignmentOffsetForPlaceholder();
 	else
 		alignment_offset = GetAlignmentSpecificTextOffset(line);
@@ -1618,10 +1620,14 @@ void WidgetTextInput::SetKeyboardActive(bool active)
 	{
 		system->DeactivateKeyboard();
 	}
+
+	keyboard_showed = active;
 }
 
 float WidgetTextInput::GetLineHeight() const
 {
+	// This is rounded to improve the navigation experience in a multi-line text field. If it's not rounded then lines
+	// may move a single pixel for every line, which looks a bit jaggedy when moving up and down.
 	return Math::Round(parent->GetLineHeight());
 }
 
