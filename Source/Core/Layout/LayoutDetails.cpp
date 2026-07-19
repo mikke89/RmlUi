@@ -6,8 +6,10 @@
 #include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/Profiling.h"
 #include "ContainerBox.h"
+#include "FlexFormattingContext.h"
 #include "FormattingContext.h"
 #include "LayoutEngine.h"
+#include "LayoutMeasureCache.h"
 #include <float.h>
 
 namespace Rml {
@@ -238,26 +240,48 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 		return 0.f;
 	}
 
-	// Use a large size for the box content width, so that it is practically unconstrained. This makes the formatting
-	// procedure act as if under a maximum content constraint. Children with percentage sizing values may be scaled
-	// based on this width (such as 'width' or 'margin'), if so, the layout is considered undefined like in CSS 2.
-	const float max_content_constraint_width = containing_block.x + 10000.f;
-	box.SetContent({max_content_constraint_width, box.GetSize().y});
+	LayoutMeasureCache* measure_cache = LayoutMeasureCache::GetActiveCache();
+	float shrink_to_fit_width = 0.f;
+	if (measure_cache && measure_cache->FindShrinkToFitWidth(element, containing_block, shrink_to_fit_width))
+		return shrink_to_fit_width;
 
-	// First, format the element under the above generated box. Then we ask the resulting box for its shrink-to-fit
-	// width. For block containers, this is essentially its largest line or child box.
-	// @performance. Some formatting can be simplified, e.g. absolute elements do not contribute to the shrink-to-fit
-	// width. Also, children of elements with a fixed width and height don't need to be formatted further.
-	RootBox root(Math::Max(containing_block, Vector2f(0.f)));
-	UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(&root, element, &box, FormattingContextType::Block);
+	auto ClampToAvailableWidth = [containing_block, &box](float width) {
+		if (containing_block.x >= 0)
+		{
+			const float available_width =
+				Math::Max(0.f, containing_block.x - box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
+			width = Math::Min(width, available_width);
+		}
+		return width;
+	};
 
-	float shrink_to_fit_width = layout_box->GetShrinkToFitWidth();
-	if (containing_block.x >= 0)
+	if (!element->IsReplaced() && (display == Style::Display::Flex || display == Style::Display::InlineFlex))
 	{
-		const float available_width =
-			Math::Max(0.f, containing_block.x - box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
-		shrink_to_fit_width = Math::Min(shrink_to_fit_width, available_width);
+		// A formatted flex container determines its shrink-to-fit width from its max-content size, so measure that
+		// directly instead of formatting the element first, which would repeat the same measurement.
+		shrink_to_fit_width = ClampToAvailableWidth(FlexFormattingContext::GetMaxContentSize(element).x);
 	}
+	else
+	{
+		// Use a large size for the box content width, so that it is practically unconstrained. This makes the formatting
+		// procedure act as if under a maximum content constraint. Children with percentage sizing values may be scaled
+		// based on this width (such as 'width' or 'margin'), if so, the layout is considered undefined like in CSS 2.
+		const float max_content_constraint_width = containing_block.x + 10000.f;
+		box.SetContent({max_content_constraint_width, box.GetSize().y});
+
+		// First, format the element under the above generated box. Then we ask the resulting box for its shrink-to-fit
+		// width. For block containers, this is essentially its largest line or child box.
+		// @performance. Some formatting can be simplified, e.g. absolute elements do not contribute to the shrink-to-fit
+		// width. Also, children of elements with a fixed width and height don't need to be formatted further.
+		RootBox root(Math::Max(containing_block, Vector2f(0.f)));
+		UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(&root, element, &box, FormattingContextType::Block);
+
+		shrink_to_fit_width = ClampToAvailableWidth(layout_box->GetShrinkToFitWidth());
+	}
+
+	if (measure_cache)
+		measure_cache->StoreShrinkToFitWidth(element, containing_block, shrink_to_fit_width);
+
 	return shrink_to_fit_width;
 }
 

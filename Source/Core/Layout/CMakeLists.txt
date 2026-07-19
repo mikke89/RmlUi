@@ -27,6 +27,8 @@ target_sources(rmlui_core PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/LayoutDetails.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/LayoutEngine.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/LayoutEngine.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/LayoutMeasureCache.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/LayoutMeasureCache.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/LayoutPools.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/LayoutPools.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/LineBox.cpp"
