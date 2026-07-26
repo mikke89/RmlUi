@@ -7,9 +7,6 @@
 #include <wayland-cursor.h>
 #include <xkbcommon/xkbcommon.h>
 
-struct xdg_wm_base;
-struct zxdg_decoration_manager_v1;
-
 class SystemInterface_Wayland : public Rml::SystemInterface {
 public:
 	SystemInterface_Wayland(wl_display* display, wl_shm* shm);
@@ -44,8 +41,6 @@ struct Globals {
 	wl_compositor* compositor = nullptr;
 	wl_shm* shm = nullptr;
 	wl_seat* seat = nullptr;
-	xdg_wm_base* wm_base = nullptr;
-	zxdg_decoration_manager_v1* decoration_manager = nullptr;
 };
 
 struct KeyboardState {

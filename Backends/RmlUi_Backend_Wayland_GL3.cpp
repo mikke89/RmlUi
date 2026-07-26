@@ -1,15 +1,13 @@
 #include "RmlUi_Backend.h"
 #include "RmlUi_Platform_Wayland.h"
 #include "RmlUi_Renderer_GL3.h"
-#include "xdg-decoration-client-protocol.h"
-#include "xdg-shell-client-protocol.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Math.h>
 #include <EGL/egl.h>
+#include <libdecor.h>
 #include <wayland-egl.h>
 #include <fcntl.h>
-#include <poll.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <algorithm>
@@ -53,9 +51,8 @@ struct BackendData {
 	wl_registry* registry = nullptr;
 	wl_surface* surface = nullptr;
 	wl_surface* cursor_surface = nullptr;
-	xdg_surface* shell_surface = nullptr;
-	xdg_toplevel* shell_toplevel = nullptr;
-	zxdg_toplevel_decoration_v1* shell_decoration = nullptr;
+	libdecor* decor_context = nullptr;
+	libdecor_frame* decor_frame = nullptr;
 	wl_egl_window* egl_window = nullptr;
 	wl_pointer* pointer = nullptr;
 	wl_keyboard* keyboard = nullptr;
@@ -70,11 +67,9 @@ struct BackendData {
 
 	int width = 0;
 	int height = 0;
-	uint32_t shell_decoration_mode = 0;
 	bool configured = false;
 	bool running = true;
 	bool context_dimensions_dirty = true;
-	bool warned_missing_window_decorations = false;
 };
 
 static Rml::UniquePtr<BackendData> data;
@@ -105,11 +100,6 @@ static void RegistryHandleGlobal(void* user_data, wl_registry* registry, uint32_
 		globals->shm = static_cast<wl_shm*>(wl_registry_bind(registry, name, &wl_shm_interface, 1));
 	else if (std::strcmp(interface, wl_seat_interface.name) == 0)
 		globals->seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, MaxSeatVersion)));
-	else if (std::strcmp(interface, xdg_wm_base_interface.name) == 0)
-		globals->wm_base = static_cast<xdg_wm_base*>(wl_registry_bind(registry, name, &xdg_wm_base_interface, std::min(version, 7u)));
-	else if (std::strcmp(interface, zxdg_decoration_manager_v1_interface.name) == 0)
-		globals->decoration_manager = static_cast<zxdg_decoration_manager_v1*>(
-			wl_registry_bind(registry, name, &zxdg_decoration_manager_v1_interface, 1));
 }
 
 static void RegistryHandleGlobalRemove(void*, wl_registry*, uint32_t) {}
@@ -119,70 +109,51 @@ static const wl_registry_listener registry_listener = {
 	RegistryHandleGlobalRemove,
 };
 
-static void XdgWmBaseHandlePing(void*, xdg_wm_base* xdg_wm_base, uint32_t serial)
+static void LibdecorHandleError(libdecor*, libdecor_error error, const char* message)
 {
-	xdg_wm_base_pong(xdg_wm_base, serial);
+	Rml::Log::Message(Rml::Log::LT_ERROR, "libdecor error (%d): %s", int(error), message ? message : "Unknown error");
+	data->running = false;
 }
 
-static const xdg_wm_base_listener xdg_wm_base_listener = {
-	XdgWmBaseHandlePing,
-};
+static libdecor_interface libdecor_listener = [] {
+	libdecor_interface result {};
+	result.error = LibdecorHandleError;
+	return result;
+}();
 
-static void XdgSurfaceHandleConfigure(void*, xdg_surface* xdg_surface, uint32_t serial)
+static void LibdecorFrameHandleConfigure(libdecor_frame* frame, libdecor_configuration* configuration, void*)
 {
-	xdg_surface_ack_configure(xdg_surface, serial);
+	int width = 0;
+	int height = 0;
+	if (libdecor_configuration_get_content_size(configuration, frame, &width, &height))
+		UpdateWindowSize(width, height);
+
+	libdecor_state* state = libdecor_state_new(data->width, data->height);
+	libdecor_frame_commit(frame, state, configuration);
+	libdecor_state_free(state);
 	data->configured = true;
 }
 
-static const xdg_surface_listener xdg_surface_listener = {
-	XdgSurfaceHandleConfigure,
-};
-
-static void XdgToplevelHandleConfigure(void*, xdg_toplevel*, int32_t width, int32_t height, wl_array*)
-{
-	if (width > 0 && height > 0)
-		UpdateWindowSize(width, height);
-}
-
-static void XdgToplevelHandleClose(void*, xdg_toplevel*)
+static void LibdecorFrameHandleClose(libdecor_frame*, void*)
 {
 	data->running = false;
 }
 
-static void XdgToplevelHandleConfigureBounds(void*, xdg_toplevel*, int32_t, int32_t) {}
-static void XdgToplevelHandleWmCapabilities(void*, xdg_toplevel*, wl_array*) {}
-
-static const xdg_toplevel_listener xdg_toplevel_listener = {
-	XdgToplevelHandleConfigure,
-	XdgToplevelHandleClose,
-	XdgToplevelHandleConfigureBounds,
-	XdgToplevelHandleWmCapabilities,
-};
-
-static void WarnMissingWindowDecorations()
+static void LibdecorFrameHandleCommit(libdecor_frame*, void*)
 {
-	if (data->warned_missing_window_decorations)
-		return;
-
-	data->warned_missing_window_decorations = true;
-	Rml::Log::Message(Rml::Log::LT_WARNING,
-		"The Wayland compositor did not provide server-side window decorations. Client-side decorations are not implemented by this backend, so "
-		"the window will not have a title bar.");
+	wl_surface_commit(data->surface);
 }
 
-static void XdgToplevelDecorationHandleConfigure(void*, zxdg_toplevel_decoration_v1*, uint32_t mode)
-{
-	if (data->shell_decoration_mode == mode)
-		return;
+static void LibdecorFrameHandleDismissPopup(libdecor_frame*, const char*, void*) {}
 
-	data->shell_decoration_mode = mode;
-	if (mode != ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE)
-		WarnMissingWindowDecorations();
-}
-
-static const zxdg_toplevel_decoration_v1_listener xdg_toplevel_decoration_listener = {
-	XdgToplevelDecorationHandleConfigure,
-};
+static libdecor_frame_interface libdecor_frame_listener = [] {
+	libdecor_frame_interface result {};
+	result.configure = LibdecorFrameHandleConfigure;
+	result.close = LibdecorFrameHandleClose;
+	result.commit = LibdecorFrameHandleCommit;
+	result.dismiss_popup = LibdecorFrameHandleDismissPopup;
+	return result;
+}();
 
 static void PointerHandleEnter(void*, wl_pointer*, uint32_t serial, wl_surface*, wl_fixed_t sx, wl_fixed_t sy)
 {
@@ -482,18 +453,13 @@ static bool InitializeWayland(const char* window_name, int width, int height, bo
 	data = std::move(new_data);
 	wl_display_roundtrip(display);
 
-	if (!data->globals.compositor || !data->globals.wm_base || !data->globals.shm)
+	if (!data->globals.compositor || !data->globals.shm)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Required Wayland globals are not available.");
 		return false;
 	}
 
 	data->system_interface = Rml::MakeUnique<SystemInterface_Wayland>(display, data->globals.shm);
-
-	xdg_wm_base_add_listener(data->globals.wm_base, &xdg_wm_base_listener, nullptr);
-
-	if (!data->globals.decoration_manager)
-		WarnMissingWindowDecorations();
 
 	if (data->globals.seat)
 		wl_seat_add_listener(data->globals.seat, &seat_listener, nullptr);
@@ -502,29 +468,34 @@ static bool InitializeWayland(const char* window_name, int width, int height, bo
 	data->cursor_surface = wl_compositor_create_surface(data->globals.compositor);
 	data->system_interface->SetCursorSurface(data->cursor_surface);
 
-	data->shell_surface = xdg_wm_base_get_xdg_surface(data->globals.wm_base, data->surface);
-	xdg_surface_add_listener(data->shell_surface, &xdg_surface_listener, nullptr);
-	data->shell_toplevel = xdg_surface_get_toplevel(data->shell_surface);
-	xdg_toplevel_add_listener(data->shell_toplevel, &xdg_toplevel_listener, nullptr);
-	xdg_toplevel_set_title(data->shell_toplevel, window_name);
-	if (data->globals.decoration_manager)
+	data->decor_context = libdecor_new(display, &libdecor_listener);
+	if (!data->decor_context)
 	{
-		data->shell_decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(data->globals.decoration_manager, data->shell_toplevel);
-		zxdg_toplevel_decoration_v1_add_listener(data->shell_decoration, &xdg_toplevel_decoration_listener, nullptr);
-		zxdg_toplevel_decoration_v1_set_mode(data->shell_decoration, ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to create libdecor context.");
+		return false;
 	}
+
+	data->decor_frame = libdecor_decorate(data->decor_context, data->surface, &libdecor_frame_listener, nullptr);
+	if (!data->decor_frame)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to create libdecor frame.");
+		return false;
+	}
+
+	libdecor_frame_set_title(data->decor_frame, window_name);
 	if (!allow_resize)
 	{
-		xdg_toplevel_set_min_size(data->shell_toplevel, width, height);
-		xdg_toplevel_set_max_size(data->shell_toplevel, width, height);
+		libdecor_frame_unset_capabilities(data->decor_frame, LIBDECOR_ACTION_RESIZE);
+		libdecor_frame_set_min_content_size(data->decor_frame, width, height);
+		libdecor_frame_set_max_content_size(data->decor_frame, width, height);
 	}
 
 	UpdateWindowSize(width, height);
-	wl_surface_commit(data->surface);
+	libdecor_frame_map(data->decor_frame);
 
-	while (!data->configured && wl_display_dispatch(display) != -1) {}
+	while (!data->configured && data->running && libdecor_dispatch(data->decor_context, -1) >= 0) {}
 
-	return data->configured;
+	return data->configured && data->running;
 }
 
 static bool InitializeEGL()
@@ -583,34 +554,12 @@ static bool InitializeEGL()
 
 static bool DispatchWaylandEvents(double timeout_seconds)
 {
-	wl_display* display = data->display;
-
-	while (wl_display_prepare_read(display) != 0)
-	{
-		if (wl_display_dispatch_pending(display) < 0)
-			return false;
-	}
-
-	wl_display_flush(display);
-
-	pollfd display_fd {};
-	display_fd.fd = wl_display_get_fd(display);
-	display_fd.events = POLLIN;
-
 	const int timeout_ms = int(std::ceil(timeout_seconds * 1000.0));
-	const int poll_result = poll(&display_fd, 1, timeout_ms);
-	if (poll_result > 0 && (display_fd.revents & POLLIN))
-	{
-		if (wl_display_read_events(display) < 0)
-			return false;
-	}
-	else
-	{
-		wl_display_cancel_read(display);
-	}
+	if (libdecor_dispatch(data->decor_context, timeout_ms) < 0)
+		return false;
 
-	while (wl_display_dispatch_pending(display) > 0) {}
-	return wl_display_get_error(display) == 0;
+	while (wl_display_dispatch_pending(data->display) > 0) {}
+	return wl_display_get_error(data->display) == 0;
 }
 
 bool Backend::Initialize(const char* window_name, int width, int height, bool allow_resize)
@@ -666,22 +615,16 @@ void Backend::Shutdown()
 		wl_keyboard_destroy(data->keyboard);
 	if (data->pointer)
 		wl_pointer_destroy(data->pointer);
-	if (data->shell_decoration)
-		zxdg_toplevel_decoration_v1_destroy(data->shell_decoration);
-	if (data->shell_toplevel)
-		xdg_toplevel_destroy(data->shell_toplevel);
-	if (data->shell_surface)
-		xdg_surface_destroy(data->shell_surface);
+	if (data->decor_frame)
+		libdecor_frame_unref(data->decor_frame);
+	if (data->decor_context)
+		libdecor_unref(data->decor_context);
 	if (data->cursor_surface)
 		wl_surface_destroy(data->cursor_surface);
 	if (data->surface)
 		wl_surface_destroy(data->surface);
 	if (data->globals.seat)
 		wl_seat_destroy(data->globals.seat);
-	if (data->globals.wm_base)
-		xdg_wm_base_destroy(data->globals.wm_base);
-	if (data->globals.decoration_manager)
-		zxdg_decoration_manager_v1_destroy(data->globals.decoration_manager);
 	if (data->globals.shm)
 		wl_shm_destroy(data->globals.shm);
 	if (data->globals.compositor)
