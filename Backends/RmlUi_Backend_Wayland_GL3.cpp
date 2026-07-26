@@ -21,13 +21,19 @@ static constexpr int MinimumWindowWidth = 1;
 static constexpr int MinimumWindowHeight = 1;
 using Clock = std::chrono::steady_clock;
 
+#ifdef WL_KEYBOARD_KEY_STATE_REPEATED_SINCE_VERSION
+static constexpr uint32_t MaxSeatVersion = WL_KEYBOARD_KEY_STATE_REPEATED_SINCE_VERSION;
+#else
+static constexpr uint32_t MaxSeatVersion = 9;
+#endif
+
 struct KeyboardRepeatState {
 	bool active = false;
 	xkb_keycode_t keycode = 0;
 	int32_t rate = 0;
 	int32_t delay = 0;
 	Clock::time_point next_time;
-	std::chrono::milliseconds interval {0};
+	Clock::duration interval{};
 
 	void Stop()
 	{
@@ -96,7 +102,7 @@ static void RegistryHandleGlobal(void* user_data, wl_registry* registry, uint32_
 	else if (std::strcmp(interface, wl_shm_interface.name) == 0)
 		globals->shm = static_cast<wl_shm*>(wl_registry_bind(registry, name, &wl_shm_interface, 1));
 	else if (std::strcmp(interface, wl_seat_interface.name) == 0)
-		globals->seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, 7u)));
+		globals->seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, MaxSeatVersion)));
 	else if (std::strcmp(interface, xdg_wm_base_interface.name) == 0)
 		globals->wm_base = static_cast<xdg_wm_base*>(wl_registry_bind(registry, name, &xdg_wm_base_interface, std::min(version, 7u)));
 	else if (std::strcmp(interface, zxdg_decoration_manager_v1_interface.name) == 0)
@@ -251,6 +257,13 @@ static bool IsTextInputCodepoint(uint32_t codepoint)
 	return codepoint >= 0x20 && !(codepoint >= 0x7f && codepoint <= 0x9f);
 }
 
+static Clock::duration GetKeyRepeatInterval(int32_t rate)
+{
+	RMLUI_ASSERT(rate > 0);
+	const Clock::duration interval = std::chrono::duration_cast<Clock::duration>(std::chrono::duration<double>(1.0 / double(rate)));
+	return std::max(Clock::duration{1}, interval);
+}
+
 static void SubmitKeyDown(xkb_keycode_t keycode)
 {
 	if (!data->context || !data->keyboard_state.state)
@@ -283,12 +296,13 @@ static void StartKeyRepeat(xkb_keycode_t keycode)
 	KeyboardRepeatState& repeat = data->repeat_state;
 	repeat.Stop();
 
+	// Positive repeat rates ask the client to schedule repeats. Version 10 compositor repeats arrive with rate zero instead.
 	if (repeat.rate <= 0 || !data->keyboard_state.keymap || !xkb_keymap_key_repeats(data->keyboard_state.keymap, keycode))
 		return;
 
 	repeat.active = true;
 	repeat.keycode = keycode;
-	repeat.interval = std::chrono::milliseconds(std::max(1, 1000 / repeat.rate));
+	repeat.interval = GetKeyRepeatInterval(repeat.rate);
 	repeat.next_time = Clock::now() + std::chrono::milliseconds(std::max(0, repeat.delay));
 }
 
@@ -334,14 +348,20 @@ static void KeyboardHandleKey(void*, wl_keyboard*, uint32_t, uint32_t, uint32_t 
 		return;
 
 	const xkb_keycode_t keycode = key + 8;
-	const bool pressed = (state == WL_KEYBOARD_KEY_STATE_PRESSED);
 
-	if (pressed)
+	switch (state)
 	{
+	case WL_KEYBOARD_KEY_STATE_PRESSED:
 		SubmitKeyDown(keycode);
 		StartKeyRepeat(keycode);
-	}
-	else
+		break;
+#ifdef WL_KEYBOARD_KEY_STATE_REPEATED_SINCE_VERSION
+	case WL_KEYBOARD_KEY_STATE_REPEATED:
+		// Version 10 compositors may send repeats directly when repeat_info disables client-side repetition.
+		SubmitKeyDown(keycode);
+		break;
+#endif
+	case WL_KEYBOARD_KEY_STATE_RELEASED:
 	{
 		if (data->repeat_state.active && data->repeat_state.keycode == keycode)
 			data->repeat_state.Stop();
@@ -350,6 +370,9 @@ static void KeyboardHandleKey(void*, wl_keyboard*, uint32_t, uint32_t, uint32_t 
 		const Rml::Input::KeyIdentifier rml_key = RmlWayland::ConvertKeySym(sym);
 		const int modifiers = data->keyboard_state.modifiers;
 		data->context->ProcessKeyUp(rml_key, modifiers);
+		break;
+	}
+	default: break;
 	}
 }
 
@@ -360,10 +383,20 @@ static void KeyboardHandleModifiers(void*, wl_keyboard*, uint32_t, uint32_t depr
 
 static void KeyboardHandleRepeatInfo(void*, wl_keyboard*, int32_t rate, int32_t delay)
 {
-	data->repeat_state.rate = rate;
-	data->repeat_state.delay = delay;
-	if (rate <= 0)
-		data->repeat_state.Stop();
+	KeyboardRepeatState& repeat = data->repeat_state;
+	repeat.rate = std::max(0, rate);
+	repeat.delay = std::max(0, delay);
+
+	if (repeat.rate == 0)
+	{
+		repeat.Stop();
+		repeat.interval = {};
+		return;
+	}
+
+	repeat.interval = GetKeyRepeatInterval(repeat.rate);
+	if (repeat.active)
+		repeat.next_time = Clock::now() + std::chrono::milliseconds(repeat.delay);
 }
 
 static const wl_keyboard_listener keyboard_listener = {
