@@ -158,9 +158,9 @@ static libdecor_frame_interface libdecor_frame_listener = [] {
 static void PointerHandleEnter(void*, wl_pointer*, uint32_t serial, wl_surface*, wl_fixed_t sx, wl_fixed_t sy)
 {
 	data->system_interface->SetPointerSerial(serial);
+	data->system_interface->SetMouseCursor("arrow");
 	if (data->context)
 		data->context->ProcessMouseMove(wl_fixed_to_int(sx), wl_fixed_to_int(sy), data->keyboard_state.modifiers);
-	data->system_interface->SetMouseCursor("arrow");
 }
 
 static void PointerHandleLeave(void*, wl_pointer*, uint32_t, wl_surface*)
