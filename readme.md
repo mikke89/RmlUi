@@ -162,7 +162,7 @@ The provided backends on the other hand are not intended to be used directly by 
 |----------|:---------------:|:---------:|:--------:|:-----:|-------------------------------------------------------------------------------|
 | Win32    |       ✔️        |    ✔️     |    ✔️    |   ❌   | High DPI only supported on Windows 10 and newer.                              |
 | X11      |       ✔️        |    ✔️     |    ❌     |   ❌   |                                                                               |
-| Wayland  |       ✔️        |    ⚠️     |    ❌     |   ❌   | Clipboard is process-local only.                                              |
+| Wayland  |       ✔️        |    ⚠️     |    ❌     |   ❌   | Clipboard is process-local. Title bars require server-side decorations.       |
 | SFML     |       ✔️        |    ⚠️     |    ❌     |   ❌   | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
 | GLFW     |       ✔️        |    ✔️     |    ✔️    |   ❌   |                                                                               |
 | SDL      |       ✔️        |    ✔️     |    ✔️    |  ✔️   | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3.                   |

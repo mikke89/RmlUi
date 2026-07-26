@@ -70,9 +70,11 @@ struct BackendData {
 
 	int width = 0;
 	int height = 0;
+	uint32_t shell_decoration_mode = 0;
 	bool configured = false;
 	bool running = true;
 	bool context_dimensions_dirty = true;
+	bool warned_missing_window_decorations = false;
 };
 
 static Rml::UniquePtr<BackendData> data;
@@ -157,7 +159,26 @@ static const xdg_toplevel_listener xdg_toplevel_listener = {
 	XdgToplevelHandleWmCapabilities,
 };
 
-static void XdgToplevelDecorationHandleConfigure(void*, zxdg_toplevel_decoration_v1*, uint32_t) {}
+static void WarnMissingWindowDecorations()
+{
+	if (data->warned_missing_window_decorations)
+		return;
+
+	data->warned_missing_window_decorations = true;
+	Rml::Log::Message(Rml::Log::LT_WARNING,
+		"The Wayland compositor did not provide server-side window decorations. Client-side decorations are not implemented by this backend, so "
+		"the window will not have a title bar.");
+}
+
+static void XdgToplevelDecorationHandleConfigure(void*, zxdg_toplevel_decoration_v1*, uint32_t mode)
+{
+	if (data->shell_decoration_mode == mode)
+		return;
+
+	data->shell_decoration_mode = mode;
+	if (mode != ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE)
+		WarnMissingWindowDecorations();
+}
 
 static const zxdg_toplevel_decoration_v1_listener xdg_toplevel_decoration_listener = {
 	XdgToplevelDecorationHandleConfigure,
@@ -470,6 +491,9 @@ static bool InitializeWayland(const char* window_name, int width, int height, bo
 	data->system_interface = Rml::MakeUnique<SystemInterface_Wayland>(display, data->globals.shm);
 
 	xdg_wm_base_add_listener(data->globals.wm_base, &xdg_wm_base_listener, nullptr);
+
+	if (!data->globals.decoration_manager)
+		WarnMissingWindowDecorations();
 
 	if (data->globals.seat)
 		wl_seat_add_listener(data->globals.seat, &seat_listener, nullptr);
