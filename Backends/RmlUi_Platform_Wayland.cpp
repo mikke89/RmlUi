@@ -5,9 +5,7 @@
 #include <unistd.h>
 
 SystemInterface_Wayland::SystemInterface_Wayland(wl_display* display, wl_shm* shm) : display(display), shm(shm)
-{
-	gettimeofday(&start_time, nullptr);
-}
+{}
 
 SystemInterface_Wayland::~SystemInterface_Wayland()
 {
@@ -34,16 +32,6 @@ void SystemInterface_Wayland::SetPointerSerial(uint32_t serial)
 void SystemInterface_Wayland::ClearPointerSerial()
 {
 	has_pointer_serial = false;
-}
-
-double SystemInterface_Wayland::GetElapsedTime()
-{
-	timeval now {};
-	gettimeofday(&now, nullptr);
-
-	const double sec = now.tv_sec - start_time.tv_sec;
-	const double usec = now.tv_usec - start_time.tv_usec;
-	return sec + (usec / 1000000.0);
 }
 
 void SystemInterface_Wayland::LoadCursorTheme()

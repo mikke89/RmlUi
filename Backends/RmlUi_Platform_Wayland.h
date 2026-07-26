@@ -6,7 +6,6 @@
 #include <wayland-client.h>
 #include <wayland-cursor.h>
 #include <xkbcommon/xkbcommon.h>
-#include <sys/time.h>
 
 struct xdg_wm_base;
 struct zxdg_decoration_manager_v1;
@@ -21,7 +20,6 @@ public:
 	void SetPointerSerial(uint32_t serial);
 	void ClearPointerSerial();
 
-	double GetElapsedTime() override;
 	void SetMouseCursor(const Rml::String& cursor_name) override;
 	void SetClipboardText(const Rml::String& text) override;
 	void GetClipboardText(Rml::String& text) override;
@@ -35,7 +33,6 @@ private:
 	wl_pointer* pointer = nullptr;
 	wl_surface* cursor_surface = nullptr;
 	wl_cursor_theme* cursor_theme = nullptr;
-	timeval start_time {};
 	uint32_t pointer_serial = 0;
 	bool has_pointer_serial = false;
 	Rml::String clipboard_text;
