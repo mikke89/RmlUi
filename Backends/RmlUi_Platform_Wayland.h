@@ -7,9 +7,12 @@
 #include <wayland-cursor.h>
 #include <xkbcommon/xkbcommon.h>
 
+struct wp_cursor_shape_device_v1;
+struct wp_cursor_shape_manager_v1;
+
 class SystemInterface_Wayland : public Rml::SystemInterface {
 public:
-	SystemInterface_Wayland(wl_display* display, wl_shm* shm);
+	SystemInterface_Wayland(wl_display* display, wl_shm* shm, wp_cursor_shape_manager_v1* cursor_shape_manager);
 	~SystemInterface_Wayland();
 
 	void SetPointer(wl_pointer* pointer);
@@ -23,13 +26,18 @@ public:
 
 private:
 	void LoadCursorTheme();
-	void ApplyCursor(const char* cursor_name);
+	bool ApplyCursorShape(uint32_t shape);
+	void ApplyCursor(const char* const* cursor_names, size_t cursor_name_count);
 
 	wl_display* display = nullptr;
 	wl_shm* shm = nullptr;
 	wl_pointer* pointer = nullptr;
 	wl_surface* cursor_surface = nullptr;
+	wp_cursor_shape_manager_v1* cursor_shape_manager = nullptr;
+	wp_cursor_shape_device_v1* cursor_shape_device = nullptr;
 	wl_cursor_theme* cursor_theme = nullptr;
+	bool cursor_theme_load_attempted = false;
+	Rml::UnorderedSet<Rml::String> warned_missing_cursors;
 	uint32_t pointer_serial = 0;
 	bool has_pointer_serial = false;
 	Rml::String clipboard_text;
@@ -41,6 +49,7 @@ struct Globals {
 	wl_compositor* compositor = nullptr;
 	wl_shm* shm = nullptr;
 	wl_seat* seat = nullptr;
+	wp_cursor_shape_manager_v1* cursor_shape_manager = nullptr;
 };
 
 struct KeyboardState {

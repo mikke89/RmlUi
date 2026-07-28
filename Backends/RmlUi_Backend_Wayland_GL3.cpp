@@ -15,6 +15,10 @@
 #include <cmath>
 #include <cstring>
 
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+	#include <cursor-shape-v1-client-protocol.h>
+#endif
+
 static constexpr int MinimumWindowWidth = 1;
 static constexpr int MinimumWindowHeight = 1;
 using Clock = std::chrono::steady_clock;
@@ -100,6 +104,11 @@ static void RegistryHandleGlobal(void* user_data, wl_registry* registry, uint32_
 		globals->shm = static_cast<wl_shm*>(wl_registry_bind(registry, name, &wl_shm_interface, 1));
 	else if (std::strcmp(interface, wl_seat_interface.name) == 0)
 		globals->seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, MaxSeatVersion)));
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+	else if (std::strcmp(interface, wp_cursor_shape_manager_v1_interface.name) == 0)
+		globals->cursor_shape_manager =
+			static_cast<wp_cursor_shape_manager_v1*>(wl_registry_bind(registry, name, &wp_cursor_shape_manager_v1_interface, 1));
+#endif
 }
 
 static void RegistryHandleGlobalRemove(void*, wl_registry*, uint32_t) {}
@@ -410,9 +419,9 @@ static void SeatHandleCapabilities(void*, wl_seat* seat, uint32_t capabilities)
 	}
 	else if (!(capabilities & WL_SEAT_CAPABILITY_POINTER) && data->pointer)
 	{
+		data->system_interface->SetPointer(nullptr);
 		wl_pointer_destroy(data->pointer);
 		data->pointer = nullptr;
-		data->system_interface->SetPointer(nullptr);
 	}
 
 	if ((capabilities & WL_SEAT_CAPABILITY_KEYBOARD) && !data->keyboard)
@@ -459,7 +468,7 @@ static bool InitializeWayland(const char* window_name, int width, int height, bo
 		return false;
 	}
 
-	data->system_interface = Rml::MakeUnique<SystemInterface_Wayland>(display, data->globals.shm);
+	data->system_interface = Rml::MakeUnique<SystemInterface_Wayland>(display, data->globals.shm, data->globals.cursor_shape_manager);
 
 	if (data->globals.seat)
 		wl_seat_add_listener(data->globals.seat, &seat_listener, nullptr);
@@ -627,6 +636,10 @@ void Backend::Shutdown()
 		wl_seat_destroy(data->globals.seat);
 	if (data->globals.shm)
 		wl_shm_destroy(data->globals.shm);
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+	if (data->globals.cursor_shape_manager)
+		wp_cursor_shape_manager_v1_destroy(data->globals.cursor_shape_manager);
+#endif
 	if (data->globals.compositor)
 		wl_compositor_destroy(data->globals.compositor);
 	if (data->registry)

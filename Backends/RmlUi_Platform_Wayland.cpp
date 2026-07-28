@@ -1,21 +1,252 @@
 #include "RmlUi_Platform_Wayland.h"
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/StringUtilities.h>
+#include <cstdlib>
+#include <fstream>
+#include <iterator>
 #include <linux/input-event-codes.h>
 #include <unistd.h>
 
-SystemInterface_Wayland::SystemInterface_Wayland(wl_display* display, wl_shm* shm) : display(display), shm(shm)
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+	#include <cursor-shape-v1-client-protocol.h>
+#endif
+#ifdef RMLUI_WAYLAND_GSETTINGS
+	#include <gio/gio.h>
+#endif
+
+struct CursorSettings {
+	Rml::String theme_name;
+	Rml::String theme_source;
+	int size = 24;
+	bool has_size = false;
+};
+
+static constexpr const char* DefaultCursorNames[] = {"default", "left_ptr", "arrow"};
+static constexpr const char* MoveCursorNames[] = {"move", "fleur", "all-scroll"};
+static constexpr const char* PointerCursorNames[] = {"pointer", "hand2", "pointing_hand"};
+static constexpr const char* ResizeCursorNames[] = {"se-resize", "bottom_right_corner", "size_fdiag"};
+static constexpr const char* CrossCursorNames[] = {"crosshair", "cross", "tcross"};
+static constexpr const char* TextCursorNames[] = {"text", "xterm", "ibeam"};
+static constexpr const char* UnavailableCursorNames[] = {"not-allowed", "forbidden", "crossed_circle"};
+
+static Rml::String GetEnvironmentValue(const char* name)
+{
+	if (const char* value = getenv(name))
+		return value;
+	return {};
+}
+
+static bool ParseCursorSize(const Rml::String& string, int& size)
+{
+	const Rml::String stripped = Rml::StringUtilities::StripWhitespace(string);
+	if (stripped.empty())
+		return false;
+
+	char* end = nullptr;
+	const long parsed_size = strtol(stripped.c_str(), &end, 10);
+	if (!end || *end != '\0' || parsed_size <= 0 || parsed_size > 1024)
+		return false;
+
+	size = int(parsed_size);
+	return true;
+}
+
+static bool IsKdeSession()
+{
+	const Rml::String current_desktop = Rml::StringUtilities::ToLower(GetEnvironmentValue("XDG_CURRENT_DESKTOP"));
+	if (current_desktop.find("kde") != Rml::String::npos || current_desktop.find("plasma") != Rml::String::npos)
+		return true;
+
+	const Rml::String session_desktop = Rml::StringUtilities::ToLower(GetEnvironmentValue("XDG_SESSION_DESKTOP"));
+	if (session_desktop.find("kde") != Rml::String::npos || session_desktop.find("plasma") != Rml::String::npos)
+		return true;
+
+	return !GetEnvironmentValue("KDE_FULL_SESSION").empty();
+}
+
+#ifdef RMLUI_WAYLAND_GSETTINGS
+static bool IsGnomeSession()
+{
+	const Rml::String current_desktop = Rml::StringUtilities::ToLower(GetEnvironmentValue("XDG_CURRENT_DESKTOP"));
+	if (current_desktop.find("gnome") != Rml::String::npos)
+		return true;
+
+	const Rml::String session_desktop = Rml::StringUtilities::ToLower(GetEnvironmentValue("XDG_SESSION_DESKTOP"));
+	return session_desktop.find("gnome") != Rml::String::npos;
+}
+#endif
+
+static Rml::String MakeHomePath(const char* relative_path)
+{
+	const Rml::String home = GetEnvironmentValue("HOME");
+	if (home.empty())
+		return {};
+
+	Rml::String path = home;
+	path += "/";
+	path += relative_path;
+	return path;
+}
+
+static void ReadKdeCursorConfig(const Rml::String& path, CursorSettings& settings)
+{
+	std::ifstream stream(path.c_str());
+	if (!stream)
+		return;
+
+	bool in_mouse_group = false;
+	Rml::String line;
+	while (std::getline(stream, line))
+	{
+		line = Rml::StringUtilities::StripWhitespace(line);
+		if (line.empty() || line[0] == '#' || line[0] == ';')
+			continue;
+
+		if (line.front() == '[' && line.back() == ']')
+		{
+			const Rml::String group_name = line.substr(1, line.size() - 2);
+			in_mouse_group = (group_name == "Mouse");
+			continue;
+		}
+
+		if (!in_mouse_group)
+			continue;
+
+		const size_t equals = line.find('=');
+		if (equals == Rml::String::npos)
+			continue;
+
+		const Rml::String key = Rml::StringUtilities::StripWhitespace(line.substr(0, equals));
+		const Rml::String value = Rml::StringUtilities::StripWhitespace(line.substr(equals + 1));
+		if (value.empty())
+			continue;
+
+		if (settings.theme_name.empty() && key == "cursorTheme")
+		{
+			settings.theme_name = value;
+			settings.theme_source = path;
+		}
+		else if (!settings.has_size && (key == "cursorSize" || key == "CursorSize"))
+		{
+			int parsed_size = 0;
+			if (ParseCursorSize(value, parsed_size))
+			{
+				settings.size = parsed_size;
+				settings.has_size = true;
+			}
+		}
+	}
+}
+
+#ifdef RMLUI_WAYLAND_GSETTINGS
+static void ReadGnomeCursorSettings(CursorSettings& settings)
+{
+	GSettingsSchemaSource* schema_source = g_settings_schema_source_get_default();
+	if (!schema_source)
+		return;
+
+	GSettingsSchema* schema = g_settings_schema_source_lookup(schema_source, "org.gnome.desktop.interface", true);
+	if (!schema)
+		return;
+
+	GSettings* gnome_settings = g_settings_new_full(schema, nullptr, nullptr);
+	if (gnome_settings)
+	{
+		if (settings.theme_name.empty() && g_settings_schema_has_key(schema, "cursor-theme"))
+		{
+			gchar* theme_name = g_settings_get_string(gnome_settings, "cursor-theme");
+			const Rml::String stripped_theme = Rml::StringUtilities::StripWhitespace(theme_name ? theme_name : "");
+			g_free(theme_name);
+			if (!stripped_theme.empty())
+			{
+				settings.theme_name = stripped_theme;
+				settings.theme_source = "GNOME setting org.gnome.desktop.interface cursor-theme";
+			}
+		}
+
+		if (!settings.has_size && g_settings_schema_has_key(schema, "cursor-size"))
+		{
+			const int cursor_size = g_settings_get_int(gnome_settings, "cursor-size");
+			if (cursor_size > 0 && cursor_size <= 1024)
+			{
+				settings.size = cursor_size;
+				settings.has_size = true;
+			}
+		}
+
+		g_object_unref(gnome_settings);
+	}
+
+	g_settings_schema_unref(schema);
+}
+#endif
+
+static CursorSettings ResolveCursorSettings()
+{
+	CursorSettings settings;
+
+	const Rml::String environment_theme = Rml::StringUtilities::StripWhitespace(GetEnvironmentValue("XCURSOR_THEME"));
+	if (!environment_theme.empty())
+	{
+		settings.theme_name = environment_theme;
+		settings.theme_source = "XCURSOR_THEME";
+	}
+
+	int environment_size = 0;
+	if (ParseCursorSize(GetEnvironmentValue("XCURSOR_SIZE"), environment_size))
+	{
+		settings.size = environment_size;
+		settings.has_size = true;
+	}
+
+#ifdef RMLUI_WAYLAND_GSETTINGS
+	if (IsGnomeSession())
+		ReadGnomeCursorSettings(settings);
+#endif
+
+	if (IsKdeSession())
+	{
+		// XDG_CONFIG_HOME replaces ~/.config; do not fall through to the home path when it is set.
+		const Rml::String xdg_config_home = GetEnvironmentValue("XDG_CONFIG_HOME");
+		const Rml::String config_home = !xdg_config_home.empty() ? xdg_config_home : MakeHomePath(".config");
+		if (!config_home.empty())
+		{
+			ReadKdeCursorConfig(config_home + "/kcminputrc", settings);
+			ReadKdeCursorConfig(config_home + "/kdedefaults/kcminputrc", settings);
+		}
+	}
+
+	return settings;
+}
+
+SystemInterface_Wayland::SystemInterface_Wayland(wl_display* display, wl_shm* shm, wp_cursor_shape_manager_v1* cursor_shape_manager) :
+	display(display), shm(shm), cursor_shape_manager(cursor_shape_manager)
 {}
 
 SystemInterface_Wayland::~SystemInterface_Wayland()
 {
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+	if (cursor_shape_device)
+		wp_cursor_shape_device_v1_destroy(cursor_shape_device);
+#endif
 	if (cursor_theme)
 		wl_cursor_theme_destroy(cursor_theme);
 }
 
 void SystemInterface_Wayland::SetPointer(wl_pointer* in_pointer)
 {
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+	if (cursor_shape_device)
+		wp_cursor_shape_device_v1_destroy(cursor_shape_device);
+	cursor_shape_device = nullptr;
+#endif
+
 	pointer = in_pointer;
+
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+	if (pointer && cursor_shape_manager)
+		cursor_shape_device = wp_cursor_shape_manager_v1_get_pointer(cursor_shape_manager, pointer);
+#endif
 }
 
 void SystemInterface_Wayland::SetCursorSurface(wl_surface* surface)
@@ -36,26 +267,96 @@ void SystemInterface_Wayland::ClearPointerSerial()
 
 void SystemInterface_Wayland::LoadCursorTheme()
 {
-	if (!cursor_theme && shm)
-		cursor_theme = wl_cursor_theme_load(nullptr, 24, shm);
+	// Resolve and attempt load once per instance once shm is available. A failed attempt is not retried on every
+	// ApplyCursor; that would re-read env and config files for no gain.
+	if (cursor_theme || cursor_theme_load_attempted || !shm)
+		return;
+
+	cursor_theme_load_attempted = true;
+
+	const CursorSettings settings = ResolveCursorSettings();
+	const int cursor_size = settings.size;
+	const char* theme_name = settings.theme_name.empty() ? nullptr : settings.theme_name.c_str();
+
+	if (theme_name)
+	{
+		if (settings.theme_source.empty())
+			Rml::Log::Message(Rml::Log::LT_INFO, "Loading Wayland cursor theme '%s' at size %d.", theme_name, cursor_size);
+		else
+			Rml::Log::Message(Rml::Log::LT_INFO, "Loading Wayland cursor theme '%s' at size %d from %s.", theme_name, cursor_size,
+				settings.theme_source.c_str());
+
+		cursor_theme = wl_cursor_theme_load(theme_name, cursor_size, shm);
+	}
+	else
+	{
+		Rml::Log::Message(Rml::Log::LT_INFO, "Loading default Wayland cursor theme at size %d.", cursor_size);
+		cursor_theme = wl_cursor_theme_load(nullptr, cursor_size, shm);
+	}
+
+	if (!cursor_theme)
+		Rml::Log::Message(Rml::Log::LT_WARNING, "Failed to load Wayland cursor theme.");
 }
 
-void SystemInterface_Wayland::ApplyCursor(const char* cursor_name)
+bool SystemInterface_Wayland::ApplyCursorShape(uint32_t shape)
 {
-	if (!pointer || !cursor_surface || !has_pointer_serial)
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+	if (cursor_shape_device && has_pointer_serial)
+	{
+		wp_cursor_shape_device_v1_set_shape(cursor_shape_device, pointer_serial, shape);
+		wl_display_flush(display);
+		return true;
+	}
+#else
+	(void)shape;
+#endif
+	return false;
+}
+
+void SystemInterface_Wayland::ApplyCursor(const char* const* cursor_names, size_t cursor_name_count)
+{
+	if (!pointer || !cursor_surface || !has_pointer_serial || !cursor_names || cursor_name_count == 0)
 		return;
 
 	LoadCursorTheme();
 	if (!cursor_theme)
 		return;
 
-	wl_cursor* cursor = wl_cursor_theme_get_cursor(cursor_theme, cursor_name);
+	wl_cursor* cursor = nullptr;
+	for (size_t i = 0; i < cursor_name_count; ++i)
+	{
+		if (!cursor_names[i])
+			continue;
+
+		cursor = wl_cursor_theme_get_cursor(cursor_theme, cursor_names[i]);
+		if (cursor && cursor->image_count > 0)
+			break;
+	}
+
+	const char* requested_name = cursor_names[0] ? cursor_names[0] : "";
 	if (!cursor || cursor->image_count == 0)
 	{
-		cursor = wl_cursor_theme_get_cursor(cursor_theme, "default");
-		if (!cursor || cursor->image_count == 0)
-			return;
+		if (warned_missing_cursors.insert(requested_name).second)
+		{
+			if (cursor_names == DefaultCursorNames)
+				Rml::Log::Message(Rml::Log::LT_WARNING, "Failed to load default Wayland cursor.");
+			else
+				Rml::Log::Message(Rml::Log::LT_WARNING, "Wayland cursor '%s' is unavailable in the loaded theme; using default.", requested_name);
+		}
+
+		if (cursor_names != DefaultCursorNames)
+		{
+			for (const char* fallback_name : DefaultCursorNames)
+			{
+				cursor = wl_cursor_theme_get_cursor(cursor_theme, fallback_name);
+				if (cursor && cursor->image_count > 0)
+					break;
+			}
+		}
 	}
+
+	if (!cursor || cursor->image_count == 0)
+		return;
 
 	wl_cursor_image* image = cursor->images[0];
 	wl_buffer* buffer = wl_cursor_image_get_buffer(image);
@@ -72,19 +373,74 @@ void SystemInterface_Wayland::ApplyCursor(const char* cursor_name)
 void SystemInterface_Wayland::SetMouseCursor(const Rml::String& cursor_name)
 {
 	if (cursor_name.empty() || cursor_name == "arrow")
-		ApplyCursor("default");
-	else if (cursor_name == "move" || Rml::StringUtilities::StartsWith(cursor_name, "rmlui-scroll"))
-		ApplyCursor("move");
+	{
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_DEFAULT))
+			return;
+#endif
+		ApplyCursor(DefaultCursorNames, std::size(DefaultCursorNames));
+	}
+	else if (cursor_name == "move")
+	{
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_MOVE))
+			return;
+#endif
+		ApplyCursor(MoveCursorNames, std::size(MoveCursorNames));
+	}
+	else if (Rml::StringUtilities::StartsWith(cursor_name, "rmlui-scroll"))
+	{
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_ALL_SCROLL))
+			return;
+#endif
+		ApplyCursor(MoveCursorNames, std::size(MoveCursorNames));
+	}
 	else if (cursor_name == "pointer")
-		ApplyCursor("pointer");
+	{
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_POINTER))
+			return;
+#endif
+		ApplyCursor(PointerCursorNames, std::size(PointerCursorNames));
+	}
 	else if (cursor_name == "resize")
-		ApplyCursor("se-resize");
+	{
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_SE_RESIZE))
+			return;
+#endif
+		ApplyCursor(ResizeCursorNames, std::size(ResizeCursorNames));
+	}
 	else if (cursor_name == "cross")
-		ApplyCursor("crosshair");
+	{
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_CROSSHAIR))
+			return;
+#endif
+		ApplyCursor(CrossCursorNames, std::size(CrossCursorNames));
+	}
 	else if (cursor_name == "text")
-		ApplyCursor("text");
+	{
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_TEXT))
+			return;
+#endif
+		ApplyCursor(TextCursorNames, std::size(TextCursorNames));
+	}
 	else if (cursor_name == "unavailable")
-		ApplyCursor("not-allowed");
+	{
+#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
+		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_NOT_ALLOWED))
+			return;
+#endif
+		ApplyCursor(UnavailableCursorNames, std::size(UnavailableCursorNames));
+	}
+	else
+	{
+		const char* custom_cursor_names[] = {cursor_name.c_str()};
+		ApplyCursor(custom_cursor_names, std::size(custom_cursor_names));
+	}
 }
 
 void SystemInterface_Wayland::SetClipboardText(const Rml::String& text)
