@@ -112,10 +112,10 @@ private:
 	/// Increment our cursor and content size, to enclose a sized block-level child box.
 	/// @param[in] child The child box.
 	/// @param[in] child_position The border position of the child, relative to the current block formatting context.
-	/// @param[in] child_size The border size of the child.
-	/// @param[in] child_margin_bottom The bottom margin width of the child.
+	/// @param[in] child_border_size The border size of the child.
+	/// @param[in] child_margin_bottom_right The edge size of the bottom-right margin corner.
 	/// @return False if this caused an automatic vertical scrollbar to appear, forcing a reformat of the current block formatting context.
-	bool EncloseChildBox(LayoutBox* child, Vector2f child_position, float child_height, float child_margin_bottom);
+	bool EncloseChildBox(LayoutBox* child, Vector2f child_position, Vector2f child_border_size, Vector2f child_margin_bottom_right);
 
 	// Closes the inline container if there is one open. Returns false if our formatting context needs to be reformatted.
 	bool CloseOpenInlineContainer();
@@ -160,6 +160,9 @@ private:
 	// The inner content size (excluding any padding/border/margins).
 	// This is extended as child block boxes are closed, or from external formatting contexts.
 	Vector2f inner_content_size;
+
+	// The bottom-right extent of the margin boxes of our direct children, relative to our content area. Contributes to our own scrollable overflow.
+	Vector2f inner_content_margin_size;
 };
 
 } // namespace Rml

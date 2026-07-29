@@ -1,0 +1,71 @@
+<rml>
+<head>
+	<title>Scrollable overflow - overflow values</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-overflow/#propdef-overflow" />
+	<meta name="Description" content="The same overflowing content under each overflow value and per-axis overflow combination, for flex and block containers." />
+	<meta name="Assert" content="Scrollbars are visible in the indicated directions, and only those." />
+	<meta name="Assert" content="End spacing is the same along all scrollable regions, across all elements." />
+	<meta name="Assert" content="The size of the container is the same, regardless of the visibility of scrollbars." />
+	<style>
+		body { color: #222; font-size: 13dp; }
+		h1 { font-size: 1.0em; font-weight: bold; margin: 1.0em 0 0.3em; padding-bottom: 2dp; border-bottom: 1dp #999; }
+		.cases { display: flex; flex-wrap: wrap; }
+		.case { margin: 0 22dp 22dp 0; }
+		.case p { font-size: 0.8em; color: #555; margin: 0 0 2dp; }
+
+		.scroller {
+			width: 100dp;
+			height: 90dp;
+			padding-right: 15dp;
+			padding-bottom: 15dp;
+			border: 2dp #383;
+			background: #dfd;
+		}
+		.flex { display: flex; flex-direction: row; }
+		.child {
+			flex-shrink: 0;
+			width: 130dp;
+			height: 120dp;
+			margin-right: 15dp;
+			margin-bottom: 15dp;
+			background: #fc8;
+			border: 1dp #a50;
+		}
+
+		.visible { overflow: visible; }
+		.hidden { overflow: hidden; }
+		.scroll { overflow: scroll; }
+		.auto { overflow: auto; }
+		.xauto { overflow-x: auto; overflow-y: hidden; }
+		.yauto { overflow-x: hidden; overflow-y: auto; }
+		.xscroll { overflow-x: scroll; overflow-y: hidden; }
+	</style>
+</head>
+
+<body>
+<h1>Block</h1>
+<div class="cases">
+	<div class="case"><p>visible</p><div class="scroller visible"><div class="child"/></div></div>
+	<div class="case"><p>hidden</p><div class="scroller hidden"><div class="child"/></div></div>
+	<div class="case"><p>scroll</p><div class="scroller scroll"><div class="child"/></div></div>
+	<div class="case"><p>auto</p><div class="scroller auto"><div class="child"/></div></div>
+	<div class="case"><p>x:auto y:hidden</p><div class="scroller xauto"><div class="child"/></div></div>
+	<div class="case"><p>x:hidden y:auto</p><div class="scroller yauto"><div class="child"/></div></div>
+	<div class="case"><p>x:scroll y:hidden</p><div class="scroller xscroll"><div class="child"/></div></div>
+</div>
+
+<h1>Flex</h1>
+<div class="cases">
+	<div class="case"><p>visible</p><div class="scroller flex visible"><div class="child"/></div></div>
+	<div class="case"><p>hidden</p><div class="scroller flex hidden"><div class="child"/></div></div>
+	<div class="case"><p>scroll</p><div class="scroller flex scroll"><div class="child"/></div></div>
+	<div class="case"><p>auto</p><div class="scroller flex auto"><div class="child"/></div></div>
+	<div class="case"><p>x:auto y:hidden</p><div class="scroller flex xauto"><div class="child"/></div></div>
+	<div class="case"><p>x:hidden y:auto</p><div class="scroller flex yauto"><div class="child"/></div></div>
+	<div class="case"><p>x:scroll y:hidden</p><div class="scroller flex xscroll"><div class="child"/></div></div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>
