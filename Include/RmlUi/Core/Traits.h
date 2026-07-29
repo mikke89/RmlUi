@@ -73,6 +73,10 @@ public:
 	{                                                         \
 		return #_NAME_;                                       \
 	}                                                         \
+	virtual void* GetClassIdentifier() const                  \
+	{                                                         \
+		return GetStaticClassIdentifier();                    \
+	}                                                         \
 	virtual bool IsClass(void* type_identifier) const         \
 	{                                                         \
 		return type_identifier == GetStaticClassIdentifier(); \
@@ -92,6 +96,10 @@ public:
 	static const char* GetStaticClassName()                                                         \
 	{                                                                                               \
 		return #_NAME_;                                                                             \
+	}                                                                                               \
+	void* GetClassIdentifier() const override                                                       \
+	{                                                                                               \
+		return GetStaticClassIdentifier();                                                          \
 	}                                                                                               \
 	bool IsClass(void* type_identifier) const override                                              \
 	{                                                                                               \
