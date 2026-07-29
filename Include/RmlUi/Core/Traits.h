@@ -62,33 +62,47 @@ public:
 
 } // namespace Rml
 
-#ifdef RMLUI_CUSTOM_RTTI
+#define RMLUI_RTTI_Define(_NAME_)                             \
+	using RttiClassType = _NAME_;                             \
+	static void* GetStaticClassIdentifier()                   \
+	{                                                         \
+		static int dummy;                                     \
+		return &dummy;                                        \
+	}                                                         \
+	static const char* GetStaticClassName()                   \
+	{                                                         \
+		return #_NAME_;                                       \
+	}                                                         \
+	virtual bool IsClass(void* type_identifier) const         \
+	{                                                         \
+		return type_identifier == GetStaticClassIdentifier(); \
+	}                                                         \
+	virtual const char* GetClassName() const                  \
+	{                                                         \
+		return #_NAME_;                                       \
+	}
 
-	#define RMLUI_RTTI_Define(_NAME_)                             \
-		using RttiClassType = _NAME_;                             \
-		static void* GetStaticClassIdentifier()                   \
-		{                                                         \
-			static int dummy;                                     \
-			return &dummy;                                        \
-		}                                                         \
-		virtual bool IsClass(void* type_identifier) const         \
-		{                                                         \
-			return type_identifier == GetStaticClassIdentifier(); \
-		}
-
-	#define RMLUI_RTTI_DefineWithParent(_NAME_, _PARENT_)                                               \
-		using RttiClassType = _NAME_;                                                                   \
-		static void* GetStaticClassIdentifier()                                                         \
-		{                                                                                               \
-			static int dummy;                                                                           \
-			return &dummy;                                                                              \
-		}                                                                                               \
-		bool IsClass(void* type_identifier) const override                                              \
-		{                                                                                               \
-			static_assert(std::is_same<typename _PARENT_::RttiClassType, _PARENT_>::value,              \
-				"Parent does not implement RMLUI_RTTI_Define or RMLUI_RTTI_DefineWithParent");          \
-			return type_identifier == GetStaticClassIdentifier() || _PARENT_::IsClass(type_identifier); \
-		}
+#define RMLUI_RTTI_DefineWithParent(_NAME_, _PARENT_)                                               \
+	using RttiClassType = _NAME_;                                                                   \
+	static void* GetStaticClassIdentifier()                                                         \
+	{                                                                                               \
+		static int dummy;                                                                           \
+		return &dummy;                                                                              \
+	}                                                                                               \
+	static const char* GetStaticClassName()                                                         \
+	{                                                                                               \
+		return #_NAME_;                                                                             \
+	}                                                                                               \
+	bool IsClass(void* type_identifier) const override                                              \
+	{                                                                                               \
+		static_assert(std::is_same<typename _PARENT_::RttiClassType, _PARENT_>::value,              \
+			"Parent does not implement RMLUI_RTTI_Define or RMLUI_RTTI_DefineWithParent");          \
+		return type_identifier == GetStaticClassIdentifier() || _PARENT_::IsClass(type_identifier); \
+	}                                                                                               \
+	const char* GetClassName() const override                                                       \
+	{                                                                                               \
+		return #_NAME_;                                                                             \
+	}
 
 template <class Derived, class Base>
 Derived rmlui_dynamic_cast(Base base_instance)
@@ -112,49 +126,13 @@ Derived rmlui_static_cast(Base base_instance)
 }
 
 template <class T>
-const char* rmlui_type_name(const T& /*var*/)
-{
-	return "(type name unavailable)";
-}
-
-template <class T>
-const char* rmlui_type_name()
-{
-	return "(type name unavailable)";
-}
-
-#else
-
-	#include <typeinfo>
-
-	#define RMLUI_RTTI_Define(_NAME_)
-	#define RMLUI_RTTI_DefineWithParent(_NAME_, _PARENT_)
-
-template <class Derived, class Base>
-Derived rmlui_dynamic_cast(Base base_instance)
-{
-	static_assert(std::is_pointer<Derived>::value && std::is_pointer<Base>::value, "rmlui_dynamic_cast can only cast pointer types");
-	return dynamic_cast<Derived>(base_instance);
-}
-
-template <class Derived, class Base>
-Derived rmlui_static_cast(Base base_instance)
-{
-	static_assert(std::is_pointer<Derived>::value && std::is_pointer<Base>::value, "rmlui_static_cast can only cast pointer types");
-	RMLUI_ASSERT(dynamic_cast<Derived>(base_instance));
-	return static_cast<Derived>(base_instance);
-}
-
-template <class T>
 const char* rmlui_type_name(const T& var)
 {
-	return typeid(var).name();
+	return var.GetClassName();
 }
 
 template <class T>
 const char* rmlui_type_name()
 {
-	return typeid(T).name();
+	return T::GetStaticClassName();
 }
-
-#endif // RMLUI_CUSTOM_RTTI
