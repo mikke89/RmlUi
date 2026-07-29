@@ -60,8 +60,19 @@ public:
 	}
 };
 
-} // namespace Rml
+template <typename T>
+struct has_custom_rtti {
+	template <typename U>
+	static auto test(int) -> decltype(U::GetStaticClassIdentifier(), std::true_type());
 
+	template <typename U>
+	static std::false_type test(...);
+
+	static constexpr bool value = decltype(test<T>(0))::value;
+};
+
+} // namespace Rml
+ 
 #define RMLUI_RTTI_Define(_NAME_)                             \
 	using RttiClassType = _NAME_;                             \
 	static void* GetStaticClassIdentifier()                   \
@@ -69,13 +80,9 @@ public:
 		static int dummy;                                     \
 		return &dummy;                                        \
 	}                                                         \
-	static const char* GetStaticClassName()                   \
+	static constexpr const char* GetStaticClassName()         \
 	{                                                         \
 		return #_NAME_;                                       \
-	}                                                         \
-	virtual void* GetClassIdentifier() const                  \
-	{                                                         \
-		return GetStaticClassIdentifier();                    \
 	}                                                         \
 	virtual bool IsClass(void* type_identifier) const         \
 	{                                                         \
@@ -93,13 +100,9 @@ public:
 		static int dummy;                                                                           \
 		return &dummy;                                                                              \
 	}                                                                                               \
-	static const char* GetStaticClassName()                                                         \
+	static constexpr const char* GetStaticClassName()                                               \
 	{                                                                                               \
 		return #_NAME_;                                                                             \
-	}                                                                                               \
-	void* GetClassIdentifier() const override                                                       \
-	{                                                                                               \
-		return GetStaticClassIdentifier();                                                          \
 	}                                                                                               \
 	bool IsClass(void* type_identifier) const override                                              \
 	{                                                                                               \
@@ -111,6 +114,30 @@ public:
 	{                                                                                               \
 		return #_NAME_;                                                                             \
 	}
+
+
+#ifdef RMLUI_CUSTOM_RTTI
+
+template <typename, typename = void>
+struct RTTITypeNameGetter;
+
+template <typename T>
+struct RTTITypeNameGetter<T, typename std::enable_if<Rml::has_custom_rtti<T>::value>::type> {
+	static constexpr const char* name = T::GetStaticClassName();
+
+	const char* operator()(const T& var) const {
+		return var.GetClassName();
+	}
+};
+
+template <typename T>
+struct RTTITypeNameGetter<T, typename std::enable_if<!Rml::has_custom_rtti<T>::value>::type> {
+	static constexpr const char* name = "(type name unavailable)";
+
+	const char* operator()(const T& /*var*/) const {
+		return "(type name unavailable)";
+	}
+};
 
 template <class Derived, class Base>
 Derived rmlui_dynamic_cast(Base base_instance)
@@ -136,11 +163,44 @@ Derived rmlui_static_cast(Base base_instance)
 template <class T>
 const char* rmlui_type_name(const T& var)
 {
-	return var.GetClassName();
+	return RTTITypeNameGetter<T>{}(var);
 }
 
 template <class T>
 const char* rmlui_type_name()
 {
-	return T::GetStaticClassName();
+	return RTTITypeNameGetter<T>::name;
 }
+
+#else
+
+	#include <typeinfo>
+
+template <class Derived, class Base>
+Derived rmlui_dynamic_cast(Base base_instance)
+{
+	static_assert(std::is_pointer<Derived>::value && std::is_pointer<Base>::value, "rmlui_dynamic_cast can only cast pointer types");
+	return dynamic_cast<Derived>(base_instance);
+}
+
+template <class Derived, class Base>
+Derived rmlui_static_cast(Base base_instance)
+{
+	static_assert(std::is_pointer<Derived>::value && std::is_pointer<Base>::value, "rmlui_static_cast can only cast pointer types");
+	RMLUI_ASSERT(dynamic_cast<Derived>(base_instance));
+	return static_cast<Derived>(base_instance);
+}
+
+template <class T>
+const char* rmlui_type_name(const T& var)
+{
+	return typeid(var).name();
+}
+
+template <class T>
+const char* rmlui_type_name()
+{
+	return typeid(T).name();
+}
+
+#endif // RMLUI_CUSTOM_RTTI
