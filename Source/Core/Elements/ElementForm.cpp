@@ -5,6 +5,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define_Implementation_WithParent(ElementForm, Element)
+
 ElementForm::ElementForm(const String& tag) : Element(tag) {}
 
 ElementForm::~ElementForm() {}

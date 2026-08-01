@@ -14,6 +14,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define_Implementation_WithParent(ElementLottie, Element)
+
 ElementLottie::ElementLottie(const String& tag) : Element(tag) {}
 
 ElementLottie::~ElementLottie() {}

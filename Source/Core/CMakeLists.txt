@@ -167,6 +167,7 @@ add_library(rmlui_core
 	RenderManager.cpp
 	RenderManagerAccess.cpp
 	RenderManagerAccess.h
+	ScriptInterface.cpp
 	ScrollController.cpp
 	ScrollController.h
 	Spritesheet.cpp

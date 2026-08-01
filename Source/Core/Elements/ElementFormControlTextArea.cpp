@@ -8,6 +8,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define_Implementation_WithParent(ElementFormControlTextArea, Element)
+
 ElementFormControlTextArea::ElementFormControlTextArea(const String& tag) : ElementFormControl(tag)
 {
 	widget = MakeUnique<WidgetTextInputMultiLine>(this);
