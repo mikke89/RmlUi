@@ -108,7 +108,7 @@ using ClassId = void*;
 		return type_identifier == GetStaticClassIdentifier() || _PARENT_::IsClass(type_identifier); \
 	}
 
-#ifdef RMLUI_CUSTOM_RTTI
+#ifndef RMLUI_HAS_RTTI
 
 template <class Derived, class Base>
 Derived rmlui_dynamic_cast(Base base_instance)
@@ -174,4 +174,4 @@ const char* rmlui_type_name()
 	return typeid(T).name();
 }
 
-#endif // RMLUI_CUSTOM_RTTI
+#endif // !RMLUI_HAS_RTTI

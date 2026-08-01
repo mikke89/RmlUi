@@ -438,11 +438,6 @@ if(NOT RMLUI_THIRDPARTY_CONTAINERS)
 	message(STATUS "Disabling third-party containers for RmlUi.")
 endif()
 
-if(RMLUI_CUSTOM_RTTI)
-	target_compile_definitions(rmlui_core PUBLIC "RMLUI_CUSTOM_RTTI")
-	message(STATUS "Enabling custom RTTI for RmlUi.")
-endif()
-
 if(RMLUI_MATRIX_ROW_MAJOR)
 	target_compile_definitions(rmlui_core PUBLIC "RMLUI_MATRIX_ROW_MAJOR")
 	message(STATUS "Configuring RmlUi to use row-major matrix types.")
