@@ -63,7 +63,7 @@ protected:
 
 	void OnPropertyChange(const PropertyIdSet& properties) override;
 
-	void GetRML(String& content) override;
+	void GetRML(String& content, const GetRMLConfig& config) override;
 
 private:
 	// Prepares the font effects this element uses for its font.

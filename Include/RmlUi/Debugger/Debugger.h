@@ -5,6 +5,7 @@
 namespace Rml {
 
 class Context;
+class ElementDocument;
 
 namespace Debugger {
 

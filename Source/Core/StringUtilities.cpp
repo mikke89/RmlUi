@@ -355,7 +355,7 @@ String StringUtilities::StripWhitespace(const String& string)
 	return StripWhitespace(StringView(string));
 }
 
-RMLUICORE_API String StringUtilities::StripWhitespace(StringView string)
+String StringUtilities::StripWhitespace(StringView string)
 {
 	const char* start = string.begin();
 	const char* end = string.end();

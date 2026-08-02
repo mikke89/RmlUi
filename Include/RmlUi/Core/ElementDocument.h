@@ -43,7 +43,7 @@ public:
 	virtual ~ElementDocument();
 
 	/// Process given document header
-	void ProcessHeader(const DocumentHeader* header);
+	void ProcessHeader(const DocumentHeader* header, Function<void(const DocumentHeader&)>& callback_compiled_document_header);
 
 	/// Returns the document's context.
 	Context* GetContext();
@@ -111,6 +111,12 @@ public:
 	/// Loads an external script into the document. Note that the base implementation does nothing, but script plugins can hook into this method.
 	/// @param[in] source_path The script file path.
 	virtual void LoadExternalScript(const String& source_path);
+
+	/// Serializes the current state of the document into a standalone RML document.
+	/// @return The serialized document RML.
+	/// @note All external style sheets are included inline into the serialized document, any templates are expanded, scripts are not included.
+	/// @note The resulting document can be loaded into the RmlUi sandbox sample for viewing.
+	String SerializeDocument();
 
 	/// Updates the document, including its layout. Users must call this manually before requesting information such as
 	/// the size or position of an element if any element in the document was recently changed, unless Context::Update

@@ -1,0 +1,82 @@
+<rml>
+<head>
+<link type="text/rcss" href="/assets/rml.rcss"/>
+<link type="text/rcss" href="sandbox_style.rcss"/>
+<title>RmlUi Sandbox</title>
+</head>
+
+<body>
+<div id="menu">
+	<section>
+		<h1>Load document</h1>
+		<div class="row">
+			<label for="load_file_path">File path</label>
+			<input id="load_file_path" type="text" placeholder="File path" />
+			<button id="load_file">Load</button>
+		</div>
+		<div class="row">
+			<label>Clipboard</label>
+			<button id="load_from_clipboard">Load from clipboard</button>
+		</div>
+		<div class="row buttons">
+			<div id="load_file_status"></div>
+		</div>
+	</section>
+
+	<section>
+		<h1>Runtime settings</h1>
+		<div class="row">
+			<label for="working_directory">Working directory</label><input id="working_directory" type="text" placeholder="Directory of the file" />
+		</div>
+	</section>
+
+	<section>
+		<h1>Context</h1>
+		<div class="row">
+			<label for="active_themes">Active themes</label><input id="active_themes" type="text" placeholder="dark, sparkly" />
+		</div>
+		<div class="row">
+			<label for="dp_ratio">DP-ratio</label><input id="dp_ratio" type="text" placeholder="1.0" />
+		</div>
+	</section>
+
+	<section>
+		<h1>Export document</h1>
+		<div class="row buttons">
+			<label class="wide"><input type="checkbox" id="include_all_assets" checked /> Include all assets</label>
+		</div>
+		<div class="row buttons">
+			<label for="save_file_path">To file</label>
+			<input id="save_file_path" type="text" placeholder="basic/demo/data/demo.rml" />
+			<button id="save_file">Save</button>
+		</div>
+		<div class="row buttons">
+			<div id="save_file_status"></div>
+		</div>
+	</section>
+
+	<section id="messages_section">
+		<h1>Messages</h1>
+		<div id="messages"/>
+	</section>
+</div>
+
+<handle class="slider vertical" size_target="menu" axis="x" />
+
+<div id="sources" class="rml_source_only">
+	<textarea id="sandbox_rml_source" wrap="nowrap"></textarea>
+	<div class="label_row">
+		<label><input type="checkbox" id="inject_rcss" checked /> Inject RCSS</label>
+		<label><input type="checkbox" id="override_font_family" checked /> Override font family</label>
+	</div>
+	<handle class="slider horizontal" size_target="sandbox_rml_source" axis="y" />
+	<textarea id="sandbox_rcss_source" wrap="nowrap"></textarea>
+</div>
+
+<handle class="slider vertical" size_target="sources" axis="x" />
+
+<div id="sandbox_wrapper">
+	<div id="sandbox_target"/>
+</div>
+</body>
+</rml>
