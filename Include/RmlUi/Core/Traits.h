@@ -65,7 +65,7 @@ using ClassId = void*;
 template <typename T>
 struct has_custom_rtti {
 	template <typename U>
-	static auto test(int) -> decltype(U::GetClassIdentifier(), std::true_type());
+	static auto test(int) -> decltype(U::GetStaticClassIdentifier(), std::true_type());
 
 	template <typename U>
 	static std::false_type test(...);
