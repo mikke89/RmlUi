@@ -34,7 +34,7 @@ namespace Lua {
 	template <typename T>
 	void LuaType<T>::Register(lua_State* L)
 	{
-		static_assert(is_complete<T>::value, "Cannot Register an incomplete type");
+		static_assert(is_complete<T>::value, "Cannot register an incomplete type");
 
 		// for annotations, starting at 1, but it is a relative value, not always 1
 		lua_newtable(L);             //[1] = table
@@ -82,49 +82,137 @@ namespace Lua {
 	template <typename T>
 	int LuaType<T>::push(lua_State* L, T* obj, bool gc)
 	{
-		static_assert(is_complete<T>::value, "Cannot Push an incomplete type");
-		// for annotations, starting at index 1, but it is a relative number, not always 1
+		static_assert(is_complete<T>::value, "Cannot push an incomplete type");
 		if (!obj)
 		{
 			lua_pushnil(L);
 			return lua_gettop(L);
 		}
-		LuaTypeMetatable<T>::Get(L, *obj); // lookup metatable in Lua registry ->[1] = metatable of <ClassName>
+
+		return push(L, *obj, gc);
+	}
+
+	template <typename T>
+	int LuaType<T>::push(lua_State* L, T& obj, bool gc)
+	{
+		using storage_type = typename LuaTypeTraits<T>::storage_type;
+
+		static_assert(is_complete<T>::value, "Cannot push an incomplete type");
+		// for annotations, starting at index 1, but it is a relative number, not always 1
+		LuaTypeMetatable<T>::Get(L, obj); // lookup metatable in Lua registry ->[1] = metatable of <ClassName>
 		if (lua_isnil(L, -1))
 			luaL_error(L, "%s missing metatable", GetTClassName<T>());
 		int mt = lua_gettop(L);
-		T** ptrHold = (T**)lua_newuserdata(L, sizeof(T**)); //->[2] = empty userdata
-		int ud = lua_gettop(L);                             // ud = 2
-		if (ptrHold != nullptr)
-		{
-			*ptrHold = obj;
-			lua_pushvalue(L, mt);    // ->[3] = copy of [1]
-			lua_setmetatable(L, -2); //[-2 = 2] -> [2]'s metatable = [3]; pop [3]
-			char name[max_pointer_string_size];
-			tostring(name, max_pointer_string_size, ptrHold);
-			lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH"); //->[3] = value returned from function
-			if (lua_isnil(L, -1))                               // if [3] hasn't been created yet, then create it
-			{
-				luaL_newmetatable(L, "DO NOT TRASH"); //[4] = the new metatable
-				lua_pop(L, 1);                        // pop [4]
-			}
-			lua_pop(L, 1);                                      // pop [3]
-			lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH"); //->[3] = value returned from function
-			if (gc == false)                                    // if we shouldn't garbage collect it, then put the name in to [3]
-			{
-				lua_pushboolean(L, 1);     // ->[4] = true
-				lua_setfield(L, -2, name); // represents t[k] = v, [-2 = 3] = t -> v = [4], k = <ClassName>; pop [4]
-			}
-			else
-			{
-				// In case this is an address that has been pushed
-				// to lua before, we need to set it to nil
-				lua_pushnil(L);            // ->[4] = nil
-				lua_setfield(L, -2, name); // represents t[k] = v, [-2 = 3] = t -> v = [4], k = <ClassName>; pop [4]
-			}
 
-			lua_pop(L, 1); // -> pop [3]
+		//->[2] = empty userdata
+		auto ptrHold = reinterpret_cast<storage_type*>(lua_newuserdata(L, sizeof(storage_type))); 
+		int ud = lua_gettop(L);                             // ud = 2
+
+		// Handle failure to allocate
+		if (!ptrHold)
+		{
+			return lua_gettop(L);
 		}
+
+		if constexpr (LuaTypeTraits<T>::use_script_ptr)
+		{
+			ptrHold = ::new (ptrHold) storage_type(obj);
+		}
+		else
+		{
+			ptrHold = ::new (ptrHold) storage_type(&obj);
+		}
+
+		lua_pushvalue(L, mt);    // ->[3] = copy of [1]
+		lua_setmetatable(L, -2); //[-2 = 2] -> [2]'s metatable = [3]; pop [3]
+		char name[max_pointer_string_size];
+		tostring(name, max_pointer_string_size, ptrHold);
+		lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH"); //->[3] = value returned from function
+		if (lua_isnil(L, -1))                               // if [3] hasn't been created yet, then create it
+		{
+			luaL_newmetatable(L, "DO NOT TRASH"); //[4] = the new metatable
+			lua_pop(L, 1);                        // pop [4]
+		}
+		lua_pop(L, 1);                                      // pop [3]
+		lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH"); //->[3] = value returned from function
+		if (gc == false)                                    // if we shouldn't garbage collect it, then put the name in to [3]
+		{
+			lua_pushboolean(L, 1);     // ->[4] = true
+			lua_setfield(L, -2, name); // represents t[k] = v, [-2 = 3] = t -> v = [4], k = <ClassName>; pop [4]
+		}
+		else
+		{
+			// In case this is an address that has been pushed
+			// to lua before, we need to set it to nil
+			lua_pushnil(L);            // ->[4] = nil
+			lua_setfield(L, -2, name); // represents t[k] = v, [-2 = 3] = t -> v = [4], k = <ClassName>; pop [4]
+		}
+
+		lua_pop(L, 1); // -> pop [3]
+
+		lua_settop(L, ud);  //[ud = 2] -> remove everything that is above 2, top = [2]
+		lua_replace(L, mt); //[mt = 1] -> move [2] to pos [1], and pop previous [1]
+		lua_settop(L, mt);  // remove everything above [1]
+		return mt;          // index of userdata containing pointer to T object
+	}
+
+	template <typename T>
+	int LuaType<T>::push(lua_State* L, ElementPtr&& ptr, bool gc)
+	{
+		using storage_type = typename LuaTypeTraits<T>::storage_type;
+		static_assert(is_complete<T>::value, "Cannot push an incomplete type");
+		static_assert(LuaTypeTraits<T>::use_script_ptr, "Can only push ElementPtr for use_script_ptr types");
+
+		if (!ptr)
+		{
+			lua_pushnil(L);
+			return lua_gettop(L);
+		}
+		// for annotations, starting at index 1, but it is a relative number, not always 1
+		LuaTypeMetatable<T>::Get(L, *ptr); // lookup metatable in Lua registry ->[1] = metatable of <ClassName>
+		if (lua_isnil(L, -1))
+			luaL_error(L, "%s missing metatable", GetTClassName<T>());
+		int mt = lua_gettop(L);
+
+		//->[2] = empty userdata
+		auto ptrHold = reinterpret_cast<storage_type*>(lua_newuserdata(L, sizeof(storage_type))); 
+		int ud = lua_gettop(L);                             // ud = 2
+
+		// Handle failure to allocate
+		if (!ptrHold)
+		{
+			return lua_gettop(L);
+		}
+
+		ptrHold = ::new (ptrHold) storage_type(std::move(ptr));
+
+		lua_pushvalue(L, mt);    // ->[3] = copy of [1]
+		lua_setmetatable(L, -2); //[-2 = 2] -> [2]'s metatable = [3]; pop [3]
+		char name[max_pointer_string_size];
+		tostring(name, max_pointer_string_size, ptrHold);
+		lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH"); //->[3] = value returned from function
+		if (lua_isnil(L, -1))                               // if [3] hasn't been created yet, then create it
+		{
+			luaL_newmetatable(L, "DO NOT TRASH"); //[4] = the new metatable
+			lua_pop(L, 1);                        // pop [4]
+		}
+		lua_pop(L, 1);                                      // pop [3]
+		lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH"); //->[3] = value returned from function
+		if (gc == false)                                    // if we shouldn't garbage collect it, then put the name in to [3]
+		{
+			lua_pushboolean(L, 1);     // ->[4] = true
+			lua_setfield(L, -2, name); // represents t[k] = v, [-2 = 3] = t -> v = [4], k = <ClassName>; pop [4]
+		}
+		else
+		{
+			// In case this is an address that has been pushed
+			// to lua before, we need to set it to nil
+			lua_pushnil(L);            // ->[4] = nil
+			lua_setfield(L, -2, name); // represents t[k] = v, [-2 = 3] = t -> v = [4], k = <ClassName>; pop [4]
+		}
+
+		lua_pop(L, 1); // -> pop [3]
+
 		lua_settop(L, ud);  //[ud = 2] -> remove everything that is above 2, top = [2]
 		lua_replace(L, mt); //[mt = 1] -> move [2] to pos [1], and pop previous [1]
 		lua_settop(L, mt);  // remove everything above [1]
@@ -134,10 +222,18 @@ namespace Lua {
 	template <typename T>
 	T* LuaType<T>::check(lua_State* L, int narg)
 	{
-		T** ptrHold = static_cast<T**>(lua_touserdata(L, narg));
+		using storage_type = typename LuaTypeTraits<T>::storage_type;
+
+		auto ptrHold = reinterpret_cast<storage_type*>(lua_touserdata(L, narg));
 		if (ptrHold == nullptr)
 			return nullptr;
-		return (*ptrHold);
+
+		if constexpr (LuaTypeTraits<T>::use_script_ptr) {
+			return static_cast<T*>(ptrHold->get());
+		}
+		else {
+			return *ptrHold;
+		}
 	}
 
 	// private members
@@ -200,9 +296,19 @@ namespace Lua {
 	template <typename T>
 	int LuaType<T>::tostring_T(lua_State* L)
 	{
+		using storage_type = typename LuaTypeTraits<T>::storage_type;
+
 		char buff[max_pointer_string_size];
-		T** ptrHold = (T**)lua_touserdata(L, 1);
-		void* obj = static_cast<void*>(*ptrHold);
+		auto ptrHold = reinterpret_cast<storage_type*>(lua_touserdata(L, 1));
+		void* obj; 
+
+		if constexpr (LuaTypeTraits<T>::use_script_ptr) {
+			obj = reinterpret_cast<void*>(ptrHold ? ptrHold->get() : nullptr);
+		}
+		else {
+			obj = reinterpret_cast<void*>(*ptrHold);
+		}
+
 		snprintf(buff, max_pointer_string_size, "%p", obj);
 		lua_pushfstring(L, "%s (%s)", GetTClassName<T>(), buff);
 		return 1;

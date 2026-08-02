@@ -23,6 +23,6 @@ extern luaL_Reg ElementFormControlSetters[];
 
 template <>
 void ExtraInit<ElementFormControl>(lua_State* L, int metatable_index);
-RMLUI_LUATYPE_DECLARE(ElementFormControl)
+RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(ElementFormControl, Element)
 } // namespace Lua
 } // namespace Rml

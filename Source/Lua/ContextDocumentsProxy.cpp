@@ -1,5 +1,5 @@
 #include "ContextDocumentsProxy.h"
-#include <RmlUi/Core/ElementDocument.h>
+#include "Document.h"
 
 namespace Rml {
 namespace Lua {

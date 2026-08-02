@@ -1,6 +1,7 @@
 #include "EventParametersProxy.h"
+#include "Element.h"
+#include "Event.h"
 #include <RmlUi/Core/Dictionary.h>
-#include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Lua/LuaType.h>

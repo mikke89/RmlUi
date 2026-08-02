@@ -1,4 +1,5 @@
 #include "ElementFormControlTextArea.h"
+#include "../Element.h"
 #include "ElementFormControl.h"
 #include <RmlUi/Core/Elements/ElementFormControl.h>
 #include <RmlUi/Lua/Utilities.h>

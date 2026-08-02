@@ -1,5 +1,5 @@
 #include "ElementForm.h"
-#include <RmlUi/Core/Element.h>
+#include "../Element.h"
 #include <RmlUi/Core/Elements/ElementForm.h>
 #include <RmlUi/Lua/Utilities.h>
 

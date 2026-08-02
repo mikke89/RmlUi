@@ -1,5 +1,5 @@
 #include "ElementTabSet.h"
-#include <RmlUi/Core/Element.h>
+#include "../Element.h"
 #include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {

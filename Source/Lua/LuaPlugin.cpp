@@ -108,7 +108,6 @@ static void RegisterTypes()
 	// things that inherit from Element
 	LuaType<Document>::Register(L);
 	LuaType<ElementText>::Register(L);
-	LuaType<ElementPtr>::Register(L);
 	LuaType<Event>::Register(L);
 	LuaType<Context>::Register(L);
 	LuaType<LuaRmlUi>::Register(L);

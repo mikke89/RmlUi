@@ -1,8 +1,9 @@
 #include "RmlUi.h"
+#include "Context.h"
 #include "ElementInstancer.h"
+#include "Vector2i.h"
 #include "LuaElementInstancer.h"
 #include "RmlUiContextsProxy.h"
-#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Factory.h>

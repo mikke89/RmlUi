@@ -1,13 +1,13 @@
 #include "LuaEventListener.h"
-#include <RmlUi/Core/Element.h>
-#include <RmlUi/Core/ElementDocument.h>
+#include "Document.h"
+#include "Element.h"
+#include "Event.h"
 #include <RmlUi/Lua/Interpreter.h>
 #include <RmlUi/Lua/LuaType.h>
 #include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {
 namespace Lua {
-typedef ElementDocument Document;
 
 LuaEventListener::LuaEventListener(const String& code, Element* element) : EventListener()
 {

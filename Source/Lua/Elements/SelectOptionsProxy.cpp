@@ -1,6 +1,6 @@
 #include "SelectOptionsProxy.h"
+#include "../Element.h"
 #include "../Pairs.h"
-#include <RmlUi/Core/Element.h>
 
 namespace Rml {
 namespace Lua {

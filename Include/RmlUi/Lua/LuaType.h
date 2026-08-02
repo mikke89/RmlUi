@@ -3,7 +3,7 @@
 #include "Header.h"
 #include "IncludeLua.h"
 
-#include <RmlUi/Core/Traits.h>
+#include <RmlUi/Core/ScriptPtr.h>
 
 // As an example, if you used this macro like
 // RMLUI_LUAMETHOD(Unit,GetId)
@@ -60,14 +60,35 @@ types.*/
 getting the name of the type, method tables, and if it is reference counted.
 When you use this, you either must also use
 the RMLUI_LUATYPE_DEFINE macro, or make sure that the function signatures are @em exact.*/
-#define RMLUI_LUATYPE_DECLARE(type)                     \
-	template <>                                         \
-	RMLUILUA_API const char* GetTClassName<type>();     \
-	template <>                                         \
-	RMLUILUA_API RegType<type>* GetMethodTable<type>(); \
-	template <>                                         \
-	RMLUILUA_API luaL_Reg* GetAttrTable<type>();        \
-	template <>                                         \
+#define RMLUI_LUATYPE_DECLARE(type)                         \
+	template <>                                             \
+	struct LuaTypeTraits<type> {                            \
+		static constexpr const bool use_script_ptr = false; \
+		using storage_type = type*;                         \
+	};                                                      \
+	template <>                                             \
+	RMLUILUA_API const char* GetTClassName<type>();         \
+	template <>                                             \
+	RMLUILUA_API RegType<type>* GetMethodTable<type>();     \
+	template <>                                             \
+	RMLUILUA_API luaL_Reg* GetAttrTable<type>();            \
+	template <>                                             \
+	RMLUILUA_API luaL_Reg* SetAttrTable<type>();
+
+/** Identical to RMLUI_LUATYPE_DECLARE, except that it declares the type as managed via ScriptPtr<baseType>. */
+#define RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(type, baseType)    \
+	template <>                                             \
+	struct LuaTypeTraits<type> {                            \
+		static constexpr const bool use_script_ptr = true;  \
+		using storage_type = ScriptPtr<baseType>;           \
+	};                                                      \
+	template <>                                             \
+	RMLUILUA_API const char* GetTClassName<type>();         \
+	template <>                                             \
+	RMLUILUA_API RegType<type>* GetMethodTable<type>();     \
+	template <>                                             \
+	RMLUILUA_API luaL_Reg* GetAttrTable<type>();            \
+	template <>                                             \
 	RMLUILUA_API luaL_Reg* SetAttrTable<type>();
 
 namespace Rml {
@@ -100,12 +121,16 @@ namespace Lua {
 	template <typename T>
 	RMLUILUA_API void ExtraInit(lua_State* L, int metatable_index);
 
-	template <typename, typename = void>
-	struct LuaTypeMetatable;
+	/** Defines metadata about T for how its data should be managed. */
+	template <typename>
+	struct LuaTypeTraits;
 
 	/** Helper type to register and bind metatables for types, depending on whether or not they
 	use the custom RTTI system. RTTI-enabled types have their metatable placed in the registry keyed to
 	their ClassIdentifer as a lightuserdata. */
+	template <typename, typename = void>
+	struct LuaTypeMetatable;
+
 	template <typename T>
 	struct LuaTypeMetatable<T, typename std::enable_if<has_custom_rtti<T>::value>::type> {
 		/** Registers the metatable for T in the Lua registry to T::GetStaticClassIdentifier() */
@@ -146,6 +171,8 @@ namespace Lua {
 		metamethod being called from the object in Lua
 		@return Position on the stack where the userdata resides   */
 		static inline int push(lua_State* L, T* obj, bool gc = false);
+		static inline int push(lua_State* L, T& obj, bool gc = false);
+		static inline int push(lua_State* L, ElementPtr&& ptr, bool gc = false);
 		/** Statically casts the item at the position on the Lua stack
 		@param narg[in] Position of the item to cast on the Lua stack
 		@return A pointer to an object of type T or @c nullptr   */

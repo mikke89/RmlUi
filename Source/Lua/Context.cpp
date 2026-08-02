@@ -1,5 +1,8 @@
 #include "Context.h"
 #include "ContextDocumentsProxy.h"
+#include "Document.h"
+#include "Element.h"
+#include "Vector2i.h"
 #include "LuaDataModel.h"
 #include "LuaEventListener.h"
 #include <RmlUi/Core/Context.h>

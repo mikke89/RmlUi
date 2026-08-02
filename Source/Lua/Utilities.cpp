@@ -1,5 +1,8 @@
 #include <RmlUi/Core/Variant.h>
 #include <RmlUi/Lua/Utilities.h>
+#include "Colourb.h"
+#include "Colourf.h"
+#include "Vector2f.h"
 
 namespace Rml {
 namespace Lua {

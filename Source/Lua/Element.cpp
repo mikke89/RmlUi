@@ -71,10 +71,10 @@ int ElementAddEventListener(lua_State* L, Element* obj)
 
 int ElementAppendChild(lua_State* L, Element* obj)
 {
-	ElementPtr* element = LuaType<ElementPtr>::check(L, 1);
-	if (*element)
+	auto element = reinterpret_cast<ScriptPtr<Element>*>(lua_touserdata(L, 1));
+	if (element)
 	{
-		Element* child = obj->AppendChild(std::move(*element));
+		Element* child = obj->AppendChild(element->release_from_parent());
 		LuaType<Element>::push(L, child, false);
 	}
 	else
@@ -205,11 +205,11 @@ int ElementHasChildNodes(lua_State* L, Element* obj)
 
 int ElementInsertBefore(lua_State* L, Element* obj)
 {
-	ElementPtr* element = LuaType<ElementPtr>::check(L, 1);
+	auto element = reinterpret_cast<ScriptPtr<Element>*>(lua_touserdata(L, 1));
 	Element* adjacent = LuaType<Element>::check(L, 2);
-	if (*element)
+	if (element)
 	{
-		Element* inserted = obj->InsertBefore(std::move(*element), adjacent);
+		Element* inserted = obj->InsertBefore(element->release_from_parent(), adjacent);
 		LuaType<Element>::push(L, inserted, false);
 	}
 	else
@@ -238,16 +238,20 @@ int ElementRemoveAttribute(lua_State* L, Element* obj)
 int ElementRemoveChild(lua_State* L, Element* obj)
 {
 	Element* element = LuaType<Element>::check(L, 1);
-	lua_pushboolean(L, static_cast<bool>(obj->RemoveChild(element)));
+	auto removed = obj->RemoveChild(element);
+	LuaType<Element>::push(L, std::move(removed));
 	return 1;
 }
 
 int ElementReplaceChild(lua_State* L, Element* obj)
 {
-	ElementPtr* inserted = LuaType<ElementPtr>::check(L, 1);
+	auto inserted = reinterpret_cast<ScriptPtr<Element>*>(lua_touserdata(L, 1));
 	Element* replaced = LuaType<Element>::check(L, 2);
-	if (*inserted)
-		lua_pushboolean(L, static_cast<bool>(obj->ReplaceChild(std::move(*inserted), replaced)));
+	if (inserted)
+	{
+		ElementPtr ownedReplaced = obj->ReplaceChild(inserted->release_from_parent(), replaced);
+		LuaType<Element>::push(L, std::move(ownedReplaced));
+	}
 	else
 		Log::Message(Log::LT_WARNING, "Could not replace child in element '%s', as the child was null. Was it already moved from?",
 			obj->GetAddress().c_str());
@@ -627,26 +631,6 @@ luaL_Reg ElementSetters[] = {
 };
 
 RMLUI_LUATYPE_DEFINE(Element)
-
-template <>
-void ExtraInit<ElementPtr>(lua_State* /*L*/, int /*metatable_index*/)
-{
-	return;
-}
-
-RegType<ElementPtr> ElementPtrMethods[] = {
-	{nullptr, nullptr},
-};
-
-luaL_Reg ElementPtrGetters[] = {
-	{nullptr, nullptr},
-};
-
-luaL_Reg ElementPtrSetters[] = {
-	{nullptr, nullptr},
-};
-
-RMLUI_LUATYPE_DEFINE(ElementPtr)
 
 } // namespace Lua
 } // namespace Rml
