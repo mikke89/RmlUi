@@ -85,7 +85,8 @@ public:
 	/// @param[in] stream The stream to instance from.
 	/// @param[in] document_base_tag The tag used to wrap the document, eg. 'rml'.
 	/// @return The instanced document, or nullptr if an error occurred.
-	static ElementPtr InstanceDocumentStream(Context* context, Stream* stream, const String& document_base_tag);
+	static ElementPtr InstanceDocumentStream(Context* context, Stream* stream, const String& document_base_tag,
+		Function<void(const DocumentHeader&)> callback_compiled_document_header);
 
 	/// Registers a non-owning pointer to an instancer that will be used to instance decorators.
 	/// @param[in] name The name of the decorator the instancer will be called for.

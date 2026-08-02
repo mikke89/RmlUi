@@ -98,6 +98,9 @@ public:
 	/// @param theme_name The name of the theme.
 	/// @return True if the theme is activated.
 	bool IsThemeActive(const String& theme_name) const;
+	/// Retrieve the list of active themes.
+	/// @return A list of active themes.
+	StringList GetActiveThemes() const;
 
 	/// Returns the first document in the context with the given id.
 	/// @param[in] id The id of the desired document.

@@ -17,7 +17,7 @@ class URL;
 
 class RMLUICORE_API XMLParser : public BaseXMLParser {
 public:
-	XMLParser(Element* root);
+	XMLParser(Element* root, Function<void(const DocumentHeader&)> callback_compiled_document_header);
 	~XMLParser();
 
 	/// Registers a tag were its contents should be treated as CDATA.
@@ -74,6 +74,8 @@ public:
 	/// Called when the parser encounters data.
 	void HandleData(const String& data, XMLDataType type) override;
 
+	Function<void(const DocumentHeader&)>& GetCallbackCompiledDocumentHead() { return callback_compiled_document_header; }
+
 protected:
 	/// Called when the parser finds the beginning of an element tag.
 	void HandleElementStart(const String& name, const XMLAttributes& attributes) override;
@@ -84,6 +86,7 @@ private:
 	UniquePtr<DocumentHeader> header;
 	XMLNodeHandler* active_handler;
 	Stack<ParseFrame> stack;
+	Function<void(const DocumentHeader&)> callback_compiled_document_header;
 };
 
 } // namespace Rml

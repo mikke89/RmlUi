@@ -289,7 +289,7 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 	DebugVerifyLocaleSetting();
 	PluginRegistry::NotifyDocumentOpen(this, stream->GetSourceURL().GetURL());
 
-	ElementPtr element = Factory::InstanceDocumentStream(this, stream, GetDocumentsBaseTag());
+	ElementPtr element = Factory::InstanceDocumentStream(this, stream, GetDocumentsBaseTag(), nullptr);
 	if (!element)
 		return nullptr;
 
@@ -320,7 +320,8 @@ ElementDocument* Context::LoadDocumentFromMemory(const String& string, const Str
 	// Open the stream based on the string contents.
 	auto stream = MakeUnique<StreamMemory>(reinterpret_cast<const byte*>(string.c_str()), string.size());
 
-	stream->SetSourceURL(source_url);
+	String url_safe_path = StringUtilities::Replace(source_url, ':', '|');
+	stream->SetSourceURL(url_safe_path);
 
 	// Load the document from the stream.
 	ElementDocument* document = LoadDocument(stream.get());
@@ -424,6 +425,11 @@ void Context::ActivateTheme(const String& theme_name, bool activate)
 bool Context::IsThemeActive(const String& theme_name) const
 {
 	return active_themes.count(theme_name);
+}
+
+StringList Context::GetActiveThemes() const
+{
+	return StringList(active_themes.begin(), active_themes.end());
 }
 
 ElementDocument* Context::GetDocument(const String& id)

@@ -421,12 +421,13 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 
 bool Factory::InstanceElementStream(Element* parent, Stream* stream)
 {
-	XMLParser parser(parent);
+	XMLParser parser(parent, nullptr);
 	parser.Parse(stream);
 	return true;
 }
 
-ElementPtr Factory::InstanceDocumentStream(Context* context, Stream* stream, const String& document_base_tag)
+ElementPtr Factory::InstanceDocumentStream(Context* context, Stream* stream, const String& document_base_tag,
+	Function<void(const DocumentHeader&)> callback_compiled_document_header)
 {
 	RMLUI_ZoneScoped;
 
@@ -447,7 +448,7 @@ ElementPtr Factory::InstanceDocumentStream(Context* context, Stream* stream, con
 
 	document->context = context;
 
-	XMLParser parser(element.get());
+	XMLParser parser(element.get(), std::move(callback_compiled_document_header));
 	parser.Parse(stream);
 
 	return element;
