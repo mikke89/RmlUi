@@ -3,6 +3,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define_Implementation_WithParent(ElementFormControl, Element)
+
 ElementFormControl::ElementFormControl(const String& tag) : Element(tag)
 {
 	SetProperty(PropertyId::TabIndex, Property(Style::TabIndex::Auto));

@@ -13,6 +13,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define_Implementation_WithParent(ElementProgress, Element)
+
 ElementProgress::ElementProgress(const String& tag) :
 	Element(tag), direction(DefaultDirection), start_edge(DefaultStartEdge), fill(nullptr), rect_set(false)
 {

@@ -24,7 +24,7 @@ jobs:
           - cmake_options: -DRMLUI_BACKEND=GLFW_GL3 -DBUILD_TESTING=ON
             enable_testing: true
           - cmake_options: -DRMLUI_BACKEND=X11_GL2 -DRMLUI_LOTTIE_PLUGIN=ON
-          - cmake_options: -DRMLUI_BACKEND=SDL_GL2 -DRMLUI_CUSTOM_RTTI=ON -DCMAKE_CXX_FLAGS="-fno-exceptions -fno-rtti"
+          - cmake_options: -DRMLUI_BACKEND=SDL_GL2 -DCMAKE_CXX_FLAGS="-fno-exceptions -fno-rtti"
           - cmake_options: -DRMLUI_BACKEND=SFML_GL2 -DRMLUI_THIRDPARTY_CONTAINERS=OFF
           - cmake_options: -DRMLUI_BACKEND=GLFW_VK -DCMAKE_BUILD_TYPE=Debug -DRMLUI_VK_DEBUG=ON -DRMLUI_PRECOMPILED_HEADERS=OFF
 

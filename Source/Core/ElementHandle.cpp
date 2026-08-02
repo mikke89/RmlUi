@@ -224,6 +224,8 @@ public:
 	}
 };
 
+RMLUI_RTTI_Define_Implementation_WithParent(ElementHandle, Element)
+
 ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0)
 {
 	// Make sure we can be dragged!

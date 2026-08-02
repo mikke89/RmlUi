@@ -2,6 +2,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define_Implementation_WithParent(ElementLabel, Element)
+
 ElementLabel::ElementLabel(const String& tag) : Element(tag)
 {
 	AddEventListener(EventId::Click, this, true);

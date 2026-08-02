@@ -73,8 +73,6 @@ option(RMLUI_THIRDPARTY_CONTAINERS "Enable integrated third-party containers for
 
 option(RMLUI_MATRIX_ROW_MAJOR "Use row-major matrices. Column-major matrices are used by default." OFF)
 
-option(RMLUI_CUSTOM_RTTI "Build RmlUi with a custom implementation of run-time type information (RTTI). When enabled, all usage of language RTTI features such as dynamic_cast will be disabled." OFF)
-
 option(RMLUI_PRECOMPILED_HEADERS "Enable precompiled headers for RmlUi." ON)
 
 option(RMLUI_COMPILER_OPTIONS "Enable recommended compiler-specific options for the project, such as for supported warning level, standards conformance, and multiprocess builds. Turn off for full control over compiler flags." ON)

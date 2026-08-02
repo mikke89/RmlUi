@@ -9,6 +9,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define_Implementation_WithParent(ElementFormControlInput, Element)
+
 ElementFormControlInput::ElementFormControlInput(const String& tag) : ElementFormControl(tag)
 {
 	// OnAttributeChange will be called right after this, possible with a non-default type. Thus,

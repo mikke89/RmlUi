@@ -6,6 +6,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define_Implementation_WithParent(ElementSVG, Element)
+
 unsigned long ElementSVG::internal_id_counter = 0;
 
 ElementSVG::ElementSVG(const String& tag) : Element(tag) {}
