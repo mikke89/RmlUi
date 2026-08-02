@@ -1,0 +1,12 @@
+body {
+	font-family: LatoLatin;
+}
+div, p {
+	display: block;
+}
+em {
+	font-style: italic;
+}
+#block {
+	background-color: #00ff00;
+}

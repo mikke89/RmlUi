@@ -20,7 +20,8 @@ struct XmlParserData {
 
 static ControlledLifetimeResource<XmlParserData> xml_parser_data;
 
-XMLParser::XMLParser(Element* root)
+XMLParser::XMLParser(Element* root, Function<void(const DocumentHeader&)> callback_compiled_document_header) :
+	callback_compiled_document_header(std::move(callback_compiled_document_header))
 {
 	for (const String& cdata_tag : xml_parser_data->cdata_tags)
 		RegisterCDATATag(cdata_tag);

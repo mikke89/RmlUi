@@ -17,7 +17,7 @@ This directory contains basic applications that demonstrate initialisation, usag
 - `bitmap_font` Using a custom font engine. Available even without FreeType, i.e. `RMLUI_FONT_ENGINE="none"`.
 - `custom_log` Setting up custom logging.
 - `data_binding` Setting up and using data bindings.
-- `demo` Demonstrates a variety of features in RmlUi and includes a sandbox for playing with RML/RCSS.
+- `demo` Demonstrates a variety of features in RmlUi.
 - `drag` Dragging elements between containers.
 - `effects` Advanced rendering effects, including filters, gradients and box shadows. Only enabled with supported backends.
 - `harfbuzz` Advanced text shaping. Only enabled when [HarfBuzz](https://harfbuzz.github.io/) is enabled.
@@ -36,6 +36,19 @@ A full implementation of the 1970s classic Space Invaders using the RmlUi interf
 #### `lua_invaders`
 
 Lua version of the invaders sample. Only installed with the Lua plugin.
+
+#### `sandbox`
+
+An interactive sandbox for playing with RML and RCSS. It allows you to edit RML and RCSS together, and preview the resulting document.
+
+The sandbox can also be used to load and view a serialized document. First, to serialize a document:
+
+- From your own project: Call `ElementDocument::SerializeDocument` to retrieve the serialized document. You can save this to file, or copy it to clipboard.
+- From any of the built-in samples in RmlUi: Press `Ctrl+Shift+C` to serialize the document to the clipboard.
+
+A serialized document includes all external style sheets and resolves any templates, inline into the serialized result. However, any images still need to be accessible.
+
+Then, in the sandbox, you can load the serialized document from file, or paste it from the clipboard. If necessary, set the working directory to the location that root-relative paths should be resolved against, so that external images can be found.
 
 #### `shell`
 
