@@ -62,6 +62,17 @@ public:
 
 using ClassId = void*;
 
+template <typename T>
+struct has_custom_rtti {
+	template <typename U>
+	static auto test(int) -> decltype(U::GetClassIdentifier(), std::true_type());
+
+	template <typename U>
+	static std::false_type test(...);
+
+	static constexpr bool value = decltype(test<T>(0))::value;
+};
+
 } // namespace Rml
  
 #define RMLUI_RTTI_Define(_NAME_)                             \
