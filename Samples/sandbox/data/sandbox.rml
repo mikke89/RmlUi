@@ -1,0 +1,168 @@
+<rml>
+<head>
+<link type="text/template" href="/assets/window.rml"/>
+<title>Demo Sample</title>
+<style>
+@spritesheet demo-sheet
+{
+	src: "/assets/invader.tga";
+
+	window-outer: 0px 0px 144px 151px;
+
+	demo-radio-t: 407px  0px 30px 14px;
+	demo-radio-c: 407px 14px 30px  2px;
+	demo-radio-b: 407px 16px 30px 14px;
+
+	demo-radio-l: 407px 0px 14px 30px;
+	demo-radio-m: 421px 0px  2px 30px;
+	demo-radio-r: 423px 0px 14px 30px;
+
+	demo-checkbox-t: 407px 60px 30px 14px;
+	demo-checkbox-c: 407px 74px 30px  2px;
+	demo-checkbox-b: 407px 76px 30px 14px;
+
+	demo-checkbox-l: 407px 60px 14px 30px;
+	demo-checkbox-m: 421px 60px  2px 30px;
+	demo-checkbox-r: 423px 60px 14px 30px;
+
+	demo-checked-t: 407px  90px 30px  8px;
+	demo-checked-c: 407px  98px 30px 14px;
+	demo-checked-b: 407px 112px 30px  8px;
+
+	demo-help-t:    128px 152px 51px  6px;
+	demo-help-c:    128px 158px 51px 21px;
+	demo-help-b:    128px 179px 51px 12px;
+
+	demo-title-bar: 147px 0px 96px 85px;
+}
+
+body.window
+{
+	inset: 50dp 80dp;
+	min-width: 1040dp;
+	min-height: 300dp;
+	max-width: none;
+	max-height: none;
+}
+div#title_bar div#icon
+{
+	display: none;
+}
+div#content
+{
+	position: relative;
+	/* background-color: #bbb; */
+}
+
+h1
+{
+	margin: 1.4em 0 0.7em;
+	font-size: 18dp;
+}
+
+
+#sandbox
+{
+	gap: 5dp;
+	position: absolute;
+	top: 20dp;
+	right: 30dp;
+	bottom: 20dp;
+	left: 30dp;
+	padding: 0;
+	max-width: none;
+}
+#sandbox tr
+{
+	background-color: transparent;
+}
+
+/* font-face sample */
+@font-face
+{
+	font-family: "monospace";
+	src: "assets/RobotoMono-Regular.ttf", "assets/RobotoMono-Bold.ttf";
+}
+
+@font-face
+{
+	font-family: "monospace";
+	src: "assets/RobotoMono-Italic.ttf", "assets/RobotoMono-BoldItalic.ttf";
+	font-style: italic;
+}
+
+textarea
+{
+	font-size: 13dp;
+	color: #222;
+	font-family: monospace;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+}
+#sandbox_target
+{
+	box-sizing: border-box;
+	background-color: #fff;
+	border: 1px #000;
+	height: 100%;
+	color: #000;
+	text-align: left;
+	position: relative;
+}
+#col_rml_source
+{
+	min-width: 15%;
+	max-width: 85%;
+}
+#row_source
+{
+	height: 40%;
+	min-height: 15%;
+	max-height: 85%;
+}
+.slider
+{
+	display: block;
+	height: 100%;
+	background: #3332;
+	cursor: move;
+	box-sizing: border-box;
+	border: 4dp transparent;
+}
+.slider:hover, .slider:active
+{
+	background: #dda;
+}
+#vertical_slider
+{
+	width: 12dp;
+	margin-left: 3dp;
+	padding-top: 5dp;
+}
+#horizontal_slider
+{
+	height: 12dp;
+}
+</style>
+</head>
+
+<body template="window">
+<table id="sandbox">
+	<col id="col_rml_source"/>
+	<col/>
+	<col/>
+	<tr id="row_source">
+		<td><textarea id="sandbox_rml_source" wrap="nowrap" onchange="set_sandbox_body"></textarea></td>
+		<td id="vertical_slider"><handle class="slider" size_target="col_rml_source"/></td>
+		<td><textarea id="sandbox_rcss_source" wrap="nowrap" onchange="set_sandbox_style"></textarea></td>
+	</tr>
+	<tr>
+		<td colspan=3 id="horizontal_slider"><handle class="slider" size_target="row_source"/></td>
+	</tr>
+	<tr style="height: 100%">
+		<td colspan=3><div id="sandbox_target"/></td>
+	</tr>
+</table>
+</body>
+</rml>

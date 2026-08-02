@@ -17,7 +17,7 @@ This directory contains basic applications that demonstrate initialisation, usag
 - `bitmap_font` Using a custom font engine. Available even without FreeType, i.e. `RMLUI_FONT_ENGINE="none"`.
 - `custom_log` Setting up custom logging.
 - `data_binding` Setting up and using data bindings.
-- `demo` Demonstrates a variety of features in RmlUi and includes a sandbox for playing with RML/RCSS.
+- `demo` Demonstrates a variety of features in RmlUi.
 - `drag` Dragging elements between containers.
 - `effects` Advanced rendering effects, including filters, gradients and box shadows. Only enabled with supported backends.
 - `harfbuzz` Advanced text shaping. Only enabled when [HarfBuzz](https://harfbuzz.github.io/) is enabled.
@@ -36,6 +36,10 @@ A full implementation of the 1970s classic Space Invaders using the RmlUi interf
 #### `lua_invaders`
 
 Lua version of the invaders sample. Only installed with the Lua plugin.
+
+#### `sandbox`
+
+An interactive sandbox for playing with RML and RCSS.
 
 #### `shell`
 
