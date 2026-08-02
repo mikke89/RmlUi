@@ -2,13 +2,43 @@ namespace Rml {
 namespace Lua {
 
 	template <typename T>
+	void LuaTypeMetatable<T, typename std::enable_if<has_custom_rtti<T>::value>::type>::Register(lua_State* L)
+	{
+		lua_newtable(L);
+		lua_pushlightuserdata(L, T::GetStaticClassIdentifier());
+		lua_pushvalue(L, -2);
+		lua_settable(L, LUA_REGISTRYINDEX);
+	}
+
+	template <typename T>
+	void LuaTypeMetatable<T, typename std::enable_if<has_custom_rtti<T>::value>::type>::Get(lua_State* L,
+			const T& obj)
+	{
+		lua_pushlightuserdata(L, obj.GetClassIdentifier());
+		lua_gettable(L, LUA_REGISTRYINDEX);
+	}
+
+	template <typename T>
+	void LuaTypeMetatable<T, typename std::enable_if<!has_custom_rtti<T>::value>::type>::Register(lua_State* L)
+	{
+		luaL_newmetatable(L, GetTClassName<T>());
+	}
+
+	template <typename T>
+	void LuaTypeMetatable<T, typename std::enable_if<!has_custom_rtti<T>::value>::type>::Get(lua_State* L,
+			const T& /*obj*/)
+	{
+		luaL_getmetatable(L, GetTClassName<T>());
+	}
+
+	template <typename T>
 	void LuaType<T>::Register(lua_State* L)
 	{
 		// for annotations, starting at 1, but it is a relative value, not always 1
 		lua_newtable(L);             //[1] = table
 		int methods = lua_gettop(L); // methods = 1
 
-		luaL_newmetatable(L, GetTClassName<T>()); //[2] = metatable named <ClassName>, referred in here by ClassMT
+		LuaTypeMetatable<T>::Register(L); //[2] = metatable referred in here by ClassMT
 		int metatable = lua_gettop(L);            // metatable = 2
 
 		luaL_newmetatable(L, "DO NOT TRASH"); //[3] = metatable named "DO NOT TRASH"
@@ -56,10 +86,10 @@ namespace Lua {
 			lua_pushnil(L);
 			return lua_gettop(L);
 		}
-		luaL_getmetatable(L, GetTClassName<T>()); // lookup metatable in Lua registry ->[1] = metatable of <ClassName>
+		LuaTypeMetatable<T>::Get(L, *obj); // lookup metatable in Lua registry ->[1] = metatable of <ClassName>
 		if (lua_isnil(L, -1))
 			luaL_error(L, "%s missing metatable", GetTClassName<T>());
-		int mt = lua_gettop(L);                             // mt = 1
+		int mt = lua_gettop(L);
 		T** ptrHold = (T**)lua_newuserdata(L, sizeof(T**)); //->[2] = empty userdata
 		int ud = lua_gettop(L);                             // ud = 2
 		if (ptrHold != nullptr)

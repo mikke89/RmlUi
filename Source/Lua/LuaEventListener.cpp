@@ -1,5 +1,6 @@
 #include "LuaEventListener.h"
 #include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Lua/Interpreter.h>
 #include <RmlUi/Lua/LuaType.h>
 #include <RmlUi/Lua/Utilities.h>

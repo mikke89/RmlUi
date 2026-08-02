@@ -3,6 +3,8 @@
 #include "Header.h"
 #include "IncludeLua.h"
 
+#include <RmlUi/Core/Traits.h>
+
 // As an example, if you used this macro like
 // RMLUI_LUAMETHOD(Unit,GetId)
 // it would result in code that looks like
@@ -97,6 +99,28 @@ namespace Lua {
 	same name in the superclass.    */
 	template <typename T>
 	RMLUILUA_API void ExtraInit(lua_State* L, int metatable_index);
+
+	template <typename, typename = void>
+	struct LuaTypeMetatable;
+
+	/** Helper type to register and bind metatables for types, depending on whether or not they
+	use the custom RTTI system. RTTI-enabled types have their metatable placed in the registry keyed to
+	their ClassIdentifer as a lightuserdata. */
+	template <typename T>
+	struct LuaTypeMetatable<T, typename std::enable_if<has_custom_rtti<T>::value>::type> {
+		/** Registers the metatable for T in the Lua registry to T::GetStaticClassIdentifier() */
+		static void Register(lua_State* L);
+		/** Fetches the metatable keyed to obj.GetClassIdentifier() */
+		static void Get(lua_State* L, const T& obj);
+	};
+
+	template <typename T>
+	struct LuaTypeMetatable<T, typename std::enable_if<!has_custom_rtti<T>::value>::type> {
+		/** Registers the metatable for T in the Lua registry to GetTClassName<T>() */
+		static void Register(lua_State* L);
+		/** Fetches the metatable keyed to GetTClassName<T>() */
+		static void Get(lua_State* L, const T& obj);
+	};
 
 	/**
 	    This is mostly the definition of the Lua userdata that C++ gives to the user, plus

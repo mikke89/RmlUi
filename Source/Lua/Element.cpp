@@ -1,4 +1,5 @@
 #include "Element.h"
+#include "Document.h"
 #include "ElementAttributesProxy.h"
 #include "ElementChildNodesProxy.h"
 #include "ElementStyleProxy.h"
@@ -7,7 +8,6 @@
 
 namespace Rml {
 namespace Lua {
-typedef ElementDocument Document;
 
 template <>
 void ExtraInit<Element>(lua_State* L, int metatable_index)

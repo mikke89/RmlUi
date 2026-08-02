@@ -2,7 +2,9 @@
 #include "ElementInstancer.h"
 #include "LuaElementInstancer.h"
 #include "RmlUiContextsProxy.h"
+#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/Input.h>
 
