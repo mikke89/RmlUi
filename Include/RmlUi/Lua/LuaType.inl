@@ -34,6 +34,8 @@ namespace Lua {
 	template <typename T>
 	void LuaType<T>::Register(lua_State* L)
 	{
+		static_assert(is_complete<T>::value, "Cannot Register an incomplete type");
+
 		// for annotations, starting at 1, but it is a relative value, not always 1
 		lua_newtable(L);             //[1] = table
 		int methods = lua_gettop(L); // methods = 1
@@ -80,6 +82,7 @@ namespace Lua {
 	template <typename T>
 	int LuaType<T>::push(lua_State* L, T* obj, bool gc)
 	{
+		static_assert(is_complete<T>::value, "Cannot Push an incomplete type");
 		// for annotations, starting at index 1, but it is a relative number, not always 1
 		if (!obj)
 		{
