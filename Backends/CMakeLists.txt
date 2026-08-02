@@ -79,46 +79,43 @@ target_link_libraries(rmlui_backend_X11_GL2 INTERFACE rmlui_backend_common_heade
 
 if(RMLUI_BACKEND MATCHES "^Wayland")
 	add_library(rmlui_backend_Wayland_GL3 INTERFACE)
-	if(RMLUI_WAYLAND_CURSOR_SHAPE)
-		set(rmlui_wayland_generated_dir "${CMAKE_CURRENT_BINARY_DIR}/GeneratedWayland")
-		set(rmlui_wayland_cursor_shape_header "${rmlui_wayland_generated_dir}/cursor-shape-v1-client-protocol.h")
-		set(rmlui_wayland_cursor_shape_code "${rmlui_wayland_generated_dir}/cursor-shape-v1-protocol.c")
-		set(rmlui_wayland_tablet_code "${rmlui_wayland_generated_dir}/tablet-unstable-v2-protocol.c")
-		file(MAKE_DIRECTORY "${rmlui_wayland_generated_dir}")
-		add_custom_command(
-			OUTPUT
-				"${rmlui_wayland_cursor_shape_header}"
-				"${rmlui_wayland_cursor_shape_code}"
-				"${rmlui_wayland_tablet_code}"
-			COMMAND
-				"${RMLUI_WAYLAND_SCANNER_EXECUTABLE}" client-header
-				"${RMLUI_WAYLAND_CURSOR_SHAPE_PROTOCOL}" "${rmlui_wayland_cursor_shape_header}"
-			COMMAND
-				"${RMLUI_WAYLAND_SCANNER_EXECUTABLE}" private-code
-				"${RMLUI_WAYLAND_CURSOR_SHAPE_PROTOCOL}" "${rmlui_wayland_cursor_shape_code}"
-			COMMAND
-				"${RMLUI_WAYLAND_SCANNER_EXECUTABLE}" private-code
-				"${RMLUI_WAYLAND_TABLET_PROTOCOL}" "${rmlui_wayland_tablet_code}"
-			DEPENDS
-				"${RMLUI_WAYLAND_CURSOR_SHAPE_PROTOCOL}"
-				"${RMLUI_WAYLAND_TABLET_PROTOCOL}"
-			VERBATIM
-		)
-		add_custom_target(rmlui_backend_Wayland_protocols
-			DEPENDS
-				"${rmlui_wayland_cursor_shape_header}"
-				"${rmlui_wayland_cursor_shape_code}"
-				"${rmlui_wayland_tablet_code}"
-		)
-		add_dependencies(rmlui_backend_Wayland_GL3 rmlui_backend_Wayland_protocols)
-		target_sources(rmlui_backend_Wayland_GL3 INTERFACE
+	set(rmlui_wayland_generated_dir "${CMAKE_CURRENT_BINARY_DIR}/GeneratedWayland")
+	set(rmlui_wayland_cursor_shape_header "${rmlui_wayland_generated_dir}/cursor-shape-v1-client-protocol.h")
+	set(rmlui_wayland_cursor_shape_code "${rmlui_wayland_generated_dir}/cursor-shape-v1-protocol.c")
+	set(rmlui_wayland_tablet_code "${rmlui_wayland_generated_dir}/tablet-unstable-v2-protocol.c")
+	file(MAKE_DIRECTORY "${rmlui_wayland_generated_dir}")
+	add_custom_command(
+		OUTPUT
 			"${rmlui_wayland_cursor_shape_header}"
 			"${rmlui_wayland_cursor_shape_code}"
 			"${rmlui_wayland_tablet_code}"
-		)
-		target_include_directories(rmlui_backend_Wayland_GL3 INTERFACE "${rmlui_wayland_generated_dir}")
-		target_compile_definitions(rmlui_backend_Wayland_GL3 INTERFACE RMLUI_WAYLAND_CURSOR_SHAPE)
-	endif()
+		COMMAND
+			"${RMLUI_WAYLAND_SCANNER_EXECUTABLE}" client-header
+			"${RMLUI_WAYLAND_CURSOR_SHAPE_PROTOCOL}" "${rmlui_wayland_cursor_shape_header}"
+		COMMAND
+			"${RMLUI_WAYLAND_SCANNER_EXECUTABLE}" private-code
+			"${RMLUI_WAYLAND_CURSOR_SHAPE_PROTOCOL}" "${rmlui_wayland_cursor_shape_code}"
+		COMMAND
+			"${RMLUI_WAYLAND_SCANNER_EXECUTABLE}" private-code
+			"${RMLUI_WAYLAND_TABLET_PROTOCOL}" "${rmlui_wayland_tablet_code}"
+		DEPENDS
+			"${RMLUI_WAYLAND_CURSOR_SHAPE_PROTOCOL}"
+			"${RMLUI_WAYLAND_TABLET_PROTOCOL}"
+		VERBATIM
+	)
+	add_custom_target(rmlui_backend_Wayland_protocols
+		DEPENDS
+			"${rmlui_wayland_cursor_shape_header}"
+			"${rmlui_wayland_cursor_shape_code}"
+			"${rmlui_wayland_tablet_code}"
+	)
+	add_dependencies(rmlui_backend_Wayland_GL3 rmlui_backend_Wayland_protocols)
+	target_sources(rmlui_backend_Wayland_GL3 INTERFACE
+		"${rmlui_wayland_cursor_shape_header}"
+		"${rmlui_wayland_cursor_shape_code}"
+		"${rmlui_wayland_tablet_code}"
+	)
+	target_include_directories(rmlui_backend_Wayland_GL3 INTERFACE "${rmlui_wayland_generated_dir}")
 	target_sources(rmlui_backend_Wayland_GL3 INTERFACE
 		"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Wayland.cpp"
 		"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_GL3.cpp"
@@ -136,10 +133,6 @@ if(RMLUI_BACKEND MATCHES "^Wayland")
 		PkgConfig::RMLUI_EGL
 		PkgConfig::RMLUI_LIBDECOR
 	)
-	if(TARGET PkgConfig::RMLUI_GIO)
-		target_link_libraries(rmlui_backend_Wayland_GL3 INTERFACE PkgConfig::RMLUI_GIO)
-		target_compile_definitions(rmlui_backend_Wayland_GL3 INTERFACE RMLUI_WAYLAND_GSETTINGS)
-	endif()
 	if(UNIX)
 		target_link_libraries(rmlui_backend_Wayland_GL3 INTERFACE ${CMAKE_DL_LIBS})
 	endif()

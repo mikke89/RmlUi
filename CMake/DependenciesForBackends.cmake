@@ -200,26 +200,17 @@ if(RMLUI_BACKEND MATCHES "^Wayland")
 	pkg_check_modules(RMLUI_XKBCOMMON REQUIRED IMPORTED_TARGET xkbcommon)
 	pkg_check_modules(RMLUI_EGL REQUIRED IMPORTED_TARGET egl)
 	pkg_check_modules(RMLUI_LIBDECOR REQUIRED IMPORTED_TARGET libdecor-0)
-	pkg_check_modules(RMLUI_WAYLAND_PROTOCOLS QUIET wayland-protocols>=1.32)
-	pkg_check_modules(RMLUI_WAYLAND_SCANNER QUIET wayland-scanner)
-	pkg_check_modules(RMLUI_GIO QUIET IMPORTED_TARGET gio-2.0>=2.40)
+	pkg_check_modules(RMLUI_WAYLAND_PROTOCOLS REQUIRED wayland-protocols>=1.32)
+	pkg_check_modules(RMLUI_WAYLAND_SCANNER REQUIRED wayland-scanner)
 
-	if(RMLUI_WAYLAND_PROTOCOLS_FOUND AND RMLUI_WAYLAND_SCANNER_FOUND)
-		pkg_get_variable(RMLUI_WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
-		pkg_get_variable(RMLUI_WAYLAND_SCANNER_EXECUTABLE wayland-scanner wayland_scanner)
-		set(RMLUI_WAYLAND_CURSOR_SHAPE_PROTOCOL
-			"${RMLUI_WAYLAND_PROTOCOLS_DIR}/staging/cursor-shape/cursor-shape-v1.xml"
-		)
-		set(RMLUI_WAYLAND_TABLET_PROTOCOL
-			"${RMLUI_WAYLAND_PROTOCOLS_DIR}/unstable/tablet/tablet-unstable-v2.xml"
-		)
-		if(EXISTS "${RMLUI_WAYLAND_CURSOR_SHAPE_PROTOCOL}"
-			AND EXISTS "${RMLUI_WAYLAND_TABLET_PROTOCOL}"
-			AND EXISTS "${RMLUI_WAYLAND_SCANNER_EXECUTABLE}"
-		)
-			set(RMLUI_WAYLAND_CURSOR_SHAPE TRUE)
-		endif()
-	endif()
+	pkg_get_variable(RMLUI_WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
+	pkg_get_variable(RMLUI_WAYLAND_SCANNER_EXECUTABLE wayland-scanner wayland_scanner)
+	set(RMLUI_WAYLAND_CURSOR_SHAPE_PROTOCOL
+		"${RMLUI_WAYLAND_PROTOCOLS_DIR}/staging/cursor-shape/cursor-shape-v1.xml"
+	)
+	set(RMLUI_WAYLAND_TABLET_PROTOCOL
+		"${RMLUI_WAYLAND_PROTOCOLS_DIR}/unstable/tablet/tablet-unstable-v2.xml"
+	)
 
 	report_dependency_found("RMLUI_WAYLAND_CLIENT" PkgConfig::RMLUI_WAYLAND_CLIENT)
 	report_dependency_found("RMLUI_WAYLAND_CURSOR" PkgConfig::RMLUI_WAYLAND_CURSOR)
@@ -227,12 +218,7 @@ if(RMLUI_BACKEND MATCHES "^Wayland")
 	report_dependency_found("RMLUI_XKBCOMMON" PkgConfig::RMLUI_XKBCOMMON)
 	report_dependency_found("RMLUI_EGL" PkgConfig::RMLUI_EGL)
 	report_dependency_found("RMLUI_LIBDECOR" PkgConfig::RMLUI_LIBDECOR)
-	if(RMLUI_WAYLAND_CURSOR_SHAPE)
-		report_dependency_found("RMLUI_WAYLAND_PROTOCOLS" "cursor-shape-v1")
-	endif()
-	if(TARGET PkgConfig::RMLUI_GIO)
-		report_dependency_found("RMLUI_GIO" PkgConfig::RMLUI_GIO)
-	endif()
+	report_dependency_found("RMLUI_WAYLAND_PROTOCOLS" "cursor-shape-v1")
 endif()
 
 # --- Rendering APIs ---

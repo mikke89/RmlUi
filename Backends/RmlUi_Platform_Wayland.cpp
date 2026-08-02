@@ -7,12 +7,7 @@
 #include <linux/input-event-codes.h>
 #include <unistd.h>
 
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
-	#include <cursor-shape-v1-client-protocol.h>
-#endif
-#ifdef RMLUI_WAYLAND_GSETTINGS
-	#include <gio/gio.h>
-#endif
+#include <cursor-shape-v1-client-protocol.h>
 
 struct CursorSettings {
 	Rml::String theme_name;
@@ -63,18 +58,6 @@ static bool IsKdeSession()
 
 	return !GetEnvironmentValue("KDE_FULL_SESSION").empty();
 }
-
-#ifdef RMLUI_WAYLAND_GSETTINGS
-static bool IsGnomeSession()
-{
-	const Rml::String current_desktop = Rml::StringUtilities::ToLower(GetEnvironmentValue("XDG_CURRENT_DESKTOP"));
-	if (current_desktop.find("gnome") != Rml::String::npos)
-		return true;
-
-	const Rml::String session_desktop = Rml::StringUtilities::ToLower(GetEnvironmentValue("XDG_SESSION_DESKTOP"));
-	return session_desktop.find("gnome") != Rml::String::npos;
-}
-#endif
 
 static Rml::String MakeHomePath(const char* relative_path)
 {
@@ -138,49 +121,6 @@ static void ReadKdeCursorConfig(const Rml::String& path, CursorSettings& setting
 	}
 }
 
-#ifdef RMLUI_WAYLAND_GSETTINGS
-static void ReadGnomeCursorSettings(CursorSettings& settings)
-{
-	GSettingsSchemaSource* schema_source = g_settings_schema_source_get_default();
-	if (!schema_source)
-		return;
-
-	GSettingsSchema* schema = g_settings_schema_source_lookup(schema_source, "org.gnome.desktop.interface", true);
-	if (!schema)
-		return;
-
-	GSettings* gnome_settings = g_settings_new_full(schema, nullptr, nullptr);
-	if (gnome_settings)
-	{
-		if (settings.theme_name.empty() && g_settings_schema_has_key(schema, "cursor-theme"))
-		{
-			gchar* theme_name = g_settings_get_string(gnome_settings, "cursor-theme");
-			const Rml::String stripped_theme = Rml::StringUtilities::StripWhitespace(theme_name ? theme_name : "");
-			g_free(theme_name);
-			if (!stripped_theme.empty())
-			{
-				settings.theme_name = stripped_theme;
-				settings.theme_source = "GNOME setting org.gnome.desktop.interface cursor-theme";
-			}
-		}
-
-		if (!settings.has_size && g_settings_schema_has_key(schema, "cursor-size"))
-		{
-			const int cursor_size = g_settings_get_int(gnome_settings, "cursor-size");
-			if (cursor_size > 0 && cursor_size <= 1024)
-			{
-				settings.size = cursor_size;
-				settings.has_size = true;
-			}
-		}
-
-		g_object_unref(gnome_settings);
-	}
-
-	g_settings_schema_unref(schema);
-}
-#endif
-
 static CursorSettings ResolveCursorSettings()
 {
 	CursorSettings settings;
@@ -198,11 +138,6 @@ static CursorSettings ResolveCursorSettings()
 		settings.size = environment_size;
 		settings.has_size = true;
 	}
-
-#ifdef RMLUI_WAYLAND_GSETTINGS
-	if (IsGnomeSession())
-		ReadGnomeCursorSettings(settings);
-#endif
 
 	if (IsKdeSession())
 	{
@@ -225,28 +160,22 @@ SystemInterface_Wayland::SystemInterface_Wayland(wl_display* display, wl_shm* sh
 
 SystemInterface_Wayland::~SystemInterface_Wayland()
 {
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 	if (cursor_shape_device)
 		wp_cursor_shape_device_v1_destroy(cursor_shape_device);
-#endif
 	if (cursor_theme)
 		wl_cursor_theme_destroy(cursor_theme);
 }
 
 void SystemInterface_Wayland::SetPointer(wl_pointer* in_pointer)
 {
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 	if (cursor_shape_device)
 		wp_cursor_shape_device_v1_destroy(cursor_shape_device);
 	cursor_shape_device = nullptr;
-#endif
 
 	pointer = in_pointer;
 
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 	if (pointer && cursor_shape_manager)
 		cursor_shape_device = wp_cursor_shape_manager_v1_get_pointer(cursor_shape_manager, pointer);
-#endif
 }
 
 void SystemInterface_Wayland::SetCursorSurface(wl_surface* surface)
@@ -300,16 +229,12 @@ void SystemInterface_Wayland::LoadCursorTheme()
 
 bool SystemInterface_Wayland::ApplyCursorShape(uint32_t shape)
 {
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 	if (cursor_shape_device && has_pointer_serial)
 	{
 		wp_cursor_shape_device_v1_set_shape(cursor_shape_device, pointer_serial, shape);
 		wl_display_flush(display);
 		return true;
 	}
-#else
-	(void)shape;
-#endif
 	return false;
 }
 
@@ -374,66 +299,50 @@ void SystemInterface_Wayland::SetMouseCursor(const Rml::String& cursor_name)
 {
 	if (cursor_name.empty() || cursor_name == "arrow")
 	{
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_DEFAULT))
 			return;
-#endif
 		ApplyCursor(DefaultCursorNames, std::size(DefaultCursorNames));
 	}
 	else if (cursor_name == "move")
 	{
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_MOVE))
 			return;
-#endif
 		ApplyCursor(MoveCursorNames, std::size(MoveCursorNames));
 	}
 	else if (Rml::StringUtilities::StartsWith(cursor_name, "rmlui-scroll"))
 	{
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_ALL_SCROLL))
 			return;
-#endif
 		ApplyCursor(MoveCursorNames, std::size(MoveCursorNames));
 	}
 	else if (cursor_name == "pointer")
 	{
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_POINTER))
 			return;
-#endif
 		ApplyCursor(PointerCursorNames, std::size(PointerCursorNames));
 	}
 	else if (cursor_name == "resize")
 	{
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_SE_RESIZE))
 			return;
-#endif
 		ApplyCursor(ResizeCursorNames, std::size(ResizeCursorNames));
 	}
 	else if (cursor_name == "cross")
 	{
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_CROSSHAIR))
 			return;
-#endif
 		ApplyCursor(CrossCursorNames, std::size(CrossCursorNames));
 	}
 	else if (cursor_name == "text")
 	{
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_TEXT))
 			return;
-#endif
 		ApplyCursor(TextCursorNames, std::size(TextCursorNames));
 	}
 	else if (cursor_name == "unavailable")
 	{
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 		if (ApplyCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_NOT_ALLOWED))
 			return;
-#endif
 		ApplyCursor(UnavailableCursorNames, std::size(UnavailableCursorNames));
 	}
 	else

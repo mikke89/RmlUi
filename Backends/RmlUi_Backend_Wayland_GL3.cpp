@@ -15,9 +15,7 @@
 #include <cmath>
 #include <cstring>
 
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
-	#include <cursor-shape-v1-client-protocol.h>
-#endif
+#include <cursor-shape-v1-client-protocol.h>
 
 static constexpr int MinimumWindowWidth = 1;
 static constexpr int MinimumWindowHeight = 1;
@@ -104,11 +102,9 @@ static void RegistryHandleGlobal(void* user_data, wl_registry* registry, uint32_
 		globals->shm = static_cast<wl_shm*>(wl_registry_bind(registry, name, &wl_shm_interface, 1));
 	else if (std::strcmp(interface, wl_seat_interface.name) == 0)
 		globals->seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, MaxSeatVersion)));
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 	else if (std::strcmp(interface, wp_cursor_shape_manager_v1_interface.name) == 0)
 		globals->cursor_shape_manager =
 			static_cast<wp_cursor_shape_manager_v1*>(wl_registry_bind(registry, name, &wp_cursor_shape_manager_v1_interface, 1));
-#endif
 }
 
 static void RegistryHandleGlobalRemove(void*, wl_registry*, uint32_t) {}
@@ -636,10 +632,8 @@ void Backend::Shutdown()
 		wl_seat_destroy(data->globals.seat);
 	if (data->globals.shm)
 		wl_shm_destroy(data->globals.shm);
-#ifdef RMLUI_WAYLAND_CURSOR_SHAPE
 	if (data->globals.cursor_shape_manager)
 		wp_cursor_shape_manager_v1_destroy(data->globals.cursor_shape_manager);
-#endif
 	if (data->globals.compositor)
 		wl_compositor_destroy(data->globals.compositor);
 	if (data->registry)
