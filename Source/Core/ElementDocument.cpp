@@ -1,7 +1,9 @@
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/FileInterface.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
@@ -146,7 +148,7 @@ ElementDocument::~ElementDocument()
 	SetOwnerDocument(nullptr, true);
 }
 
-void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
+void ElementDocument::ProcessHeader(const DocumentHeader* document_header, Function<void(const DocumentHeader&)>& callback_compiled_document_header)
 {
 	RMLUI_ZoneScoped;
 
@@ -229,6 +231,9 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 		}
 	}
 
+	if (callback_compiled_document_header)
+		callback_compiled_document_header(header);
+
 	// Hide this document.
 	SetProperty(PropertyId::Display, Property(Style::Display::None));
 
@@ -297,7 +302,7 @@ void ElementDocument::ReloadStyleSheet()
 
 	Factory::ClearStyleSheetCache();
 	Factory::ClearTemplateCache();
-	ElementPtr temp_doc = Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag());
+	ElementPtr temp_doc = Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag(), nullptr);
 	if (!temp_doc)
 	{
 		Log::Message(Log::LT_WARNING, "Failed to reload style sheet, could not instance document: %s", source_url.c_str());
@@ -305,6 +310,68 @@ void ElementDocument::ReloadStyleSheet()
 	}
 
 	SetStyleSheetContainer(rmlui_static_cast<ElementDocument*>(temp_doc.get())->style_sheet_container);
+}
+
+String ElementDocument::SerializeDocument()
+{
+	if (!context)
+		return {};
+
+	auto stream = MakeUnique<StreamFile>();
+	if (!stream->Open(source_url))
+	{
+		Log::Message(Log::LT_WARNING, "Failed to open file to serialize document: %s", source_url.c_str());
+		return {};
+	}
+
+	String document_rml = "<rml>\n<head>\n";
+
+	if (!Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag(), [&](const DocumentHeader& header) {
+			document_rml += "<title>" + StringUtilities::EncodeRml(header.title) + "</title>\n";
+			document_rml += "<meta name=\"source\" content=\"" + StringUtilities::EncodeRml(source_url) + "\" />\n";
+			if (context)
+			{
+				String active_themes;
+				StringUtilities::JoinString(active_themes, context->GetActiveThemes());
+				document_rml += "<meta name=\"active-themes\" content=\"" + active_themes + "\" />\n";
+				document_rml +=
+					"<meta name=\"density-independent-pixel-ratio\" content=\"" + ToString(context->GetDensityIndependentPixelRatio()) + "\" />\n";
+			}
+
+			for (const DocumentHeader::Resource& rcss : header.rcss)
+			{
+				document_rml += CreateString("\n<style path=\"%s\">\n", rcss.path.c_str());
+				if (rcss.is_inline)
+				{
+					document_rml += rcss.content;
+				}
+				else
+				{
+					String file_contents;
+					if (!GetFileInterface()->LoadFile(rcss.path, file_contents))
+						Log::Message(Log::LT_WARNING, "Could not load contents from external style sheet for serialization: %s", rcss.path.c_str());
+					document_rml += file_contents;
+				}
+				document_rml += "\n</style>\n";
+			}
+		}))
+	{
+		Log::Message(Log::LT_WARNING, "Failed to serialize document, could not instance document from stream: %s", source_url.c_str());
+		return {};
+	}
+
+	document_rml += "</head>\n";
+
+	// Templates and data bindings are already expanded into the styles and element tree, skip their associated attributes during serialization.
+	const GetRMLConfig serialize_config{true, true, true};
+
+	GetRML(document_rml, serialize_config);
+
+	if (document_rml.back() != '\n')
+		document_rml += '\n';
+	document_rml += "</rml>\n";
+
+	return document_rml;
 }
 
 void ElementDocument::DirtyMediaQueries()

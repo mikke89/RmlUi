@@ -199,7 +199,7 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 		if (source_test.empty())
 			return false;
 
-		document_test = context->LoadDocumentFromMemory(source_test, Rml::StringUtilities::Replace(test_path, ':', '|'));
+		document_test = context->LoadDocumentFromMemory(source_test, test_path);
 		if (!document_test)
 			return false;
 
@@ -224,7 +224,7 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 
 			if (!source_reference.empty())
 			{
-				document_reference = context->LoadDocumentFromMemory(source_reference, Rml::StringUtilities::Replace(reference_path, ':', '|'));
+				document_reference = context->LoadDocumentFromMemory(source_reference, reference_path);
 				if (document_reference)
 				{
 					document_reference->SetProperty(PropertyId::Left, Property(510.f, Unit::DP));
