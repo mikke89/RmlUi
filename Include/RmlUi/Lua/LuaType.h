@@ -77,6 +77,7 @@ the RMLUI_LUATYPE_DEFINE macro, or make sure that the function signatures are @e
 	struct LuaTypeTraits<type> {                            \
 		static constexpr const bool use_script_ptr = false; \
 		static constexpr const bool lua_owned = true;       \
+		static constexpr const bool unique_refs = false;    \
 		using storage_type = type;                          \
 	};                                                      \
 	RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)
@@ -89,6 +90,7 @@ at all */
 	struct LuaTypeTraits<type> {                            \
 		static constexpr const bool use_script_ptr = false; \
 		static constexpr const bool lua_owned = false;      \
+		static constexpr const bool unique_refs = false;    \
 		using storage_type = type*;                         \
 	};                                                      \
 	RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)
@@ -99,12 +101,16 @@ at all */
 	struct LuaTypeTraits<type> {                            \
 		static constexpr const bool use_script_ptr = true;  \
 		static constexpr const bool lua_owned = true;       \
+		static constexpr const bool unique_refs = true;     \
 		using storage_type = ScriptPtr<baseType>;           \
 	};                                                      \
 	RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)
 	
 namespace Rml {
 namespace Lua {
+	// Name of the table in the Lua registry containing unique ref objects
+	constexpr const char* UNIQUE_REF_TABLE_NAME = "_RMLUI_UNIQUE_REFS";
+
 	// replacement for luaL_Reg that uses a different function pointer signature, but similar syntax
 	template <typename T>
 	struct RMLUILUA_API RegType {
@@ -232,6 +238,11 @@ namespace Lua {
 	namespace LuaTypeImpl {
 		RMLUILUA_API int index(lua_State* L, const char* class_name);
 		RMLUILUA_API int newindex(lua_State* L, const char* class_name);
+
+		/** Tries to find an object with the given key in the unique ref storage. If it is found, only
+		the object is left on the stack. Otherwise, leaves the unique ref table on the stack.
+		@return Whether an object matching key was found */
+		RMLUILUA_API bool FindUniqueObject(lua_State* L, void* key);
 	} // namespace LuaTypeImpl
 
 } // namespace Lua

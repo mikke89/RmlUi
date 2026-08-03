@@ -98,6 +98,16 @@ static void RegisterTypes()
 	RMLUI_ASSERT(g_L);
 	lua_State* L = g_L;
 
+	// Create unique ref storage table as a weak table in the registry
+	lua_newtable(L); // [1] = {}
+
+	lua_newtable(L); // [2] = {}
+	lua_pushstring(L, "v");
+	lua_setfield(L, -2, "__mode"); // [2].__mode = "v"
+	lua_setmetatable(L, -2); // setmetatable([1], [2])
+
+	lua_setfield(L, LUA_REGISTRYINDEX, UNIQUE_REF_TABLE_NAME); // Place table in registry
+
 	LuaType<Vector2i>::Register(L);
 	LuaType<Vector2f>::Register(L);
 	LuaType<Colourf>::Register(L);

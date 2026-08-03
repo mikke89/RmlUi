@@ -60,6 +60,7 @@ namespace Lua {
 		lua_pushcfunction(L, newindex);
 		lua_setfield(L, metatable, "__newindex");
 
+		// Skip registering a garbage collector function for non-owned types
 		if constexpr (LuaTypeTraits<T>::lua_owned)
 		{
 			lua_pushcfunction(L, gc_T);
@@ -69,8 +70,12 @@ namespace Lua {
 		lua_pushcfunction(L, tostring_T);
 		lua_setfield(L, metatable, "__tostring");
 
-		lua_pushcfunction(L, eq_T);
-		lua_setfield(L, metatable, "__eq");
+		// If unique refs are enabled, objects will be equal due to being the same
+		if constexpr (!LuaTypeTraits<T>::unique_refs)
+		{
+			lua_pushcfunction(L, eq_T);
+			lua_setfield(L, metatable, "__eq");
+		}
 
 		ExtraInit<T>(L, metatable); // optionally implemented by individual types
 
@@ -100,6 +105,12 @@ namespace Lua {
 		using storage_type = typename LuaTypeTraits<T>::storage_type;
 		static_assert(is_complete<T>::value, "Cannot push an incomplete type");
 
+		if constexpr (LuaTypeTraits<T>::unique_refs)
+		{
+			if (LuaTypeImpl::FindUniqueObject(L, &obj))
+				return;
+		}
+
 		// for annotations, starting at index 1, but it is a relative number, not always 1
 		// [1] = empty userdata
 		auto ptrHold = reinterpret_cast<storage_type*>(lua_newuserdata(L, sizeof(storage_type))); 
@@ -121,6 +132,14 @@ namespace Lua {
 		}
 
 		lua_setmetatable(L, -2); // [-2] = ptrHold, [-1] = metatable
+
+		if constexpr (LuaTypeTraits<T>::unique_refs)
+		{
+			lua_pushlightuserdata(L, &obj);
+			lua_pushvalue(L, -2); // Copy ptrHold
+			lua_settable(L, -4); // [-4] = UniqueRefs, [-3] = ptrHold, [-2] = &obj, [-1] = ptrHold
+			lua_remove(L, -2); // Remove UniqueRefs
+		}
 	}
 
 	template <typename T>
@@ -137,6 +156,17 @@ namespace Lua {
 		}
 
 		auto& obj = *ptr;
+
+		if constexpr (LuaTypeTraits<T>::unique_refs)
+		{
+			// If unique refs are enabled and this path is taken, 
+			if (LuaTypeImpl::FindUniqueObject(L, &obj))
+			{
+				auto scriptPtr = reinterpret_cast<storage_type*>(lua_touserdata(L, -1));
+				*scriptPtr = std::move(ptr);
+				return;
+			}
+		}
 
 		// for annotations, starting at index 1, but it is a relative number, not always 1
 		// [1] = empty userdata
@@ -156,13 +186,21 @@ namespace Lua {
 		}
 
 		lua_setmetatable(L, -2); // [-2] = ptrHold, [-1] = metatable
+		
+		if constexpr (LuaTypeTraits<T>::unique_refs)
+		{
+			lua_pushlightuserdata(L, &obj);
+			lua_pushvalue(L, -2); // Copy ptrHold
+			lua_settable(L, -4); // [-4] = UniqueRefs, [-3] = ptrHold, [-2] = &obj, [-1] = ptrHold
+			lua_remove(L, -2); // Remove UniqueRefs
+		}
 	}
 
 	template <typename T>
 	template <typename... Args>
 	void LuaType<T>::emplace(lua_State* L, Args&&... args) {
 		using storage_type = typename LuaTypeTraits<T>::storage_type;
-		static_assert(is_complete<T>::value, "Cannot push an incomplete type");
+		static_assert(is_complete<T>::value, "Cannot emplace an incomplete type");
 
 		// for annotations, starting at index 1, but it is a relative number, not always 1
 		// [1] = empty userdata
@@ -192,6 +230,15 @@ namespace Lua {
 		}
 
 		lua_setmetatable(L, -2); // [-2] = ptrHold, [-1] = metatable
+
+		if constexpr (LuaTypeTraits<T>::unique_refs)
+		{
+			lua_getfield(L, LUA_REGISTRYINDEX, UNIQUE_REF_TABLE_NAME); // Fetch unique ref table
+			lua_pushlightuserdata(L, obj);
+			lua_pushvalue(L, -3); // Copy ptrHold
+			lua_settable(L, -3); // [-4] = ptrHold, [-3] = UniqueRefs, [-2] = obj, [-1] = ptrHold
+			lua_pop(L, 1); // Remove unique ref table from stack
+		}
 	}
 
 	template <typename T>
