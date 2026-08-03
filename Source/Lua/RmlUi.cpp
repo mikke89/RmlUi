@@ -72,6 +72,33 @@ int LuaRmlUiRegisterTag(lua_State* L, LuaRmlUi* /*obj*/)
 	return 0;
 }
 
+int LuaRmlUitypeof(lua_State* L, LuaRmlUi* /*obj*/)
+{
+	lua_getmetatable(L, 1);
+
+	if (lua_isnil(L, -1))
+	{
+		lua_pop(L, 1);
+		lua_pushstring(L, luaL_typename(L, 1));
+	}
+	else
+	{
+		lua_getfield(L, -1, "__type");
+
+		if (lua_isnil(L, -1))
+		{
+			lua_pop(L, 2);
+			lua_pushstring(L, luaL_typename(L, 1));
+		}
+		else
+		{
+			lua_remove(L, -2); // Remove metatable from stack
+		}
+	}
+
+	return 1;
+}
+
 int LuaRmlUiGetAttrcontexts(lua_State* L)
 {
 	LuaType<RmlUiContextsProxy>::emplace(L);
@@ -290,6 +317,7 @@ RegType<LuaRmlUi> LuaRmlUiMethods[] = {
 	RMLUI_LUAMETHOD(LuaRmlUi, CreateContext),
 	RMLUI_LUAMETHOD(LuaRmlUi, LoadFontFace),
 	RMLUI_LUAMETHOD(LuaRmlUi, RegisterTag),
+	RMLUI_LUAMETHOD(LuaRmlUi, typeof),
 	{nullptr, nullptr},
 };
 

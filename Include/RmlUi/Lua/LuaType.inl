@@ -43,9 +43,6 @@ namespace Lua {
 		LuaTypeMetatable<T>::Register(L); //[2] = metatable referred in here by ClassMT
 		int metatable = lua_gettop(L);            // metatable = 2
 
-		luaL_newmetatable(L, "DO NOT TRASH"); //[3] = metatable named "DO NOT TRASH"
-		lua_pop(L, 1);                        // remove the above metatable -> [-1 = 2]
-
 		// store method table in globals so that scripts can add functions written in Lua
 		lua_pushvalue(L, methods);            //[methods = 1] -> [3] = copy (reference) of methods table
 		lua_setglobal(L, GetTClassName<T>()); // -> <ClassName> = [3 = 1], pop top [3]
@@ -76,6 +73,10 @@ namespace Lua {
 			lua_pushcfunction(L, eq_T);
 			lua_setfield(L, metatable, "__eq");
 		}
+
+		// Allow type to be read from the metatable
+		lua_pushstring(L, GetTClassName<T>());
+		lua_setfield(L, metatable, "__type");
 
 		ExtraInit<T>(L, metatable); // optionally implemented by individual types
 

@@ -21,6 +21,7 @@ void ExtraInit<LuaRmlUi>(lua_State* L, int metatable_index);
 int LuaRmlUiCreateContext(lua_State* L, LuaRmlUi* obj);
 int LuaRmlUiLoadFontFace(lua_State* L, LuaRmlUi* obj);
 int LuaRmlUiRegisterTag(lua_State* L, LuaRmlUi* obj);
+int LuaRmlUitypeof(lua_State* L, LuaRmlUi* obj);
 
 int LuaRmlUiGetAttrcontexts(lua_State* L);
 int LuaRmlUiGetAttrkey_identifier(lua_State* L);
