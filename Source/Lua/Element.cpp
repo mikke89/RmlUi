@@ -29,8 +29,8 @@ void ExtraInit<Element>(lua_State* L, int metatable_index)
 int Elementnew(lua_State* L)
 {
 	const char* tag = luaL_checkstring(L, 1);
-	Element* ele = new Element(tag);
-	LuaType<Element>::push(L, ele, true);
+	ElementPtr ele(new Element(tag));
+	LuaType<Element>::push(L, std::move(ele));
 	return 1;
 }
 
@@ -75,7 +75,7 @@ int ElementAppendChild(lua_State* L, Element* obj)
 	if (element)
 	{
 		Element* child = obj->AppendChild(element->release_from_parent());
-		LuaType<Element>::push(L, child, false);
+		LuaType<Element>::push(L, child);
 	}
 	else
 	{
@@ -140,8 +140,7 @@ int ElementGetAttribute(lua_State* L, Element* obj)
 int ElementGetElementById(lua_State* L, Element* obj)
 {
 	const char* id = luaL_checkstring(L, 1);
-	Element* ele = obj->GetElementById(id);
-	LuaType<Element>::push(L, ele, false);
+	LuaType<Element>::push(L, obj->GetElementById(id));
 	return 1;
 }
 
@@ -154,7 +153,7 @@ int ElementGetElementsByTagName(lua_State* L, Element* obj)
 	for (unsigned int i = 0; i < list.size(); i++)
 	{
 		PushIndex(L, i);
-		LuaType<Element>::push(L, list[i], false);
+		LuaType<Element>::push(L, list[i]);
 		lua_settable(L, -3); //-3 is the table
 	}
 	return 1;
@@ -163,8 +162,7 @@ int ElementGetElementsByTagName(lua_State* L, Element* obj)
 int ElementQuerySelector(lua_State* L, Element* obj)
 {
 	const char* sel = luaL_checkstring(L, 1);
-	Element* ele = obj->QuerySelector(sel);
-	LuaType<Element>::push(L, ele, false);
+	LuaType<Element>::push(L, obj->QuerySelector(sel));
 	return 1;
 }
 
@@ -177,7 +175,7 @@ int ElementQuerySelectorAll(lua_State* L, Element* obj)
 	for (unsigned int i = 0; i < list.size(); i++)
 	{
 		PushIndex(L, i);
-		LuaType<Element>::push(L, list[i], false);
+		LuaType<Element>::push(L, list[i]);
 		lua_settable(L, -3); //-3 is the table
 	}
 	return 1;
@@ -210,7 +208,7 @@ int ElementInsertBefore(lua_State* L, Element* obj)
 	if (element)
 	{
 		Element* inserted = obj->InsertBefore(element->release_from_parent(), adjacent);
-		LuaType<Element>::push(L, inserted, false);
+		LuaType<Element>::push(L, inserted);
 	}
 	else
 	{
@@ -286,9 +284,7 @@ int ElementGetAttrattributes(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	ElementAttributesProxy* proxy = new ElementAttributesProxy();
-	proxy->owner = ele;
-	LuaType<ElementAttributesProxy>::push(L, proxy, true);
+	LuaType<ElementAttributesProxy>::emplace(L, ele);
 	return 1;
 }
 
@@ -296,9 +292,7 @@ int ElementGetAttrchild_nodes(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	ElementChildNodesProxy* ecnp = new ElementChildNodesProxy();
-	ecnp->owner = ele;
-	LuaType<ElementChildNodesProxy>::push(L, ecnp, true);
+	LuaType<ElementChildNodesProxy>::emplace(L, ele);
 	return 1;
 }
 
@@ -351,7 +345,7 @@ int ElementGetAttrfirst_child(lua_State* L)
 	if (child == nullptr)
 		lua_pushnil(L);
 	else
-		LuaType<Element>::push(L, child, false);
+		LuaType<Element>::push(L, child);
 	return 1;
 }
 
@@ -375,11 +369,7 @@ int ElementGetAttrlast_child(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Element* child = ele->GetLastChild();
-	if (child == nullptr)
-		lua_pushnil(L);
-	else
-		LuaType<Element>::push(L, child, false);
+	LuaType<Element>::push(L, ele->GetLastChild());
 	return 1;
 }
 
@@ -387,11 +377,7 @@ int ElementGetAttrnext_sibling(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Element* sibling = ele->GetNextSibling();
-	if (sibling == nullptr)
-		lua_pushnil(L);
-	else
-		LuaType<Element>::push(L, sibling, false);
+	LuaType<Element>::push(L, ele->GetNextSibling());
 	return 1;
 }
 
@@ -415,8 +401,7 @@ int ElementGetAttroffset_parent(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Element* parent = ele->GetOffsetParent();
-	LuaType<Element>::push(L, parent, false);
+	LuaType<Element>::push(L, ele->GetOffsetParent());
 	return 1;
 }
 
@@ -440,8 +425,7 @@ int ElementGetAttrowner_document(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Document* doc = ele->GetOwnerDocument();
-	LuaType<Document>::push(L, doc, false);
+	LuaType<Document>::push(L, ele->GetOwnerDocument());
 	return 1;
 }
 
@@ -449,11 +433,7 @@ int ElementGetAttrparent_node(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Element* parent = ele->GetParentNode();
-	if (parent == nullptr)
-		lua_pushnil(L);
-	else
-		LuaType<Element>::push(L, parent, false);
+	LuaType<Element>::push(L, ele->GetParentNode());
 	return 1;
 }
 
@@ -461,11 +441,7 @@ int ElementGetAttrprevious_sibling(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	Element* sibling = ele->GetPreviousSibling();
-	if (sibling == nullptr)
-		lua_pushnil(L);
-	else
-		LuaType<Element>::push(L, sibling, false);
+	LuaType<Element>::push(L, ele->GetPreviousSibling());
 	return 1;
 }
 
@@ -505,9 +481,7 @@ int ElementGetAttrstyle(lua_State* L)
 {
 	Element* ele = LuaType<Element>::check(L, 1);
 	RMLUI_CHECK_OBJ(ele);
-	ElementStyleProxy* prox = new ElementStyleProxy();
-	prox->owner = ele;
-	LuaType<ElementStyleProxy>::push(L, prox, true);
+	LuaType<ElementStyleProxy>::emplace(L, ele);
 	return 1;
 }
 

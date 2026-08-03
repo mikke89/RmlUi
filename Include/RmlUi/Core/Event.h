@@ -22,6 +22,8 @@ enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, TargetAn
 
 class RMLUICORE_API Event : public ScriptInterface {
 public:
+	RMLUI_RTTI_DefineWithParent(Event, ScriptInterface)
+
 	/// Constructor
 	Event();
 	/// Constructor

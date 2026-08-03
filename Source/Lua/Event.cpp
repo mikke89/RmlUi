@@ -33,7 +33,7 @@ int EventGetAttrcurrent_element(lua_State* L)
 	Event* evt = LuaType<Event>::check(L, 1);
 	RMLUI_CHECK_OBJ(evt);
 	Element* ele = evt->GetCurrentElement();
-	LuaType<Element>::push(L, ele, false);
+	LuaType<Element>::push(L, ele);
 	return 1;
 }
 
@@ -51,7 +51,7 @@ int EventGetAttrtarget_element(lua_State* L)
 	Event* evt = LuaType<Event>::check(L, 1);
 	RMLUI_CHECK_OBJ(evt);
 	Element* target = evt->GetTargetElement();
-	LuaType<Element>::push(L, target, false);
+	LuaType<Element>::push(L, target);
 	return 1;
 }
 
@@ -59,9 +59,7 @@ int EventGetAttrparameters(lua_State* L)
 {
 	Event* evt = LuaType<Event>::check(L, 1);
 	RMLUI_CHECK_OBJ(evt);
-	EventParametersProxy* proxy = new EventParametersProxy();
-	proxy->owner = evt;
-	LuaType<EventParametersProxy>::push(L, proxy, true);
+	LuaType<EventParametersProxy>::emplace(L, evt);
 	return 1;
 }
 

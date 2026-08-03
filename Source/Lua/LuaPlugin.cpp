@@ -111,7 +111,7 @@ static void RegisterTypes()
 	LuaType<Event>::Register(L);
 	LuaType<Context>::Register(L);
 	LuaType<LuaRmlUi>::Register(L);
-	LuaType<ElementInstancer>::Register(L);
+	LuaType<LuaElementInstancer>::Register(L);
 	// Proxy tables
 	LuaType<ContextDocumentsProxy>::Register(L);
 	LuaType<EventParametersProxy>::Register(L);

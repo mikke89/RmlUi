@@ -58,8 +58,8 @@ void PushVariant(lua_State* L, const Variant* var)
 	case Variant::UINT64: lua_pushinteger(L, var->Get<uint64_t>()); break;
 	case Variant::FLOAT:
 	case Variant::DOUBLE: lua_pushnumber(L, var->Get<double>()); break;
-	case Variant::COLOURB: LuaType<Colourb>::push(L, new Colourb(var->Get<Colourb>()), true); break;
-	case Variant::COLOURF: LuaType<Colourf>::push(L, new Colourf(var->Get<Colourf>()), true); break;
+	case Variant::COLOURB: LuaType<Colourb>::emplace(L, var->Get<Colourb>()); break;
+	case Variant::COLOURF: LuaType<Colourf>::emplace(L, var->Get<Colourf>()); break;
 	case Variant::STRING:
 	{
 		const String& s = var->GetReference<Rml::String>();
@@ -68,7 +68,7 @@ void PushVariant(lua_State* L, const Variant* var)
 	break;
 	case Variant::VECTOR2:
 		// according to Variant.inl, it is going to be a Vector2f
-		LuaType<Vector2f>::push(L, new Vector2f(var->Get<Vector2f>()), true);
+		LuaType<Vector2f>::emplace(L, var->Get<Vector2f>());
 		break;
 	case Variant::VOIDPTR: lua_pushlightuserdata(L, var->Get<void*>()); break;
 	default: lua_pushnil(L); break;

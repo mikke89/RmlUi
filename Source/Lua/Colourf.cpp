@@ -23,9 +23,7 @@ int Colourfnew(lua_State* L)
 	float blue = (float)luaL_checknumber(L, 3);
 	float alpha = (float)luaL_checknumber(L, 4);
 
-	Colourf* col = new Colourf(red, green, blue, alpha);
-
-	LuaType<Colourf>::push(L, col, true);
+	LuaType<Colourf>::emplace(L, red, green, blue, alpha);
 	return 1;
 }
 

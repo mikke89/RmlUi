@@ -32,9 +32,7 @@ int Vector2inew(lua_State* L)
 	int x = (int)luaL_checkinteger(L, 1);
 	int y = (int)luaL_checkinteger(L, 2);
 
-	Vector2i* vect = new Vector2i(x, y);
-
-	LuaType<Vector2i>::push(L, vect, true); // true means it will be deleted when it is garbage collected
+	LuaType<Vector2i>::emplace(L, x, y);
 	return 1;
 }
 
@@ -44,10 +42,7 @@ int Vector2i__mul(lua_State* L)
 	RMLUI_CHECK_OBJ(lhs);
 	int rhs = (int)luaL_checkinteger(L, 2);
 
-	Vector2i* res = new Vector2i(0, 0);
-	(*res) = (*lhs) * rhs;
-
-	LuaType<Vector2i>::push(L, res, true);
+	LuaType<Vector2i>::emplace(L, (*lhs) * rhs);
 	return 1;
 }
 
@@ -57,10 +52,7 @@ int Vector2i__div(lua_State* L)
 	RMLUI_CHECK_OBJ(lhs);
 	int rhs = (int)luaL_checkinteger(L, 2);
 
-	Vector2i* res = new Vector2i(0, 0);
-	(*res) = (*lhs) / rhs;
-
-	LuaType<Vector2i>::push(L, res, true);
+	LuaType<Vector2i>::emplace(L, (*lhs) / rhs);
 	return 1;
 }
 
@@ -71,10 +63,7 @@ int Vector2i__add(lua_State* L)
 	Vector2i* rhs = LuaType<Vector2i>::check(L, 2);
 	RMLUI_CHECK_OBJ(rhs);
 
-	Vector2i* res = new Vector2i(0, 0);
-	(*res) = (*lhs) + (*rhs);
-
-	LuaType<Vector2i>::push(L, res, true);
+	LuaType<Vector2i>::emplace(L, (*lhs) + (*rhs));
 	return 1;
 }
 
@@ -85,10 +74,7 @@ int Vector2i__sub(lua_State* L)
 	Vector2i* rhs = LuaType<Vector2i>::check(L, 2);
 	RMLUI_CHECK_OBJ(rhs);
 
-	Vector2i* res = new Vector2i(0, 0);
-	(*res) = (*lhs) - (*rhs);
-
-	LuaType<Vector2i>::push(L, res, true);
+	LuaType<Vector2i>::emplace(L, (*lhs) - (*rhs));
 	return 1;
 }
 

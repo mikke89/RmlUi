@@ -120,7 +120,7 @@ int DocumentGetAttrcontext(lua_State* L)
 {
 	Document* doc = LuaType<Document>::check(L, 1);
 	RMLUI_CHECK_OBJ(doc);
-	LuaType<Context>::push(L, doc->GetContext(), false);
+	LuaType<Context>::push(L, doc->GetContext());
 	return 1;
 }
 

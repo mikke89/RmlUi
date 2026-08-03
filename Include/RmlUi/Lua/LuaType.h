@@ -56,6 +56,18 @@ types.*/
 		return type##Setters;             \
 	}
 
+/** Declares only the functions related to defining a LuaType, allowing the user to define the LuaTypeTraits
+manually */
+#define RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)               \
+	template <>                                             \
+	RMLUILUA_API const char* GetTClassName<type>();         \
+	template <>                                             \
+	RMLUILUA_API RegType<type>* GetMethodTable<type>();     \
+	template <>                                             \
+	RMLUILUA_API luaL_Reg* GetAttrTable<type>();            \
+	template <>                                             \
+	RMLUILUA_API luaL_Reg* SetAttrTable<type>();
+
 /** Used to remove repetitive typing at the cost of flexibility. It creates function prototypes for
 getting the name of the type, method tables, and if it is reference counted.
 When you use this, you either must also use
@@ -64,33 +76,33 @@ the RMLUI_LUATYPE_DEFINE macro, or make sure that the function signatures are @e
 	template <>                                             \
 	struct LuaTypeTraits<type> {                            \
 		static constexpr const bool use_script_ptr = false; \
+		static constexpr const bool lua_owned = true;       \
+		using storage_type = type;                          \
+	};                                                      \
+	RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)
+
+
+/** Declares a type as "external" to the Lua environment, meaning that Lua does not interact with its lifetime
+at all */
+#define RMLUI_LUATYPE_DECLARE_EXTERNAL(type)                \
+	template <>                                             \
+	struct LuaTypeTraits<type> {                            \
+		static constexpr const bool use_script_ptr = false; \
+		static constexpr const bool lua_owned = false;      \
 		using storage_type = type*;                         \
 	};                                                      \
-	template <>                                             \
-	RMLUILUA_API const char* GetTClassName<type>();         \
-	template <>                                             \
-	RMLUILUA_API RegType<type>* GetMethodTable<type>();     \
-	template <>                                             \
-	RMLUILUA_API luaL_Reg* GetAttrTable<type>();            \
-	template <>                                             \
-	RMLUILUA_API luaL_Reg* SetAttrTable<type>();
-
+	RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)
+	
 /** Identical to RMLUI_LUATYPE_DECLARE, except that it declares the type as managed via ScriptPtr<baseType>. */
 #define RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(type, baseType)    \
 	template <>                                             \
 	struct LuaTypeTraits<type> {                            \
 		static constexpr const bool use_script_ptr = true;  \
+		static constexpr const bool lua_owned = true;       \
 		using storage_type = ScriptPtr<baseType>;           \
 	};                                                      \
-	template <>                                             \
-	RMLUILUA_API const char* GetTClassName<type>();         \
-	template <>                                             \
-	RMLUILUA_API RegType<type>* GetMethodTable<type>();     \
-	template <>                                             \
-	RMLUILUA_API luaL_Reg* GetAttrTable<type>();            \
-	template <>                                             \
-	RMLUILUA_API luaL_Reg* SetAttrTable<type>();
-
+	RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)
+	
 namespace Rml {
 namespace Lua {
 	// replacement for luaL_Reg that uses a different function pointer signature, but similar syntax
@@ -170,9 +182,14 @@ namespace Lua {
 		@param gc[in] If the obj should be deleted or decrease reference count upon the garbage collection
 		metamethod being called from the object in Lua
 		@return Position on the stack where the userdata resides   */
-		static inline int push(lua_State* L, T* obj, bool gc = false);
-		static inline int push(lua_State* L, T& obj, bool gc = false);
-		static inline int push(lua_State* L, ElementPtr&& ptr, bool gc = false);
+		static inline void push(lua_State* L, T* obj);
+		static inline void push(lua_State* L, T& obj);
+		static inline void push(lua_State* L, ElementPtr&& ptr);
+
+		/** Identical to push, but constructs a new object in place with the given args. */
+		template <typename... Args>
+		static inline void emplace(lua_State* L, Args&&... args);
+
 		/** Statically casts the item at the position on the Lua stack
 		@param narg[in] Position of the item to cast on the Lua stack
 		@return A pointer to an object of type T or @c nullptr   */

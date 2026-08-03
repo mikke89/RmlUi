@@ -34,9 +34,7 @@ int Vector2fnew(lua_State* L)
 	float x = (float)luaL_checknumber(L, 1);
 	float y = (float)luaL_checknumber(L, 2);
 
-	Vector2f* vect = new Vector2f(x, y);
-
-	LuaType<Vector2f>::push(L, vect, true); // true means it will be deleted when it is garbage collected
+	LuaType<Vector2f>::emplace(L, x, y);
 	return 1;
 }
 
@@ -46,10 +44,7 @@ int Vector2f__mul(lua_State* L)
 	RMLUI_CHECK_OBJ(lhs);
 	float rhs = (float)luaL_checknumber(L, 2);
 
-	Vector2f* res = new Vector2f(0.f, 0.f);
-	(*res) = (*lhs) * rhs;
-
-	LuaType<Vector2f>::push(L, res, true);
+	LuaType<Vector2f>::emplace(L, (*lhs) * rhs);
 	return 1;
 }
 
@@ -59,10 +54,7 @@ int Vector2f__div(lua_State* L)
 	RMLUI_CHECK_OBJ(lhs);
 	float rhs = (float)luaL_checknumber(L, 2);
 
-	Vector2f* res = new Vector2f(0.f, 0.f);
-	(*res) = (*lhs) / rhs;
-
-	LuaType<Vector2f>::push(L, res, true);
+	LuaType<Vector2f>::emplace(L, (*lhs) / rhs);
 	return 1;
 }
 
@@ -73,10 +65,7 @@ int Vector2f__add(lua_State* L)
 	Vector2f* rhs = LuaType<Vector2f>::check(L, 2);
 	RMLUI_CHECK_OBJ(rhs);
 
-	Vector2f* res = new Vector2f(0.f, 0.f);
-	(*res) = (*lhs) + (*rhs);
-
-	LuaType<Vector2f>::push(L, res, true);
+	LuaType<Vector2f>::emplace(L, (*lhs) + (*rhs));
 	return 1;
 }
 
@@ -87,10 +76,7 @@ int Vector2f__sub(lua_State* L)
 	Vector2f* rhs = LuaType<Vector2f>::check(L, 2);
 	RMLUI_CHECK_OBJ(rhs);
 
-	Vector2f* res = new Vector2f(0.f, 0.f);
-	(*res) = (*lhs) - (*rhs);
-
-	LuaType<Vector2f>::push(L, res, true);
+	LuaType<Vector2f>::emplace(L, (*lhs) - (*rhs));
 	return 1;
 }
 
@@ -118,10 +104,7 @@ int Vector2fDotProduct(lua_State* L, Vector2f* obj)
 
 int Vector2fNormalise(lua_State* L, Vector2f* obj)
 {
-	Vector2f* res = new Vector2f();
-	(*res) = obj->Normalise();
-
-	LuaType<Vector2f>::push(L, res, true);
+	LuaType<Vector2f>::emplace(L, obj->Normalise());
 	return 1;
 }
 
@@ -129,10 +112,7 @@ int Vector2fRotate(lua_State* L, Vector2f* obj)
 {
 	float num = (float)luaL_checknumber(L, 1);
 
-	Vector2f* res = new Vector2f();
-	(*res) = obj->Rotate(num);
-
-	LuaType<Vector2f>::push(L, res, true);
+	LuaType<Vector2f>::emplace(L, obj->Rotate(num));
 	return 1;
 }
 

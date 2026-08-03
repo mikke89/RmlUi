@@ -591,7 +591,7 @@ static void BindVariable(struct LuaDataModel* model)
 			luabind::invoke(
 				L,
 				[&]() {
-					LuaType<Event>::push(L, &event, false);
+					LuaType<Event>::push(L, &event);
 					for (const auto& variant : varlist)
 					{
 						PushVariant(L, &variant);

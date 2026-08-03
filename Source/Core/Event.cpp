@@ -4,6 +4,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define_Implementation_WithParent(Event, ScriptInterface)
+
 Event::Event() {}
 
 Event::Event(Element* _target_element, EventId id, const String& type, const Dictionary& _parameters, bool interruptible) :

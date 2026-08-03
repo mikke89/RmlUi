@@ -33,6 +33,6 @@ extern RegType<LuaRmlUi> LuaRmlUiMethods[];
 extern luaL_Reg LuaRmlUiGetters[];
 extern luaL_Reg LuaRmlUiSetters[];
 
-RMLUI_LUATYPE_DECLARE(LuaRmlUi)
+RMLUI_LUATYPE_DECLARE_EXTERNAL(LuaRmlUi)
 } // namespace Lua
 } // namespace Rml

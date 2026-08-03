@@ -28,7 +28,7 @@ void LuaRmlUiPushrmluiGlobal(lua_State* L)
 	lua_global_rmlui.key_identifier_ref = luaL_ref(L, -2);
 	LuaRmlUiEnumkey_modifier(L);
 	lua_global_rmlui.key_modifier_ref = luaL_ref(L, -2);
-	LuaType<LuaRmlUi>::push(L, &lua_global_rmlui, false);
+	LuaType<LuaRmlUi>::push(L, &lua_global_rmlui);
 	lua_setglobal(L, "rmlui");
 }
 
@@ -66,7 +66,7 @@ int LuaRmlUiLoadFontFace(lua_State* L, LuaRmlUi* /*obj*/)
 int LuaRmlUiRegisterTag(lua_State* L, LuaRmlUi* /*obj*/)
 {
 	const char* tag = luaL_checkstring(L, 1);
-	LuaElementInstancer* lei = (LuaElementInstancer*)LuaType<ElementInstancer>::check(L, 2);
+	auto lei = LuaType<LuaElementInstancer>::check(L, 2);
 	RMLUI_CHECK_OBJ(lei);
 	Factory::RegisterElementInstancer(tag, lei);
 	return 0;
@@ -74,8 +74,7 @@ int LuaRmlUiRegisterTag(lua_State* L, LuaRmlUi* /*obj*/)
 
 int LuaRmlUiGetAttrcontexts(lua_State* L)
 {
-	RmlUiContextsProxy* proxy = new RmlUiContextsProxy();
-	LuaType<RmlUiContextsProxy>::push(L, proxy, true);
+	LuaType<RmlUiContextsProxy>::emplace(L);
 	return 1;
 }
 

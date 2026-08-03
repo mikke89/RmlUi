@@ -25,7 +25,7 @@ int ContextDocumentsProxy__index(lua_State* L)
 			ret = proxy->owner->GetDocument(luaL_checkstring(L, 2));
 		else
 			ret = proxy->owner->GetDocument((int)luaL_checkinteger(L, 2) - 1);
-		LuaType<Document>::push(L, ret, false);
+		LuaType<Document>::push(L, ret);
 		return 1;
 	}
 	else
