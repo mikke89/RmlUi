@@ -1,6 +1,5 @@
-#include "ElementForm.h"
-#include "../Element.h"
-#include <RmlUi/Core/Elements/ElementForm.h>
+#include <RmlUi/Lua/Elements/ElementForm.h>
+#include <RmlUi/Lua/Element.h>
 #include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {

@@ -1,9 +1,9 @@
 #include "LuaDataModel.h"
-#include "Event.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/DataVariable.h>
 #include <RmlUi/Core/Event.h>
+#include <RmlUi/Lua/Event.h>
 #include <RmlUi/Lua/Utilities.h>
 
 #define RMLDATAMODEL "RMLDATAMODEL"

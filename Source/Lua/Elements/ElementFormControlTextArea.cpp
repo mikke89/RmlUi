@@ -1,7 +1,6 @@
-#include "ElementFormControlTextArea.h"
-#include "../Element.h"
-#include "ElementFormControl.h"
-#include <RmlUi/Core/Elements/ElementFormControl.h>
+#include <RmlUi/Lua/Element.h>
+#include <RmlUi/Lua/Elements/ElementFormControl.h>
+#include <RmlUi/Lua/Elements/ElementFormControlTextArea.h>
 #include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {

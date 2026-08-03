@@ -1,4 +1,4 @@
-#include "Vector2i.h"
+#include <RmlUi/Lua/Vector2i.h>
 
 namespace Rml {
 namespace Lua {

@@ -1,10 +1,8 @@
-#include "ElementFormControlSelect.h"
-#include "../Element.h"
-#include "ElementFormControl.h"
-#include "SelectOptionsProxy.h"
-#include <RmlUi/Core/Elements/ElementFormControl.h>
-#include <RmlUi/Core/Elements/ElementFormControlSelect.h>
+#include <RmlUi/Lua/Element.h>
+#include <RmlUi/Lua/Elements/ElementFormControl.h>
+#include <RmlUi/Lua/Elements/ElementFormControlSelect.h>
 #include <RmlUi/Lua/Utilities.h>
+#include "SelectOptionsProxy.h"
 
 namespace Rml {
 namespace Lua {

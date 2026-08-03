@@ -1,7 +1,6 @@
-#include "Document.h"
-#include "Context.h"
-#include "Element.h"
-#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Lua/Context.h>
+#include <RmlUi/Lua/Document.h>
+#include <RmlUi/Lua/Element.h>
 #include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {

@@ -1,9 +1,9 @@
-#include "Element.h"
-#include "Document.h"
 #include "ElementAttributesProxy.h"
 #include "ElementChildNodesProxy.h"
 #include "ElementStyleProxy.h"
 #include "LuaEventListener.h"
+#include <RmlUi/Lua/Document.h>
+#include <RmlUi/Lua/Element.h>
 #include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {

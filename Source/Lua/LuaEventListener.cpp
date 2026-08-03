@@ -1,9 +1,8 @@
 #include "LuaEventListener.h"
-#include "Document.h"
-#include "Element.h"
-#include "Event.h"
 #include <RmlUi/Lua/Interpreter.h>
-#include <RmlUi/Lua/LuaType.h>
+#include <RmlUi/Lua/Document.h>
+#include <RmlUi/Lua/Element.h>
+#include <RmlUi/Lua/Event.h>
 #include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {

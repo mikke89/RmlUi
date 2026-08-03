@@ -1,12 +1,10 @@
-#include "Context.h"
 #include "ContextDocumentsProxy.h"
-#include "Document.h"
-#include "Element.h"
-#include "Vector2i.h"
 #include "LuaDataModel.h"
 #include "LuaEventListener.h"
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Lua/Context.h>
+#include <RmlUi/Lua/Document.h>
+#include <RmlUi/Lua/Element.h>
+#include <RmlUi/Lua/Vector2i.h>
 #include <RmlUi/Core/Factory.h>
 
 namespace Rml {

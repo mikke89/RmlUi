@@ -1,4 +1,4 @@
-#include "Colourf.h"
+#include <RmlUi/Lua/Colourf.h>
 
 namespace Rml {
 namespace Lua {

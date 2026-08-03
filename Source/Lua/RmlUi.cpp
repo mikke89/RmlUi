@@ -1,7 +1,7 @@
 #include "RmlUi.h"
-#include "Context.h"
+#include <RmlUi/Lua/Context.h>
 #include "ElementInstancer.h"
-#include "Vector2i.h"
+#include <RmlUi/Lua/Vector2i.h>
 #include "LuaElementInstancer.h"
 #include "RmlUiContextsProxy.h"
 #include <RmlUi/Core/Core.h>

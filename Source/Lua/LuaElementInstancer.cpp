@@ -1,9 +1,8 @@
 #include "LuaElementInstancer.h"
-#include "Element.h"
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Platform.h>
 #include <RmlUi/Lua/Interpreter.h>
-#include <RmlUi/Lua/LuaType.h>
+#include <RmlUi/Lua/Element.h>
 
 namespace Rml {
 namespace Lua {

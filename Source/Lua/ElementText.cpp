@@ -1,5 +1,5 @@
-#include "ElementText.h"
-#include "Element.h"
+#include <RmlUi/Lua/ElementText.h>
+#include <RmlUi/Lua/Element.h>
 #include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {
