@@ -33,7 +33,7 @@ ElementPtr LuaElementInstancer::InstanceElement(Element* /*parent*/, const Strin
 		lua_pushstring(L, tag.c_str());          // push the tag
 		Interpreter::ExecuteCall(1, 1);          // we pass in a string, and we want to get an Element back
 		auto scriptPtr = reinterpret_cast<ScriptPtr<Element>*>(lua_touserdata(L, -1));
-		ret = scriptPtr->release_ownership();
+		ret = scriptPtr->ReleaseElementPtr();
 	}
 	else
 	{

@@ -74,7 +74,7 @@ int ElementAppendChild(lua_State* L, Element* obj)
 	auto element = reinterpret_cast<ScriptPtr<Element>*>(lua_touserdata(L, 1));
 	if (element)
 	{
-		Element* child = obj->AppendChild(element->release_from_parent());
+		Element* child = obj->AppendChild(element->ReleaseFromParent());
 		LuaType<Element>::push(L, child);
 	}
 	else
@@ -207,7 +207,7 @@ int ElementInsertBefore(lua_State* L, Element* obj)
 	Element* adjacent = LuaType<Element>::check(L, 2);
 	if (element)
 	{
-		Element* inserted = obj->InsertBefore(element->release_from_parent(), adjacent);
+		Element* inserted = obj->InsertBefore(element->ReleaseFromParent(), adjacent);
 		LuaType<Element>::push(L, inserted);
 	}
 	else
@@ -247,7 +247,7 @@ int ElementReplaceChild(lua_State* L, Element* obj)
 	Element* replaced = LuaType<Element>::check(L, 2);
 	if (inserted)
 	{
-		ElementPtr ownedReplaced = obj->ReplaceChild(inserted->release_from_parent(), replaced);
+		ElementPtr ownedReplaced = obj->ReplaceChild(inserted->ReleaseFromParent(), replaced);
 		LuaType<Element>::push(L, std::move(ownedReplaced));
 	}
 	else
