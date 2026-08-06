@@ -80,7 +80,7 @@ void ElementGame::OnChildRemove(Rml::Element* element)
 {
 	Rml::Element::OnChildRemove(element);
 
-	if (element == this)
+	if (GetOwnerDocument() && element == this)
 	{
 		GetOwnerDocument()->RemoveEventListener(Rml::EventId::Load, this);
 		GetOwnerDocument()->RemoveEventListener(Rml::EventId::Keydown, this);
