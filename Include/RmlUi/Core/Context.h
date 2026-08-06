@@ -27,7 +27,7 @@ enum class EventId : uint16_t;
 
 class RMLUICORE_API Context : public ScriptInterface {
 public:
-	RMLUI_RTTI_DefineWithParent(Context, ScriptInterface)
+	RMLUI_RTTI_DeclareWithParent(Context, ScriptInterface)
 
 	/// Constructs a new, uninitialised context. This should not be called directly, use CreateContext() instead.
 	/// @param[in] name The name of the context.

@@ -56,7 +56,7 @@ static void DebugVerifyLocaleSetting()
 #endif
 }
 
-RMLUI_RTTI_Define_Implementation_WithParent(Context, ScriptInterface)
+RMLUI_RTTI_Define(Context)
 
 Context::Context(const String& name, RenderManager* render_manager, TextInputHandler* text_input_handler) :
 	name(name), render_manager(render_manager), text_input_handler(text_input_handler)

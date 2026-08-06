@@ -4,7 +4,7 @@
 
 namespace Rml {
 
-RMLUI_RTTI_Define_Implementation_WithParent(Event, ScriptInterface)
+RMLUI_RTTI_Define(Event)
 
 Event::Event() {}
 
