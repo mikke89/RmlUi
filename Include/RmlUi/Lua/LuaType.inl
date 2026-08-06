@@ -58,7 +58,7 @@ namespace Lua {
 		lua_setfield(L, metatable, "__newindex");
 
 		// Skip registering a garbage collector function for non-owned types
-		if constexpr (LuaTypeTraits<T>::lua_owned)
+		if constexpr (LuaTypeTraits<T>::lua_owned && !std::is_trivially_destructible_v<T>)
 		{
 			lua_pushcfunction(L, gc_T);
 			lua_setfield(L, metatable, "__gc");
