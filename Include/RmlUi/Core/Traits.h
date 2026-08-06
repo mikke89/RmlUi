@@ -75,48 +75,41 @@ struct has_custom_rtti {
 
 } // namespace Rml
  
-#define RMLUI_RTTI_Define(_NAME_)                             \
-	using RttiClassType = _NAME_;                             \
+#define RMLUI_RTTI_Declare(NAME)                              \
+	using RttiClassType = NAME;                               \
+	using RttiParentClassType = NAME;                         \
 	static Rml::ClassId GetStaticClassIdentifier();           \
 	virtual Rml::ClassId GetClassIdentifier() const;          \
 	virtual bool IsClass(Rml::ClassId type_identifier) const;
 
-#define RMLUI_RTTI_DefineWithParent(_NAME_, _PARENT_)                                               \
-	using RttiClassType = _NAME_;                                                                   \
-	static_assert(std::is_same<typename _PARENT_::RttiClassType, _PARENT_>::value,                  \
-		"Parent does not implement RMLUI_RTTI_Define or RMLUI_RTTI_DefineWithParent");              \
+#define RMLUI_RTTI_DeclareWithParent(NAME, PARENT)                                                  \
+	using RttiClassType = NAME;                                                                     \
+	using RttiParentClassType = PARENT;                                                             \
+	static_assert(std::is_same<typename PARENT::RttiClassType, PARENT>::value,                      \
+		"Parent does not implement RMLUI_RTTI_Declare or RMLUI_RTTI_DeclareWithParent");            \
 	static Rml::ClassId GetStaticClassIdentifier();                                                 \
 	Rml::ClassId GetClassIdentifier() const override;                                               \
 	bool IsClass(Rml::ClassId type_identifier) const override;
 
-#define RMLUI_RTTI_Define_Implementation(_NAME_)              \
-	Rml::ClassId _NAME_::GetStaticClassIdentifier()           \
-	{                                                         \
-		static int dummy;                                     \
-		return &dummy;                                        \
-	}                                                         \
-	Rml::ClassId _NAME_::GetClassIdentifier() const           \
-	{                                                         \
-		return GetStaticClassIdentifier();                    \
-	}                                                         \
-	bool _NAME_::IsClass(Rml::ClassId type_identifier) const  \
-	{                                                         \
-		return type_identifier == GetStaticClassIdentifier(); \
-	}
-
-#define RMLUI_RTTI_Define_Implementation_WithParent(_NAME_, _PARENT_)                               \
-	Rml::ClassId _NAME_::GetStaticClassIdentifier()                                                 \
-	{                                                                                               \
-			static int dummy;                                                                       \
-			return &dummy;                                                                          \
-	}                                                                                               \
-	Rml::ClassId _NAME_::GetClassIdentifier() const                                                 \
-	{                                                                                               \
-		return GetStaticClassIdentifier();                                                          \
-	}                                                                                               \
-	bool _NAME_::IsClass(Rml::ClassId type_identifier) const                                        \
-	{                                                                                               \
-		return type_identifier == GetStaticClassIdentifier() || _PARENT_::IsClass(type_identifier); \
+#define RMLUI_RTTI_Define(NAME)                                           \
+	Rml::ClassId NAME::GetStaticClassIdentifier()                         \
+	{                                                                     \
+		static int dummy;                                                 \
+		return &dummy;                                                    \
+	}                                                                     \
+	Rml::ClassId NAME::GetClassIdentifier() const                         \
+	{                                                                     \
+		return GetStaticClassIdentifier();                                \
+	}                                                                     \
+	bool NAME::IsClass(Rml::ClassId type_identifier) const                \
+	{                                                                     \
+		if constexpr (!std::is_same_v<NAME, NAME::RttiParentClassType>) { \
+			return type_identifier == GetStaticClassIdentifier()          \
+					|| RttiParentClassType::IsClass(type_identifier);     \
+		}                                                                 \
+		else {                                                            \
+			return type_identifier == GetStaticClassIdentifier();         \
+		}                                                                 \
 	}
 
 #ifndef RMLUI_HAS_RTTI

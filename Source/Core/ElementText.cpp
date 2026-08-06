@@ -97,7 +97,7 @@ void LogMissingFontFace(Element* element)
 	}
 }
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementText, Element)
+RMLUI_RTTI_Define(ElementText)
 
 ElementText::ElementText(const String& tag) :
 	Element(tag), colour(255, 255, 255), opacity(1), font_handle_version(0), geometry_dirty(true), dirty_layout_on_change(true),

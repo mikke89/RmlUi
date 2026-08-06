@@ -4,7 +4,7 @@
 
 namespace Rml {
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementTextSelection, Element)
+RMLUI_RTTI_Define(ElementTextSelection)
 
 ElementTextSelection::ElementTextSelection(const String& tag) : Element(tag)
 {

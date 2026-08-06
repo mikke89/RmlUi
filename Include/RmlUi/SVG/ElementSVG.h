@@ -10,7 +10,7 @@ namespace SVG {
 
 class RMLUICORE_API ElementSVG : public Element {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
+	RMLUI_RTTI_DeclareWithParent(ElementSVG, Element)
 
 	explicit ElementSVG(const String& tag);
 	~ElementSVG() override;

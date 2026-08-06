@@ -2,6 +2,6 @@
 
 namespace Rml {
 
-RMLUI_RTTI_Define_Implementation(ScriptInterface)
+RMLUI_RTTI_Define(ScriptInterface)
 
 }

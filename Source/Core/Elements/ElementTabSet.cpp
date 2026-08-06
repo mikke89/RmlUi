@@ -4,7 +4,7 @@
 
 namespace Rml {
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementTabSet, Element)
+RMLUI_RTTI_Define(ElementTabSet)
 
 ElementTabSet::ElementTabSet(const String& tag) : Element(tag)
 {

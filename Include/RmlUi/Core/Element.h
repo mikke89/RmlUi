@@ -46,7 +46,7 @@ struct StackingContextChild;
 
 class RMLUICORE_API Element : public ScriptInterface, public EnableObserverPtr<Element> {
 public:
-	RMLUI_RTTI_DefineWithParent(Element, ScriptInterface)
+	RMLUI_RTTI_DeclareWithParent(Element, ScriptInterface)
 
 	/// Constructs a new RmlUi element. This should not be called directly; use the Factory instead.
 	/// @param[in] tag The tag the element was declared as in RML.

@@ -7,7 +7,7 @@ namespace Debugger {
 
 class ElementDebugDocument : public ElementDocument {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementDebugDocument, ElementDocument)
+	RMLUI_RTTI_DeclareWithParent(ElementDebugDocument, ElementDocument)
 
 	ElementDebugDocument(const String& tag);
 };
