@@ -121,7 +121,7 @@ namespace {
 
 } // namespace
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementDocument, Element)
+RMLUI_RTTI_Define(ElementDocument)
 
 ElementDocument::ElementDocument(const String& tag) : Element(tag)
 {

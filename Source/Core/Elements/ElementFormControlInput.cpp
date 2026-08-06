@@ -9,7 +9,7 @@
 
 namespace Rml {
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementFormControlInput, Element)
+RMLUI_RTTI_Define(ElementFormControlInput)
 
 ElementFormControlInput::ElementFormControlInput(const String& tag) : ElementFormControl(tag)
 {

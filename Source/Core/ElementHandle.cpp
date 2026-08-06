@@ -224,7 +224,7 @@ public:
 	}
 };
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementHandle, Element)
+RMLUI_RTTI_Define(ElementHandle)
 
 ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0)
 {

@@ -6,7 +6,7 @@
 
 namespace Rml {
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementSVG, Element)
+RMLUI_RTTI_Define(ElementSVG)
 
 unsigned long ElementSVG::internal_id_counter = 0;
 

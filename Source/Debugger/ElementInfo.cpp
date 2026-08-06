@@ -19,7 +19,7 @@
 namespace Rml {
 namespace Debugger {
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementInfo, ElementDebugDocument)
+RMLUI_RTTI_Define(ElementInfo)
 
 ElementInfo::ElementInfo(const String& tag) : ElementDebugDocument(tag)
 {

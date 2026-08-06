@@ -11,7 +11,7 @@
 
 namespace Rml {
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementImage, Element)
+RMLUI_RTTI_Define(ElementImage)
 
 ElementImage::ElementImage(const String& tag) : Element(tag), dimensions(-1, -1), rect_source(RectSource::None)
 {

@@ -3,7 +3,7 @@
 
 namespace Rml {
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementFormControl, Element)
+RMLUI_RTTI_Define(ElementFormControl)
 
 ElementFormControl::ElementFormControl(const String& tag) : Element(tag)
 {

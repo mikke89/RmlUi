@@ -37,7 +37,7 @@ enum class ScrollFlag {
 
 class RMLUICORE_API ElementDocument : public Element {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementDocument, Element)
+	RMLUI_RTTI_DeclareWithParent(ElementDocument, Element)
 
 	ElementDocument(const String& tag);
 	virtual ~ElementDocument();

@@ -2,7 +2,7 @@
 
 namespace Rml {
 
-RMLUI_RTTI_Define_Implementation_WithParent(ElementLabel, Element)
+RMLUI_RTTI_Define(ElementLabel)
 
 ElementLabel::ElementLabel(const String& tag) : Element(tag)
 {
