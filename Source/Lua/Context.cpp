@@ -1,9 +1,10 @@
-#include "Context.h"
 #include "ContextDocumentsProxy.h"
 #include "LuaDataModel.h"
 #include "LuaEventListener.h"
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Lua/Context.h>
+#include <RmlUi/Lua/Document.h>
+#include <RmlUi/Lua/Element.h>
+#include <RmlUi/Lua/Vector2i.h>
 #include <RmlUi/Core/Factory.h>
 
 namespace Rml {
@@ -61,7 +62,7 @@ int ContextCreateDocument(lua_State* L, Context* obj)
 	else
 		tag = luaL_checkstring(L, 1);
 	Document* doc = obj->CreateDocument(tag);
-	LuaType<Document>::push(L, doc, false);
+	LuaType<Document>::push(L, doc);
 	return 1;
 }
 
@@ -69,7 +70,7 @@ int ContextLoadDocument(lua_State* L, Context* obj)
 {
 	const char* path = luaL_checkstring(L, 1);
 	Document* doc = obj->LoadDocument(path);
-	LuaType<Document>::push(L, doc, false);
+	LuaType<Document>::push(L, doc);
 	return 1;
 }
 
@@ -200,8 +201,7 @@ int ContextProcessTextInput(lua_State* L, Context* obj)
 int ContextGetAttrdimensions(lua_State* L)
 {
 	Context* cont = LuaType<Context>::check(L, 1);
-	Vector2i* dim = new Vector2i(cont->GetDimensions());
-	LuaType<Vector2i>::push(L, dim, true);
+	LuaType<Vector2i>::emplace(L, cont->GetDimensions());
 	return 1;
 }
 
@@ -210,9 +210,7 @@ int ContextGetAttrdocuments(lua_State* L)
 {
 	Context* cont = LuaType<Context>::check(L, 1);
 	RMLUI_CHECK_OBJ(cont);
-	ContextDocumentsProxy* cdp = new ContextDocumentsProxy();
-	cdp->owner = cont;
-	LuaType<ContextDocumentsProxy>::push(L, cdp, true); // does get garbage collected (deleted)
+	LuaType<ContextDocumentsProxy>::emplace(L, cont); // does get garbage collected (deleted)
 	return 1;
 }
 

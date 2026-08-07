@@ -1,16 +1,11 @@
 add_library(rmlui_lua
 	Colourb.cpp
-	Colourb.h
 	Colourf.cpp
-	Colourf.h
 	Context.cpp
-	Context.h
 	ContextDocumentsProxy.cpp
 	ContextDocumentsProxy.h
 	Document.cpp
-	Document.h
 	Element.cpp
-	Element.h
 	ElementAttributesProxy.cpp
 	ElementAttributesProxy.h
 	ElementChildNodesProxy.cpp
@@ -20,9 +15,7 @@ add_library(rmlui_lua
 	ElementStyleProxy.cpp
 	ElementStyleProxy.h
 	ElementText.cpp
-	ElementText.h
 	Event.cpp
-	Event.h
 	EventParametersProxy.cpp
 	EventParametersProxy.h
 	GlobalLuaFunctions.cpp
@@ -53,12 +46,17 @@ add_library(rmlui_lua
 	RmlUiContextsProxy.h
 	Utilities.cpp
 	Vector2f.cpp
-	Vector2f.h
 	Vector2i.cpp
-	Vector2i.h
 )
 
 target_sources(rmlui_lua PRIVATE
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Colourb.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Colourf.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Context.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Document.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Element.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/ElementText.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Event.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Header.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/IncludeLua.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Interpreter.h"
@@ -66,7 +64,16 @@ target_sources(rmlui_lua PRIVATE
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/LuaType.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/LuaType.inl"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Utilities.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Vector2f.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Vector2i.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua.h"
+	
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Elements/ElementForm.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Elements/ElementFormControl.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Elements/ElementFormControlInput.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Elements/ElementFormControlSelect.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Elements/ElementFormControlTextArea.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Elements/ElementTabSet.h"
 )
 
 set_common_target_options(rmlui_lua)

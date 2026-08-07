@@ -1,5 +1,5 @@
 #include "ElementChildNodesProxy.h"
-#include "Element.h"
+#include <RmlUi/Lua/Element.h>
 #include "Pairs.h"
 
 namespace Rml {
@@ -26,7 +26,7 @@ int ElementChildNodesProxy__index(lua_State* L)
 		RMLUI_CHECK_OBJ(obj);
 		int key = (int)luaL_checkinteger(L, 2);
 		Element* child = obj->owner->GetChild(key - 1);
-		LuaType<Element>::push(L, child, false);
+		LuaType<Element>::push(L, child);
 		return 1;
 	}
 	else

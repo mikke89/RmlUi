@@ -31,6 +31,6 @@ extern luaL_Reg ElementFormControlTextAreaSetters[];
 // inherits from ElementFormControl which inherits from Element
 template <>
 void ExtraInit<ElementFormControlTextArea>(lua_State* L, int metatable_index);
-RMLUI_LUATYPE_DECLARE(ElementFormControlTextArea)
+RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(ElementFormControlTextArea, Element)
 } // namespace Lua
 } // namespace Rml

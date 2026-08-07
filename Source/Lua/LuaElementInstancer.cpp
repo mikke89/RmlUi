@@ -2,7 +2,7 @@
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Platform.h>
 #include <RmlUi/Lua/Interpreter.h>
-#include <RmlUi/Lua/LuaType.h>
+#include <RmlUi/Lua/Element.h>
 
 namespace Rml {
 namespace Lua {
@@ -31,7 +31,8 @@ ElementPtr LuaElementInstancer::InstanceElement(Element* /*parent*/, const Strin
 		lua_rawgeti(L, -1, ref_InstanceElement); // push the function
 		lua_pushstring(L, tag.c_str());          // push the tag
 		Interpreter::ExecuteCall(1, 1);          // we pass in a string, and we want to get an Element back
-		ret = std::move(*LuaType<ElementPtr>::check(L, -1));
+		auto scriptPtr = reinterpret_cast<ScriptPtr<Element>*>(lua_touserdata(L, -1));
+		ret = scriptPtr->ReleaseElementPtr();
 	}
 	else
 	{

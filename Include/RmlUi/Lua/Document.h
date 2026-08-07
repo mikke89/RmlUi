@@ -31,6 +31,6 @@ extern RegType<Document> DocumentMethods[];
 extern luaL_Reg DocumentGetters[];
 extern luaL_Reg DocumentSetters[];
 
-RMLUI_LUATYPE_DECLARE(Document)
+RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(Document, Element)
 } // namespace Lua
 } // namespace Rml

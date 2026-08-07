@@ -1,12 +1,12 @@
 #include "LuaEventListener.h"
-#include <RmlUi/Core/Element.h>
 #include <RmlUi/Lua/Interpreter.h>
-#include <RmlUi/Lua/LuaType.h>
+#include <RmlUi/Lua/Document.h>
+#include <RmlUi/Lua/Element.h>
+#include <RmlUi/Lua/Event.h>
 #include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {
 namespace Lua {
-typedef ElementDocument Document;
 
 LuaEventListener::LuaEventListener(const String& code, Element* element) : EventListener()
 {
@@ -100,9 +100,9 @@ void LuaEventListener::ProcessEvent(Event& event)
 	// push the arguments
 	lua_getglobal(L, "EVENTLISTENERFUNCTIONS");
 	lua_rawgeti(L, -1, luaFuncRef);
-	LuaType<Event>::push(L, &event, false);
-	LuaType<Element>::push(L, attached, false);
-	LuaType<Document>::push(L, owner_document, false);
+	LuaType<Event>::push(L, event);
+	LuaType<Element>::push(L, attached);
+	LuaType<Document>::push(L, owner_document);
 
 	Interpreter::ExecuteCall(3, 0); // call the function at the top of the stack with 3 arguments
 

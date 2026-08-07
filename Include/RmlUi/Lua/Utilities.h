@@ -47,7 +47,6 @@ namespace Lua {
 	{
 		Element* ele = LuaType<Element>::check(L, 1);
 		RMLUI_CHECK_OBJ(ele);
-		LuaType<ToType>::push(L, (ToType*)ele, false);
 		return 1;
 	}
 

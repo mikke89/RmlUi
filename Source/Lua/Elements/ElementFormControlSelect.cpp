@@ -1,10 +1,8 @@
-#include "ElementFormControlSelect.h"
-#include "ElementFormControl.h"
-#include "SelectOptionsProxy.h"
-#include <RmlUi/Core/Element.h>
-#include <RmlUi/Core/Elements/ElementFormControl.h>
-#include <RmlUi/Core/Elements/ElementFormControlSelect.h>
+#include <RmlUi/Lua/Element.h>
+#include <RmlUi/Lua/Elements/ElementFormControl.h>
+#include <RmlUi/Lua/Elements/ElementFormControlSelect.h>
 #include <RmlUi/Lua/Utilities.h>
+#include "SelectOptionsProxy.h"
 
 namespace Rml {
 namespace Lua {
@@ -41,9 +39,7 @@ int ElementFormControlSelectGetAttroptions(lua_State* L)
 {
 	ElementFormControlSelect* obj = LuaType<ElementFormControlSelect>::check(L, 1);
 	RMLUI_CHECK_OBJ(obj);
-	SelectOptionsProxy* proxy = new SelectOptionsProxy();
-	proxy->owner = obj;
-	LuaType<SelectOptionsProxy>::push(L, proxy, true);
+	LuaType<SelectOptionsProxy>::emplace(L, obj);
 	return 1;
 }
 
