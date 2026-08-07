@@ -13,7 +13,7 @@ class WidgetTextInput;
 
 class ElementTextSelection : public Element {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementTextSelection, Element)
+	RMLUI_RTTI_DeclareWithParent(ElementTextSelection, Element)
 
 	ElementTextSelection(const String& tag);
 	virtual ~ElementTextSelection();

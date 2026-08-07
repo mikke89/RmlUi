@@ -6,6 +6,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define(ElementFormControlSelect)
+
 ElementFormControlSelect::ElementFormControlSelect(const String& tag) : ElementFormControl(tag), widget(nullptr)
 {
 	widget = new WidgetDropDown(this);

@@ -13,7 +13,7 @@ class WidgetTextInputMultiLine;
 
 class RMLUICORE_API ElementFormControlTextArea : public ElementFormControl {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementFormControlTextArea, ElementFormControl)
+	RMLUI_RTTI_DeclareWithParent(ElementFormControlTextArea, ElementFormControl)
 
 	/// Constructs a new ElementFormControlTextArea. This should not be called directly; use the
 	/// Factory instead.

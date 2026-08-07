@@ -76,6 +76,8 @@ static void ReadDataVariableRecursive(String& out_rml, const int indent_level, c
 	}
 }
 
+RMLUI_RTTI_Define(ElementDataModels)
+
 ElementDataModels::ElementDataModels(const String& tag) : ElementDebugDocument(tag) {}
 
 ElementDataModels::~ElementDataModels()
