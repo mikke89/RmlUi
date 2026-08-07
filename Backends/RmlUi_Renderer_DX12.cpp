@@ -30,7 +30,8 @@
 static constexpr uint32_t kAllocationSize_ConstantBuffer_Vertex_Main = 72;
 
 /// @brief in bytes see pShaderSourceText_Vertex_Blur - > cbuffer SharedConstantBuffer : register(b0)
-static constexpr uint32_t kAllocationSize_ConstantBuffer_Vertex_Blur = 96;
+/// (64 transform + 8 translate + 8 texelOffset + 16 weights + 8 texCoordMin + 8 texCoordMax)
+static constexpr uint32_t kAllocationSize_ConstantBuffer_Vertex_Blur = 112;
 
 static constexpr uint32_t kAllocationSize_ConstantBuffer_Pixel_Gradient = 416;
 
@@ -949,7 +950,12 @@ RenderInterface_DX12::~RenderInterface_DX12()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Destructor");
 
+	// Wait for the GPU to go idle, then retire everything that was deferred for deletion; after Flush() every
+	// outstanding fence stamp has passed, so this destroys all pending geometry and textures.
 	Flush();
+
+	Update_PendingForDeletion_Geometry();
+	Update_PendingForDeletion_Textures();
 
 	m_manager_render_layer.Shutdown();
 
@@ -1365,6 +1371,7 @@ void RenderInterface_DX12::EndFrame()
 
 		WaitForFenceValue(m_current_back_buffer_index);
 		Update_PendingForDeletion_Geometry();
+		Update_PendingForDeletion_Textures();
 		m_backbuffers_fence_values[m_current_back_buffer_index] = fence_value + 1;
 	}
 }
@@ -1509,11 +1516,14 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 
 		if (texture != TextureEnableWithoutBinding)
 		{
-			D3D12_GPU_DESCRIPTOR_HANDLE srv_handle;
-			srv_handle.ptr =
-				m_p_descriptor_heap_shaders->GetGPUDescriptorHandleForHeapStart().ptr + p_handle_texture->Get_Allocation_DescriptorHeap().offset;
+			if (p_handle_texture->Get_Allocation_DescriptorHeap().offset != OffsetAllocator::Allocation::NO_SPACE)
+			{
+				D3D12_GPU_DESCRIPTOR_HANDLE srv_handle;
+				srv_handle.ptr =
+					m_p_descriptor_heap_shaders->GetGPUDescriptorHandleForHeapStart().ptr + p_handle_texture->Get_Allocation_DescriptorHeap().offset;
 
-			m_p_command_graphics_list->SetGraphicsRootDescriptorTable(1, srv_handle);
+				m_p_command_graphics_list->SetGraphicsRootDescriptorTable(1, srv_handle);
+			}
 		}
 	}
 	else
@@ -1695,7 +1705,10 @@ void RenderInterface_DX12::ReleaseGeometry(Rml::CompiledGeometryHandle geometry)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - ReleaseGeometry");
 	GeometryHandleType* p_handle = reinterpret_cast<GeometryHandleType*>(geometry);
-	m_pending_for_deletion_geometry.push_back(p_handle);
+	// Defer destruction: the geometry may still be referenced by frames currently in flight on the GPU (including the
+	// frame being recorded right now). Stamp it with the fence value that the current frame will signal at EndFrame;
+	// it is only freed once the GPU has passed that value (see Update_PendingForDeletion_Geometry).
+	m_pending_for_deletion_geometry.push_back({p_handle, m_backbuffers_fence_values[m_current_back_buffer_index]});
 }
 
 void RenderInterface_DX12::EnableScissorRegion(bool enable)
@@ -1941,17 +1954,15 @@ void RenderInterface_DX12::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - ReleaseTexture");
 	TextureHandleType* p_texture = reinterpret_cast<TextureHandleType*>(texture_handle);
-	//	m_pending_for_deletion_textures.push_back(p_texture);
 
 	if (p_texture)
 	{
 #ifdef RMLUI_DX_DEBUG
 		Rml::Log::Message(Rml::Log::LT_DEBUG, "Destroyed texture: [%s]", p_texture->Get_ResourceName().c_str());
 #endif
-
-		m_manager_texture.Free_Texture(p_texture);
-
-		delete p_texture;
+		// Defer destruction: in-flight frames may still sample this texture, and its SRV descriptor slot must not be
+		// reused until the GPU has finished the frame in which the texture was released.
+		m_pending_for_deletion_textures.push_back({p_texture, m_backbuffers_fence_values[m_current_back_buffer_index]});
 	}
 }
 
@@ -2558,11 +2569,14 @@ void RenderInterface_DX12::BindTexture(TextureHandleType* p_texture, UINT root_p
 		{
 			if (m_p_descriptor_heap_shaders)
 			{
-				D3D12_GPU_DESCRIPTOR_HANDLE srv_handle;
-				srv_handle.ptr =
-					m_p_descriptor_heap_shaders->GetGPUDescriptorHandleForHeapStart().ptr + p_texture->Get_Allocation_DescriptorHeap().offset;
+				if (p_texture->Get_Allocation_DescriptorHeap().offset != OffsetAllocator::Allocation::NO_SPACE)
+				{
+					D3D12_GPU_DESCRIPTOR_HANDLE srv_handle;
+					srv_handle.ptr =
+						m_p_descriptor_heap_shaders->GetGPUDescriptorHandleForHeapStart().ptr + p_texture->Get_Allocation_DescriptorHeap().offset;
 
-				m_p_command_graphics_list->SetGraphicsRootDescriptorTable(root_parameter_index, srv_handle);
+					m_p_command_graphics_list->SetGraphicsRootDescriptorTable(root_parameter_index, srv_handle);
+				}
 			}
 		}
 	}
@@ -3577,8 +3591,9 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 
 	RenderFilters(filters);
 
-	// Consider instead to use a separate command list and wait for command queue.
-	Flush();
+	// Note: no Flush() here. Draining the GPU pipeline on every layer composite is a severe stall, and with
+	// fence-stamped deferred deletion of geometry/textures it is no longer needed as a workaround to hide
+	// premature resource recycling.
 
 	BindRenderTarget(m_manager_render_layer.GetLayer(destination));
 
@@ -4775,7 +4790,11 @@ void RenderInterface_DX12::Initialize_SyncPrimitives() noexcept
 	{
 		for (int i = 0; i < RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT; ++i)
 		{
-			m_backbuffers_fence_values[i] = 0;
+			// Start at 1, not 0: the fence is created with initial value 0, so signaling 0 for the first frame would
+			// be a no-op that can never indicate completion of that frame. Deferred-deletion stamps must always refer
+			// to a value that is actually signaled. (This makes the first EndFrame wait for its own signal, which is
+			// a harmless one-time stall at startup.)
+			m_backbuffers_fence_values[i] = 1;
 		}
 
 		m_p_device->CreateFence(0, D3D12_FENCE_FLAGS::D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_p_backbuffer_fence));
@@ -5176,6 +5195,7 @@ void RenderInterface_DX12::Destroy_Resource_For_Shaders()
 	}
 
 	Update_PendingForDeletion_Geometry();
+	Update_PendingForDeletion_Textures();
 }
 
 void RenderInterface_DX12::Free_Geometry(RenderInterface_DX12::GeometryHandleType* p_handle)
@@ -5209,12 +5229,42 @@ void RenderInterface_DX12::Free_Texture(RenderInterface_DX12::TextureHandleType*
 void RenderInterface_DX12::Update_PendingForDeletion_Geometry()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Update_PendingForDeletion_Geometry");
-	for (auto& p_handle : m_pending_for_deletion_geometry)
-	{
-		Free_Geometry(p_handle);
-	}
+	// Retire only entries whose frame has fully completed on the GPU. Freeing earlier would hand the memory back to
+	// the allocator while in-flight frames still read it as vertex/index data (this was the source of flickering on
+	// animated content, visible mainly in optimized builds where the CPU runs ahead of the GPU).
+	const uint64_t completed_fence_value = m_p_backbuffer_fence ? m_p_backbuffer_fence->GetCompletedValue() : ~0ull;
 
-	m_pending_for_deletion_geometry.clear();
+	auto& pending = m_pending_for_deletion_geometry;
+	pending.erase(std::remove_if(pending.begin(), pending.end(),
+					  [&](const Rml::Pair<GeometryHandleType*, uint64_t>& entry) {
+						  if (entry.second <= completed_fence_value)
+						  {
+							  Free_Geometry(entry.first);
+							  return true;
+						  }
+						  return false;
+					  }),
+		pending.end());
+}
+
+void RenderInterface_DX12::Update_PendingForDeletion_Textures()
+{
+	RMLUI_ZoneScopedN("DirectX 12 - Update_PendingForDeletion_Textures");
+	// Same retirement rule as for geometry: a texture (and its SRV descriptor slot) is only released once the GPU has
+	// finished the frame in which it was released.
+	const uint64_t completed_fence_value = m_p_backbuffer_fence ? m_p_backbuffer_fence->GetCompletedValue() : ~0ull;
+
+	auto& pending = m_pending_for_deletion_textures;
+	pending.erase(std::remove_if(pending.begin(), pending.end(),
+					  [&](const Rml::Pair<TextureHandleType*, uint64_t>& entry) {
+						  if (entry.second <= completed_fence_value)
+						  {
+							  Free_Texture(entry.first);
+							  return true;
+						  }
+						  return false;
+					  }),
+		pending.end());
 }
 
 void RenderInterface_DX12::Create_Resource_Pipelines()
@@ -8120,13 +8170,20 @@ void RenderInterface_DX12::BufferMemoryManager::Alloc_Vertex(const void* p_data,
 		GraphicsAllocationInfo info;
 		Alloc(info, num_vertices * size_of_one_element_in_p_data);
 
-		void* p_writable_part = Get_WritableMemoryFromBufferByOffset(info);
-
-		RMLUI_ASSERTMSG(p_writable_part, "something is wrong!");
-
-		if (p_writable_part)
+		if (info.buffer_index != -1)
 		{
-			std::memcpy(p_writable_part, p_data, info.size);
+			void* p_writable_part = Get_WritableMemoryFromBufferByOffset(info);
+
+			RMLUI_ASSERTMSG(p_writable_part, "something is wrong!");
+
+			if (p_writable_part)
+			{
+				std::memcpy(p_writable_part, p_data, info.size);
+			}
+		}
+		else
+		{
+			Rml::Log::Message(Rml::Log::LT_ERROR, "[DirectX-12] vertex buffer allocation failed, geometry will be incomplete");
 		}
 
 		p_handle->Set_InfoVertex(info);
@@ -8168,13 +8225,20 @@ void RenderInterface_DX12::BufferMemoryManager::Alloc_Index(const void* p_data, 
 		GraphicsAllocationInfo info;
 		Alloc(info, num_vertices * size_of_one_element_in_p_data);
 
-		void* p_writable_part = Get_WritableMemoryFromBufferByOffset(info);
-
-		RMLUI_ASSERTMSG(p_writable_part, "something is wrong!");
-
-		if (p_writable_part)
+		if (info.buffer_index != -1)
 		{
-			std::memcpy(p_writable_part, p_data, num_vertices * size_of_one_element_in_p_data);
+			void* p_writable_part = Get_WritableMemoryFromBufferByOffset(info);
+
+			RMLUI_ASSERTMSG(p_writable_part, "something is wrong!");
+
+			if (p_writable_part)
+			{
+				std::memcpy(p_writable_part, p_data, num_vertices * size_of_one_element_in_p_data);
+			}
+		}
+		else
+		{
+			Rml::Log::Message(Rml::Log::LT_ERROR, "[DirectX-12] index buffer allocation failed, geometry will be incomplete");
 		}
 
 		p_handle->Set_InfoIndex(info);
@@ -8246,7 +8310,10 @@ void RenderInterface_DX12::BufferMemoryManager::Free_ConstantBuffer(ConstantBuff
 	if (p_constantbuffer)
 	{
 		const auto& info = p_constantbuffer->m_alloc_info;
-		RMLUI_ASSERTMSG(info.buffer_index != -1, "must be valid data of this info");
+
+		// A buffer_index of -1 means the allocation failed or was already freed; nothing to release.
+		if (info.buffer_index == -1)
+			return;
 
 #ifdef RMLUI_DX_DEBUG
 		Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] deallocated constant buffer with size[%zu] in buffer[%d]", info.size,
@@ -8268,8 +8335,6 @@ void RenderInterface_DX12::BufferMemoryManager::Free_Geometry(GeometryHandleType
 {
 	RMLUI_ZoneScopedN("DirectX 12 - BufferMemoryManager::Free_Geometry");
 	RMLUI_ASSERTMSG(p_handle, "must be valid!");
-	RMLUI_ASSERTMSG(p_handle->Get_InfoVertex().buffer_index != -1, "not initialized, maybe you passing twice for deallocation?");
-	RMLUI_ASSERTMSG(p_handle->Get_InfoIndex().buffer_index != -1, "not initialized, maybe you passing twice for deallocation?");
 
 	if (p_handle)
 	{
@@ -8278,8 +8343,9 @@ void RenderInterface_DX12::BufferMemoryManager::Free_Geometry(GeometryHandleType
 
 		if (m_virtual_buffers.empty() == false)
 		{
-			D3D12MA::VirtualBlock* p_block_vertex = m_virtual_buffers.at(info_vertex.buffer_index);
-			D3D12MA::VirtualBlock* p_block_index = m_virtual_buffers.at(info_index.buffer_index);
+			// A buffer_index of -1 means the allocation failed (or was already freed); nothing to release for it.
+			D3D12MA::VirtualBlock* p_block_vertex = info_vertex.buffer_index != -1 ? m_virtual_buffers.at(info_vertex.buffer_index) : nullptr;
+			D3D12MA::VirtualBlock* p_block_index = info_index.buffer_index != -1 ? m_virtual_buffers.at(info_index.buffer_index) : nullptr;
 
 			if (p_block_vertex)
 			{
@@ -8496,58 +8562,48 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 
 		auto status = p_block->Allocate(&desc_alloc, &alloc, &offset);
 
-		if (status == E_OUTOFMEMORY)
+		// A block can report enough total free space while being too fragmented for this allocation; walk through the
+		// other blocks (and freshly created ones) until the allocation succeeds.
+		for (int i = 0; status == E_OUTOFMEMORY && i < kHowManyRequestsWeCanDoForResolvingOutOfMemory; ++i)
 		{
-			for (int i = 0; i < kHowManyRequestsWeCanDoForResolvingOutOfMemory; ++i)
+			p_block = Get_NotOutOfMemoryAndAvailableBlock(size, &result_index);
+			if (!p_block)
 			{
-				p_block = Get_NotOutOfMemoryAndAvailableBlock(size, &result_index);
-				if (!p_block)
+				if (size > m_size_for_allocation_in_bytes)
 				{
-					if (size > m_size_for_allocation_in_bytes)
-					{
 #ifdef RMLUI_DX_DEBUG
-						Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] auto correction size for buffer from [%zu] to [%zu]",
-							m_size_for_allocation_in_bytes, size);
+					Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] auto correction size for buffer from [%zu] to [%zu]",
+						m_size_for_allocation_in_bytes, size);
 #endif
 
-						m_size_for_allocation_in_bytes = size;
-					}
+					m_size_for_allocation_in_bytes = size;
+				}
 
-					Alloc_Buffer(m_size_for_allocation_in_bytes
+				Alloc_Buffer(m_size_for_allocation_in_bytes
 #ifdef RMLUI_DX_DEBUG
-						,
-						std::wstring(L"buffer[") + std::to_wstring(m_buffers.size()) + L"]"
+					,
+					std::wstring(L"buffer[") + std::to_wstring(m_buffers.size()) + L"]"
 #endif
-					);
-					result_index = static_cast<int>(m_buffers.size() - 1);
-				}
-
-				p_block = m_virtual_buffers.at(result_index);
-
-				desc_alloc = {};
-				desc_alloc.Size = size;
-				if (alignment % 2 == 0)
-					desc_alloc.Alignment = alignment;
-
-				auto status_allocation = p_block->Allocate(&desc_alloc, &alloc, &offset);
-				if (status_allocation == E_OUTOFMEMORY)
-				{
-					continue;
-				}
-				else if (status_allocation == S_OK)
-				{
-					break;
-				}
-				else
-				{
-					RMLUI_ERRORMSG("Unknown allocation status");
-				}
+				);
+				result_index = static_cast<int>(m_buffers.size() - 1);
 			}
 
-			RMLUI_ASSERTMSG(offset == UINT64_MAX,
-				"it was last greedy try for allocating, it is really hard case for handling (report and describe your case on github), try to "
-				"optimize your 'stuff' (very calmly saying) "
-				"by your own, it is only for really rare specials cases where user doesn't want to think but UI must survive no matter what");
+			p_block = m_virtual_buffers.at(result_index);
+
+			desc_alloc = {};
+			desc_alloc.Size = size;
+			if (alignment % 2 == 0)
+				desc_alloc.Alignment = alignment;
+
+			status = p_block->Allocate(&desc_alloc, &alloc, &offset);
+		}
+
+		if (status != S_OK)
+		{
+			// Propagate the failure instead of storing a garbage offset: info keeps buffer_index == -1 and callers
+			// skip the upload. Previously this path continued with an invalid allocation in optimized builds.
+			Rml::Log::Message(Rml::Log::LT_ERROR, "[DirectX-12] failed to sub-allocate [%zu] bytes from buffer manager", size);
+			return -1;
 		}
 
 		info.size = size;
@@ -8594,6 +8650,12 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 
 			RMLUI_DX_VERIFY_MSG(status, "failed to Allocate");
 
+			if (status != S_OK)
+			{
+				Rml::Log::Message(Rml::Log::LT_ERROR, "[DirectX-12] failed to sub-allocate [%zu] bytes from a freshly created buffer", size);
+				return -1;
+			}
+
 			info.size = size;
 			info.alloc_info = alloc;
 			info.offset = offset;
@@ -8609,55 +8671,47 @@ int RenderInterface_DX12::BufferMemoryManager::Alloc(GraphicsAllocationInfo& inf
 void RenderInterface_DX12::BufferMemoryManager::TryToFreeAvailableBlock()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - BufferMemoryManager::TryToFreeAvailableBlock");
-	Rml::Array<std::pair<Rml::Vector<D3D12MA::VirtualBlock*>::const_iterator, Rml::Vector<Rml::Pair<D3D12MA::Allocation*, void*>>::const_iterator>, 1>
-		max_for_free;
 
-	for (size_t i = 0; i < max_for_free.size(); ++i)
+	// A virtual block can only become completely empty after every allocation in it was freed through the
+	// fence-stamped retirement path (Update_PendingForDeletion_Geometry), which means the GPU has finished all
+	// frames that referenced this memory. Releasing the underlying buffer here is therefore safe.
+	//
+	// The slot must NOT be erased from m_virtual_buffers/m_buffers: live GraphicsAllocationInfo objects store
+	// indices into these vectors, so erasing would shift indices and corrupt unrelated allocations. The slot is
+	// simply marked as unused instead.
+	for (size_t i = 0; i < m_virtual_buffers.size(); ++i)
 	{
-		max_for_free[i].first = m_virtual_buffers.end();
-		max_for_free[i].second = m_buffers.end();
-	}
+		D3D12MA::VirtualBlock* p_block = m_virtual_buffers[i];
 
-	int total_count{};
-	int limit_for_break{static_cast<int>(max_for_free.size())};
-	int index{};
+		if (!p_block)
+			continue;
 
-	for (auto cur = m_virtual_buffers.begin(); cur != m_virtual_buffers.end(); ++cur)
-	{
-		if (total_count == limit_for_break)
-			break;
+		D3D12MA::Statistics stats;
+		p_block->GetStatistics(&stats);
 
-		if (*cur)
+		// Note: stats.BlockCount is always >= 1 for a virtual block, only AllocationCount tells emptiness.
+		if (stats.AllocationCount == 0)
 		{
-			auto* p_block = *cur;
-			D3D12MA::Statistics stats;
-			p_block->GetStatistics(&stats);
+			D3D12MA::Allocation* p_allocation = m_buffers[i].first;
 
-			if (stats.AllocationCount == 0 && stats.BlockCount == 0)
+			if (p_allocation)
 			{
-				auto ref_count = p_block->Release();
+				if (ID3D12Resource* p_resource = p_allocation->GetResource())
+				{
+					p_resource->Unmap(0, nullptr);
+					p_resource->Release();
+				}
+
+				RMLUI_ATTR_ASSERT_VARIABLE auto ref_count = p_allocation->Release();
 				RMLUI_ASSERTMSG(ref_count == 0, "leak");
-
-				ref_count = m_buffers.at(index).first->Release();
-				RMLUI_ASSERTMSG(ref_count == 0, "leak");
-
-				m_buffers.at(index).second = nullptr;
-
-				max_for_free[total_count].first = cur;
-				max_for_free[total_count].second = m_buffers.begin() + index;
-
-				++total_count;
 			}
+
+			RMLUI_ATTR_ASSERT_VARIABLE auto ref_count_block = p_block->Release();
+			RMLUI_ASSERTMSG(ref_count_block == 0, "leak");
+
+			m_virtual_buffers[i] = nullptr;
+			m_buffers[i] = {nullptr, nullptr};
 		}
-		++index;
-	}
-
-	for (int i = 0; i < total_count; ++i)
-	{
-		auto& pair = max_for_free.at(i);
-
-		m_virtual_buffers.erase(pair.first);
-		m_buffers.erase(pair.second);
 	}
 }
 
@@ -9041,7 +9095,11 @@ void RenderInterface_DX12::TextureMemoryManager::Free_Texture(TextureHandleType*
 
 		if (m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav)
 		{
-			m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav->free(p_texture->Get_Allocation_DescriptorHeap());
+			// The allocation may be invalid if the descriptor heap was exhausted when the SRV was created.
+			if (p_texture->Get_Allocation_DescriptorHeap().offset != OffsetAllocator::Allocation::NO_SPACE)
+			{
+				m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav->free(p_texture->Get_Allocation_DescriptorHeap());
+			}
 		}
 
 		p_texture->Destroy();
@@ -9319,12 +9377,22 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(RMLUI_ATTR_A
 		auto descriptor_allocation =
 			m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav->allocate(static_cast<OffsetAllocator::uint32>(m_size_srv_cbv_uav_descriptor));
 
-		auto offset_pointer = SIZE_T(INT64(m_p_handle->ptr)) + INT64(descriptor_allocation.offset);
-		D3D12_CPU_DESCRIPTOR_HANDLE cast_offset_pointer;
-		cast_offset_pointer.ptr = offset_pointer;
+		if (descriptor_allocation.offset == OffsetAllocator::Allocation::NO_SPACE)
+		{
+			Rml::Log::Message(Rml::Log::LT_ERROR,
+				"[DirectX-12] SRV/CBV/UAV descriptor heap is exhausted (limit: %d descriptors), cannot create a shader resource view. Increase "
+				"RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV.",
+				(int)RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV);
+		}
+		else
+		{
+			auto offset_pointer = SIZE_T(INT64(m_p_handle->ptr)) + INT64(descriptor_allocation.offset);
+			D3D12_CPU_DESCRIPTOR_HANDLE cast_offset_pointer;
+			cast_offset_pointer.ptr = offset_pointer;
 
-		m_p_device->CreateShaderResourceView(p_resource, &desc_srv, cast_offset_pointer);
-		p_texture->Set_Allocation_DescriptorHeap(descriptor_allocation);
+			m_p_device->CreateShaderResourceView(p_resource, &desc_srv, cast_offset_pointer);
+			p_texture->Set_Allocation_DescriptorHeap(descriptor_allocation);
+		}
 
 		if (is_rt)
 			p_impl->Set_DescriptorResourceView(Alloc_RenderTargetResourceView(p_resource, p_impl->Get_VirtualAllocation_Descriptor()));
@@ -9525,6 +9593,14 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 	RMLUI_ASSERTMSG(m_p_fence, "must be valid!");
 	RMLUI_ASSERTMSG(m_p_fence_event, "must be valid!");
 
+	if (!p_resource)
+	{
+		// Resource creation failed upstream (e.g. out of memory or device lost); RMLUI_DX_VERIFY_MSG is a no-op in
+		// release builds, so bail out explicitly instead of dereferencing nullptr below.
+		Rml::Log::Message(Rml::Log::LT_ERROR, "[DirectX-12] texture upload skipped: destination resource is null (creation failed)");
+		return;
+	}
+
 	auto upload_size = GetRequiredIntermediateSize(p_resource, 0, 1);
 
 	D3D12MA::Allocation* p_allocation{};
@@ -9614,6 +9690,11 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 
 	auto allocated_size = UpdateSubresources<1>(m_p_copy_command_list, p_resource, p_allocation->GetResource(), 0, 0, 1, &desc_data);
 
+	// Note: no explicit barrier to a shader-read state here. Transitions to non-copy states (e.g.
+	// PIXEL_SHADER_RESOURCE) are invalid on a copy command list and fault the device. Textures created in COMMON
+	// decay back to COMMON once the copy list finishes executing and are implicitly promoted when sampled on the
+	// graphics queue, which is what this renderer relies on.
+
 #ifdef RMLUI_DX_DEBUG
 	constexpr const char* p_committed = "committed";
 	constexpr const char* p_placed = "placed";
@@ -9641,12 +9722,22 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 	auto descriptor_allocation =
 		m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav->allocate(static_cast<OffsetAllocator::uint32>(m_size_srv_cbv_uav_descriptor));
 
-	auto offset_pointer = SIZE_T(INT64(m_p_handle->ptr) + INT64(descriptor_allocation.offset));
-	D3D12_CPU_DESCRIPTOR_HANDLE cast_offset_pointer;
-	cast_offset_pointer.ptr = offset_pointer;
+	if (descriptor_allocation.offset == OffsetAllocator::Allocation::NO_SPACE)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR,
+			"[DirectX-12] SRV/CBV/UAV descriptor heap is exhausted (limit: %d descriptors), cannot create a shader resource view. Increase "
+			"RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV.",
+			(int)RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV);
+	}
+	else
+	{
+		auto offset_pointer = SIZE_T(INT64(m_p_handle->ptr) + INT64(descriptor_allocation.offset));
+		D3D12_CPU_DESCRIPTOR_HANDLE cast_offset_pointer;
+		cast_offset_pointer.ptr = offset_pointer;
 
-	m_p_device->CreateShaderResourceView(p_resource, &desc_srv, cast_offset_pointer);
-	p_texture_handle->Set_Allocation_DescriptorHeap(descriptor_allocation);
+		m_p_device->CreateShaderResourceView(p_resource, &desc_srv, cast_offset_pointer);
+		p_texture_handle->Set_Allocation_DescriptorHeap(descriptor_allocation);
+	}
 
 	status = m_p_copy_command_list->Close();
 
