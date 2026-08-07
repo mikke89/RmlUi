@@ -50,9 +50,9 @@
 #endif
 
 #ifdef __has_feature
-#if __has_feature(cxx_rtti)
-#define RMLUI_HAS_RTTI
-#endif
+	#if __has_feature(cxx_rtti)
+		#define RMLUI_HAS_RTTI
+	#endif
 #elif defined(__GXX_RTTI) || defined(_CPPRTTI)
-#define RMLUI_HAS_RTTI
+	#define RMLUI_HAS_RTTI
 #endif
