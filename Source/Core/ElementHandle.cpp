@@ -218,7 +218,13 @@ public:
 		for (int i = 0; i < 4; i++)
 		{
 			if (const Property* p = properties.GetProperty(ids[i]))
+			{
+#ifdef RMLUI_MATH_EXPRESSIONS
+				if (p->unit == Unit::CALCULATION)
+					return false;
+#endif
 				out_constraints[i] = p->GetNumericValue();
+			}
 		}
 		return true;
 	}

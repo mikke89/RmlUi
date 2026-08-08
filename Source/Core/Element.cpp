@@ -2914,15 +2914,8 @@ void Element::UpdateTransformState()
 			have_perspective = true;
 
 			// Compute the vanishing point from the perspective origin
-			if (computed.perspective_origin_x().type == Style::PerspectiveOrigin::Percentage)
-				vanish.x = pos.x + computed.perspective_origin_x().value * 0.01f * size.x;
-			else
-				vanish.x = pos.x + computed.perspective_origin_x().value;
-
-			if (computed.perspective_origin_y().type == Style::PerspectiveOrigin::Percentage)
-				vanish.y = pos.y + computed.perspective_origin_y().value * 0.01f * size.y;
-			else
-				vanish.y = pos.y + computed.perspective_origin_y().value;
+			vanish.x = pos.x + ResolveValue(computed.perspective_origin_x(), size.x);
+			vanish.y = pos.y + ResolveValue(computed.perspective_origin_y(), size.y);
 		}
 
 		if (have_perspective)
@@ -2963,7 +2956,11 @@ void Element::UpdateTransformState()
 			const int n = transform_ptr->GetNumPrimitives();
 			for (int i = 0; i < n; ++i)
 			{
+#ifdef RMLUI_MATH_EXPRESSIONS
+				const TransformPrimitive primitive = transform_ptr->ResolvePrimitive(i, *this);
+#else
 				const TransformPrimitive& primitive = transform_ptr->GetPrimitive(i);
+#endif
 				Matrix4f matrix = TransformUtilities::ResolveTransform(primitive, *this);
 				transform *= matrix;
 				have_transform = true;
@@ -2974,15 +2971,8 @@ void Element::UpdateTransformState()
 				// Compute the transform origin
 				Vector3f transform_origin(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f, 0);
 
-				if (computed.transform_origin_x().type == Style::TransformOrigin::Percentage)
-					transform_origin.x = pos.x + computed.transform_origin_x().value * size.x * 0.01f;
-				else
-					transform_origin.x = pos.x + computed.transform_origin_x().value;
-
-				if (computed.transform_origin_y().type == Style::TransformOrigin::Percentage)
-					transform_origin.y = pos.y + computed.transform_origin_y().value * size.y * 0.01f;
-				else
-					transform_origin.y = pos.y + computed.transform_origin_y().value;
+				transform_origin.x = pos.x + ResolveValue(computed.transform_origin_x(), size.x);
+				transform_origin.y = pos.y + ResolveValue(computed.transform_origin_y(), size.y);
 
 				transform_origin.z = computed.transform_origin_z();
 

@@ -6,6 +6,7 @@
 
 namespace Rml {
 
+class Element;
 class Property;
 
 /**
@@ -37,6 +38,15 @@ public:
 	/// Add a Primitive to this Transform
 	void AddPrimitive(const TransformPrimitive& p);
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+	/// Associate a lazily resolved calculation with a primitive argument.
+	void AddCalculation(int primitive_index, int argument_index, CalculationPtr calculation);
+	bool HasCalculations() const noexcept { return !calculations.empty(); }
+
+	/// Return a primitive with any calculation-backed arguments resolved against the current element state.
+	TransformPrimitive ResolvePrimitive(int primitive_index, Element& element) const;
+#endif
+
 	/// Return the number of Primitives in this Transform
 	int GetNumPrimitives() const noexcept;
 
@@ -48,6 +58,14 @@ public:
 
 private:
 	PrimitiveList primitives;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	struct CalculationEntry {
+		int primitive_index = 0;
+		int argument_index = 0;
+		CalculationPtr calculation;
+	};
+	Vector<CalculationEntry> calculations;
+#endif
 };
 
 } // namespace Rml

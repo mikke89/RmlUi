@@ -12,6 +12,9 @@
 #include "PropertyParserColour.h"
 #include "PropertyParserDecorator.h"
 #include "TransformUtilities.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "Calculation.h"
+#endif
 
 namespace Rml {
 
@@ -71,6 +74,22 @@ bool TypeConverter<TransformPtr, String>::Convert(const TransformPtr& src, Strin
 	}
 	return true;
 }
+
+#ifdef RMLUI_MATH_EXPRESSIONS
+bool TypeConverter<CalculationPtr, CalculationPtr>::Convert(const CalculationPtr& src, CalculationPtr& dest)
+{
+	dest = src;
+	return true;
+}
+
+bool TypeConverter<CalculationPtr, String>::Convert(const CalculationPtr& src, String& dest)
+{
+	if (!src)
+		return false;
+	dest = src->ToString();
+	return true;
+}
+#endif
 
 bool TypeConverter<TransitionList, TransitionList>::Convert(const TransitionList& src, TransitionList& dest)
 {

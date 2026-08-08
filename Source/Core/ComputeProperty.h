@@ -12,8 +12,13 @@ float ComputeLength(NumericValue value, float font_size, float document_font_siz
 
 float ComputeAngle(NumericValue value);
 
-float ComputeFontsize(NumericValue value, const Style::ComputedValues& values, const Style::ComputedValues* parent_values,
+float ComputeFontsize(const Property* property, const Style::ComputedValues& values, const Style::ComputedValues* parent_values,
 	const Style::ComputedValues* document_values, float dp_ratio, Vector2f vp_dimensions);
+
+bool ComputeDefiniteLength(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions,
+	float& result);
+bool ComputeDefiniteNumber(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions,
+	float& result);
 
 String ComputeFontFamily(String font_family);
 

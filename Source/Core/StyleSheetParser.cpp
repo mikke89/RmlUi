@@ -201,6 +201,10 @@ public:
 
 			if (const Property* property = properties.GetProperty(id_resolution))
 			{
+#ifdef RMLUI_MATH_EXPRESSIONS
+				if (property->unit == Unit::CALCULATION)
+					return false;
+#endif
 				if (property->unit == Unit::X)
 					image_resolution_factor = property->Get<float>();
 			}
@@ -212,13 +216,37 @@ public:
 
 			Vector2f position, size;
 			if (auto p = properties.GetProperty(id_rx))
+			{
+#ifdef RMLUI_MATH_EXPRESSIONS
+				if (p->unit == Unit::CALCULATION)
+					return false;
+#endif
 				position.x = p->Get<float>();
+			}
 			if (auto p = properties.GetProperty(id_ry))
+			{
+#ifdef RMLUI_MATH_EXPRESSIONS
+				if (p->unit == Unit::CALCULATION)
+					return false;
+#endif
 				position.y = p->Get<float>();
+			}
 			if (auto p = properties.GetProperty(id_rw))
+			{
+#ifdef RMLUI_MATH_EXPRESSIONS
+				if (p->unit == Unit::CALCULATION)
+					return false;
+#endif
 				size.x = p->Get<float>();
+			}
 			if (auto p = properties.GetProperty(id_rh))
+			{
+#ifdef RMLUI_MATH_EXPRESSIONS
+				if (p->unit == Unit::CALCULATION)
+					return false;
+#endif
 				size.y = p->Get<float>();
+			}
 
 			sprite_definitions.emplace_back(name, Rectanglef::FromPositionSize(position, size));
 		}
@@ -326,7 +354,17 @@ public:
 			return true;
 		}
 
-		return specification.ParsePropertyDeclaration(*properties, name, value);
+		if (!specification.ParsePropertyDeclaration(*properties, name, value))
+			return false;
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (name == "font-weight" || name == "-rmlui-face-index")
+		{
+			const PropertyId id = (name == "font-weight" ? CastId(FontFaceId::FontWeight) : CastId(FontFaceId::FaceIndex));
+			if (const Property* property = properties->GetProperty(id); property && property->unit == Unit::CALCULATION)
+				return false;
+		}
+#endif
+		return true;
 	}
 };
 
@@ -550,6 +588,10 @@ bool StyleSheetParser::ParseFontFaceBlock(const SharedPtr<const PropertySource>&
 	}
 
 	auto get_property = [&properties](FontFaceId id) { return properties.GetProperty(static_cast<PropertyId>(id)); };
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (get_property(FontFaceId::FaceIndex)->unit == Unit::CALCULATION || get_property(FontFaceId::FontWeight)->unit == Unit::CALCULATION)
+		return false;
+#endif
 	const String family = get_property(FontFaceId::FontFamily)->Get<String>();
 	const bool is_fallback = get_property(FontFaceId::FallbackFace)->Get<bool>();
 	const int face_index = get_property(FontFaceId::FaceIndex)->Get<int>();
@@ -578,6 +620,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 	String current_string;
 
 	modifier = MediaQueryModifier::None;
+	int value_parenthesis_depth = 0;
 
 	for (size_t cursor = 0; cursor < rules.length(); cursor++)
 	{
@@ -587,6 +630,11 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 		{
 		case ' ':
 		{
+			if (state == Value)
+			{
+				current_string += character;
+				break;
+			}
 			if (state == Global)
 			{
 				current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
@@ -610,6 +658,12 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 		}
 		case '(':
 		{
+			if (state == Value)
+			{
+				++value_parenthesis_depth;
+				current_string += character;
+				break;
+			}
 			if (state != Global)
 			{
 				Log::Message(Log::LT_WARNING, "Unexpected '(' in @media query list at %s:%d.", stream_file_name.c_str(), line_number);
@@ -632,6 +686,12 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 		break;
 		case ')':
 		{
+			if (state == Value && value_parenthesis_depth > 0)
+			{
+				--value_parenthesis_depth;
+				current_string += character;
+				break;
+			}
 			if (state != Value)
 			{
 				Log::Message(Log::LT_WARNING, "Unexpected ')' in @media query list at %s:%d.", stream_file_name.c_str(), line_number);
@@ -646,6 +706,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 
 			current_string.clear();
 			state = Global;
+			value_parenthesis_depth = 0;
 		}
 		break;
 		case ':':

@@ -230,6 +230,18 @@ add_library(rmlui_core
 	XMLParseTools.h
 )
 
+if(RMLUI_MATH_EXPRESSIONS)
+	target_sources(rmlui_core PRIVATE
+		Calculation.cpp
+		Calculation.h
+		CalculationParser.cpp
+		CalculationParser.h
+		CalculationResolver.cpp
+		CalculationResolver.h
+	)
+	target_compile_definitions(rmlui_core PUBLIC "RMLUI_MATH_EXPRESSIONS")
+endif()
+
 # Add public headers as files in the project (it's not necessary but convenient for IDE integration)
 # Setting them as PRIVATE so that it's addition doesn't propagate, it won't affect availability since
 # the entire include directory has already been declared as public
