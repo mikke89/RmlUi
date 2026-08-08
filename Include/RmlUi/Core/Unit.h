@@ -55,6 +55,10 @@ enum class Unit {
 	VAR_EXPRESSION = 1 << 28,        // substituted and resolved at compute time; fetch as <String>
 	SHORTHAND_PLACEHOLDER = 1 << 29, // dependent on a shorthand that must be substituted and resolved at compute time; always empty
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+	CALCULATION = 1 << 30, // CSS mathematical expression; fetch as <CalculationPtr>
+#endif
+
 	LENGTH = PX | DP | VW | VH | EM | REM | PPI_UNIT,
 	LENGTH_PERCENT = LENGTH | PERCENT,
 	NUMBER_PERCENT = NUMBER | PERCENT,

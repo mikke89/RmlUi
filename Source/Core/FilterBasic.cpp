@@ -4,6 +4,9 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/RenderManager.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "CalculationResolver.h"
+#endif
 
 namespace Rml {
 
@@ -36,11 +39,29 @@ SharedPtr<Filter> FilterBasicInstancer::InstanceFilter(const String& name, const
 	if (!p_value)
 		return nullptr;
 
-	float value = p_value->Get<float>();
-	if (p_value->unit == Unit::PERCENT)
-		value *= 0.01f;
-	else if (p_value->unit == Unit::DEG)
-		value = Rml::Math::DegreesToRadians(value);
+	float value = 0.f;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (p_value->unit == Unit::CALCULATION)
+	{
+		const CalculationPtr calculation = p_value->value.Get<CalculationPtr>();
+		ResolvedCalculation resolved;
+		if (!calculation || !ResolveCalculation(*calculation, CalculationResolverContext{}, resolved) || !resolved.is_constant)
+			return nullptr;
+		value = resolved.value;
+		if (resolved.unit == Unit::PERCENT)
+			value *= 0.01f;
+		else if (resolved.unit != Unit::NUMBER && resolved.unit != Unit::RAD)
+			return nullptr;
+	}
+	else
+#endif
+	{
+		value = p_value->Get<float>();
+		if (p_value->unit == Unit::PERCENT)
+			value *= 0.01f;
+		else if (p_value->unit == Unit::DEG)
+			value = Rml::Math::DegreesToRadians(value);
+	}
 
 	auto filter = MakeShared<FilterBasic>();
 	if (filter->Initialise(name, value))

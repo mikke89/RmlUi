@@ -401,6 +401,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 
 		size_t subvalue_i = 0;
 		String temp_subvalue;
+		bool repeated_item_consumed_remainder = false;
 		for (size_t i = 0; i < shorthand_definition->items.size() && subvalue_i < property_values.size(); i++)
 		{
 			bool result = false;
@@ -422,13 +423,23 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 				result = ParseShorthandDeclaration(dictionary, item.shorthand_id, *subvalue);
 
 			if (result)
+			{
 				subvalue_i += 1;
+				if (item.repeats)
+					repeated_item_consumed_remainder = true;
+			}
 			else if (item.repeats || !item.optional)
 				return false;
 
 			if (item.repeats)
 				break;
 		}
+
+		// Optional items may decline a subvalue, but an unconsumed trailing subvalue must not make the
+		// whole shorthand succeed. This is particularly important for optional numeric extension slots:
+		// an invalid calculated value must be rejected rather than silently ignored.
+		if (!repeated_item_consumed_remainder && subvalue_i != property_values.size())
+			return false;
 	}
 	else
 	{

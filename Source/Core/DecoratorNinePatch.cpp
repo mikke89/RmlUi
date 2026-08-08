@@ -178,7 +178,15 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 	Array<NumericValue, 4> edges;
 	for (int i = 0; i < 4; i++)
 	{
-		edges[i] = properties.GetProperty(edge_ids[i])->GetNumericValue();
+		const Property* edge_property = properties.GetProperty(edge_ids[i]);
+		RMLUI_ASSERT(edge_property);
+#ifdef RMLUI_MATH_EXPRESSIONS
+		// Nine-patch edge values are an RmlUi-specific numeric extension. They intentionally do not
+		// accept CSS math, so reject before the legacy NumericValue extraction boundary.
+		if (edge_property->unit == Unit::CALCULATION)
+			return nullptr;
+#endif
+		edges[i] = edge_property->GetNumericValue();
 		if (edges[i].number != 0.0f)
 		{
 			edges_set = true;

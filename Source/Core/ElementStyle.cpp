@@ -20,6 +20,9 @@
 #include "ElementDefinition.h"
 #include "PropertiesIterator.h"
 #include "PropertyShorthandDefinition.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "Calculation.h"
+#endif
 #include <algorithm>
 #include <optional>
 
@@ -44,6 +47,53 @@ ElementStyle::ElementStyle(Element* _element)
 {
 	element = _element;
 }
+
+#ifdef RMLUI_MATH_EXPRESSIONS
+static const Units mutable_unit_mask = Unit::EM | Unit::REM | Unit::VW | Unit::VH | Unit::DP_SCALABLE_LENGTH;
+
+Units ElementStyle::GetMutableUnitDependencies(const Property& property) const
+{
+	if (property.unit == Unit::CALCULATION)
+	{
+		const CalculationPtr calculation = property.value.Get<CalculationPtr>();
+		return calculation ? calculation->GetDependencyMask() & mutable_unit_mask : Unit::UNKNOWN;
+	}
+	return property.unit & mutable_unit_mask;
+}
+
+Units ElementStyle::GetResolvedUnitDependencies(PropertyId id) const
+{
+	if (!resolved_unit_dependencies)
+		return Unit::UNKNOWN;
+	const auto it = resolved_unit_dependencies->find(id);
+	return it != resolved_unit_dependencies->end() ? it->second : Unit::UNKNOWN;
+}
+
+void ElementStyle::UpdateResolvedUnitDependencies(PropertyId id, const Property& specified_property, const Property* resolved_property)
+{
+	const bool requires_cache = specified_property.unit == Unit::VAR_EXPRESSION || specified_property.unit == Unit::SHORTHAND_PLACEHOLDER;
+	const Units dependencies = resolved_property ? GetMutableUnitDependencies(*resolved_property) : Unit::UNKNOWN;
+	if (requires_cache && Any(dependencies))
+	{
+		if (!resolved_unit_dependencies)
+			resolved_unit_dependencies = MakeUnique<UnorderedMap<PropertyId, Units>>();
+		(*resolved_unit_dependencies)[id] = dependencies;
+	}
+	else
+	{
+		EraseResolvedUnitDependencies(id);
+	}
+}
+
+void ElementStyle::EraseResolvedUnitDependencies(PropertyId id)
+{
+	if (!resolved_unit_dependencies)
+		return;
+	resolved_unit_dependencies->erase(id);
+	if (resolved_unit_dependencies->empty())
+		resolved_unit_dependencies.reset();
+}
+#endif
 
 const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDictionary& inline_properties, const ElementDefinition* definition)
 {
@@ -814,7 +864,14 @@ void ElementStyle::DirtyPropertiesWithUnits(Units units)
 		auto name_property_pair = *it;
 		PropertyId id = name_property_pair.first;
 		const Property& property = name_property_pair.second;
-		if (Any(property.unit & units))
+		Units dependencies = property.unit;
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (property.unit == Unit::CALCULATION)
+			dependencies = GetMutableUnitDependencies(property);
+		else if (property.unit == Unit::VAR_EXPRESSION || property.unit == Unit::SHORTHAND_PLACEHOLDER)
+			dependencies = GetResolvedUnitDependencies(id);
+#endif
+		if (Any(dependencies & units))
 			DirtyProperty(id);
 	}
 }
@@ -913,6 +970,14 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	SmallUnorderedSet<String> variable_dependencies;
 	bool dirty_em_properties = false;
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+	// ComputeValues already visits every specified longhand below, so rebuild the sparse cache from
+	// those resolved values. This also drops entries for removed properties without adding any
+	// substitution work to unit-dirty scans.
+	if (resolved_unit_dependencies)
+		resolved_unit_dependencies.reset();
+#endif
+
 	// Always do font-size first if dirty, because of em-relative values
 	if (dirty_properties.Contains(PropertyId::FontSize))
 	{
@@ -921,7 +986,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			variable_dependencies.clear();
 			property = ResolveVariables(PropertyId::FontSize, property, variable_dependencies, property_storage);
 			if (property)
-				values.font_size(ComputeFontsize(property->GetNumericValue(), values, parent_values, document_values, dp_ratio, vp_dimensions));
+				values.font_size(ComputeFontsize(property, values, parent_values, document_values, dp_ratio, vp_dimensions));
 		}
 		else if (parent_values)
 			values.font_size(parent_values->font_size());
@@ -977,6 +1042,13 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		auto id_property_pair = *it;
 		const PropertyId id = id_property_pair.first;
 		const Property* property = ResolveVariables(id, &id_property_pair.second, variable_dependencies, property_storage);
+#ifdef RMLUI_MATH_EXPRESSIONS
+		// The cache is rebuilt from scratch above and only exists to retain dependencies hidden behind
+		// variable/shorthand substitution. Ordinary specified values expose their units directly and
+		// need no cache entry or per-property maintenance on this hot path.
+		if (id_property_pair.second.unit == Unit::VAR_EXPRESSION || id_property_pair.second.unit == Unit::SHORTHAND_PLACEHOLDER)
+			UpdateResolvedUnitDependencies(id, id_property_pair.second, property);
+#endif
 		if (!property)
 			continue;
 
@@ -986,7 +1058,13 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 				dirty_properties.Insert(id);
 		}
 
-		if (dirty_em_properties && property->unit == Unit::EM)
+		if (dirty_em_properties
+#ifdef RMLUI_MATH_EXPRESSIONS
+			&& Any(GetMutableUnitDependencies(*property) & Unit::EM)
+#else
+			&& property->unit == Unit::EM
+#endif
+		)
 			dirty_properties.Insert(id);
 
 		ComputeValue(values, dp_ratio, vp_dimensions, font_size, document_font_size, dirty_font_face_handle, id, property);
@@ -1082,18 +1160,16 @@ void ElementStyle::ComputeValue(Style::ComputedValues& values, float dp_ratio, V
 		break;
 
 	case PropertyId::BorderTopWidth:
-		values.border_top_width(ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
+		{ float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.border_top_width(ComputeBorderWidth(value)); }
 		break;
 	case PropertyId::BorderRightWidth:
-		values.border_right_width(
-			ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
+		{ float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.border_right_width(ComputeBorderWidth(value)); }
 		break;
 	case PropertyId::BorderBottomWidth:
-		values.border_bottom_width(
-			ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
+		{ float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.border_bottom_width(ComputeBorderWidth(value)); }
 		break;
 	case PropertyId::BorderLeftWidth:
-		values.border_left_width(ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
+		{ float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.border_left_width(ComputeBorderWidth(value)); }
 		break;
 
 	case PropertyId::BorderTopColor:
@@ -1110,16 +1186,16 @@ void ElementStyle::ComputeValue(Style::ComputedValues& values, float dp_ratio, V
 		break;
 
 	case PropertyId::BorderTopLeftRadius:
-		values.border_top_left_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+		{ float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.border_top_left_radius(value); }
 		break;
 	case PropertyId::BorderTopRightRadius:
-		values.border_top_right_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+		{ float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.border_top_right_radius(value); }
 		break;
 	case PropertyId::BorderBottomRightRadius:
-		values.border_bottom_right_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+		{ float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.border_bottom_right_radius(value); }
 		break;
 	case PropertyId::BorderBottomLeftRadius:
-		values.border_bottom_left_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+		{ float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.border_bottom_left_radius(value); }
 		break;
 
 	case PropertyId::Display:
@@ -1153,7 +1229,8 @@ void ElementStyle::ComputeValue(Style::ComputedValues& values, float dp_ratio, V
 		break;
 
 	case PropertyId::ZIndex:
-		values.z_index((p->unit == Unit::KEYWORD ? ZIndex(ZIndex::Auto) : ZIndex(ZIndex::Number, p->Get<float>())));
+		if (p->unit == Unit::KEYWORD) values.z_index(ZIndex(ZIndex::Auto));
+		else { float value; if (ComputeDefiniteNumber(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.z_index(ZIndex(ZIndex::Number, value)); }
 		break;
 
 	case PropertyId::Width:
@@ -1209,7 +1286,7 @@ void ElementStyle::ComputeValue(Style::ComputedValues& values, float dp_ratio, V
 		values.image_color(p->Get<Colourb>());
 		break;
 	case PropertyId::Opacity:
-		values.opacity(p->Get<float>());
+		{ float value; if (ComputeDefiniteNumber(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.opacity(value); }
 		break;
 
 	case PropertyId::FontFamily:
@@ -1221,7 +1298,14 @@ void ElementStyle::ComputeValue(Style::ComputedValues& values, float dp_ratio, V
 		dirty_font_face_handle = true;
 		break;
 	case PropertyId::FontWeight:
-		values.font_weight((FontWeight)p->Get< int >());
+		if (p->unit == Unit::KEYWORD)
+			values.font_weight((FontWeight)p->Get<int>());
+		else
+		{
+			float value;
+			if (ComputeDefiniteNumber(p, font_size, document_font_size, dp_ratio, vp_dimensions, value))
+				values.font_weight((FontWeight)static_cast<int>(value));
+		}
 		dirty_font_face_handle = true;
 		break;
 	case PropertyId::FontSize:
@@ -1270,7 +1354,7 @@ void ElementStyle::ComputeValue(Style::ComputedValues& values, float dp_ratio, V
 		values.focus((Focus)p->Get<int>());
 		break;
 	case PropertyId::ScrollbarMargin:
-		values.scrollbar_margin(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+		{ float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.scrollbar_margin(value); }
 		break;
 	case PropertyId::OverscrollBehavior:
 		values.overscroll_behavior((OverscrollBehavior)p->Get<int>());
@@ -1280,7 +1364,8 @@ void ElementStyle::ComputeValue(Style::ComputedValues& values, float dp_ratio, V
 		break;
 
 	case PropertyId::Perspective:
-		values.perspective(p->unit == Unit::KEYWORD ? 0.f : ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+		if (p->unit == Unit::KEYWORD) values.perspective(0.f);
+		else { float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.perspective(value); }
 		values.has_local_perspective(values.perspective() > 0.f);
 		break;
 	case PropertyId::PerspectiveOriginX:
@@ -1300,7 +1385,7 @@ void ElementStyle::ComputeValue(Style::ComputedValues& values, float dp_ratio, V
 		values.transform_origin_y(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 		break;
 	case PropertyId::TransformOriginZ:
-		values.transform_origin_z(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+		{ float value; if (ComputeDefiniteLength(p, font_size, document_font_size, dp_ratio, vp_dimensions, value)) values.transform_origin_z(value); }
 		break;
 
 	case PropertyId::Decorator:

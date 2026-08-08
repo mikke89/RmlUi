@@ -7,6 +7,9 @@
 #include "../../Include/RmlUi/Core/Utilities.h"
 #include "ComputeProperty.h"
 #include "StyleSheetParser.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "CalculationResolver.h"
+#endif
 
 namespace Rml {
 
@@ -33,6 +36,27 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 
 	const float font_size = DefaultComputedValues().font_size();
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+	auto resolve_media_value = [&](const Property& property, float& result) {
+		if (property.unit != Unit::CALCULATION)
+			return false;
+		const CalculationPtr calculation = property.value.Get<CalculationPtr>();
+		if (!calculation)
+			return false;
+		CalculationResolverContext resolver_context;
+		resolver_context.font_size = font_size;
+		resolver_context.parent_font_size = font_size;
+		resolver_context.document_font_size = font_size;
+		resolver_context.viewport_dimensions = vp_dimensions;
+		resolver_context.dp_ratio = dp_ratio;
+		ResolvedCalculation resolved;
+		if (!ResolveCalculation(*calculation, resolver_context, resolved) || !resolved.is_constant)
+			return false;
+		result = resolved.value;
+		return resolved.unit == Unit::PX || resolved.unit == Unit::X || resolved.unit == Unit::NUMBER;
+	};
+#endif
+
 	for (int media_block_index = 0; media_block_index < (int)media_blocks.size(); media_block_index++)
 	{
 		const MediaBlock& media_block = media_blocks[media_block_index];
@@ -43,31 +67,64 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 		{
 			const MediaQueryId id = static_cast<MediaQueryId>(property.first);
 			Vector2i ratio;
+			float media_value = 0.f;
+#ifdef RMLUI_MATH_EXPRESSIONS
+			const bool is_calculated_media_value = property.second.unit == Unit::CALCULATION;
+			const bool has_calculated_media_value = is_calculated_media_value && resolve_media_value(property.second, media_value);
+			if (is_calculated_media_value && !has_calculated_media_value)
+			{
+				all_match = false;
+				break;
+			}
+#else
+			const bool has_calculated_media_value = false;
+#endif
+			auto values_equal = [](float lhs, float rhs, bool approximate) { return approximate ? Math::Absolute(lhs - rhs) < 0.0001f : lhs == rhs; };
+			auto value_less = [](float lhs, float rhs, bool approximate) { return approximate ? lhs < rhs - 0.0001f : lhs < rhs; };
+			auto value_greater = [](float lhs, float rhs, bool approximate) { return approximate ? lhs > rhs + 0.0001f : lhs > rhs; };
 
 			switch (id)
 			{
 			case MediaQueryId::Width:
-				if (vp_dimensions.x != ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (!values_equal(float(vp_dimensions.x),
+						has_calculated_media_value ? media_value
+												   : ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions),
+						has_calculated_media_value))
 					all_match = false;
 				break;
 			case MediaQueryId::MinWidth:
-				if (vp_dimensions.x < ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (value_less(float(vp_dimensions.x),
+						has_calculated_media_value ? media_value
+												   : ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions),
+						has_calculated_media_value))
 					all_match = false;
 				break;
 			case MediaQueryId::MaxWidth:
-				if (vp_dimensions.x > ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (value_greater(float(vp_dimensions.x),
+						has_calculated_media_value ? media_value
+												   : ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions),
+						has_calculated_media_value))
 					all_match = false;
 				break;
 			case MediaQueryId::Height:
-				if (vp_dimensions.y != ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (!values_equal(float(vp_dimensions.y),
+						has_calculated_media_value ? media_value
+												   : ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions),
+						has_calculated_media_value))
 					all_match = false;
 				break;
 			case MediaQueryId::MinHeight:
-				if (vp_dimensions.y < ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (value_less(float(vp_dimensions.y),
+						has_calculated_media_value ? media_value
+												   : ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions),
+						has_calculated_media_value))
 					all_match = false;
 				break;
 			case MediaQueryId::MaxHeight:
-				if (vp_dimensions.y > ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (value_greater(float(vp_dimensions.y),
+						has_calculated_media_value ? media_value
+												   : ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions),
+						has_calculated_media_value))
 					all_match = false;
 				break;
 			case MediaQueryId::AspectRatio:
@@ -86,15 +143,15 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 					all_match = false;
 				break;
 			case MediaQueryId::Resolution:
-				if (dp_ratio != property.second.Get<float>())
+				if (!values_equal(dp_ratio, has_calculated_media_value ? media_value : property.second.Get<float>(), has_calculated_media_value))
 					all_match = false;
 				break;
 			case MediaQueryId::MinResolution:
-				if (dp_ratio < property.second.Get<float>())
+				if (value_less(dp_ratio, has_calculated_media_value ? media_value : property.second.Get<float>(), has_calculated_media_value))
 					all_match = false;
 				break;
 			case MediaQueryId::MaxResolution:
-				if (dp_ratio > property.second.Get<float>())
+				if (value_greater(dp_ratio, has_calculated_media_value ? media_value : property.second.Get<float>(), has_calculated_media_value))
 					all_match = false;
 				break;
 			case MediaQueryId::Orientation:

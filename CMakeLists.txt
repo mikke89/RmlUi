@@ -75,6 +75,12 @@ option(RMLUI_MATRIX_ROW_MAJOR "Use row-major matrices. Column-major matrices are
 
 option(RMLUI_PRECOMPILED_HEADERS "Enable precompiled headers for RmlUi." ON)
 
+option(
+	RMLUI_MATH_EXPRESSIONS
+	"Enable CSS mathematical expressions such as calc(), min(), max(), and clamp()."
+	OFF
+)
+
 option(RMLUI_COMPILER_OPTIONS "Enable recommended compiler-specific options for the project, such as for supported warning level, standards conformance, and multiprocess builds. Turn off for full control over compiler flags." ON)
 
 option(RMLUI_WARNINGS_AS_ERRORS "Treat compiler warnings as errors." OFF)

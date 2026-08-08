@@ -80,7 +80,12 @@ FontEffectOutlineInstancer::~FontEffectOutlineInstancer() {}
 
 SharedPtr<FontEffect> FontEffectOutlineInstancer::InstanceFontEffect(const String& /*name*/, const PropertyDictionary& properties)
 {
-	float width = properties.GetProperty(id_width)->Get<float>();
+	const Property* p_width = properties.GetProperty(id_width);
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (p_width->unit == Unit::CALCULATION)
+		return nullptr;
+#endif
+	float width = p_width->Get<float>();
 	Colourb color = properties.GetProperty(id_color)->Get<Colourb>();
 
 	auto font_effect = MakeShared<FontEffectOutline>();

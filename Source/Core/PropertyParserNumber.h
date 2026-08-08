@@ -2,6 +2,9 @@
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 #include "ControlledLifetimeResource.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "CalculationParser.h"
+#endif
 
 namespace Rml {
 
@@ -12,6 +15,9 @@ namespace Rml {
 class PropertyParserNumber : public PropertyParser {
 public:
 	PropertyParserNumber(Units units, Unit zero_unit = Unit::UNKNOWN);
+#ifdef RMLUI_MATH_EXPRESSIONS
+	PropertyParserNumber(Units units, Unit zero_unit, CalculationParseTarget calculation_target);
+#endif
 	virtual ~PropertyParserNumber();
 
 	/// Called to parse a RCSS number declaration.
@@ -32,6 +38,10 @@ private:
 
 	// If zero unit is set and pure numbers are not allowed, parsing of "0" is still allowed and assigned the given unit.
 	Unit zero_unit;
+
+#ifdef RMLUI_MATH_EXPRESSIONS
+	CalculationParseTarget calculation_target;
+#endif
 };
 
 } // namespace Rml
