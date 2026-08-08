@@ -1867,6 +1867,27 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 			if (!visible)
 				Blur();
+			// An element that was invisible while an ancestor's transform was resolved is in no
+			// stacking context, so the propagation in UpdateTransformState never reached it and
+			// dirty_transform is still false. Showing it later would then render its whole
+			// subtree with no matrix at all - a `top: 50%; transform: translateY(-50%)` window
+			// draws its frame transformed and the pane it just switched to half a window lower.
+			// Nothing else dirties it: SetBox and DirtyAbsoluteOffsetRecursive both require a
+			// transform_state that this element has never had. The whole subtree has to be
+			// dirtied here, since UpdateTransformState only forwards to `stacking_context`,
+			// which is empty on every element that is not a local stacking context container.
+			else if (parent && (transform_state || parent->transform_state))
+			{
+				struct DirtySubtree {
+					static void Apply(Element* element)
+					{
+						element->DirtyTransformState(true, true);
+						for (const ElementPtr& child : element->children)
+							Apply(child.get());
+					}
+				};
+				DirtySubtree::Apply(this);
+			}
 		}
 	}
 
