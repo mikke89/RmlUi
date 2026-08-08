@@ -389,6 +389,17 @@ void ElementStyle::TransitionPropertyChanges(const PropertySources& sources, Pro
 	const Property* transition_property = GetLocalProperty(PropertyId::Transition, sources.inline_properties, new_definition);
 	if (!transition_property)
 		return;
+	Property transition_property_storage;
+	if (transition_property->unit == Unit::VAR_EXPRESSION)
+	{
+		SmallUnorderedSet<String> transition_variable_dependencies;
+		std::optional<PropertyDictionary> transition_substituted_shorthands;
+		PropertySources transition_sources{sources.element, new_definition, sources.inline_properties};
+		transition_property = ResolveVariablesWithShorthandExpansion(transition_sources, PropertyId::Transition, transition_property,
+			transition_substituted_shorthands, transition_variable_dependencies, transition_property_storage);
+		if (!transition_property)
+			return;
+	}
 	if (transition_property->value.GetType() != Variant::TRANSITIONLIST)
 		return;
 
