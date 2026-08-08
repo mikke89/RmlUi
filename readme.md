@@ -111,6 +111,11 @@ Make sure to replace `<path-to-vcpkg>` as appropriate. This example uses the `GL
 
 To make all the samples available, you can additionally install `lua lunasvg rlottie harfbuzz` and pass `--preset samples-all` during CMake configuration.
 
+### Conan
+
+RmlUi is readily available from [ConanCenter](https://conan.io/center/recipes/rmlui).
+
+
 ## Integrating RmlUi
 
 Here are the general steps to integrate the library into a C++ application, have a look at the [integration documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/integrating.html) for details.
