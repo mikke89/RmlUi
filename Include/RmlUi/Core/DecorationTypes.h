@@ -9,7 +9,7 @@ struct ColorStop {
 	ColourbPremultiplied color;
 	NumericValue position;
 #ifdef RMLUI_MATH_EXPRESSIONS
-	CalculationPtr position_calculation;
+	CalculationPtr position_calculation = nullptr;
 #endif
 };
 inline bool operator==(const ColorStop& a, const ColorStop& b)
@@ -32,8 +32,8 @@ struct BoxShadow {
 	NumericValue spread_distance;
 	bool inset = false;
 #ifdef RMLUI_MATH_EXPRESSIONS
-	CalculationPtr offset_x_calculation, offset_y_calculation;
-	CalculationPtr blur_radius_calculation, spread_distance_calculation;
+	CalculationPtr offset_x_calculation = nullptr, offset_y_calculation = nullptr;
+	CalculationPtr blur_radius_calculation = nullptr, spread_distance_calculation = nullptr;
 #endif
 };
 inline bool operator==(const BoxShadow& a, const BoxShadow& b)
