@@ -1,5 +1,6 @@
 #include "Calculation.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
+#include "../../Include/RmlUi/Core/TypeConverter.h"
 #include <cmath>
 
 namespace Rml {

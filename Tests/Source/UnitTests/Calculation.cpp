@@ -32,6 +32,8 @@ using namespace Rml;
 
 namespace {
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+
 // WPT-derived test data below is adapted from web-platform-tests/wpt at
 // 5b6a1e61dbf639ebea0b7f19d9df0e313ae5d959 (BSD-3-Clause). Source paths are
 // recorded alongside the adapted cases. Tests requiring unsupported CSS functions, units, or
@@ -435,16 +437,6 @@ constexpr CalculationCorpusCase typed_arithmetic_cases[] = {
 	{"typed_arithmetic.html", "calc(1px * 3deg / 1deg / 1px)", "3"},
 };
 
-// Targeted owning-property source outside css/css-values:
-//   css/css-inline/parsing/line-height-computed.html
-constexpr CalculationCorpusCase line_height_cases[] = {
-	{"line-height-computed.html", "calc(200% + 10px)", "font 40px -> 90px"},
-	{"line-height-computed.html", "calc(10px - 0.5em)", "font 40px -> -10px then existing line-height range behavior"},
-	{"line-height-computed.html", "calc(10px + 0.5em)", "font 40px -> 30px"},
-	{"plan-required", "calc(200%)", "font 40px -> 80px final Length"},
-	{"plan-required", "calc(2)", "final Number 2"},
-};
-
 // Exhaustive adapted parser/type rows from the supported WPT math-function corpus. Context-dependent
 // rows assert parse/type behavior here and are covered separately by computed/used-value fixtures.
 constexpr WptParseCase wpt_valid_parse_cases[] = {
@@ -823,6 +815,8 @@ constexpr size_t Count(const T (&)[N])
 {
 	return N;
 }
+
+#endif
 
 } // namespace
 
@@ -2435,10 +2429,11 @@ TEST_CASE("Calculation.compound.angle_transform_wpt_and_arguments")
 	}
 	// Every existing numeric transform argument accepts an appropriately typed calculation. Nested commas
 	// remain inside min/max/clamp rather than being mistaken for transform argument separators.
-	const char* transform_values[] = {
+	const String transform_values[] = {
 		"matrix(calc(1), calc(0), calc(0), calc(1), calc(10), calc(20))",
-		"matrix3d(calc(1),calc(0),calc(0),calc(0),calc(0),calc(1),calc(0),calc(0),calc(0),calc(0),calc(1),calc(0),calc(10),calc(20),calc(30),calc(1)"
-		")",
+		String("matrix3d(calc(1),calc(0),calc(0),calc(0),calc(0),calc(1),calc(0),calc(0),calc(0),calc(0),calc(1),calc(0),calc(10),calc(20),calc(30),"
+			   "calc(1)") +
+			")",
 		"translateX(calc(10px + 5%))",
 		"translateY(calc(10px + 5%))",
 		"translateZ(calc(10px + 2px))",
@@ -2460,9 +2455,9 @@ TEST_CASE("Calculation.compound.angle_transform_wpt_and_arguments")
 		"skew(calc(10deg + 5deg), max(10deg, 5deg))",
 		"perspective(calc(100px + 1em))",
 	};
-	for (const char* value : transform_values)
+	for (const String& value : transform_values)
 	{
-		CAPTURE(String(value));
+		CAPTURE(value);
 		CHECK(document->SetProperty("transform", value));
 	}
 

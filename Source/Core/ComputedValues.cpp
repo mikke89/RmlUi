@@ -1,5 +1,7 @@
 #include "../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "ComputeProperty.h"
 #include "ElementStyle.h"
 #ifdef RMLUI_MATH_EXPRESSIONS
