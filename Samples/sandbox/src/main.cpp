@@ -54,7 +54,7 @@ int main(int /*argc*/, char** /*argv*/)
 	Shell::LoadFonts();
 
 	SandboxWindow sandbox_window{&logger};
-	if (!sandbox_window.Initialize("Sandbox", context))
+	if (!sandbox_window.Initialize(context))
 	{
 		Rml::Shutdown();
 		Backend::Shutdown();
@@ -66,7 +66,7 @@ int main(int /*argc*/, char** /*argv*/)
 		// Rml::ElementDocument* menu = context->LoadDocument(R"(C:/Projects/Gridlock/run/gui/menu_options.rml)");
 		// menu->Show();
 
-		context->LoadDocumentFromMemory(external_document_source)->Show();
+		// context->LoadDocumentFromMemory(external_document_source)->Show();
 	}
 
 	bool running = true;

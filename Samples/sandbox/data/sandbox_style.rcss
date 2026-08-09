@@ -94,7 +94,7 @@ input.radio:checked, input.checkbox:checked {
 }
 input.text, textarea {
 	background-color: #fff;
-	color: #555;
+	color: #000;
 	border: 2dp #999;
 	padding: 5dp;
 	tab-index: auto;
@@ -105,23 +105,15 @@ input.text, textarea {
 input.text:focus, textarea:focus {
 	border-color: #666;
 }
+input.text:placeholder-shown, textarea:placeholder-shown {
+	color: #999;
+}
 
 
 body  {
 	inset: 0;
 	display: flex;
 	overflow: auto;
-}
-
-#menu {
-	font-size: 17dp;
-	color: #444;
-	background: #333;
-	color: #ccc;
-	padding: 20dp;
-	width: 400dp;
-	height: 100%;
-	box-sizing: border-box;
 }
 
 #sandbox
@@ -189,4 +181,52 @@ textarea
 #horizontal_slider
 {
 	height: 12dp;
+}
+
+button {
+	display: inline-block;
+	background: #aaa;
+	border: 1dp #333;
+	padding: 0.35em 1.6em;
+	tab-index: auto;
+	color: #000;
+}
+button:hover {
+	color: #333;
+	background: #cca;
+}
+button:active {
+	background: #eec;
+}
+
+#menu {
+	font-size: 15dp;
+	color: #444;
+	background: #333;
+	color: #ccc;
+	width: 400dp;
+	height: 100%;
+	box-sizing: border-box;
+}
+#menu h1 {
+	padding-bottom: 0.25em;
+	margin-bottom: 1em;
+	border-bottom: 1dp #555;
+}
+#menu section {
+	display: block;
+	background: #222;
+	padding: 20dp;
+}
+#menu .row {
+	display: flex;
+	align-items: center;
+	margin: 0.5em 0 0.2em;
+}
+#menu label {
+	width: 150dp;
+}
+#menu .row.buttons {
+	display: flex;
+	justify-content: space-between;
 }

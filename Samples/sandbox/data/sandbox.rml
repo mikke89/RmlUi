@@ -6,7 +6,32 @@
 </head>
 
 <body>
-<div id="menu"></div>
+<div id="menu">
+	<section>
+		<h1>Load from file</h1>
+		<div class="row">
+			<label for="load_file_path">File path</label><input id="load_file_path" type="text" />
+		</div>
+		<div class="row">
+			<label for="working_directory">Working directory</label><input id="working_directory" type="text" />
+		</div>
+		<div class="row buttons">
+			<div id="load_file_success" style="margin-left: auto; margin-right: 1em; visibility: hidden">Successfully loaded</div>
+			<button id="load_file">Load</button>
+		</div>
+	</section>
+
+	<section>
+		<h1>Context</h1>
+		<div class="row">
+			<label for="load_file_path">Active themes</label><input id="active_themes" type="text" placeholder="dark, sparkly" />
+		</div>
+		<div class="row">
+			<label for="dp_ratio">DP-ratio</label><input id="dp_ratio" type="text" placeholder="1.0" />
+		</div>
+	</section>
+</div>
+
 <table id="sandbox">
 	<col id="col_rml_source"/>
 	<col/>

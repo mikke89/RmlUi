@@ -9,7 +9,7 @@ class SandboxWindow : public Rml::EventListener {
 public:
 	SandboxWindow(SandboxLogger* logger);
 
-	bool Initialize(const Rml::String& title, Rml::Context* context);
+	bool Initialize(Rml::Context* context);
 	void Shutdown();
 
 	void Update();

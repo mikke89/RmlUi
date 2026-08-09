@@ -25,9 +25,15 @@ scrollbarhorizontal sliderbar:active { background: #666; }
 
 SandboxWindow::SandboxWindow(SandboxLogger* logger) : logger(logger) {}
 
-bool SandboxWindow::Initialize(const Rml::String& title, Rml::Context* context)
+bool SandboxWindow::Initialize(Rml::Context* context)
 {
 	using namespace Rml;
+
+	if (document)
+	{
+		document->Close();
+		document = nullptr;
+	}
 
 	document = context->LoadDocument("sandbox/data/sandbox.rml");
 	if (!document)
@@ -124,9 +130,14 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 	case EventId::Keydown:
 	{
 		Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
+		bool shift = event.GetParameter<int>("shift_key", 0) > 0;
+		bool ctrl = event.GetParameter<int>("ctrl_key", 0) > 0;
+		bool alt = event.GetParameter<int>("alt_key", 0) > 0;
 
 		if (key_identifier == Rml::Input::KI_ESCAPE)
 			Backend::RequestExit();
+		else if (key_identifier == Rml::Input::KI_R && shift && ctrl && !alt)
+			Initialize(event.GetCurrentElement()->GetContext());
 	}
 	case EventId::Change:
 	{
