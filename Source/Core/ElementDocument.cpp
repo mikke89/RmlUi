@@ -146,7 +146,7 @@ ElementDocument::~ElementDocument()
 	SetOwnerDocument(nullptr, true);
 }
 
-void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
+void ElementDocument::ProcessHeader(const DocumentHeader* document_header, Function<void(const DocumentHeader&)>& callback_compiled_document_header)
 {
 	RMLUI_ZoneScoped;
 
@@ -229,6 +229,9 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 		}
 	}
 
+	if (callback_compiled_document_header)
+		callback_compiled_document_header(header);
+
 	// Hide this document.
 	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 
@@ -297,7 +300,7 @@ void ElementDocument::ReloadStyleSheet()
 
 	Factory::ClearStyleSheetCache();
 	Factory::ClearTemplateCache();
-	ElementPtr temp_doc = Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag());
+	ElementPtr temp_doc = Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag(), nullptr);
 	if (!temp_doc)
 	{
 		Log::Message(Log::LT_WARNING, "Failed to reload style sheet, could not instance document: %s", source_url.c_str());
@@ -305,6 +308,61 @@ void ElementDocument::ReloadStyleSheet()
 	}
 
 	SetStyleSheetContainer(rmlui_static_cast<ElementDocument*>(temp_doc.get())->style_sheet_container);
+}
+
+String ElementDocument::SerializeDocument()
+{
+	if (!context)
+		return {};
+
+	auto stream = MakeUnique<StreamFile>();
+	if (!stream->Open(source_url))
+	{
+		Log::Message(Log::LT_WARNING, "Failed to open file to serialize document: %s", source_url.c_str());
+		return {};
+	}
+
+	String document_rml = "<rml>\n<head>\n";
+
+	if (!Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag(), [&](const DocumentHeader& header) {
+			document_rml += "<title>" + header.title + "</title>\n";
+			document_rml += "<meta name=\"source\" content=\"" + header.source + "\" />\n";
+			for (const DocumentHeader::Resource& rcss : header.rcss)
+			{
+				document_rml += CreateString("\n<style path=\"%s\" inline=\"%d\">\n", rcss.path.c_str(), (int)rcss.is_inline);
+				if (rcss.is_inline)
+				{
+					document_rml += rcss.content;
+				}
+				else
+				{
+					String file_contents;
+					GetFileInterface()->LoadFile(rcss.path, file_contents);
+					document_rml += file_contents;
+				}
+				document_rml += "\n</style>\n";
+			}
+		}))
+	{
+		Log::Message(Log::LT_WARNING, "Failed to serialize document, could not instance document from stream: %s", source_url.c_str());
+		return {};
+	}
+
+	document_rml += "</head>\n";
+
+	// Templates are already expanded into the styles and element tree, remove the associated attribute during serialization.
+	String template_attribute = GetAttribute("template", String());
+	if (!template_attribute.empty())
+		RemoveAttribute("template");
+
+	GetRML(document_rml);
+
+	if (template_attribute.empty())
+		SetAttribute("template", template_attribute);
+
+	document_rml += "\n</rml>";
+
+	return {std::move(document_rml)};
 }
 
 void ElementDocument::DirtyMediaQueries()

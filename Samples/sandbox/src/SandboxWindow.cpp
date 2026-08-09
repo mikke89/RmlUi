@@ -23,6 +23,8 @@ scrollbarhorizontal sliderbar:hover { background: #888; }
 scrollbarhorizontal sliderbar:active { background: #666; }
 )";
 
+SandboxWindow::SandboxWindow(SandboxLogger* logger) : logger(logger) {}
+
 bool SandboxWindow::Initialize(const Rml::String& title, Rml::Context* context)
 {
 	using namespace Rml;
@@ -30,8 +32,6 @@ bool SandboxWindow::Initialize(const Rml::String& title, Rml::Context* context)
 	document = context->LoadDocument("sandbox/data/sandbox.rml");
 	if (!document)
 		return false;
-
-	document->GetElementById("title")->SetInnerRML(title);
 
 	el_rml_source = rmlui_dynamic_cast<Rml::ElementFormControl*>(document->GetElementById("sandbox_rml_source"));
 	if (!el_rml_source)

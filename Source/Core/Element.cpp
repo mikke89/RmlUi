@@ -2070,7 +2070,7 @@ void Element::GetRML(String& content)
 			content += ' ';
 			content += name;
 			content += "=\"";
-			content += value;
+			content += StringUtilities::EncodeRml(value);
 			content += "\"";
 		}
 	}
@@ -2115,11 +2115,11 @@ void Element::GetRML(String& content)
 
 		content += "</";
 		content += tag;
-		content += ">";
+		content += ">\n";
 	}
 	else
 	{
-		content += " />";
+		content += " />\n";
 	}
 }
 

@@ -5,6 +5,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Input.h>
+#include <RmlUi/Core/SystemInterface.h>
 #include <RmlUi/Debugger.h>
 
 static Rml::UniquePtr<ShellFileInterface> file_interface;
@@ -106,6 +107,15 @@ bool Shell::ProcessKeyDownShortcuts(Rml::Context* context, Rml::Input::KeyIdenti
 					document->ReloadStyleSheet();
 				}
 			}
+		}
+		else if (key == Rml::Input::KI_C && (key_modifier & (Rml::Input::KM_CTRL | Rml::Input::KM_SHIFT)))
+		{
+			Rml::ElementDocument* document = nullptr;
+			if (Rml::Element* focus = context->GetFocusElement())
+				document = focus->GetOwnerDocument();
+
+			if (document)
+				Rml::GetSystemInterface()->SetClipboardText(document->SerializeDocument());
 		}
 		else
 		{

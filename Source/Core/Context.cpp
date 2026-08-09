@@ -284,7 +284,7 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 	DebugVerifyLocaleSetting();
 	PluginRegistry::NotifyDocumentOpen(this, stream->GetSourceURL().GetURL());
 
-	ElementPtr element = Factory::InstanceDocumentStream(this, stream, GetDocumentsBaseTag());
+	ElementPtr element = Factory::InstanceDocumentStream(this, stream, GetDocumentsBaseTag(), nullptr);
 	if (!element)
 		return nullptr;
 

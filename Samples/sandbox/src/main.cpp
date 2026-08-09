@@ -1,4 +1,7 @@
-﻿#include "SandboxWindow.h"
+﻿#include "DocumentSource.h"
+#include "SandboxLogger.h"
+#include "SandboxSystemInterface.h"
+#include "SandboxWindow.h"
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Factory.h>
 #include <RmlUi/Debugger.h>
@@ -20,14 +23,17 @@ int main(int /*argc*/, char** /*argv*/)
 		return -1;
 
 	// Constructs the system and render interfaces, creates a window, and attaches the renderer.
-	if (!Backend::Initialize("RmlUi Sandbox", width, height, false))
+	if (!Backend::Initialize("RmlUi Sandbox", width, height, true))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
+	SandboxLogger logger;
+
 	// Install the custom interfaces constructed by the backend before initializing RmlUi.
-	Rml::SetSystemInterface(Backend::GetSystemInterface());
+	SandboxSystemInterface sandbox_system_interface{Backend::GetSystemInterface(), &logger};
+	Rml::SetSystemInterface(&sandbox_system_interface);
 	Rml::SetRenderInterface(Backend::GetRenderInterface());
 
 	// RmlUi initialisation.
@@ -47,14 +53,20 @@ int main(int /*argc*/, char** /*argv*/)
 
 	Shell::LoadFonts();
 
-	SandboxWindow sandbox_window;
-
+	SandboxWindow sandbox_window{&logger};
 	if (!sandbox_window.Initialize("Sandbox", context))
 	{
 		Rml::Shutdown();
 		Backend::Shutdown();
 		Shell::Shutdown();
 		return -1;
+	}
+
+	{
+		// Rml::ElementDocument* menu = context->LoadDocument(R"(C:/Projects/Gridlock/run/gui/menu_options.rml)");
+		// menu->Show();
+
+		context->LoadDocumentFromMemory(external_document_source)->Show();
 	}
 
 	bool running = true;

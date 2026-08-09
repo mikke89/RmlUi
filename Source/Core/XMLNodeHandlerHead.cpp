@@ -11,11 +11,29 @@
 
 namespace Rml {
 
-static String Absolutepath(const String& source, const String& base)
+static String AbsolutePath(const String& source, const String& base)
 {
 	String joined_path;
 	::Rml::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(base, '|', ':'), StringUtilities::Replace(source, '|', ':'));
 	return StringUtilities::Replace(joined_path, ':', '|');
+}
+
+static DocumentHeader::Resource MakePlaceholderResource(XMLParser* parser, const String& path_attribute, bool is_inline)
+{
+	// Constructs a resource to be filled with contents later.
+	if (!path_attribute.empty())
+	{
+		DocumentHeader::Resource resource;
+		resource.is_inline = is_inline;
+		resource.path = path_attribute;
+		return resource;
+	}
+
+	DocumentHeader::Resource resource;
+	resource.is_inline = true;
+	resource.path = parser->GetSourceURL().GetURL();
+	resource.line = parser->GetLineNumberOpenTag();
+	return resource;
 }
 
 static DocumentHeader::Resource MakeInlineResource(XMLParser* parser, const String& data)
@@ -32,7 +50,7 @@ static DocumentHeader::Resource MakeExternalResource(XMLParser* parser, const St
 {
 	DocumentHeader::Resource resource;
 	resource.is_inline = false;
-	resource.path = Absolutepath(path, parser->GetSourceURL().GetURL());
+	resource.path = AbsolutePath(path, parser->GetSourceURL().GetURL());
 	return resource;
 }
 
@@ -44,11 +62,9 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 {
 	if (name == "head")
 	{
-		// Process the head attribute
 		parser->GetDocumentHeader()->source = parser->GetSourceURL().GetURL();
 	}
 
-	// Is it a link tag?
 	else if (name == "link")
 	{
 		// Lookup the type and href
@@ -80,7 +96,6 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 		}
 	}
 
-	// Process script tags
 	else if (name == "script")
 	{
 		// Check if its an external string
@@ -89,6 +104,12 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 		{
 			parser->GetDocumentHeader()->scripts.push_back(MakeExternalResource(parser, src));
 		}
+	}
+	else if (name == "style")
+	{
+		const String path = Get<String>(attributes, "path", "");
+		const bool is_inline = Get<bool>(attributes, "inline", true);
+		parser->GetDocumentHeader()->rcss.push_back(MakePlaceholderResource(parser, path, is_inline));
 	}
 
 	// No elements constructed
@@ -106,7 +127,7 @@ bool XMLNodeHandlerHead::ElementEnd(XMLParser* parser, const String& name)
 
 		ElementDocument* document = element->GetOwnerDocument();
 		if (document)
-			document->ProcessHeader(parser->GetDocumentHeader());
+			document->ProcessHeader(parser->GetDocumentHeader(), parser->GetCallbackCompiledDocumentHead());
 	}
 	return true;
 }
@@ -129,10 +150,10 @@ bool XMLNodeHandlerHead::ElementData(XMLParser* parser, const String& data, XMLD
 		parser->GetDocumentHeader()->scripts.push_back(MakeInlineResource(parser, data));
 	}
 
-	// Store an inline style
+	// Store the inline style data, we've already added a placeholder from ElementStart.
 	if (tag == "style" && data.size() > 0)
 	{
-		parser->GetDocumentHeader()->rcss.push_back(MakeInlineResource(parser, data));
+		parser->GetDocumentHeader()->rcss.back().content = data;
 	}
 
 	return true;

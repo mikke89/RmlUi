@@ -1,0 +1,192 @@
+@font-face {
+	font-family: "monospace";
+	src: "/assets/RobotoMono-Regular.ttf", "/assets/RobotoMono-Bold.ttf";
+}
+@font-face {
+	font-family: "monospace";
+	src: "/assets/RobotoMono-Italic.ttf", "/assets/RobotoMono-BoldItalic.ttf";
+	font-style: italic;
+}
+
+body {
+	font-family: LatoLatin;
+	font-weight: normal;
+	font-style: normal;
+	font-size: 14dp;
+	color: black;
+	background: #ccc;
+}
+p { margin: 0.8em 0; }
+
+scrollbarvertical
+{
+	width: 16dp;
+}
+scrollbarhorizontal
+{
+	height: 16dp;
+}
+scrollbarvertical slidertrack,
+scrollbarhorizontal slidertrack
+{
+	background: #aaa;
+	border-color: #888;
+}
+scrollbarvertical slidertrack
+{
+	border-left-width: 1dp;
+}
+scrollbarhorizontal slidertrack
+{
+	height: 15dp;
+	border-top-width: 1dp;
+}
+scrollbarvertical sliderbar,
+scrollbarhorizontal sliderbar
+{
+	background: #ddd;
+	border-color: #888;
+}
+scrollbarvertical sliderbar
+{
+	border-width: 1dp 0;
+	margin-left: 1dp;
+}
+scrollbarhorizontal sliderbar
+{
+	height: 15dp;
+	border-width: 0 1dp;
+	margin-top: 1dp;
+}
+scrollbarcorner
+{
+	background: #888;
+}
+
+handle {
+	position: fixed;
+	background: #555a;
+	width: 16dp;
+	height: 16dp;
+	bottom: 0;
+	right: 0;
+	cursor: resize;
+}
+
+input.radio, input.checkbox {
+	width: 10dp;
+	height: 10dp;
+	border: 1dp #666;
+	background: #fff;
+	tab-index: auto;
+}
+input.radio {
+	border-radius: 5dp;
+}
+input.radio:hover, input.checkbox:hover {
+	background: #ff3;
+}
+input.radio:active, input.checkbox:active {
+	background: #ccc;
+}
+input.radio:checked, input.checkbox:checked {
+	background: #222;
+}
+input.text, textarea {
+	background-color: #fff;
+	color: #555;
+	border: 2dp #999;
+	padding: 5dp;
+	tab-index: auto;
+	cursor: text;
+	box-sizing: border-box;
+	text-align: left;
+}
+input.text:focus, textarea:focus {
+	border-color: #666;
+}
+
+
+body  {
+	inset: 0;
+	display: flex;
+	overflow: auto;
+}
+
+#menu {
+	font-size: 17dp;
+	color: #444;
+	background: #333;
+	color: #ccc;
+	padding: 20dp;
+	width: 400dp;
+	height: 100%;
+	box-sizing: border-box;
+}
+
+#sandbox
+{
+	flex: 2;
+	gap: 2dp;
+	padding: 20dp;
+	height: 100%;
+}
+
+#sandbox tr
+{
+	background-color: transparent;
+}
+
+textarea
+{
+	font-size: 13dp;
+	color: #222;
+	font-family: monospace;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+}
+#sandbox_target
+{
+	box-sizing: border-box;
+	background-color: #fff;
+	border: 1px #000;
+	height: 100%;
+	color: #000;
+	text-align: left;
+	position: relative;
+}
+#col_rml_source
+{
+	min-width: 15%;
+	max-width: 85%;
+}
+#row_source
+{
+	height: 40%;
+	min-height: 15%;
+	max-height: 85%;
+}
+.slider
+{
+	display: block;
+	height: 100%;
+	background: #3332;
+	cursor: move;
+	box-sizing: border-box;
+	border: 4dp transparent;
+}
+.slider:hover, .slider:active
+{
+	background: #dda;
+}
+#vertical_slider
+{
+	width: 12dp;
+	margin-left: 3dp;
+	padding-top: 5dp;
+}
+#horizontal_slider
+{
+	height: 12dp;
+}

@@ -1,11 +1,14 @@
 #pragma once
 
+#include "SandboxLogger.h"
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/Elements/ElementFormControl.h>
 #include <RmlUi/Core/EventListener.h>
 
 class SandboxWindow : public Rml::EventListener {
 public:
+	SandboxWindow(SandboxLogger* logger);
+
 	bool Initialize(const Rml::String& title, Rml::Context* context);
 	void Shutdown();
 
@@ -18,6 +21,8 @@ public:
 private:
 	void SetSandboxStylesheet(const Rml::String& string);
 	void SetSandboxBody(const Rml::String& string);
+
+	SandboxLogger* logger;
 
 	Rml::ElementDocument* document = nullptr;
 	Rml::ElementDocument* iframe = nullptr;

@@ -65,7 +65,7 @@ bool Template::Load(Stream* stream)
 	auto header_stream = MakeUnique<StreamMemory>((const byte*)head_start, head_end - head_start);
 	header_stream->SetSourceURL(stream->GetSourceURL());
 
-	XMLParser parser(nullptr);
+	XMLParser parser(nullptr, nullptr);
 	parser.Parse(header_stream.get());
 
 	header_stream.reset();
@@ -86,7 +86,7 @@ Element* Template::ParseTemplate(Element* element)
 
 	const int num_children_before = element->GetNumChildren();
 
-	XMLParser parser(element);
+	XMLParser parser(element, nullptr);
 	parser.Parse(body.get());
 
 	// If there's an inject attribute on the template, attempt to find the required element.
