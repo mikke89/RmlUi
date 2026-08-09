@@ -556,13 +556,13 @@ progress {
 @font-face
 {
 	font-family: "monospace";
-	src: "assets/RobotoMono-Regular.ttf", "assets/RobotoMono-Bold.ttf";
+	src: "/assets/RobotoMono-Regular.ttf", "/assets/RobotoMono-Bold.ttf";
 }
 
 @font-face
 {
 	font-family: "monospace";
-	src: "assets/RobotoMono-Italic.ttf", "assets/RobotoMono-BoldItalic.ttf";
+	src: "/assets/RobotoMono-Italic.ttf", "/assets/RobotoMono-BoldItalic.ttf";
 	font-style: italic;
 }
 
