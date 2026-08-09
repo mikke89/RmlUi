@@ -558,7 +558,9 @@ bool StyleSheetParser::ParseFontFaceBlock(const SharedPtr<const PropertySource>&
 
 	for (const String& src : font_face_property_parser.sources)
 	{
-		Rml::LoadFontFace(src, family, style, weight, is_fallback, face_index);
+		String joined_src_path;
+		GetSystemInterface()->JoinPath(joined_src_path, source->path, src);
+		Rml::LoadFontFace(joined_src_path, family, style, weight, is_fallback, face_index);
 	}
 
 	return true;
