@@ -2,7 +2,6 @@
 
 #include "Debug.h"
 #include "SystemInterface.h"
-#include "Traits.h"
 
 namespace Rml {
 
@@ -13,7 +12,7 @@ namespace Rml {
     reimplement the full interface.
  */
 
-class RMLUICORE_API SystemInterfaceProxy : public SystemInterface {
+class SystemInterfaceProxy : public SystemInterface {
 public:
 	SystemInterfaceProxy(SystemInterface* upstream) : upstream(upstream) { RMLUI_ASSERT(upstream); }
 	virtual ~SystemInterfaceProxy() { upstream = nullptr; }
@@ -32,7 +31,7 @@ public:
 	void DeactivateKeyboard() override { upstream->DeactivateKeyboard(); }
 
 protected:
-	Rml::SystemInterface* upstream;
+	SystemInterface* upstream;
 };
 
 } // namespace Rml
