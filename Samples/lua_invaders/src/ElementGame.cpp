@@ -68,7 +68,7 @@ void ElementGame::OnChildAdd(Rml::Element* element)
 {
 	Rml::Element::OnChildAdd(element);
 
-	if (element == this)
+	if (element == this && GetOwnerDocument())
 	{
 		GetOwnerDocument()->AddEventListener(Rml::EventId::Load, this);
 		GetOwnerDocument()->AddEventListener(Rml::EventId::Keydown, this);
@@ -80,7 +80,7 @@ void ElementGame::OnChildRemove(Rml::Element* element)
 {
 	Rml::Element::OnChildRemove(element);
 
-	if (GetOwnerDocument() && element == this)
+	if (element == this && GetOwnerDocument())
 	{
 		GetOwnerDocument()->RemoveEventListener(Rml::EventId::Load, this);
 		GetOwnerDocument()->RemoveEventListener(Rml::EventId::Keydown, this);
