@@ -36,6 +36,7 @@ protected:
 	void ProcessDefaultAction(Event& event) override;
 
 	bool initialised;
+	Vector2<bool> active_axes;
 	Element* move_target;
 	Element* size_target;
 	Array<NumericValue, 4> edge_margin = {};
