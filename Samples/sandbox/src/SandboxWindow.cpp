@@ -31,11 +31,23 @@ scrollbarhorizontal sliderbar:hover { background: #888; }
 scrollbarhorizontal sliderbar:active { background: #666; }
 )";
 
-static const Rml::String g_default_rml_source = "<p>Write your RML here, or load a document from file.</p>\n\n"
-												"<!-- <img src=\"/assets/high_scores_alien_1.tga\"/> -->";
+static const Rml::String g_default_rml_source = R"(<p>Write your RML here, or load a document from file.</p>
 
-static const Rml::String g_default_rcss_source = "/* Write your RCSS here, it is applied on top of the document's own style sheet. */\n\n"
-												 "/* body { color: #fea; background: #224; }\nimg { image-color: red; } */";
+<img src="/assets/high_scores_alien_1.tga" />
+)";
+
+static const Rml::String g_default_rcss_source = R"(/* Write your RCSS here */
+
+body {
+  font-size: 16dp;
+  color: #fea;
+  background: #224;
+  padding: 1em;
+}
+img {
+  image-color: red;
+}
+)";
 
 static const int g_max_log_entries = 200;
 
@@ -96,12 +108,14 @@ bool SandboxWindow::Initialize(Rml::Context* context)
 	el_working_directory = GetFormControl("working_directory");
 	el_themes = GetFormControl("active_themes");
 	el_dp_ratio = GetFormControl("dp_ratio");
+	el_inject_rcss = GetFormControl("inject_rcss");
 	el_target = document->GetElementById("sandbox_target");
 	el_status = document->GetElementById("load_file_status");
+	el_sources = document->GetElementById("sources");
 	el_log = document->GetElementById("log");
 
-	if (!el_rml_source || !el_rcss_source || !el_file_path || !el_working_directory || !el_themes || !el_dp_ratio || !el_target || !el_status ||
-		!el_log)
+	if (!el_rml_source || !el_rcss_source || !el_file_path || !el_working_directory || !el_themes || !el_dp_ratio || !el_inject_rcss || !el_target ||
+		!el_status || !el_sources || !el_log)
 	{
 		Log::Message(Log::LT_ERROR, "Sandbox document is missing one or more of its required elements.");
 		return false;
@@ -118,7 +132,7 @@ bool SandboxWindow::Initialize(Rml::Context* context)
 	el_rml_source->SetValue(g_default_rml_source);
 	el_rcss_source->SetValue(g_default_rcss_source);
 
-	for (ElementFormControl* element : {el_rml_source, el_rcss_source, el_file_path, el_working_directory, el_themes, el_dp_ratio})
+	for (ElementFormControl* element : {el_rml_source, el_rcss_source, el_file_path, el_working_directory, el_themes, el_dp_ratio, el_inject_rcss})
 		element->AddEventListener(EventId::Change, this);
 
 	document->AddEventListener(EventId::Click, this);
@@ -196,6 +210,8 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 			SetActiveThemes(value);
 		else if (element == el_dp_ratio)
 			SetDensityIndependentPixelRatio(value);
+		else if (element == el_inject_rcss)
+			el_sources->SetClass("hide_rcss_source", !event.GetParameter<bool>("checked", false));
 		else if ((element == el_file_path || element == el_working_directory) && submitted)
 			LoadDocumentFromFile();
 	}

@@ -37,12 +37,16 @@
 	</section>
 </div>
 
-<div id="sources">
+<handle class="slider vertical" size_target="menu" axis="x" />
+
+<div id="sources" class="rml_source_only">
 	<textarea id="sandbox_rml_source" wrap="nowrap"></textarea>
-	<label><input type="checkbox" /> Inject RCSS</label>
-	<handle class="slider" size_target="sandbox_rml_source"/>
+	<label><input type="checkbox" id="inject_rcss" checked /> Inject RCSS</label>
+	<handle class="slider horizontal" size_target="sandbox_rml_source" axis="y" />
 	<textarea id="sandbox_rcss_source" wrap="nowrap"></textarea>
 </div>
+
+<handle class="slider vertical" size_target="sources" axis="x" />
 
 <div id="sandbox_wrapper">
 	<div id="sandbox_target"/>

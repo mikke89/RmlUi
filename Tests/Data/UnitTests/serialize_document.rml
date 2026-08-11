@@ -18,6 +18,6 @@
 		<p>Some <em>inline</em> text.</p>
 		<p id="red">More text</p>
 	</div>
-	<div id="attributes" title="quotes &quot;here&quot;" data-x="a &amp; b &lt; c"/>
+	<div id="attributes" title="quotes &quot;here&quot;" equation="a &amp; b &lt; c" />
 </body>
 </rml>

@@ -308,7 +308,7 @@ TEST_CASE("SerializeDocument")
 		CHECK(block->GetComputedValues().background_color() == Colourb(0, 255, 0));
 		CHECK(red->GetComputedValues().color() == Colourb(255, 0, 0));
 		CHECK(doc->GetElementById("attributes")->GetAttribute<String>("title", "") == "quotes \"here\"");
-		CHECK(doc->GetElementById("attributes")->GetAttribute<String>("data-x", "") == "a & b < c");
+		CHECK(doc->GetElementById("attributes")->GetAttribute<String>("equation", "") == "a & b < c");
 	}
 
 	reloaded->Close();

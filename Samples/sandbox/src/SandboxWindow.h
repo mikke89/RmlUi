@@ -56,7 +56,9 @@ private:
 	Rml::ElementFormControl* el_working_directory = nullptr;
 	Rml::ElementFormControl* el_themes = nullptr;
 	Rml::ElementFormControl* el_dp_ratio = nullptr;
+	Rml::ElementFormControl* el_inject_rcss = nullptr;
 	Rml::Element* el_target = nullptr;
+	Rml::Element* el_sources = nullptr;
 	Rml::Element* el_status = nullptr;
 	Rml::Element* el_log = nullptr;
 };
