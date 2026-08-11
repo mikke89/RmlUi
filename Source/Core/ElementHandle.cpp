@@ -234,6 +234,7 @@ ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0)
 	move_target = nullptr;
 	size_target = nullptr;
 	initialised = false;
+	active_axes = {true, true};
 }
 
 ElementHandle::~ElementHandle() {}
@@ -244,11 +245,12 @@ void ElementHandle::OnAttributeChange(const ElementAttributes& changed_attribute
 
 	// Reset initialised state if the move or size targets have changed.
 	if (changed_attributes.find("move_target") != changed_attributes.end() || changed_attributes.find("size_target") != changed_attributes.end() ||
-		changed_attributes.find("edge_margin") != changed_attributes.end())
+		changed_attributes.find("edge_margin") != changed_attributes.end() || changed_attributes.find("axis") != changed_attributes.end())
 	{
 		initialised = false;
 		move_target = nullptr;
 		size_target = nullptr;
+		active_axes = {true, true};
 	}
 }
 
@@ -260,6 +262,12 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 	{
 		if (!initialised && GetOwnerDocument())
 		{
+			const String axis = GetAttribute<String>("axis", "");
+			if (axis == "x")
+				active_axes = {true, false};
+			else if (axis == "y")
+				active_axes = {false, true};
+
 			const String move_target_name = GetAttribute<String>("move_target", "");
 			if (!move_target_name.empty())
 				move_target = GetElementById(move_target_name);
@@ -312,13 +320,13 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 				const Vector2f new_position_top_left = (move_data.original_position_top_left + delta).Round();
 				const Vector2f new_position_bottom_right = (move_data.original_position_bottom_right - delta).Round();
 
-				if (move_data.top_left.x)
+				if (move_data.top_left.x && active_axes.x)
 					move_target->SetProperty(PropertyId::Left, Property(new_position_top_left.x, Unit::PX));
-				if (move_data.top_left.y)
+				if (move_data.top_left.y && active_axes.y)
 					move_target->SetProperty(PropertyId::Top, Property(new_position_top_left.y, Unit::PX));
-				if (move_data.bottom_right.x)
+				if (move_data.bottom_right.x && active_axes.x)
 					move_target->SetProperty(PropertyId::Right, Property(new_position_bottom_right.x, Unit::PX));
-				if (move_data.bottom_right.y)
+				if (move_data.bottom_right.y && active_axes.y)
 					move_target->SetProperty(PropertyId::Bottom, Property(new_position_bottom_right.y, Unit::PX));
 			}
 
@@ -327,13 +335,13 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 				const Vector2f new_size = Math::Max((size_data.original_size + delta).Round(), Vector2f(0.f));
 				const Vector2f new_position_bottom_right = (size_data.original_position_bottom_right - delta).Round();
 
-				if (size_data.width_height.x)
+				if (size_data.width_height.x && active_axes.x)
 					size_target->SetProperty(PropertyId::Width, Property(new_size.x, Unit::PX));
-				if (size_data.width_height.y)
+				if (size_data.width_height.y && active_axes.y)
 					size_target->SetProperty(PropertyId::Height, Property(new_size.y, Unit::PX));
-				if (size_data.bottom_right.x)
+				if (size_data.bottom_right.x && active_axes.x)
 					size_target->SetProperty(PropertyId::Right, Property(new_position_bottom_right.x, Unit::PX));
-				if (size_data.bottom_right.y)
+				if (size_data.bottom_right.y && active_axes.y)
 					size_target->SetProperty(PropertyId::Bottom, Property(new_position_bottom_right.y, Unit::PX));
 			}
 
