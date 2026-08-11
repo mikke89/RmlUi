@@ -90,6 +90,31 @@ TEST_CASE("ElementHandle")
 		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
 	}
 
+	SUBCASE("MoveAxisX")
+	{
+		handle->SetAttribute("move_target", "target");
+		handle->SetAttribute("axis", "x");
+
+		target->SetProperty(PropertyId::Top, Property(0, Unit::PX));
+		target->SetProperty(PropertyId::Left, Property(0, Unit::PX));
+		target->SetProperty(PropertyId::Width, Property(100, Unit::PX));
+		target->SetProperty(PropertyId::Height, Property(100, Unit::PX));
+
+		dispatch_mouse_event(EventId::Dragstart, handle, {0, 0});
+		dispatch_mouse_event(EventId::Drag, handle, {10, 10});
+
+		CHECK(target->GetProperty(PropertyId::Top)->Get<float>() == 0);
+		CHECK(target->GetProperty(PropertyId::Left)->Get<float>() == 10);
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(10, 0));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
+
+		document_set_size({1000, 1000});
+		CHECK(target->GetAbsoluteOffset() == Vector2f(10, 0));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
+	}
+
 	SUBCASE("MoveTargetWithTopLeftRightBottom")
 	{
 		handle->SetAttribute("move_target", "target");
@@ -364,6 +389,30 @@ TEST_CASE("ElementHandle")
 		context->Update();
 		CHECK(target->GetAbsoluteOffset() == Vector2f(200, 200));
 		CHECK(target->GetBox().GetSize() == Vector2f(110, 110));
+	}
+
+	SUBCASE("SizeAxisY")
+	{
+		handle->SetAttribute("size_target", "target");
+		handle->SetAttribute("axis", "y");
+
+		target->SetProperty(PropertyId::Width, Property(100, Unit::PX));
+		target->SetProperty(PropertyId::Height, Property(100, Unit::PX));
+		target->SetProperty("margin", "auto");
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(200, 200));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
+
+		dispatch_mouse_event(EventId::Dragstart, handle, {0, 0});
+		dispatch_mouse_event(EventId::Drag, handle, {10, 10});
+
+		CHECK(target->GetProperty(PropertyId::Width)->Get<float>() == 100);
+		CHECK(target->GetProperty(PropertyId::Height)->Get<float>() == 110);
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(200, 200));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 110));
 	}
 
 	SUBCASE("AutoMarginSizeConstraints")
