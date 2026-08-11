@@ -1,5 +1,6 @@
 #include "../Common/Mocks.h"
 #include "../Common/TestsShell.h"
+#include <RmlUi/Core/ComputedValues.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -266,6 +267,51 @@ TEST_CASE("ReloadStyleSheet")
 	// There should be no warnings when reloading style sheets.
 	document->ReloadStyleSheet();
 
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("SerializeDocument")
+{
+	Context* context = TestsShell::GetContext();
+
+	ElementDocument* document = context->LoadDocument("/../Tests/Data/UnitTests/serialize_document.rml");
+	REQUIRE(document);
+	document->Show();
+	context->Update();
+
+	const String source_inner_rml = document->GetInnerRML();
+	const String serialized = document->SerializeDocument();
+	REQUIRE(!serialized.empty());
+
+	// All style sheets should be inlined, so that the result does not depend on any external files.
+	CHECK(serialized.find("<link") == String::npos);
+	CHECK(serialized.find("serialize_document.rcss\" inline=\"1\">") != String::npos);
+	CHECK(serialized.find("#00ff00") != String::npos);
+
+	// Load the serialized document from an unrelated location, it should not need to resolve anything relative to it.
+	ElementDocument* reloaded = context->LoadDocumentFromMemory(serialized, "unrelated/location.rml");
+	REQUIRE(reloaded);
+	reloaded->Show();
+	context->Update();
+
+	CHECK(reloaded->GetInnerRML() == source_inner_rml);
+	CHECK(reloaded->GetTitle() == document->GetTitle());
+
+	// Both the linked and the inline style sheet should still apply.
+	for (ElementDocument* doc : {document, reloaded})
+	{
+		Element* block = doc->GetElementById("block");
+		Element* red = doc->GetElementById("red");
+		REQUIRE(block);
+		REQUIRE(red);
+		CHECK(block->GetComputedValues().background_color() == Colourb(0, 255, 0));
+		CHECK(red->GetComputedValues().color() == Colourb(255, 0, 0));
+		CHECK(doc->GetElementById("attributes")->GetAttribute<String>("title", "") == "quotes \"here\"");
+		CHECK(doc->GetElementById("attributes")->GetAttribute<String>("data-x", "") == "a & b < c");
+	}
+
+	reloaded->Close();
 	document->Close();
 	TestsShell::ShutdownShell();
 }

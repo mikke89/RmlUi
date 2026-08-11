@@ -318,28 +318,30 @@ String ElementDocument::SerializeDocument()
 	auto stream = MakeUnique<StreamFile>();
 	if (!stream->Open(source_url))
 	{
-		Log::Message(Log::LT_WARNING, "Failed to open file to serialize document: %s", source_url.c_str());
+		Log::Message(Log::LT_WARNING, "Failed to open file to serialize document, the document must be loaded from file: %s", source_url.c_str());
 		return {};
 	}
 
 	String document_rml = "<rml>\n<head>\n";
 
+	// The header is only available while parsing, so re-instance the document from its source to collect it. Any
+	// external style sheets are merged inline. Original paths are preserved as an attribute, so that relative URLs
+	// within them can resolve correctly on load.
 	if (!Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag(), [&](const DocumentHeader& header) {
-			document_rml += "<title>" + header.title + "</title>\n";
-			document_rml += "<meta name=\"source\" content=\"" + header.source + "\" />\n";
+			document_rml += "<title>" + StringUtilities::EncodeRml(header.title) + "</title>\n";
+			document_rml += "<meta name=\"source\" content=\"" + StringUtilities::EncodeRml(source_url) + "\" />\n";
 			for (const DocumentHeader::Resource& rcss : header.rcss)
 			{
-				document_rml += CreateString("\n<style path=\"%s\" inline=\"%d\">\n", rcss.path.c_str(), (int)rcss.is_inline);
-				if (rcss.is_inline)
+				String content = rcss.content;
+				if (!rcss.is_inline && !GetFileInterface()->LoadFile(rcss.path, content))
 				{
-					document_rml += rcss.content;
+					Log::Message(Log::LT_WARNING, "Could not inline style sheet '%s' while serializing document: %s", rcss.path.c_str(),
+						source_url.c_str());
+					continue;
 				}
-				else
-				{
-					String file_contents;
-					GetFileInterface()->LoadFile(rcss.path, file_contents);
-					document_rml += file_contents;
-				}
+
+				document_rml += CreateString("\n<style path=\"%s\" inline=\"1\">\n", rcss.path.c_str());
+				document_rml += content;
 				document_rml += "\n</style>\n";
 			}
 		}))
@@ -350,19 +352,16 @@ String ElementDocument::SerializeDocument()
 
 	document_rml += "</head>\n";
 
-	// Templates are already expanded into the styles and element tree, remove the associated attribute during serialization.
-	String template_attribute = GetAttribute("template", String());
-	if (!template_attribute.empty())
-		RemoveAttribute("template");
+	// Templates and data bindings are already expanded into the styles and element tree, skip their associated attributes during serialization.
+	const ElementGetRmlConfig serialize_config{true, true, true};
 
-	GetRML(document_rml);
+	GetRML(document_rml, serialize_config);
 
-	if (template_attribute.empty())
-		SetAttribute("template", template_attribute);
+	if (document_rml.back() != '\n')
+		document_rml += '\n';
+	document_rml += "</rml>\n";
 
-	document_rml += "\n</rml>";
-
-	return {std::move(document_rml)};
+	return document_rml;
 }
 
 void ElementDocument::DirtyMediaQueries()

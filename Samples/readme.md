@@ -39,7 +39,11 @@ Lua version of the invaders sample. Only installed with the Lua plugin.
 
 #### `sandbox`
 
-An interactive sandbox for playing with RML and RCSS.
+An interactive sandbox for playing with RML and RCSS. The left pane holds the RML source, which is rendered live into the area below. The source is treated as the contents of a document body, unless it declares an `rml` root tag, in which case it is loaded as a complete document. The right pane holds RCSS that is applied on top of the document's own style sheet.
+
+Any document can be loaded from file, including documents belonging to other projects. Set the working directory to the location that root-relative paths within the document should be resolved against, such as the asset root of the application it belongs to. Messages logged by RmlUi are listed in the log at the bottom of the menu.
+
+Documents from a running application can also be brought into the sandbox: press `Ctrl+Shift+C` in any of the samples to copy the focused document to the clipboard as a standalone RML document, then paste it into the RML pane. All style sheets are inlined into the copy, see `ElementDocument::SerializeDocument`.
 
 #### `shell`
 

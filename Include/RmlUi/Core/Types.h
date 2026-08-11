@@ -133,6 +133,13 @@ using DataViewPtr = UniqueReleaserPtr<DataView>;
 class DataController;
 using DataControllerPtr = UniqueReleaserPtr<DataController>;
 
+// Element method configuration
+struct ElementGetRmlConfig {
+	bool pretty_rml = false;
+	bool skip_templates = false;
+	bool skip_data_bindings = false;
+};
+
 } // namespace Rml
 
 namespace std {

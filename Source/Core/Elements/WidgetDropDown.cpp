@@ -96,7 +96,7 @@ void WidgetDropDown::OnUpdate()
 
 		if (Element* option = selection_element->GetChild(selection))
 		{
-			option->GetInnerRML(value_rml);
+			option->GetInnerRML(value_rml, {});
 			if (auto model = value_element->GetDataModel())
 				model->CopyAliases(option, value_element);
 		}

@@ -248,9 +248,7 @@ ElementPtr Element::Clone() const
 
 		clone->GetStyle()->SetClassNames(GetStyle()->GetClassNames());
 
-		String inner_rml;
-		GetInnerRML(inner_rml);
-
+		const String inner_rml = GetInnerRML();
 		clone->SetInnerRML(inner_rml);
 	}
 
@@ -1151,18 +1149,18 @@ int Element::GetNumChildren(bool include_non_dom_elements) const
 	return (int)children.size() - (include_non_dom_elements ? 0 : num_non_dom_children);
 }
 
-void Element::GetInnerRML(String& content) const
+void Element::GetInnerRML(String& content, const ElementGetRmlConfig& config) const
 {
 	for (int i = 0; i < GetNumChildren(); i++)
 	{
-		children[i]->GetRML(content);
+		children[i]->GetRML(content, config);
 	}
 }
 
 String Element::GetInnerRML() const
 {
 	String result;
-	GetInnerRML(result);
+	GetInnerRML(result, {});
 	return result;
 }
 
@@ -2050,7 +2048,7 @@ const Style::ComputedValues& Element::GetComputedValues() const
 	return meta->computed_values;
 }
 
-void Element::GetRML(String& content)
+void Element::GetRML(String& content, const ElementGetRmlConfig& config)
 {
 	// First we start the open tag, add the attributes then close the open tag.
 	// Then comes the children in order, then we add our close tag.
@@ -2062,6 +2060,10 @@ void Element::GetRML(String& content)
 		const String& name = pair.first;
 		if (name == "style")
 			continue;
+		if (config.skip_templates && name == "template")
+			continue;
+		if (config.skip_data_bindings && StringUtilities::StartsWith(name, "data-"))
+			continue;
 
 		const Variant& variant = pair.second;
 		String value;
@@ -2071,7 +2073,7 @@ void Element::GetRML(String& content)
 			content += name;
 			content += "=\"";
 			content += StringUtilities::EncodeRml(value);
-			content += "\"";
+			content += '\"';
 		}
 	}
 
@@ -2111,16 +2113,47 @@ void Element::GetRML(String& content)
 	{
 		content += ">";
 
-		GetInnerRML(content);
+		GetInnerRML(content, config);
 
 		content += "</";
 		content += tag;
-		content += ">\n";
+		content += ">";
 	}
 	else
 	{
-		content += " />\n";
+		content += " />";
 	}
+
+	auto CanAppendLineBreakAfterRml = [this]() {
+		// Ensure line break does not affect layout. That is, after block-level boxes and only when the parent collapses white space.
+		switch (meta->computed_values.display())
+		{
+		case Style::Display::Block:
+		case Style::Display::FlowRoot:
+		case Style::Display::Flex:
+		case Style::Display::Table:
+		case Style::Display::TableRow:
+		case Style::Display::TableRowGroup:
+		case Style::Display::TableColumn:
+		case Style::Display::TableColumnGroup:
+		case Style::Display::TableCell: break;
+		default: return false;
+		}
+		if (parent)
+		{
+			switch (parent->meta->computed_values.white_space())
+			{
+			case Style::WhiteSpace::Pre:
+			case Style::WhiteSpace::Prewrap:
+			case Style::WhiteSpace::Preline: return false;
+			default: break;
+			}
+		}
+		return true;
+	};
+
+	if (config.pretty_rml && CanAppendLineBreakAfterRml())
+		content += '\n';
 }
 
 void Element::SetOwnerDocument(ElementDocument* document, bool force_set)

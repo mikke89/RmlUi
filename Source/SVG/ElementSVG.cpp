@@ -77,7 +77,7 @@ void ElementSVG::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 }
 
-void ElementSVG::GetInnerRML(String& content) const
+void ElementSVG::GetInnerRML(String& content, const ElementGetRmlConfig& /*config*/) const
 {
 	// If the SVG is from a file source don't add anything to the content string.
 	const auto source = GetAttribute<String>("src", "");

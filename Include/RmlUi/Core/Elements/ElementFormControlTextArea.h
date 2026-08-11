@@ -97,8 +97,7 @@ protected:
 	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
 	/// Returns the text content of the element.
-	/// @param[out] content The content of the element.
-	void GetInnerRML(String& content) const override;
+	void GetInnerRML(String& content, const ElementGetRmlConfig& config) const override;
 
 private:
 	/// Sets the necessary properties to display the widget in the current word wrap state.

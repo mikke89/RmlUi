@@ -315,7 +315,8 @@ ElementDocument* Context::LoadDocumentFromMemory(const String& string, const Str
 	// Open the stream based on the string contents.
 	auto stream = MakeUnique<StreamMemory>(reinterpret_cast<const byte*>(string.c_str()), string.size());
 
-	stream->SetSourceURL(source_url);
+	String url_safe_path = StringUtilities::Replace(source_url, ':', '|');
+	stream->SetSourceURL(url_safe_path);
 
 	// Load the document from the stream.
 	ElementDocument* document = LoadDocument(stream.get());

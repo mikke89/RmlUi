@@ -442,7 +442,7 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 }
 
-void ElementText::GetRML(String& content)
+void ElementText::GetRML(String& content, const ElementGetRmlConfig& /*config*/)
 {
 	content += StringUtilities::EncodeRml(text);
 }

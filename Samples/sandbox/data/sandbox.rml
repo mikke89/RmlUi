@@ -2,7 +2,7 @@
 <head>
 <link type="text/rcss" href="/assets/rml.rcss"/>
 <link type="text/rcss" href="sandbox_style.rcss"/>
-<title>Demo Sample</title>
+<title>RmlUi Sandbox</title>
 </head>
 
 <body>
@@ -10,13 +10,13 @@
 	<section>
 		<h1>Load from file</h1>
 		<div class="row">
-			<label for="load_file_path">File path</label><input id="load_file_path" type="text" />
+			<label for="load_file_path">File path</label><input id="load_file_path" type="text" placeholder="basic/demo/data/demo.rml" />
 		</div>
 		<div class="row">
-			<label for="working_directory">Working directory</label><input id="working_directory" type="text" />
+			<label for="working_directory">Working directory</label><input id="working_directory" type="text" placeholder="Directory of the file" />
 		</div>
 		<div class="row buttons">
-			<div id="load_file_success" style="margin-left: auto; margin-right: 1em; visibility: hidden">Successfully loaded</div>
+			<div id="load_file_status"></div>
 			<button id="load_file">Load</button>
 		</div>
 	</section>
@@ -24,29 +24,28 @@
 	<section>
 		<h1>Context</h1>
 		<div class="row">
-			<label for="load_file_path">Active themes</label><input id="active_themes" type="text" placeholder="dark, sparkly" />
+			<label for="active_themes">Active themes</label><input id="active_themes" type="text" placeholder="dark, sparkly" />
 		</div>
 		<div class="row">
 			<label for="dp_ratio">DP-ratio</label><input id="dp_ratio" type="text" placeholder="1.0" />
 		</div>
 	</section>
+
+	<section id="log_section">
+		<h1>Log<button id="clear_log">Clear</button></h1>
+		<div id="log"/>
+	</section>
 </div>
 
-<table id="sandbox">
-	<col id="col_rml_source"/>
-	<col/>
-	<col/>
-	<tr id="row_source">
-		<td><textarea id="sandbox_rml_source" wrap="nowrap" onchange="set_sandbox_body"></textarea></td>
-		<td id="vertical_slider"><handle class="slider" size_target="col_rml_source"/></td>
-		<td><textarea id="sandbox_rcss_source" wrap="nowrap" onchange="set_sandbox_style"></textarea></td>
-	</tr>
-	<tr>
-		<td colspan=3 id="horizontal_slider"><handle class="slider" size_target="row_source"/></td>
-	</tr>
-	<tr style="height: 100%">
-		<td colspan=3><div id="sandbox_target"/></td>
-	</tr>
-</table>
+<div id="sources">
+	<textarea id="sandbox_rml_source" wrap="nowrap"></textarea>
+	<label><input type="checkbox" /> Inject RCSS</label>
+	<handle class="slider" size_target="sandbox_rml_source"/>
+	<textarea id="sandbox_rcss_source" wrap="nowrap"></textarea>
+</div>
+
+<div id="sandbox_wrapper">
+	<div id="sandbox_target"/>
+</div>
 </body>
 </rml>

@@ -108,7 +108,8 @@ bool Shell::ProcessKeyDownShortcuts(Rml::Context* context, Rml::Input::KeyIdenti
 				}
 			}
 		}
-		else if (key == Rml::Input::KI_C && (key_modifier & (Rml::Input::KM_CTRL | Rml::Input::KM_SHIFT)))
+		else if (key == Rml::Input::KI_C &&
+			(key_modifier & (Rml::Input::KM_CTRL | Rml::Input::KM_SHIFT)) == (Rml::Input::KM_CTRL | Rml::Input::KM_SHIFT))
 		{
 			Rml::ElementDocument* document = nullptr;
 			if (Rml::Element* focus = context->GetFocusElement())

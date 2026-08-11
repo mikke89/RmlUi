@@ -439,7 +439,7 @@ public:
 
 	/// Gets the markup and content of the element.
 	/// @param[out] content The content of the element.
-	virtual void GetInnerRML(String& content) const;
+	virtual void GetInnerRML(String& content, const ElementGetRmlConfig& config) const;
 	/// Gets the markup and content of the element.
 	/// @return The content of the element.
 	String GetInnerRML() const;
@@ -638,7 +638,8 @@ protected:
 
 	/// Returns the RML of this element and all children.
 	/// @param[out] content The content of this element and those under it, in XML form.
-	virtual void GetRML(String& content);
+	/// @param[in] config Determines how the RML should be serialized.
+	virtual void GetRML(String& content, const ElementGetRmlConfig& config);
 
 	/// Sets or removes an overriding pseudo-class on the element.
 	/// @param[in] target_element The element to set or remove the pseudo class on.

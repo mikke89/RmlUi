@@ -1,8 +1,9 @@
-#include "../Common/TestsShell.h"
 #include "../../../Source/Core/ElementDefinition.h"
+#include "../Common/TestsShell.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/ID.h>
 #include <RmlUi/Core/Spritesheet.h>
@@ -254,5 +255,39 @@ TEST_CASE("style_sheet_parser.selector_list_with_escaped_comma")
 		CHECK(normal_width->source->rule_name == "#normal_match");
 	}
 
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("style_sheet_parser.font_face_relative_source")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	// The font source is resolved relative to the style sheet it is declared in, here 'assets/LatoLatin-Regular.ttf'.
+	// Any failure to locate the font face is reported as an error, which fails this test.
+	static const String document_rml = R"(
+<rml>
+<head>
+	<style>
+		@font-face {
+			font-family: relative-source-font;
+			src: "LatoLatin-Regular.ttf";
+		}
+		body {
+			font-family: relative-source-font;
+		}
+	</style>
+</head>
+<body>Hello world</body>
+</rml>
+)";
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/document.rml");
+	REQUIRE(document);
+
+	document->Show();
+	context->Update();
+
+	document->Close();
 	TestsShell::ShutdownShell();
 }

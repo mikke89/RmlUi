@@ -22,11 +22,9 @@ public:
 	void EnsureSourceLoaded();
 
 	/// Gets the SVG XML data (as text) if using inline SVG, if using a file source this will return a blank string
-	/// @param[out] content The SVG XML data (as text) or blank string
-	void GetInnerRML(String& content) const override;
+	void GetInnerRML(String& content, const ElementGetRmlConfig& config) const override;
 
 	/// Gets the SVG XML data (as text) if using inline SVG, if using a file source this will return a blank string
-	/// @param[in] rml The SVG XML data (as text) or blank string
 	void SetInnerRML(const String& rml) override;
 
 protected:

@@ -15,6 +15,10 @@ body {
 	font-size: 14dp;
 	color: black;
 	background: #ccc;
+	inset: 0;
+	overflow: auto;
+	display: flex;
+	flex-direction: row;
 }
 p { margin: 0.8em 0; }
 
@@ -64,7 +68,7 @@ scrollbarcorner
 }
 
 handle {
-	position: fixed;
+	position: relative;
 	background: #555a;
 	width: 16dp;
 	height: 16dp;
@@ -110,43 +114,52 @@ input.text:placeholder-shown, textarea:placeholder-shown {
 }
 
 
-body  {
-	inset: 0;
-	display: flex;
-	overflow: auto;
-}
-
-#sandbox
-{
-	flex: 2;
-	gap: 2dp;
-	padding: 20dp;
+#sources {
+	flex: 1;
 	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
-
-#sandbox tr
-{
-	background-color: transparent;
-}
-
-textarea
-{
+#sources textarea {
+	flex: 1;
 	font-size: 13dp;
-	color: #222;
+	background: #222;
+	color: #ddd;
 	font-family: monospace;
 	box-sizing: border-box;
-	width: 100%;
-	height: 100%;
 }
-#sandbox_target
-{
+#sources #sandbox_rml_source {
+	flex: none;
+	height: 50%;
+}
+#sources handle {
+	flex: none;
+	height: 20dp;
+	width: 100%;
+}
+#sources label {
+	height: 20dp;
+	line-height: 20dp;
+	padding: 3dp 10dp;
+}
+#sources label input {
+	vertical-align: center;
+	margin-right: 0.2em;
+}
+
+#sandbox_wrapper {
+	flex: 2;
+	width: 500px;
+	height: 100%;
+	background-color: #123;
 	box-sizing: border-box;
-	background-color: #fff;
 	border: 1px #000;
+	position: relative;
+}
+#sandbox_target  {
 	height: 100%;
 	color: #000;
 	text-align: left;
-	position: relative;
 }
 #col_rml_source
 {
@@ -201,12 +214,14 @@ button:active {
 
 #menu {
 	font-size: 15dp;
-	color: #444;
 	background: #333;
 	color: #ccc;
 	width: 400dp;
 	height: 100%;
 	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	gap: 2dp;
 }
 #menu h1 {
 	padding-bottom: 0.25em;
@@ -217,6 +232,7 @@ button:active {
 	display: block;
 	background: #222;
 	padding: 20dp;
+	box-sizing: border-box;
 }
 #menu .row {
 	display: flex;
@@ -229,4 +245,51 @@ button:active {
 #menu .row.buttons {
 	display: flex;
 	justify-content: space-between;
+	align-items: center;
 }
+#load_file_status {
+	margin-right: 1em;
+	font-size: 0.9em;
+	color: #7c7;
+	visibility: hidden;
+	transition: visibility 5s;
+}
+#load_file_status.error {
+	color: #e77;
+}
+#load_file_status.visible {
+	visibility: visible;
+}
+
+section#log_section {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+#log_section h1 {
+	margin-bottom: 0.5em;
+}
+#clear_log {
+	float: right;
+	margin-top: -0.3em;
+	padding: 0.1em 0.8em;
+	font-size: 0.8em;
+}
+#log {
+	flex: 1;
+	overflow-y: auto;
+	font-family: monospace;
+	font-size: 12dp;
+	background: #1a1a1a;
+	padding: 5dp;
+	color: #bbb;
+}
+#log div {
+	display: block;
+	margin-bottom: 0.2em;
+	word-break: break-word;
+}
+#log .error, #log .assert { color: #f88; }
+#log .warning { color: #fd8; }
+#log .info { color: #8cf; }
+#log .debug { color: #888; }

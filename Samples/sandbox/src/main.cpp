@@ -1,10 +1,10 @@
-﻿#include "DocumentSource.h"
+#include "SandboxFileInterface.h"
 #include "SandboxLogger.h"
 #include "SandboxSystemInterface.h"
 #include "SandboxWindow.h"
-#include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/Factory.h>
+#include <RmlUi/Core/Core.h>
 #include <RmlUi/Debugger.h>
+#include <PlatformExtensions.h>
 #include <RmlUi_Backend.h>
 #include <Shell.h>
 
@@ -18,21 +18,20 @@ int main(int /*argc*/, char** /*argv*/)
 	const int width = 1600;
 	const int height = 890;
 
-	// Initializes the shell which provides common functionality used by the included samples.
-	if (!Shell::Initialize())
+	const Rml::String samples_root = PlatformExtensions::FindSamplesRoot();
+	if (samples_root.empty())
 		return -1;
 
 	// Constructs the system and render interfaces, creates a window, and attaches the renderer.
 	if (!Backend::Initialize("RmlUi Sandbox", width, height, true))
-	{
-		Shell::Shutdown();
 		return -1;
-	}
 
 	SandboxLogger logger;
 
-	// Install the custom interfaces constructed by the backend before initializing RmlUi.
+	// Install the custom interfaces before initializing RmlUi.
+	SandboxFileInterface sandbox_file_interface{samples_root};
 	SandboxSystemInterface sandbox_system_interface{Backend::GetSystemInterface(), &logger};
+	Rml::SetFileInterface(&sandbox_file_interface);
 	Rml::SetSystemInterface(&sandbox_system_interface);
 	Rml::SetRenderInterface(Backend::GetRenderInterface());
 
@@ -45,28 +44,20 @@ int main(int /*argc*/, char** /*argv*/)
 	{
 		Rml::Shutdown();
 		Backend::Shutdown();
-		Shell::Shutdown();
 		return -1;
 	}
 
 	Rml::Debugger::Initialise(context);
+	context->GetRootElement()->GetElementById("rmlui-debug-log-beacon")->SetProperty("display", "none");
 
 	Shell::LoadFonts();
 
-	SandboxWindow sandbox_window{&logger};
+	SandboxWindow sandbox_window{&logger, &sandbox_file_interface};
 	if (!sandbox_window.Initialize(context))
 	{
 		Rml::Shutdown();
 		Backend::Shutdown();
-		Shell::Shutdown();
 		return -1;
-	}
-
-	{
-		// Rml::ElementDocument* menu = context->LoadDocument(R"(C:/Projects/Gridlock/run/gui/menu_options.rml)");
-		// menu->Show();
-
-		// context->LoadDocumentFromMemory(external_document_source)->Show();
 	}
 
 	bool running = true;
@@ -83,11 +74,8 @@ int main(int /*argc*/, char** /*argv*/)
 	}
 
 	sandbox_window.Shutdown();
-
 	Rml::Shutdown();
-
 	Backend::Shutdown();
-	Shell::Shutdown();
 
 	return 0;
 }

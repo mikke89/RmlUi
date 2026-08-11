@@ -1,0 +1,23 @@
+<rml>
+<head>
+	<title>Serialize document</title>
+	<link type="text/rcss" href="serialize_document.rcss"/>
+	<style>
+		body {
+			width: 300px;
+			height: 200px;
+		}
+		#red {
+			color: #ff0000;
+		}
+	</style>
+</head>
+
+<body id="body">
+	<div id="block">
+		<p>Some <em>inline</em> text.</p>
+		<p id="red">More text</p>
+	</div>
+	<div id="attributes" title="quotes &quot;here&quot;" data-x="a &amp; b &lt; c"/>
+</body>
+</rml>

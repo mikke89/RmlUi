@@ -18,24 +18,6 @@ static String AbsolutePath(const String& source, const String& base)
 	return StringUtilities::Replace(joined_path, ':', '|');
 }
 
-static DocumentHeader::Resource MakePlaceholderResource(XMLParser* parser, const String& path_attribute, bool is_inline)
-{
-	// Constructs a resource to be filled with contents later.
-	if (!path_attribute.empty())
-	{
-		DocumentHeader::Resource resource;
-		resource.is_inline = is_inline;
-		resource.path = path_attribute;
-		return resource;
-	}
-
-	DocumentHeader::Resource resource;
-	resource.is_inline = true;
-	resource.path = parser->GetSourceURL().GetURL();
-	resource.line = parser->GetLineNumberOpenTag();
-	return resource;
-}
-
 static DocumentHeader::Resource MakeInlineResource(XMLParser* parser, const String& data)
 {
 	DocumentHeader::Resource resource;
@@ -107,9 +89,26 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 	}
 	else if (name == "style")
 	{
+		// Add a placeholder for the style sheet, its contents are filled in as we encounter the tag's data. The optional
+		// 'path' attribute declares the location the contents originate from, so that relative URLs in a serialized
+		// document still resolve against their original source. With 'inline' disabled the contents are instead loaded
+		// from that path, just like a link tag.
 		const String path = Get<String>(attributes, "path", "");
-		const bool is_inline = Get<bool>(attributes, "inline", true);
-		parser->GetDocumentHeader()->rcss.push_back(MakePlaceholderResource(parser, path, is_inline));
+		const bool is_inline = path.empty() || Get<bool>(attributes, "inline", true);
+
+		DocumentHeader::Resource resource;
+		if (!is_inline)
+		{
+			resource = MakeExternalResource(parser, path);
+		}
+		else
+		{
+			resource.is_inline = true;
+			resource.path = (path.empty() ? parser->GetSourceURL().GetURL() : path);
+			resource.line = (path.empty() ? parser->GetLineNumberOpenTag() : 0);
+		}
+
+		parser->GetDocumentHeader()->rcss.push_back(std::move(resource));
 	}
 
 	// No elements constructed
@@ -151,9 +150,10 @@ bool XMLNodeHandlerHead::ElementData(XMLParser* parser, const String& data, XMLD
 	}
 
 	// Store the inline style data, we've already added a placeholder from ElementStart.
-	if (tag == "style" && data.size() > 0)
+	DocumentHeader::ResourceList& rcss = parser->GetDocumentHeader()->rcss;
+	if (tag == "style" && data.size() > 0 && !rcss.empty())
 	{
-		parser->GetDocumentHeader()->rcss.back().content = data;
+		rcss.back().content = data;
 	}
 
 	return true;

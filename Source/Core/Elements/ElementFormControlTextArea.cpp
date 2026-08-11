@@ -163,7 +163,7 @@ void ElementFormControlTextArea::OnPropertyChange(const PropertyIdSet& changed_p
 		widget->GenerateCursor();
 }
 
-void ElementFormControlTextArea::GetInnerRML(String& content) const
+void ElementFormControlTextArea::GetInnerRML(String& content, const ElementGetRmlConfig& /*config*/) const
 {
 	content = GetValue();
 }

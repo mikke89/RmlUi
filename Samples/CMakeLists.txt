@@ -27,9 +27,9 @@ if(RMLUI_SAMPLES)
 	endif()
 
 	add_subdirectory("basic")
-	add_subdirectory("sandbox")
 
 	if(RMLUI_FONT_ENGINE_ENABLED)
+		add_subdirectory("sandbox")
 		add_subdirectory("invaders")
 		add_subdirectory("tutorial")
 	endif()
