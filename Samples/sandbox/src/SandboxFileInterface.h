@@ -1,5 +1,6 @@
 #pragma once
 
+#include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Types.h>
 #include <ShellFileInterface.h>
 #include <cstdio>
@@ -23,6 +24,7 @@ public:
 	{
 		if (!working_directory.empty())
 		{
+			Rml::Log::Message(Rml::Log::LT_DEBUG, "Trying to load from: %s", (working_directory + path).c_str());
 			if (FILE* fp = std::fopen((working_directory + path).c_str(), "rb"))
 				return (Rml::FileHandle)fp;
 		}

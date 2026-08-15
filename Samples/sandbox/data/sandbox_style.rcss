@@ -13,7 +13,7 @@ body {
 	font-weight: normal;
 	font-style: normal;
 	font-size: 14dp;
-	color: #ccc;
+	color: #eee;
 	background: #222;
 	inset: 0;
 	overflow: auto;
@@ -122,7 +122,7 @@ input.radio:checked:hover, input.checkbox:checked:hover {
 input.text, textarea {
 	background: #303030;
 	color: #ddd;
-	border: 2dp #666;
+	border: 1dp #666;
 	padding: 5dp;
 	tab-index: auto;
 	cursor: text;
@@ -135,7 +135,15 @@ input.text:focus, textarea:focus {
 input.text:placeholder-shown, textarea:placeholder-shown {
 	color: #666;
 }
-
+textarea scrollbarvertical {
+	cursor: arrow;
+}
+textarea scrollbarhorizontal {
+	cursor: arrow;
+}
+textarea scrollbarcorner {
+	cursor: arrow;
+}
 
 /** Menu */
 
@@ -165,6 +173,7 @@ input.text:placeholder-shown, textarea:placeholder-shown {
 	display: flex;
 	align-items: center;
 	margin: 0.5em 0 0.2em;
+	gap: 2dp;
 }
 #menu label {
 	width: 140dp;
@@ -301,8 +310,8 @@ section#log_section {
 
 button {
 	display: inline-block;
-	background: #aaa;
-	border: 1dp #333;
+	background: #b0b0b0;
+	border: 1dp #999;
 	padding: 0.35em 1.6em;
 	tab-index: auto;
 	color: #000;

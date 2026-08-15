@@ -8,16 +8,25 @@
 <body>
 <div id="menu">
 	<section>
-		<h1>Load from file</h1>
+		<h1>Load document</h1>
 		<div class="row">
-			<label for="load_file_path">File path</label><input id="load_file_path" type="text" placeholder="basic/demo/data/demo.rml" />
+			<label for="load_file_path">File path</label>
+			<input id="load_file_path" type="text" placeholder="File path" />
+			<button id="load_file">Load</button>
 		</div>
 		<div class="row">
-			<label for="working_directory">Working directory</label><input id="working_directory" type="text" placeholder="Directory of the file" />
+			<label>From clipboard</label>
+			<button id="load_file">Paste from clipboard</button>
 		</div>
 		<div class="row buttons">
 			<div id="load_file_status"></div>
-			<button id="load_file">Load</button>
+		</div>
+	</section>
+
+	<section>
+		<h1>Runtime settings</h1>
+		<div class="row">
+			<label for="working_directory">Working directory</label><input id="working_directory" type="text" placeholder="Directory of the file" />
 		</div>
 	</section>
 
@@ -28,6 +37,21 @@
 		</div>
 		<div class="row">
 			<label for="dp_ratio">DP-ratio</label><input id="dp_ratio" type="text" placeholder="1.0" />
+		</div>
+	</section>
+
+	<section>
+		<h1>Export document</h1>
+		<div class="row buttons">
+			<label><input type="checkbox" id="inject_rcss" checked /> Include all assets</label>
+		</div>
+		<div class="row buttons">
+			<label for="save_file_path">To file</label>
+			<input id="save_file_path" type="text" placeholder="basic/demo/data/demo.rml" />
+			<button id="save_file">Save</button>
+		</div>
+		<div class="row buttons">
+			<div id="save_file_status"></div>
 		</div>
 	</section>
 
