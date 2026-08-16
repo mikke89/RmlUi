@@ -2372,6 +2372,13 @@ void Element::BuildLocalStackingContext()
 	stacking_context.resize(stacking_children.size());
 	for (size_t i = 0; i < stacking_children.size(); i++)
 		stacking_context[i] = stacking_children[i].element;
+
+	// If the stacking context changed, any previously hidden elements may not have had their transforms updated. Ensure they will be updated now.
+	if (transform_state)
+	{
+		for (Element* child : stacking_context)
+			child->DirtyTransformState(false, true);
+	}
 }
 
 void Element::AddChildrenToStackingContext(Vector<StackingContextChild>& stacking_children)
