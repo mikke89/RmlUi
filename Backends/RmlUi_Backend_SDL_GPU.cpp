@@ -215,24 +215,22 @@ void Backend::BeginFrame()
 	if (!SDL_WaitAndAcquireGPUSwapchainTexture(data->command_buffer, data->window, &swapchain_texture, &width, &height))
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to acquire swapchain texture: %s", SDL_GetError());
+		SDL_CancelGPUCommandBuffer(data->command_buffer);
+		data->command_buffer = nullptr;
 		return;
 	}
 
 	if (!swapchain_texture || !width || !height)
 	{
-		// Not an error. Happens on minimize
+		// Not an error. Happens on minimize. The buffer is cleared along with being cancelled, so that PresentFrame()
+		// does not go on to submit one that no longer exists.
 		SDL_CancelGPUCommandBuffer(data->command_buffer);
+		data->command_buffer = nullptr;
 		return;
 	}
 
-	// Do your normal draw operations (make sure you clear the swapchain texture)
-	SDL_GPUColorTargetInfo color_info{};
-	color_info.texture = swapchain_texture;
-	color_info.load_op = SDL_GPU_LOADOP_CLEAR;
-	color_info.store_op = SDL_GPU_STOREOP_STORE;
-	SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(data->command_buffer, &color_info, 1, nullptr);
-	SDL_EndGPURenderPass(render_pass);
-
+	// No need to clear the swapchain texture: the renderer draws to its own layers and overwrites the whole swapchain
+	// with the result in EndFrame().
 	data->render_interface.BeginFrame(data->command_buffer, swapchain_texture, width, height);
 }
 
@@ -241,6 +239,8 @@ void Backend::PresentFrame()
 	RMLUI_ASSERT(data);
 	data->render_interface.EndFrame();
 
-	SDL_SubmitGPUCommandBuffer(data->command_buffer);
+	// Absent when the frame was skipped, in which case the buffer has already been cancelled.
+	if (data->command_buffer)
+		SDL_SubmitGPUCommandBuffer(data->command_buffer);
 	data->command_buffer = nullptr;
 }
