@@ -463,24 +463,105 @@ void RenderInterface_SDL_GPU::ReleaseShaders()
 	}
 }
 
-void RenderInterface_SDL_GPU::GetProgramShaders(ProgramId program, ShaderId& out_vertex, ShaderId& out_fragment)
+RenderInterface_SDL_GPU::ProgramShaders RenderInterface_SDL_GPU::GetProgramShaders(ProgramId program)
 {
-	out_vertex = ShaderId::VertMain;
-	switch (program)
-	{
-	case ProgramId::Color: out_fragment = ShaderId::FragColor; break;
-	case ProgramId::Texture: out_fragment = ShaderId::FragTexture; break;
-	case ProgramId::Gradient: out_fragment = ShaderId::FragGradient; break;
-	case ProgramId::Creation: out_fragment = ShaderId::FragCreation; break;
-	}
+	// The programs drawing geometry submitted by RmlUi share a vertex stage, which applies the transform. The
+	// postprocess programs give their quad in clip space and so need none; blur has one of its own because it works
+	// out where its samples fall there rather than once per fragment.
+	static constexpr ProgramShaders program_shaders[] = {
+		{ShaderId::VertMain, ShaderId::FragColor},
+		{ShaderId::VertMain, ShaderId::FragTexture},
+		{ShaderId::VertMain, ShaderId::FragGradient},
+		{ShaderId::VertMain, ShaderId::FragCreation},
+		{ShaderId::VertPassthrough, ShaderId::FragPassthrough},
+		{ShaderId::VertPassthrough, ShaderId::FragColorMatrix},
+		{ShaderId::VertPassthrough, ShaderId::FragBlendMask},
+		{ShaderId::VertBlur, ShaderId::FragBlur},
+		{ShaderId::VertPassthrough, ShaderId::FragDropShadow},
+	};
+	static_assert(sizeof(program_shaders) / sizeof(program_shaders[0]) == static_cast<int>(ProgramId::Count),
+		"program_shaders needs one row per ProgramId, in ProgramId order");
+
+	return program_shaders[static_cast<int>(program)];
 }
 
-SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program, Rml::BlendMode blend, StencilMode stencil)
+SDL_GPUColorTargetBlendState RenderInterface_SDL_GPU::GetBlendState(Blending blend, bool writes_stencil)
+{
+	SDL_GPUColorTargetBlendState state{};
+	if (writes_stencil)
+	{
+		// Nothing but the stencil is written, so no blending has anything to act on.
+		state.enable_color_write_mask = true;
+		state.color_write_mask = 0;
+	}
+	else if (blend == Blending::Blend)
+	{
+		state.enable_blend = true;
+		state.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
+		state.color_blend_op = SDL_GPU_BLENDOP_ADD;
+		state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+		state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+		state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+		state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+	}
+	else if (blend == Blending::Constant)
+	{
+		// The destination is dropped and the source scaled by the blend constant, which is how opacity is applied.
+		state.enable_blend = true;
+		state.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
+		state.color_blend_op = SDL_GPU_BLENDOP_ADD;
+		state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_CONSTANT_COLOR;
+		state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_CONSTANT_COLOR;
+		state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ZERO;
+		state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ZERO;
+	}
+	// Blending::Replace writes the source as it is, which is what an untouched state does.
+	return state;
+}
+
+SDL_GPUDepthStencilState RenderInterface_SDL_GPU::GetDepthStencilState(StencilMode stencil, bool writes_stencil)
+{
+	SDL_GPUDepthStencilState state{};
+	if (stencil == StencilMode::Off)
+		return state;
+
+	SDL_GPUStencilOpState op{};
+	op.fail_op = SDL_GPU_STENCILOP_KEEP;
+	op.depth_fail_op = SDL_GPU_STENCILOP_KEEP;
+	switch (stencil)
+	{
+	case StencilMode::TestEqual:
+		op.compare_op = SDL_GPU_COMPAREOP_EQUAL;
+		op.pass_op = SDL_GPU_STENCILOP_KEEP;
+		break;
+	case StencilMode::WriteSet:
+		op.compare_op = SDL_GPU_COMPAREOP_ALWAYS;
+		op.pass_op = SDL_GPU_STENCILOP_REPLACE;
+		break;
+	case StencilMode::WriteIntersect:
+		// Tested rather than written unconditionally: only pixels already holding the mask are raised, so no value can
+		// collide with a later generation.
+		op.compare_op = SDL_GPU_COMPAREOP_EQUAL;
+		op.pass_op = SDL_GPU_STENCILOP_INCREMENT_AND_CLAMP;
+		break;
+	case StencilMode::Off:
+		break;
+	}
+
+	state.enable_stencil_test = true;
+	state.compare_mask = 0xFF;
+	state.write_mask = writes_stencil ? 0xFF : 0x00;
+	state.front_stencil_state = op;
+	state.back_stencil_state = op;
+	return state;
+}
+
+SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program, Blending blend, StencilMode stencil)
 {
 	const bool writes_stencil = (stencil == StencilMode::WriteSet || stencil == StencilMode::WriteIntersect);
 	// Colour writes are off in the writing modes, so the blend mode makes no difference there. Folding it away keeps
 	// the cache from holding pipelines that only differ in state nothing reads.
-	const PipelineKey key{program, writes_stencil ? Rml::BlendMode::Blend : blend, stencil};
+	const PipelineKey key{program, writes_stencil ? Blending::Blend : blend, stencil};
 	for (const PipelineEntry& entry : pipelines)
 	{
 		if (entry.key == key)
@@ -489,23 +570,7 @@ SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program,
 
 	SDL_GPUColorTargetDescription target{};
 	target.format = layer_format;
-	if (writes_stencil)
-	{
-		// A mask lives in the stencil buffer alone; the geometry shaping it must leave the colours untouched.
-		target.blend_state.enable_color_write_mask = true;
-		target.blend_state.color_write_mask = 0;
-	}
-	else if (blend == Rml::BlendMode::Blend)
-	{
-		// Colours are premultiplied, so the source contributes in full.
-		target.blend_state.enable_blend = true;
-		target.blend_state.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
-		target.blend_state.color_blend_op = SDL_GPU_BLENDOP_ADD;
-		target.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
-		target.blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
-		target.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-		target.blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-	}
+	target.blend_state = GetBlendState(blend, writes_stencil);
 
 	SDL_GPUVertexAttribute attrib[3]{};
 	attrib[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
@@ -522,11 +587,9 @@ SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program,
 	buffer.pitch = sizeof(Vertex);
 
 	SDL_GPUGraphicsPipelineCreateInfo info{};
-	ShaderId vertex_id = ShaderId::VertMain;
-	ShaderId fragment_id = ShaderId::FragColor;
-	GetProgramShaders(program, vertex_id, fragment_id);
-	info.vertex_shader = GetShader(vertex_id);
-	info.fragment_shader = GetShader(fragment_id);
+	const ProgramShaders program_shaders = GetProgramShaders(program);
+	info.vertex_shader = GetShader(program_shaders.vertex);
+	info.fragment_shader = GetShader(program_shaders.fragment);
 	if (!info.vertex_shader || !info.fragment_shader)
 	{
 		// A mask this program cannot draw is a mask nothing may be tested against.
@@ -548,37 +611,7 @@ SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program,
 		info.target_info.depth_stencil_format = depth_stencil_format;
 	}
 
-	if (stencil != StencilMode::Off)
-	{
-		SDL_GPUStencilOpState op{};
-		op.fail_op = SDL_GPU_STENCILOP_KEEP;
-		op.depth_fail_op = SDL_GPU_STENCILOP_KEEP;
-		switch (stencil)
-		{
-		case StencilMode::TestEqual:
-			op.compare_op = SDL_GPU_COMPAREOP_EQUAL;
-			op.pass_op = SDL_GPU_STENCILOP_KEEP;
-			break;
-		case StencilMode::WriteSet:
-			op.compare_op = SDL_GPU_COMPAREOP_ALWAYS;
-			op.pass_op = SDL_GPU_STENCILOP_REPLACE;
-			break;
-		case StencilMode::WriteIntersect:
-			// Tested rather than written unconditionally: only pixels already holding the mask are raised, so no value can
-			// collide with a later generation.
-			op.compare_op = SDL_GPU_COMPAREOP_EQUAL;
-			op.pass_op = SDL_GPU_STENCILOP_INCREMENT_AND_CLAMP;
-			break;
-		case StencilMode::Off:
-			break;
-		}
-
-		info.depth_stencil_state.enable_stencil_test = true;
-		info.depth_stencil_state.compare_mask = 0xFF;
-		info.depth_stencil_state.write_mask = writes_stencil ? 0xFF : 0x00;
-		info.depth_stencil_state.front_stencil_state = op;
-		info.depth_stencil_state.back_stencil_state = op;
-	}
+	info.depth_stencil_state = GetDepthStencilState(stencil, writes_stencil);
 
 	info.vertex_input_state.num_vertex_attributes = 3;
 	info.vertex_input_state.num_vertex_buffers = 1;
@@ -630,7 +663,15 @@ RenderInterface_SDL_GPU::RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Wind
 	info.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
 	info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
 	linear_sampler = SDL_CreateGPUSampler(device, &info);
-	if (!linear_sampler)
+
+	// The postprocess passes offset and scale their texture coordinates and do sample outside the image; a repeating
+	// sampler would bring colours back from the far edge.
+	info.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+	info.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+	info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+	clamp_sampler = SDL_CreateGPUSampler(device, &info);
+
+	if (!linear_sampler || !clamp_sampler)
 		Log::Message(Log::LT_ERROR, "Failed to create sampler: %s", SDL_GetError());
 }
 
@@ -665,6 +706,9 @@ void RenderInterface_SDL_GPU::Shutdown()
 	if (linear_sampler)
 		SDL_ReleaseGPUSampler(device, linear_sampler);
 	linear_sampler = nullptr;
+	if (clamp_sampler)
+		SDL_ReleaseGPUSampler(device, clamp_sampler);
+	clamp_sampler = nullptr;
 
 	shutdown_complete = true;
 }
@@ -772,16 +816,17 @@ void RenderInterface_SDL_GPU::EndFrame()
 
 void RenderInterface_SDL_GPU::InvalidateRenderPassState()
 {
-	// Pipeline, resource bindings and scissor are all render pass state, so they must be re-applied whenever a new
-	// pass begins. Uniforms belong to the command buffer, but re-pushing them is cheap insurance.
 	bound_pipeline = nullptr;
 	bound_texture = nullptr;
+	bound_mask_texture = nullptr;
+	bound_sampler = nullptr;
 	bound_vertex_buffer = nullptr;
 	bound_index_buffer = nullptr;
 	transform_dirty = true;
 	translation_dirty = true;
 	scissor_dirty = true;
 	stencil_reference_dirty = true;
+	blend_constant_dirty = true;
 	// A new pass starts with the scissor covering the whole target, so the cached value no longer reflects reality.
 	applied_scissor = {-1, -1, -1, -1};
 }
@@ -1034,17 +1079,28 @@ bool RenderInterface_SDL_GPU::DrawGeometry(const GeometryView& geometry, const D
 	{
 		SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
 		bound_pipeline = pipeline;
-		// Resource layouts differ between the pipelines, so do not assume the previous binding still applies.
 		bound_texture = nullptr;
+		bound_mask_texture = nullptr;
+		bound_sampler = nullptr;
 	}
 
-	if (state.texture && state.texture != bound_texture)
+	SDL_GPUSampler* sampler = state.sampler ? state.sampler : linear_sampler;
+	if (state.texture && (state.texture != bound_texture || state.mask_texture != bound_mask_texture || sampler != bound_sampler))
 	{
-		SDL_GPUTextureSamplerBinding texture_binding{};
-		texture_binding.texture = state.texture;
-		texture_binding.sampler = linear_sampler;
-		SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_binding, 1);
+		SDL_GPUTextureSamplerBinding texture_bindings[2]{};
+		texture_bindings[0].texture = state.texture;
+		texture_bindings[0].sampler = sampler;
+		Uint32 num_bindings = 1;
+		if (state.mask_texture)
+		{
+			texture_bindings[1].texture = state.mask_texture;
+			texture_bindings[1].sampler = sampler;
+			num_bindings = 2;
+		}
+		SDL_BindGPUFragmentSamplers(render_pass, 0, texture_bindings, num_bindings);
 		bound_texture = state.texture;
+		bound_mask_texture = state.mask_texture;
+		bound_sampler = sampler;
 	}
 
 	if (geometry.vertex_buffer->buffer != bound_vertex_buffer)
@@ -1073,23 +1129,41 @@ bool RenderInterface_SDL_GPU::DrawGeometry(const GeometryView& geometry, const D
 		stencil_reference_dirty = false;
 	}
 
-	if (state.transform)
+	if (state.blend == Blending::Constant && (blend_constant_dirty || state.blend_constant != applied_blend_constant))
 	{
-		SDL_PushGPUVertexUniformData(command_buffer, 0, state.transform, sizeof(Matrix4f));
-		// What the command buffer holds is no longer the transform every other draw wants.
-		transform_dirty = true;
-	}
-	else if (transform_dirty)
-	{
-		SDL_PushGPUVertexUniformData(command_buffer, 0, &transform, sizeof(transform));
-		transform_dirty = false;
+		const SDL_FColor constants{state.blend_constant, state.blend_constant, state.blend_constant, state.blend_constant};
+		SDL_SetGPUBlendConstants(render_pass, constants);
+		applied_blend_constant = state.blend_constant;
+		blend_constant_dirty = false;
 	}
 
-	if (translation_dirty || state.translation != pushed_translation)
+	// Only the programs whose vertex stage declares them; pushing to a slot a shader does not have would be data no
+	// draw can read. The postprocess programs give their quad in clip space and so take neither, except for blur,
+	// which takes the spacing of its samples in the slot the transform would have used.
+	if (GetProgramShaders(state.program).vertex == ShaderId::VertMain)
 	{
-		SDL_PushGPUVertexUniformData(command_buffer, 1, &state.translation, sizeof(state.translation));
-		pushed_translation = state.translation;
-		translation_dirty = false;
+		if (state.transform)
+		{
+			SDL_PushGPUVertexUniformData(command_buffer, 0, state.transform, sizeof(Matrix4f));
+			transform_dirty = true;
+		}
+		else if (transform_dirty)
+		{
+			SDL_PushGPUVertexUniformData(command_buffer, 0, &transform, sizeof(transform));
+			transform_dirty = false;
+		}
+
+		if (translation_dirty || state.translation != pushed_translation)
+		{
+			SDL_PushGPUVertexUniformData(command_buffer, 1, &state.translation, sizeof(state.translation));
+			pushed_translation = state.translation;
+			translation_dirty = false;
+		}
+	}
+	else if (state.vertex_uniforms)
+	{
+		SDL_PushGPUVertexUniformData(command_buffer, 0, state.vertex_uniforms, state.vertex_uniforms_size);
+		transform_dirty = true;
 	}
 
 	if (state.fragment_uniforms)
@@ -1311,12 +1385,28 @@ void RenderInterface_SDL_GPU::SetScissorRegion(Rectanglei region)
 
 Rectanglei RenderInterface_SDL_GPU::GetScissorRegion() const
 {
+	if (scissor_override_active)
+		return scissor_override;
+
 	const Rectanglei target = Rectanglei::FromSize({render_layers.GetWidth(), render_layers.GetHeight()});
 	if (!scissor_enabled)
 		return target;
 	if (!scissor_region.Valid())
 		return Rectanglei::FromSize({0, 0});
 	return scissor_region;
+}
+
+void RenderInterface_SDL_GPU::SetScissorOverride(Rectanglei region)
+{
+	scissor_override_active = true;
+	scissor_override = region;
+	scissor_dirty = true;
+}
+
+void RenderInterface_SDL_GPU::ClearScissorOverride()
+{
+	scissor_override_active = false;
+	scissor_dirty = true;
 }
 
 Rectanglei RenderInterface_SDL_GPU::GetActiveScissor() const
@@ -1601,16 +1691,401 @@ void RenderInterface_SDL_GPU::ReleaseShader(CompiledShaderHandle shader_handle)
 	delete reinterpret_cast<CompiledShader*>(shader_handle);
 }
 
+// -- Filters -----------------------------------------------------------------
+
+// Past a certain radius the image is scaled down before the fixed seven-sample kernel is applied. Works out how many
+// times to halve it, and what standard deviation to blur the result with.
+static void SigmaToParameters(const float desired_sigma, int& out_pass_level, float& out_sigma)
+{
+	constexpr int max_num_passes = 10;
+	static_assert(max_num_passes < 31, "");
+	constexpr float max_single_pass_sigma = 3.0f;
+	out_pass_level = Math::Clamp(Math::Log2(int(desired_sigma * (2.f / max_single_pass_sigma))), 0, max_num_passes);
+	out_sigma = Math::Clamp(desired_sigma / float(1 << out_pass_level), 0.0f, max_single_pass_sigma);
+}
+
+// The region a postprocess pass may read from, in texture coordinates. Samples outside it are dropped by the shader,
+// which is what stops a blur from dragging in whatever the postprocess target held from an earlier composite.
+static void SetTexCoordLimits(Vector2f& out_tex_coord_min, Vector2f& out_tex_coord_max, Rectanglei rectangle, Vector2i target_size)
+{
+	// Offset by half-texel values so that texture lookups are clamped to fragment centers, thereby avoiding color
+	// bleeding from neighboring texels due to bilinear interpolation.
+	out_tex_coord_min = (Vector2f(rectangle.p0) + Vector2f(0.5f)) / Vector2f(target_size);
+	out_tex_coord_max = (Vector2f(rectangle.p1) - Vector2f(0.5f)) / Vector2f(target_size);
+}
+
+// The normalized half of a Gaussian kernel: the centre weight followed by one weight per step away from it, since the
+// two sides are the same.
+static void SetBlurWeights(float* out_weights, int num_weights, float sigma)
+{
+	float normalization = 0.0f;
+	for (int i = 0; i < num_weights; i++)
+	{
+		if (Math::Absolute(sigma) < 0.1f)
+			out_weights[i] = float(i == 0);
+		else
+			out_weights[i] = Math::Exp(-float(i * i) / (2.0f * sigma * sigma)) / (Math::SquareRoot(2.f * Math::RMLUI_PI) * sigma);
+
+		normalization += (i == 0 ? 1.f : 2.0f) * out_weights[i];
+	}
+	for (int i = 0; i < num_weights; i++)
+		out_weights[i] /= normalization;
+}
+
+CompiledFilterHandle RenderInterface_SDL_GPU::CompileFilter(const String& name, const Dictionary& parameters)
+{
+	CompiledFilter filter = {};
+
+	if (name == "opacity")
+	{
+		filter.type = FilterType::Passthrough;
+		filter.blend_factor = Rml::Get(parameters, "value", 1.0f);
+	}
+	else if (name == "blur")
+	{
+		filter.type = FilterType::Blur;
+		filter.sigma = Rml::Get(parameters, "sigma", 1.0f);
+	}
+	else if (name == "drop-shadow")
+	{
+		filter.type = FilterType::DropShadow;
+		filter.sigma = Rml::Get(parameters, "sigma", 0.f);
+		filter.color = Rml::Get(parameters, "color", Colourb()).ToPremultiplied();
+		filter.offset = Rml::Get(parameters, "offset", Vector2f(0.f));
+	}
+	else if (name == "brightness")
+	{
+		filter.type = FilterType::ColorMatrix;
+		const float value = Rml::Get(parameters, "value", 1.0f);
+		filter.color_matrix = Matrix4f::Diag(value, value, value, 1.f);
+	}
+	else if (name == "contrast")
+	{
+		filter.type = FilterType::ColorMatrix;
+		const float value = Rml::Get(parameters, "value", 1.0f);
+		const float grayness = 0.5f - 0.5f * value;
+		filter.color_matrix = Matrix4f::Diag(value, value, value, 1.f);
+		filter.color_matrix.SetColumn(3, Vector4f(grayness, grayness, grayness, 1.f));
+	}
+	else if (name == "invert")
+	{
+		filter.type = FilterType::ColorMatrix;
+		const float value = Math::Clamp(Rml::Get(parameters, "value", 1.0f), 0.f, 1.f);
+		const float inverted = 1.f - 2.f * value;
+		filter.color_matrix = Matrix4f::Diag(inverted, inverted, inverted, 1.f);
+		filter.color_matrix.SetColumn(3, Vector4f(value, value, value, 1.f));
+	}
+	else if (name == "grayscale")
+	{
+		filter.type = FilterType::ColorMatrix;
+		const float value = Rml::Get(parameters, "value", 1.0f);
+		const float rev_value = 1.f - value;
+		const Vector3f gray = value * Vector3f(0.2126f, 0.7152f, 0.0722f);
+		// clang-format off
+		filter.color_matrix = Matrix4f::FromRows(
+			{gray.x + rev_value, gray.y,             gray.z,             0.f},
+			{gray.x,             gray.y + rev_value, gray.z,             0.f},
+			{gray.x,             gray.y,             gray.z + rev_value, 0.f},
+			{0.f,                0.f,                0.f,                1.f}
+		);
+		// clang-format on
+	}
+	else if (name == "sepia")
+	{
+		filter.type = FilterType::ColorMatrix;
+		const float value = Rml::Get(parameters, "value", 1.0f);
+		const float rev_value = 1.f - value;
+		const Vector3f r_mix = value * Vector3f(0.393f, 0.769f, 0.189f);
+		const Vector3f g_mix = value * Vector3f(0.349f, 0.686f, 0.168f);
+		const Vector3f b_mix = value * Vector3f(0.272f, 0.534f, 0.131f);
+		// clang-format off
+		filter.color_matrix = Matrix4f::FromRows(
+			{r_mix.x + rev_value, r_mix.y,             r_mix.z,             0.f},
+			{g_mix.x,             g_mix.y + rev_value, g_mix.z,             0.f},
+			{b_mix.x,             b_mix.y,             b_mix.z + rev_value, 0.f},
+			{0.f,                 0.f,                 0.f,                 1.f}
+		);
+		// clang-format on
+	}
+	else if (name == "hue-rotate")
+	{
+		// Hue-rotation and saturation values based on: https://www.w3.org/TR/filter-effects-1/#attr-valuedef-type-huerotate
+		filter.type = FilterType::ColorMatrix;
+		const float value = Rml::Get(parameters, "value", 1.0f);
+		const float s = Math::Sin(value);
+		const float c = Math::Cos(value);
+		// clang-format off
+		filter.color_matrix = Matrix4f::FromRows(
+			{0.213f + 0.787f * c - 0.213f * s,  0.715f - 0.715f * c - 0.715f * s,  0.072f - 0.072f * c + 0.928f * s,  0.f},
+			{0.213f - 0.213f * c + 0.143f * s,  0.715f + 0.285f * c + 0.140f * s,  0.072f - 0.072f * c - 0.283f * s,  0.f},
+			{0.213f - 0.213f * c - 0.787f * s,  0.715f - 0.715f * c + 0.715f * s,  0.072f + 0.928f * c + 0.072f * s,  0.f},
+			{0.f,                               0.f,                               0.f,                               1.f}
+		);
+		// clang-format on
+	}
+	else if (name == "saturate")
+	{
+		filter.type = FilterType::ColorMatrix;
+		const float value = Rml::Get(parameters, "value", 1.0f);
+		// clang-format off
+		filter.color_matrix = Matrix4f::FromRows(
+			{0.213f + 0.787f * value,  0.715f - 0.715f * value,  0.072f - 0.072f * value,  0.f},
+			{0.213f - 0.213f * value,  0.715f + 0.285f * value,  0.072f - 0.072f * value,  0.f},
+			{0.213f - 0.213f * value,  0.715f - 0.715f * value,  0.072f + 0.928f * value,  0.f},
+			{0.f,                      0.f,                      0.f,                      1.f}
+		);
+		// clang-format on
+	}
+
+	if (filter.type != FilterType::Invalid)
+		return reinterpret_cast<CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
+
+	Log::Message(Log::LT_WARNING, "Unsupported filter type '%s'.", name.c_str());
+	return {};
+}
+
+void RenderInterface_SDL_GPU::ReleaseFilter(CompiledFilterHandle filter)
+{
+	delete reinterpret_cast<CompiledFilter*>(filter);
+}
+
+// Large radii shrink the image rather than widen the kernel, which is fixed at seven samples. Everything after the
+// downscale happens in the top-left corner of the targets, on a region halved along with the image; the last step
+// scales it back over the region it came from.
+void RenderInterface_SDL_GPU::RenderBlur(float sigma, const RenderTarget& source_destination, const RenderTarget& temp, Rectanglei window)
+{
+	RMLUI_ASSERT(&source_destination != &temp);
+	if (!source_destination.color || !temp.color)
+		return;
+	if (window.Width() <= 0 || window.Height() <= 0)
+		return;
+
+	int pass_level = 0;
+	SigmaToParameters(sigma, pass_level, sigma);
+
+	const bool had_scissor_override = scissor_override_active;
+	const Rectanglei previous_scissor_override = scissor_override;
+
+	Rectanglei scissor = window;
+
+	// Downscale by iterative half-scaling with bilinear filtering, to reduce aliasing. The quad is drawn over the
+	// corner the smaller image occupies rather than shrinking the viewport: one less piece of pass state to restore.
+	const Rectanglei half_target = Rectanglei::FromSize({source_destination.width / 2, source_destination.height / 2});
+
+	// Scale UVs if we have even dimensions, such that texture fetches align perfectly between texels, thereby
+	// producing a 50% blend of neighboring texels.
+	const Vector2f uv_scaling = {(source_destination.width % 2 == 1) ? (1.f - 1.f / float(source_destination.width)) : 1.f,
+		(source_destination.height % 2 == 1) ? (1.f - 1.f / float(source_destination.height)) : 1.f};
+
+	for (int i = 0; i < pass_level; i++)
+	{
+		scissor.p0 = (scissor.p0 + Vector2i(1)) / 2;
+		scissor.p1 = Math::Max(scissor.p1 / 2, scissor.p0);
+		const bool from_source = (i % 2 == 0);
+		SetScissorOverride(scissor);
+
+		DrawState state;
+		state.program = ProgramId::Passthrough;
+		state.blend = Blending::Replace;
+		state.sampler = clamp_sampler;
+		state.texture = (from_source ? source_destination : temp).color;
+		DrawPostprocessQuad(from_source ? temp : source_destination, state, half_target, Vector2f(0.f), uv_scaling);
+	}
+
+	SetScissorOverride(scissor);
+
+	// Ensure texture data end up in the temp buffer. Depending on the last downscaling, we might need to move it from
+	// the source_destination buffer.
+	if (pass_level % 2 == 0)
+		DrawTextureToTarget(temp, source_destination.color, Blending::Replace);
+
+	BlurUniforms uniforms = {};
+	SetBlurWeights(uniforms.weights, blur_num_weights, sigma);
+	SetTexCoordLimits(uniforms.tex_coord_min, uniforms.tex_coord_max, scissor, {source_destination.width, source_destination.height});
+
+	BlurVertexUniforms vertex_uniforms = {};
+
+	DrawState state;
+	state.program = ProgramId::Blur;
+	state.blend = Blending::Replace;
+	state.sampler = clamp_sampler;
+	state.fragment_uniforms = &uniforms;
+	state.fragment_uniforms_size = sizeof(uniforms);
+	state.vertex_uniforms = &vertex_uniforms;
+	state.vertex_uniforms_size = sizeof(vertex_uniforms);
+
+	// Blur render pass - vertical.
+	vertex_uniforms.texel_offset = Vector2f(0.f, 1.f) / float(temp.height);
+	state.texture = temp.color;
+	DrawPostprocessQuad(source_destination, state);
+
+	// Add a 1px transparent border around the blur region by first clearing with a padded scissor. This helps prevent
+	// artifacts when upscaling the blur result in the later step: sampling along the edge of the region otherwise
+	// reaches a texel beyond it, which holds whatever the target had from an earlier composite.
+	SetScissorOverride(scissor.Extend(1));
+	ClearRegion(temp);
+	SetScissorOverride(scissor);
+
+	// Blur render pass - horizontal.
+	vertex_uniforms.texel_offset = Vector2f(1.f, 0.f) / float(source_destination.width);
+	state.texture = source_destination.color;
+	DrawPostprocessQuad(temp, state);
+
+	// Scale the blurred image back over the region it came from -- unless the halving left nothing to scale. A window
+	// narrower than twice the downscale factor collapses to no area, and a quad with no extent in its texture
+	// coordinates would still cover the whole window and paint it with the border clear's single transparent texel,
+	// erasing what was to be blurred. Leave the unblurred image standing instead.
+	if (scissor.Width() > 0 && scissor.Height() > 0)
+	{
+		SetScissorOverride(window);
+		BlitRegion(source_destination, temp, scissor, window);
+
+		// The upscale above might be jittery at low resolutions (large pass levels). This is especially noticeable
+		// when moving an element with backdrop blur around, or when trying to click or hover an element within a
+		// blurred region since it may be rendered at an offset. For more stable and accurate rendering we next
+		// upscale the blur image by an exact power-of-two. However, this may not fill the edges completely, so we
+		// need to do the above first. Note that this strategy may sometimes result in visible seams.
+		const Vector2i target_min = scissor.p0 * (1 << pass_level);
+		const Vector2i target_max = scissor.p1 * (1 << pass_level);
+		if (target_min != window.p0 || target_max != window.p1)
+			BlitRegion(source_destination, temp, scissor, Rectanglei::FromCorners(target_min, target_max));
+	}
+
+	if (had_scissor_override)
+		SetScissorOverride(previous_scissor_override);
+	else
+		ClearScissorOverride();
+}
+
+/*
+    Every filter reads the primary target and writes the secondary, then the two are swapped, so the output is always
+    the primary target.
+
+    These passes deliberately go untested against the clip mask -- hence StencilMode::Off on every draw below. What
+    the mask cuts away is cut away by the final draw into the destination either way, and testing here would leave a
+    blur reading an image with the masked-out part already missing, then smearing it back inwards along the edge.
+*/
+void RenderInterface_SDL_GPU::RenderFilters(Span<const CompiledFilterHandle> filter_handles)
+{
+	for (const CompiledFilterHandle filter_handle : filter_handles)
+	{
+		const CompiledFilter& filter = *reinterpret_cast<const CompiledFilter*>(filter_handle);
+		// References into the postprocess targets have to be taken afresh for each filter: the swap at the end of the
+		// previous one exchanged what they name.
+		const RenderTarget& primary = render_layers.GetPostprocessPrimary();
+		const RenderTarget& secondary = render_layers.GetPostprocessSecondary();
+		if (!primary.color || !secondary.color)
+			return;
+
+		switch (filter.type)
+		{
+		case FilterType::Passthrough:
+		{
+			// The source scaled by a constant and the destination dropped, which is opacity applied to the layer as a
+			// whole rather than to each element in it.
+			DrawState state;
+			state.program = ProgramId::Passthrough;
+			state.blend = Blending::Constant;
+			state.blend_constant = filter.blend_factor;
+			state.sampler = clamp_sampler;
+			state.texture = primary.color;
+			DrawPostprocessQuad(secondary, state);
+
+			render_layers.SwapPostprocessPrimarySecondary();
+		}
+		break;
+		case FilterType::Blur:
+		{
+			RenderBlur(filter.sigma, primary, secondary, GetActiveScissor());
+		}
+		break;
+		case FilterType::DropShadow:
+		{
+			const Rectanglei window = GetActiveScissor();
+
+			DropShadowUniforms uniforms = {};
+			SetTexCoordLimits(uniforms.tex_coord_min, uniforms.tex_coord_max, window, {primary.width, primary.height});
+			uniforms.color = ConvertToColorf(filter.color);
+
+			// The shadow is the image moved by the offset and painted in a single colour. Moving the image one way
+			// means sampling it the other, hence the negation; both axes are negated because texture coordinates run
+			// the same way as the offset does.
+			const Vector2f uv_offset = -filter.offset / Vector2f(static_cast<float>(primary.width), static_cast<float>(primary.height));
+
+			DrawState state;
+			state.program = ProgramId::DropShadow;
+			state.blend = Blending::Replace;
+			state.sampler = clamp_sampler;
+			state.texture = primary.color;
+			state.fragment_uniforms = &uniforms;
+			state.fragment_uniforms_size = sizeof(uniforms);
+			DrawPostprocessQuad(secondary, state, Rectanglei::FromSize({secondary.width, secondary.height}), uv_offset, Vector2f(1.f));
+
+			if (filter.sigma >= 0.5f)
+			{
+				const RenderTarget& tertiary = render_layers.GetPostprocessTertiary();
+				RenderBlur(filter.sigma, secondary, tertiary, window);
+			}
+
+			// The element itself over the shadow it casts.
+			DrawTextureToTarget(secondary, primary.color, Blending::Blend);
+
+			render_layers.SwapPostprocessPrimarySecondary();
+		}
+		break;
+		case FilterType::ColorMatrix:
+		{
+			ColorMatrixUniforms uniforms = {};
+			uniforms.color_matrix = filter.color_matrix;
+
+			DrawState state;
+			state.program = ProgramId::ColorMatrix;
+			state.blend = Blending::Replace;
+			state.sampler = clamp_sampler;
+			state.texture = primary.color;
+			state.fragment_uniforms = &uniforms;
+			state.fragment_uniforms_size = sizeof(uniforms);
+			DrawPostprocessQuad(secondary, state);
+
+			render_layers.SwapPostprocessPrimarySecondary();
+		}
+		break;
+		case FilterType::MaskImage:
+		{
+			const RenderTarget& blend_mask = render_layers.GetBlendMask();
+			if (!blend_mask.color)
+				break;
+
+			DrawState state;
+			state.program = ProgramId::BlendMask;
+			state.blend = Blending::Replace;
+			state.sampler = clamp_sampler;
+			state.texture = primary.color;
+			state.mask_texture = blend_mask.color;
+			DrawPostprocessQuad(secondary, state);
+
+			render_layers.SwapPostprocessPrimarySecondary();
+		}
+		break;
+		case FilterType::Invalid:
+		{
+			Log::Message(Log::LT_WARNING, "Unhandled render filter %d.", static_cast<int>(filter.type));
+		}
+		break;
+		}
+	}
+}
+
 // -- Layers ------------------------------------------------------------------
 
 void RenderInterface_SDL_GPU::ReleaseQuads()
 {
-	if (composite_quad)
-		ReleaseGeometry(composite_quad);
+	if (fullscreen_quad)
+		ReleaseGeometry(fullscreen_quad);
 	if (clear_quad)
 		ReleaseGeometry(clear_quad);
 
-	composite_quad = {};
+	fullscreen_quad = {};
 	clear_quad = {};
 	quad_width = 0;
 	quad_height = 0;
@@ -1618,7 +2093,7 @@ void RenderInterface_SDL_GPU::ReleaseQuads()
 
 bool RenderInterface_SDL_GPU::EnsureQuads(int width, int height)
 {
-	if (composite_quad && clear_quad && quad_width == width && quad_height == height)
+	if (fullscreen_quad && clear_quad && quad_width == width && quad_height == height)
 		return true;
 
 	ReleaseQuads();
@@ -1627,15 +2102,17 @@ bool RenderInterface_SDL_GPU::EnsureQuads(int width, int height)
 	const float w = static_cast<float>(width);
 	const float h = static_cast<float>(height);
 
-	// White and fully opaque, so the texture shader passes the sampled colour through unchanged.
+	// Given in clip space and so the same whatever the target size, unlike the clear quad below. Texture coordinate
+	// (0,0) belongs at the top-left corner, which is where clip space has y at +1. The colour goes unread -- the
+	// postprocess programs take none -- but the vertex format has one.
 	const ColourbPremultiplied white(255, 255, 255, 255);
-	const Vertex composite_vertices[4] = {
-		{{0.f, 0.f}, white, {0.f, 0.f}},
-		{{w, 0.f}, white, {1.f, 0.f}},
-		{{w, h}, white, {1.f, 1.f}},
-		{{0.f, h}, white, {0.f, 1.f}},
+	const Vertex fullscreen_vertices[4] = {
+		{{-1.f, 1.f}, white, {0.f, 0.f}},
+		{{1.f, 1.f}, white, {1.f, 0.f}},
+		{{1.f, -1.f}, white, {1.f, 1.f}},
+		{{-1.f, -1.f}, white, {0.f, 1.f}},
 	};
-	composite_quad = CompileGeometry({composite_vertices, 4}, {indices, 6});
+	fullscreen_quad = CompileGeometry({fullscreen_vertices, 4}, {indices, 6});
 
 	// Drawn with blending off, this writes transparent black over whatever it covers.
 	const ColourbPremultiplied transparent(0, 0, 0, 0);
@@ -1647,7 +2124,7 @@ bool RenderInterface_SDL_GPU::EnsureQuads(int width, int height)
 	};
 	clear_quad = CompileGeometry({clear_vertices, 4}, {indices, 6});
 
-	if (!composite_quad || !clear_quad)
+	if (!fullscreen_quad || !clear_quad)
 	{
 		// Without these, PushLayer() falls back to clearing the whole attachment and CompositeLayers() cannot run at
 		// all, so say so rather than letting layers silently stop working.
@@ -1670,30 +2147,109 @@ void RenderInterface_SDL_GPU::ClearScissorRegion()
 	// Left unmasked deliberately: this stands in for a clear of the layer's colour, and a clear is not something the
 	// clip mask has any say over.
 	DrawState state;
-	state.blend = Rml::BlendMode::Replace;
+	state.blend = Blending::Replace;
 	state.transform = &projection;
 	DrawGeometry(*reinterpret_cast<GeometryView*>(clear_quad), state);
 }
 
-void RenderInterface_SDL_GPU::DrawTextureToTarget(const RenderTarget& destination, SDL_GPUTexture* source, Rml::BlendMode blend,
-	StencilMode stencil)
+void RenderInterface_SDL_GPU::ClearRegion(const RenderTarget& target)
 {
-	if (!source || !composite_quad)
+	if (!EnsureRenderPass(target))
 		return;
-	if (!FlushGeometryUploads())
-		return;
-	if (!EnsureRenderPass(destination))
-		return;
+	ClearScissorRegion();
+}
+
+bool RenderInterface_SDL_GPU::DrawPostprocessQuad(const RenderTarget& destination, const DrawState& state, Rectanglei region,
+	Vector2f uv_offset, Vector2f uv_scaling)
+{
+	if (!command_buffer || !destination.color || destination.width <= 0 || destination.height <= 0)
+		return false;
+
+	const Rectanglei full_target = Rectanglei::FromSize({destination.width, destination.height});
+	const bool covers_target = (region == full_target && uv_offset == Vector2f(0.f) && uv_scaling == Vector2f(1.f));
+
+	// Built for this draw alone whenever the quad is not simply the whole target: a downscaling pass covers a corner
+	// of it, and an upscaling one maps a rectangle onto a rectangle. The buffers come from the same pool as any other
+	// mesh, so a released one is normally handed straight back on the next call.
+	CompiledGeometryHandle temporary_quad = {};
+	if (!covers_target)
+	{
+		const float width = static_cast<float>(destination.width);
+		const float height = static_cast<float>(destination.height);
+		// Clip space runs from -1 to 1 across the target, with y pointing the other way to the pixel rows.
+		const float x0 = 2.f * static_cast<float>(region.Left()) / width - 1.f;
+		const float x1 = 2.f * static_cast<float>(region.Right()) / width - 1.f;
+		const float y0 = 1.f - 2.f * static_cast<float>(region.Top()) / height;
+		const float y1 = 1.f - 2.f * static_cast<float>(region.Bottom()) / height;
+		const Vector2f uv0 = uv_offset;
+		const Vector2f uv1 = uv_offset + uv_scaling;
+
+		const ColourbPremultiplied white(255, 255, 255, 255);
+		const Vertex vertices[4] = {
+			{{x0, y0}, white, {uv0.x, uv0.y}},
+			{{x1, y0}, white, {uv1.x, uv0.y}},
+			{{x1, y1}, white, {uv1.x, uv1.y}},
+			{{x0, y1}, white, {uv0.x, uv1.y}},
+		};
+		const int indices[6] = {0, 1, 2, 0, 2, 3};
+		temporary_quad = CompileGeometry({vertices, 4}, {indices, 6});
+		if (!temporary_quad)
+			return false;
+	}
+	else if (!fullscreen_quad)
+	{
+		return false;
+	}
+
+	const CompiledGeometryHandle quad = covers_target ? fullscreen_quad : temporary_quad;
+
+	bool drawn = false;
+	if (FlushGeometryUploads() && EnsureRenderPass(destination))
+		drawn = DrawGeometry(*reinterpret_cast<GeometryView*>(quad), state);
+
+	if (temporary_quad)
+		ReleaseGeometry(temporary_quad);
+
+	return drawn;
+}
+
+bool RenderInterface_SDL_GPU::DrawPostprocessQuad(const RenderTarget& destination, const DrawState& state)
+{
+	return DrawPostprocessQuad(destination, state, Rectanglei::FromSize({destination.width, destination.height}), Vector2f(0.f),
+		Vector2f(1.f));
+}
+
+bool RenderInterface_SDL_GPU::DrawTextureToTarget(const RenderTarget& destination, SDL_GPUTexture* source, Blending blend, StencilMode stencil)
+{
+	if (!source)
+		return false;
 
 	DrawState state;
-	state.program = ProgramId::Texture;
+	state.program = ProgramId::Passthrough;
 	state.blend = blend;
 	state.stencil = stencil;
 	state.stencil_reference = stencil_test_value;
 	state.texture = source;
-	// The quad is given in target coordinates, so it must not pick up whatever transform the elements were using.
-	state.transform = &projection;
-	DrawGeometry(*reinterpret_cast<GeometryView*>(composite_quad), state);
+	state.sampler = clamp_sampler;
+	return DrawPostprocessQuad(destination, state);
+}
+
+void RenderInterface_SDL_GPU::BlitRegion(const RenderTarget& destination, const RenderTarget& source, Rectanglei source_region,
+	Rectanglei destination_region)
+{
+	if (!source.color || source.width <= 0 || source.height <= 0)
+		return;
+
+	const Vector2f source_size = {static_cast<float>(source.width), static_cast<float>(source.height)};
+	const Vector2f uv_offset = Vector2f(source_region.p0) / source_size;
+	const Vector2f uv_scaling = Vector2f(source_region.Size()) / source_size;
+
+	DrawState state;
+	state.program = ProgramId::Passthrough;
+	state.blend = Blending::Replace;
+	state.texture = source.color;
+	state.sampler = clamp_sampler;
+	DrawPostprocessQuad(destination, state, destination_region, uv_offset, uv_scaling);
 }
 
 LayerHandle RenderInterface_SDL_GPU::PushLayer()
@@ -1731,37 +2287,42 @@ void RenderInterface_SDL_GPU::PopLayer()
 void RenderInterface_SDL_GPU::CompositeLayers(LayerHandle source, LayerHandle destination, Rml::BlendMode blend_mode,
 	Span<const CompiledFilterHandle> filters)
 {
-	// Filters arrive with the filter support of a later phase; until then CompileFilter() returns zero and RmlUi never
-	// gets a handle to pass here. Their presence already selects the postprocess path below, which is where they will
-	// run once there is something to run.
-
-	// Compositing goes via a postprocess target when the source cannot simply be sampled into the destination. The
+	// Compositing goes via the postprocess targets when the source cannot simply be sampled into the destination. The
 	// contract allows both handles to name the same layer, and a texture cannot be a colour attachment and a sampler
-	// binding at once; filters, when they arrive, will also read and write that target in turn. Everything else takes
-	// the direct path: the detour costs a second full-region draw, which measures at about a quarter of the frame on a
-	// filter-heavy document.
-	// A layer whose texture could not be created has nothing to composite. Caught here rather than in
-	// DrawTextureToTarget(), which would otherwise skip the first hop of the postprocess path and then blend whatever
-	// the previous composite left in that target.
+	// binding at once; filters read and write those targets in turn and so need the detour as well. Everything else
+	// takes the direct path: the detour costs a second full-region draw, which measures at about a quarter of the
+	// frame on a filter-heavy document.
+	// A layer whose texture could not be created has nothing to composite.
 	if (!render_layers.GetLayer(source).color)
 		return;
 
 	const bool via_postprocess = (source == destination) || !filters.empty();
 
 	// The mask applies to the draw that reaches the destination, and only to it. The hop into the postprocess target
-	// is a move of the source's pixels, not a rendering of them, and masking it would cut away pixels the filters of
-	// phase 4 still have to see.
+	// is a move of the source's pixels, not a rendering of them, and masking it would cut away pixels the filters
+	// still have to see.
 	const StencilMode stencil = GetClipMaskMode();
+	const Blending blending = (blend_mode == Rml::BlendMode::Replace) ? Blending::Replace : Blending::Blend;
 
 	if (via_postprocess)
 	{
-		const RenderTarget& postprocess = render_layers.GetPostprocessPrimary();
-		DrawTextureToTarget(postprocess, render_layers.GetLayer(source).color, Rml::BlendMode::Replace);
-		DrawTextureToTarget(render_layers.GetLayer(destination), postprocess.color, blend_mode, stencil);
+		// The second hop below samples whatever this one leaves in the postprocess target. If it could not be issued
+		// -- no target to allocate, no buffer to build the quad from -- that target still holds the previous
+		// composite, and going on would blend a stale image into the destination. Better to leave the destination as
+		// it is: the frame is already degraded, and an error has been logged where the failure happened.
+		if (!DrawTextureToTarget(render_layers.GetPostprocessPrimary(), render_layers.GetLayer(source).color, Blending::Replace))
+			return;
+
+		RenderFilters(filters);
+
+		// Taken only now: each filter swaps the primary and secondary targets, so a reference from before the chain
+		// ran would name the scratch target rather than the result.
+		const RenderTarget& result = render_layers.GetPostprocessPrimary();
+		DrawTextureToTarget(render_layers.GetLayer(destination), result.color, blending, stencil);
 	}
 	else
 	{
-		DrawTextureToTarget(render_layers.GetLayer(destination), render_layers.GetLayer(source).color, blend_mode, stencil);
+		DrawTextureToTarget(render_layers.GetLayer(destination), render_layers.GetLayer(source).color, blending, stencil);
 	}
 
 	// No pass is opened for the new top layer here. Every path that draws opens the one it needs, and the caller pops
@@ -1836,6 +2397,34 @@ TextureHandle RenderInterface_SDL_GPU::SaveLayerAsTexture()
 	EnsureRenderPass(source);
 
 	return reinterpret_cast<TextureHandle>(texture);
+}
+
+// Keeps the top layer as the image a MaskImage filter multiplies by. It goes to a target of its own so the filter
+// chain's two stay free; only one saved mask is ever in flight, so one target is enough and the filter carries
+// nothing but its type.
+CompiledFilterHandle RenderInterface_SDL_GPU::SaveLayerAsMaskImage()
+{
+	if (!command_buffer)
+		return {};
+
+	const RenderTarget& source = render_layers.GetTopLayer();
+	const RenderTarget& primary = render_layers.GetPostprocessPrimary();
+	const RenderTarget& blend_mask = render_layers.GetBlendMask();
+	if (!source.color || !primary.color || !blend_mask.color)
+		return {};
+
+	// By way of the postprocess target rather than straight across, which is the route the other backends take too:
+	// this first hop is where a multisampled layer will be resolved. As in CompositeLayers(), the second hop copies
+	// whatever the first one left, so a failure there must not be carried forward -- handing back a mask filter that
+	// multiplies by the previous mask is worse than handing back none, which leaves the element simply unmasked.
+	if (!DrawTextureToTarget(primary, source.color, Blending::Replace))
+		return {};
+	if (!DrawTextureToTarget(blend_mask, primary.color, Blending::Replace))
+		return {};
+
+	CompiledFilter filter = {};
+	filter.type = FilterType::MaskImage;
+	return reinterpret_cast<CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
 }
 
 // -- Screen capture ----------------------------------------------------------
