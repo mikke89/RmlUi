@@ -238,7 +238,8 @@ static SDL_GPUTextureFormat SelectDepthStencilFormat(SDL_GPUDevice* device)
 void RenderInterface_SDL_GPU::RenderLayerStack::Initialize(SDL_GPUDevice* in_device)
 {
 	device = in_device;
-	depth_stencil_format = SelectDepthStencilFormat(device);
+	supported_depth_stencil_format = SelectDepthStencilFormat(device);
+	depth_stencil_format = supported_depth_stencil_format;
 	if (depth_stencil_format == SDL_GPU_TEXTUREFORMAT_INVALID)
 		Log::Message(Log::LT_WARNING, "No supported depth/stencil format found, clip masks will be unavailable");
 }
@@ -307,6 +308,10 @@ void RenderInterface_SDL_GPU::RenderLayerStack::BeginFrame(int in_width, int in_
 		DestroyTargets();
 		width = in_width;
 		height = in_height;
+
+		// Every target is being built afresh, so an allocation that failed last time gets another go. Without this
+		// the format below latches to INVALID on the first failure and clip masks never come back.
+		depth_stencil_format = supported_depth_stencil_format;
 
 		if (depth_stencil_format != SDL_GPU_TEXTUREFORMAT_INVALID)
 		{
@@ -412,9 +417,12 @@ bool RenderInterface_SDL_GPU::CreateShaders()
 	return color_shader && texture_shader && vertex_shader;
 }
 
-SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program, Rml::BlendMode blend)
+SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program, Rml::BlendMode blend, StencilMode stencil)
 {
-	const PipelineKey key{program, blend};
+	const bool writes_stencil = (stencil == StencilMode::WriteSet || stencil == StencilMode::WriteIntersect);
+	// Colour writes are off in the writing modes, so the blend mode makes no difference there. Folding it away keeps
+	// the cache from holding pipelines that only differ in state nothing reads.
+	const PipelineKey key{program, writes_stencil ? Rml::BlendMode::Blend : blend, stencil};
 	for (const PipelineEntry& entry : pipelines)
 	{
 		if (entry.key == key)
@@ -423,7 +431,13 @@ SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program,
 
 	SDL_GPUColorTargetDescription target{};
 	target.format = layer_format;
-	if (blend == Rml::BlendMode::Blend)
+	if (writes_stencil)
+	{
+		// A mask lives in the stencil buffer alone; the geometry shaping it must leave the colours untouched.
+		target.blend_state.enable_color_write_mask = true;
+		target.blend_state.color_write_mask = 0;
+	}
+	else if (blend == Rml::BlendMode::Blend)
 	{
 		// Colours are premultiplied, so the source contributes in full.
 		target.blend_state.enable_blend = true;
@@ -456,13 +470,45 @@ SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program,
 	info.target_info.num_color_targets = 1;
 	info.target_info.color_target_descriptions = &target;
 
-	// The stencil buffer is attached to every pass so that clip masks can use it without reopening passes. Depth and
-	// stencil tests stay off until there is a mask to apply.
+	// The stencil buffer is attached to every pass so that clip masks can use it without reopening passes. Depth
+	// testing is never used, and the stencil test stays off until there is a mask to apply.
 	const SDL_GPUTextureFormat depth_stencil_format = render_layers.GetDepthStencilFormat();
 	if (depth_stencil_format != SDL_GPU_TEXTUREFORMAT_INVALID)
 	{
 		info.target_info.has_depth_stencil_target = true;
 		info.target_info.depth_stencil_format = depth_stencil_format;
+	}
+
+	if (stencil != StencilMode::Off)
+	{
+		SDL_GPUStencilOpState op{};
+		op.fail_op = SDL_GPU_STENCILOP_KEEP;
+		op.depth_fail_op = SDL_GPU_STENCILOP_KEEP;
+		switch (stencil)
+		{
+		case StencilMode::TestEqual:
+			op.compare_op = SDL_GPU_COMPAREOP_EQUAL;
+			op.pass_op = SDL_GPU_STENCILOP_KEEP;
+			break;
+		case StencilMode::WriteSet:
+			op.compare_op = SDL_GPU_COMPAREOP_ALWAYS;
+			op.pass_op = SDL_GPU_STENCILOP_REPLACE;
+			break;
+		case StencilMode::WriteIntersect:
+			// Tested rather than written unconditionally: only pixels already holding the mask are raised, so no value can
+			// collide with a later generation.
+			op.compare_op = SDL_GPU_COMPAREOP_EQUAL;
+			op.pass_op = SDL_GPU_STENCILOP_INCREMENT_AND_CLAMP;
+			break;
+		case StencilMode::Off:
+			break;
+		}
+
+		info.depth_stencil_state.enable_stencil_test = true;
+		info.depth_stencil_state.compare_mask = 0xFF;
+		info.depth_stencil_state.write_mask = writes_stencil ? 0xFF : 0x00;
+		info.depth_stencil_state.front_stencil_state = op;
+		info.depth_stencil_state.back_stencil_state = op;
 	}
 
 	info.vertex_input_state.num_vertex_attributes = 3;
@@ -472,7 +518,13 @@ SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program,
 
 	SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(device, &info);
 	if (!pipeline)
+	{
 		Log::Message(Log::LT_ERROR, "Failed to create graphics pipeline: %s", SDL_GetError());
+		// A mask that cannot be written must not be tested against either, or every draw would be compared with a
+		// value no pixel holds and the whole document would disappear. Take clip masks out of service instead.
+		if (stencil != StencilMode::Off)
+			stencil_pipelines_failed = true;
+	}
 
 	// Cached even on failure. Without that, a pipeline that cannot be built is retried, and logged, once per draw call.
 	pipelines.push_back({key, pipeline});
@@ -488,6 +540,8 @@ void RenderInterface_SDL_GPU::ReleasePipelines()
 	}
 	pipelines.clear();
 	bound_pipeline = nullptr;
+	// The cache is what remembers the refusal, so dropping it gives the stencil pipelines another go.
+	stencil_pipelines_failed = false;
 }
 
 // The window is not used: layers have a format of their own, so nothing here depends on what the swapchain looks like.
@@ -578,6 +632,10 @@ void RenderInterface_SDL_GPU::BeginFrame(SDL_GPUCommandBuffer* in_command_buffer
 	scissor_enabled = false;
 	scissor_region = Rectanglei::FromSize({static_cast<int>(width), static_cast<int>(height)});
 
+	// RmlUi resets its render state between frames, so no mask carries over. The stencil buffer is cleared with the
+	// base layer below, which resets the generation counters with it.
+	clip_mask_enabled = false;
+
 	InvalidateRenderPassState();
 
 #if RMLUI_BACKEND_SDL_GPU_DEBUG
@@ -599,7 +657,7 @@ void RenderInterface_SDL_GPU::BeginFrame(SDL_GPUCommandBuffer* in_command_buffer
 
 	// Opening the pass here rather than at the first draw gets the base layer cleared even for an empty frame, and
 	// clears the stencil buffer for the clip mask.
-	EnsureRenderPass(render_layers.GetTopLayer(), true);
+	EnsureRenderPass(render_layers.GetTopLayer(), true, true);
 }
 
 void RenderInterface_SDL_GPU::EndFrame()
@@ -668,13 +726,14 @@ void RenderInterface_SDL_GPU::InvalidateRenderPassState()
 	transform_dirty = true;
 	translation_dirty = true;
 	scissor_dirty = true;
+	stencil_reference_dirty = true;
 	// A new pass starts with the scissor covering the whole target, so the cached value no longer reflects reality.
 	applied_scissor = {-1, -1, -1, -1};
 }
 
-bool RenderInterface_SDL_GPU::EnsureRenderPass(const RenderTarget& target, bool clear)
+bool RenderInterface_SDL_GPU::EnsureRenderPass(const RenderTarget& target, bool clear_color, bool clear_stencil)
 {
-	if (render_pass && active_target_texture == target.color && !clear)
+	if (render_pass && active_target_texture == target.color && !clear_color && !clear_stencil)
 		return true;
 
 	// Ended before the bail-out too, so that a caller which ignores the result can never go on to draw into whatever
@@ -686,10 +745,9 @@ bool RenderInterface_SDL_GPU::EnsureRenderPass(const RenderTarget& target, bool 
 
 	SDL_GPUColorTargetInfo color_info{};
 	color_info.texture = target.color;
-	color_info.load_op = clear ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
+	color_info.load_op = clear_color ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
 	color_info.store_op = SDL_GPU_STOREOP_STORE;
-	// A cleared target is being written in full, so its previous contents need not be preserved for the GPU.
-	color_info.cycle = clear;
+	color_info.cycle = clear_color;
 
 	SDL_GPUDepthStencilTargetInfo depth_stencil_info{};
 	SDL_GPUDepthStencilTargetInfo* depth_stencil_ptr = nullptr;
@@ -698,8 +756,10 @@ bool RenderInterface_SDL_GPU::EnsureRenderPass(const RenderTarget& target, bool 
 		depth_stencil_info.texture = depth_stencil;
 		depth_stencil_info.load_op = SDL_GPU_LOADOP_DONT_CARE;
 		depth_stencil_info.store_op = SDL_GPU_STOREOP_DONT_CARE;
-		// The stencil buffer is shared by all layers, so a pass that clears its colour starts the mask afresh too.
-		depth_stencil_info.stencil_load_op = clear ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
+		// The clip mask is a property of the frame, not of a layer: RmlUi sets a mask and then pushes layers under
+		// it, expecting it to still apply, and only re-issues the mask when it changes. So the one stencil buffer is
+		// shared by every target and carried across passes, and it is cleared only when asked for explicitly.
+		depth_stencil_info.stencil_load_op = clear_stencil ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
 		depth_stencil_info.stencil_store_op = SDL_GPU_STOREOP_STORE;
 		depth_stencil_info.clear_stencil = 0;
 		depth_stencil_ptr = &depth_stencil_info;
@@ -711,6 +771,12 @@ bool RenderInterface_SDL_GPU::EnsureRenderPass(const RenderTarget& target, bool 
 		Log::Message(Log::LT_ERROR, "Failed to begin render pass: %s", SDL_GetError());
 		active_target_texture = nullptr;
 		return false;
+	}
+
+	if (clear_stencil)
+	{
+		stencil_high_water = 0;
+		stencil_test_value = 0;
 	}
 
 	active_target_texture = target.color;
@@ -903,6 +969,88 @@ void RenderInterface_SDL_GPU::ReleaseGeometry(CompiledGeometryHandle handle)
 	delete geometry;
 }
 
+bool RenderInterface_SDL_GPU::DrawGeometry(const GeometryView& geometry, const DrawState& state)
+{
+	SDL_GPUGraphicsPipeline* pipeline = GetPipeline(state.program, state.blend, state.stencil);
+	if (!pipeline)
+		return false;
+
+	if (pipeline != bound_pipeline)
+	{
+		SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
+		bound_pipeline = pipeline;
+		// Resource layouts differ between the pipelines, so do not assume the previous binding still applies.
+		bound_texture = nullptr;
+	}
+
+	if (state.texture && state.texture != bound_texture)
+	{
+		SDL_GPUTextureSamplerBinding texture_binding{};
+		texture_binding.texture = state.texture;
+		texture_binding.sampler = linear_sampler;
+		SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_binding, 1);
+		bound_texture = state.texture;
+	}
+
+	if (geometry.vertex_buffer->buffer != bound_vertex_buffer)
+	{
+		SDL_GPUBufferBinding binding{};
+		binding.buffer = geometry.vertex_buffer->buffer;
+		SDL_BindGPUVertexBuffers(render_pass, 0, &binding, 1);
+		bound_vertex_buffer = binding.buffer;
+	}
+
+	if (geometry.index_buffer->buffer != bound_index_buffer)
+	{
+		SDL_GPUBufferBinding binding{};
+		binding.buffer = geometry.index_buffer->buffer;
+		SDL_BindGPUIndexBuffer(render_pass, &binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+		bound_index_buffer = binding.buffer;
+	}
+
+	if (scissor_dirty)
+		ApplyScissor();
+
+	if (state.stencil != StencilMode::Off && (stencil_reference_dirty || state.stencil_reference != applied_stencil_reference))
+	{
+		SDL_SetGPUStencilReference(render_pass, state.stencil_reference);
+		applied_stencil_reference = state.stencil_reference;
+		stencil_reference_dirty = false;
+	}
+
+	if (state.transform)
+	{
+		SDL_PushGPUVertexUniformData(command_buffer, 0, state.transform, sizeof(Matrix4f));
+		// What the command buffer holds is no longer the transform every other draw wants.
+		transform_dirty = true;
+	}
+	else if (transform_dirty)
+	{
+		SDL_PushGPUVertexUniformData(command_buffer, 0, &transform, sizeof(transform));
+		transform_dirty = false;
+	}
+
+	if (translation_dirty || state.translation != pushed_translation)
+	{
+		SDL_PushGPUVertexUniformData(command_buffer, 1, &state.translation, sizeof(state.translation));
+		pushed_translation = state.translation;
+		translation_dirty = false;
+	}
+
+	SDL_DrawGPUIndexedPrimitives(render_pass, geometry.num_indices, 1, 0, 0, 0);
+	return true;
+}
+
+bool RenderInterface_SDL_GPU::HasStencil() const
+{
+	return render_layers.GetDepthStencilFormat() != SDL_GPU_TEXTUREFORMAT_INVALID && !stencil_pipelines_failed;
+}
+
+RenderInterface_SDL_GPU::StencilMode RenderInterface_SDL_GPU::GetClipMaskMode() const
+{
+	return (clip_mask_enabled && HasStencil()) ? StencilMode::TestEqual : StencilMode::Off;
+}
+
 void RenderInterface_SDL_GPU::RenderGeometry(CompiledGeometryHandle handle, Vector2f translation, TextureHandle texture)
 {
 	GeometryView* geometry = reinterpret_cast<GeometryView*>(handle);
@@ -916,64 +1064,13 @@ void RenderInterface_SDL_GPU::RenderGeometry(CompiledGeometryHandle handle, Vect
 	if (!EnsureRenderPass(render_layers.GetTopLayer()))
 		return;
 
-	SDL_GPUGraphicsPipeline* pipeline = GetPipeline((texture != 0) ? ProgramId::Texture : ProgramId::Color, Rml::BlendMode::Blend);
-	if (!pipeline)
-		return;
-
-	if (pipeline != bound_pipeline)
-	{
-		SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
-		bound_pipeline = pipeline;
-		// Resource layouts differ between the pipelines, so do not assume the previous binding still applies.
-		bound_texture = nullptr;
-	}
-
-	if (texture != 0)
-	{
-		SDL_GPUTexture* sdl_texture = reinterpret_cast<SDL_GPUTexture*>(texture);
-		if (sdl_texture != bound_texture)
-		{
-			SDL_GPUTextureSamplerBinding texture_binding{};
-			texture_binding.texture = sdl_texture;
-			texture_binding.sampler = linear_sampler;
-			SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_binding, 1);
-			bound_texture = sdl_texture;
-		}
-	}
-
-	if (geometry->vertex_buffer->buffer != bound_vertex_buffer)
-	{
-		SDL_GPUBufferBinding binding{};
-		binding.buffer = geometry->vertex_buffer->buffer;
-		SDL_BindGPUVertexBuffers(render_pass, 0, &binding, 1);
-		bound_vertex_buffer = binding.buffer;
-	}
-
-	if (geometry->index_buffer->buffer != bound_index_buffer)
-	{
-		SDL_GPUBufferBinding binding{};
-		binding.buffer = geometry->index_buffer->buffer;
-		SDL_BindGPUIndexBuffer(render_pass, &binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
-		bound_index_buffer = binding.buffer;
-	}
-
-	if (scissor_dirty)
-		ApplyScissor();
-
-	if (transform_dirty)
-	{
-		SDL_PushGPUVertexUniformData(command_buffer, 0, &transform, sizeof(transform));
-		transform_dirty = false;
-	}
-
-	if (translation_dirty || translation != pushed_translation)
-	{
-		SDL_PushGPUVertexUniformData(command_buffer, 1, &translation, sizeof(translation));
-		pushed_translation = translation;
-		translation_dirty = false;
-	}
-
-	SDL_DrawGPUIndexedPrimitives(render_pass, geometry->num_indices, 1, 0, 0, 0);
+	DrawState state;
+	state.program = (texture != 0) ? ProgramId::Texture : ProgramId::Color;
+	state.stencil = GetClipMaskMode();
+	state.stencil_reference = stencil_test_value;
+	state.texture = reinterpret_cast<SDL_GPUTexture*>(texture);
+	state.translation = translation;
+	DrawGeometry(*geometry, state);
 }
 
 // -- Textures ----------------------------------------------------------------
@@ -1202,6 +1299,113 @@ void RenderInterface_SDL_GPU::SetTransform(const Matrix4f* new_transform)
 	transform_dirty = true;
 }
 
+// -- Clip mask ---------------------------------------------------------------
+
+void RenderInterface_SDL_GPU::EnableClipMask(bool enable)
+{
+	clip_mask_enabled = enable;
+}
+
+/*
+    SDL GPU can only clear the stencil buffer as a pass begins, so instead of clearing per mask, every Set takes a
+    value never written since the last real clear; older masks are left where they are, holding smaller values, and
+    the test is for equality.
+
+    stencil_high_water keeps the invariant that a Set hands out a value strictly greater than anything in the buffer.
+    Counting generations would not do: Intersect raises the mask above the value its Set handed out, so a mask
+    narrowed a few times would reach what the next Set picks. max_clip_mask_depth is the reserve kept for nesting.
+
+    A generation is committed only once the draw meant to write it has been issued: one that reached no pixel would
+    match nothing, and every draw under it would be culled.
+*/
+void RenderInterface_SDL_GPU::RenderToClipMask(Rml::ClipMaskOperation operation, CompiledGeometryHandle handle, Vector2f translation)
+{
+	GeometryView* geometry = reinterpret_cast<GeometryView*>(handle);
+	if (!geometry || !command_buffer || !HasStencil())
+		return;
+
+	if (!FlushGeometryUploads())
+		return;
+
+	// Eight bits hold only so many generations. When they run out the buffer has to be cleared for real, which means
+	// restarting the pass; the colour is loaded back, so only the mask is lost. Worth doing solely where the mask is
+	// about to be replaced wholesale, since Intersect builds on what is already there.
+	const bool replaces_mask = (operation != Rml::ClipMaskOperation::Intersect);
+	const bool clear_stencil = replaces_mask && (stencil_high_water >= max_stencil_generation);
+	if (!EnsureRenderPass(render_layers.GetTopLayer(), false, clear_stencil))
+		return;
+
+	// What a replacing operation takes: the value just above everything the buffer holds. The clear above guarantees
+	// there is one left, so this cannot wrap.
+	const uint8_t generation = static_cast<uint8_t>(stencil_high_water + 1);
+
+	DrawState state;
+	state.stencil = StencilMode::WriteSet;
+	state.translation = translation;
+
+	switch (operation)
+	{
+	case Rml::ClipMaskOperation::Set:
+	{
+		state.stencil_reference = generation;
+	}
+	break;
+	case Rml::ClipMaskOperation::SetInverse:
+	{
+		// The mask is everything the geometry does not cover: raise the whole region to the new generation, then
+		// punch the geometry back down with zero, which no generation ever equals. The fill is the only thing that
+		// puts the generation in the buffer, so without it leave the mask already in force.
+		DrawState fill;
+		fill.stencil = StencilMode::WriteSet;
+		fill.stencil_reference = generation;
+		fill.transform = &projection;
+		if (!clear_quad || !DrawGeometry(*reinterpret_cast<GeometryView*>(clear_quad), fill))
+			return;
+
+		// The buffer holds the new value from here on, whether or not the punch below lands, so the bound has to
+		// move with it — otherwise a later Set could hand the same value out a second time.
+		stencil_high_water = generation;
+		state.stencil_reference = 0;
+	}
+	break;
+	case Rml::ClipMaskOperation::Intersect:
+	{
+		// Raising the covered area by one keeps only what the previous mask and this geometry have in common at the
+		// new value. The pipeline tests for the current generation, so pixels the old mask did not hold are left
+		// exactly where they were.
+		state.stencil = StencilMode::WriteIntersect;
+		state.stencil_reference = stencil_test_value;
+	}
+	break;
+	}
+
+	if (!DrawGeometry(*geometry, state))
+		return;
+
+	if (operation == Rml::ClipMaskOperation::Intersect)
+	{
+		if (stencil_test_value < 0xFF)
+		{
+			stencil_test_value += 1;
+			stencil_high_water = stencil_test_value;
+		}
+		else if (!stencil_reserve_exhausted)
+		{
+			// INCREMENT_AND_CLAMP has nowhere left to go, so this Intersect and every one after it leaves the mask
+			// as it was: content they should have clipped away stays visible. Only reachable by nesting masks
+			// deeper than the reserve, and otherwise entirely silent, so say it once.
+			stencil_reserve_exhausted = true;
+			Log::Message(Log::LT_WARNING, "Clip masks nested deeper than %d levels, the mask no longer narrows",
+				max_clip_mask_depth);
+		}
+	}
+	else
+	{
+		stencil_test_value = generation;
+		stencil_high_water = generation;
+	}
+}
+
 // -- Layers ------------------------------------------------------------------
 
 void RenderInterface_SDL_GPU::ReleaseQuads()
@@ -1268,39 +1472,16 @@ void RenderInterface_SDL_GPU::ClearScissorRegion()
 	if (!FlushGeometryUploads())
 		return;
 
-	SDL_GPUGraphicsPipeline* pipeline = GetPipeline(ProgramId::Color, Rml::BlendMode::Replace);
-	if (!pipeline)
-		return;
-
-	GeometryView* geometry = reinterpret_cast<GeometryView*>(clear_quad);
-
-	SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
-	bound_pipeline = pipeline;
-	bound_texture = nullptr;
-
-	SDL_GPUBufferBinding vertex_binding{};
-	vertex_binding.buffer = geometry->vertex_buffer->buffer;
-	SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_binding, 1);
-	bound_vertex_buffer = vertex_binding.buffer;
-
-	SDL_GPUBufferBinding index_binding{};
-	index_binding.buffer = geometry->index_buffer->buffer;
-	SDL_BindGPUIndexBuffer(render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
-	bound_index_buffer = index_binding.buffer;
-
-	if (scissor_dirty)
-		ApplyScissor();
-
-	const Vector2f no_translation(0.f, 0.f);
-	SDL_PushGPUVertexUniformData(command_buffer, 0, &projection, sizeof(projection));
-	SDL_PushGPUVertexUniformData(command_buffer, 1, &no_translation, sizeof(no_translation));
-	transform_dirty = true;
-	translation_dirty = true;
-
-	SDL_DrawGPUIndexedPrimitives(render_pass, geometry->num_indices, 1, 0, 0, 0);
+	// Left unmasked deliberately: this stands in for a clear of the layer's colour, and a clear is not something the
+	// clip mask has any say over.
+	DrawState state;
+	state.blend = Rml::BlendMode::Replace;
+	state.transform = &projection;
+	DrawGeometry(*reinterpret_cast<GeometryView*>(clear_quad), state);
 }
 
-void RenderInterface_SDL_GPU::DrawTextureToTarget(const RenderTarget& destination, SDL_GPUTexture* source, Rml::BlendMode blend)
+void RenderInterface_SDL_GPU::DrawTextureToTarget(const RenderTarget& destination, SDL_GPUTexture* source, Rml::BlendMode blend,
+	StencilMode stencil)
 {
 	if (!source || !composite_quad)
 		return;
@@ -1309,42 +1490,15 @@ void RenderInterface_SDL_GPU::DrawTextureToTarget(const RenderTarget& destinatio
 	if (!EnsureRenderPass(destination))
 		return;
 
-	SDL_GPUGraphicsPipeline* pipeline = GetPipeline(ProgramId::Texture, blend);
-	if (!pipeline)
-		return;
-
-	GeometryView* geometry = reinterpret_cast<GeometryView*>(composite_quad);
-
-	SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
-	bound_pipeline = pipeline;
-
-	SDL_GPUTextureSamplerBinding texture_binding{};
-	texture_binding.texture = source;
-	texture_binding.sampler = linear_sampler;
-	SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_binding, 1);
-	bound_texture = source;
-
-	SDL_GPUBufferBinding vertex_binding{};
-	vertex_binding.buffer = geometry->vertex_buffer->buffer;
-	SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_binding, 1);
-	bound_vertex_buffer = vertex_binding.buffer;
-
-	SDL_GPUBufferBinding index_binding{};
-	index_binding.buffer = geometry->index_buffer->buffer;
-	SDL_BindGPUIndexBuffer(render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
-	bound_index_buffer = index_binding.buffer;
-
-	if (scissor_dirty)
-		ApplyScissor();
-
+	DrawState state;
+	state.program = ProgramId::Texture;
+	state.blend = blend;
+	state.stencil = stencil;
+	state.stencil_reference = stencil_test_value;
+	state.texture = source;
 	// The quad is given in target coordinates, so it must not pick up whatever transform the elements were using.
-	const Vector2f no_translation(0.f, 0.f);
-	SDL_PushGPUVertexUniformData(command_buffer, 0, &projection, sizeof(projection));
-	SDL_PushGPUVertexUniformData(command_buffer, 1, &no_translation, sizeof(no_translation));
-	transform_dirty = true;
-	translation_dirty = true;
-
-	SDL_DrawGPUIndexedPrimitives(render_pass, geometry->num_indices, 1, 0, 0, 0);
+	state.transform = &projection;
+	DrawGeometry(*reinterpret_cast<GeometryView*>(composite_quad), state);
 }
 
 LayerHandle RenderInterface_SDL_GPU::PushLayer()
@@ -1365,8 +1519,8 @@ LayerHandle RenderInterface_SDL_GPU::PushLayer()
 	}
 	else
 	{
-		// No quad to draw the cleared region with. Clearing the whole attachment is still correct, only slower; it
-		// also resets the stencil, which costs nothing while there is no clip mask to preserve.
+		// No quad to draw the cleared region with. Clearing the whole attachment is still correct, only slower. The
+		// stencil is left alone: the clip mask in force when the layer was pushed still applies inside it.
 		EnsureRenderPass(target, true);
 	}
 
@@ -1399,15 +1553,20 @@ void RenderInterface_SDL_GPU::CompositeLayers(LayerHandle source, LayerHandle de
 
 	const bool via_postprocess = (source == destination) || !filters.empty();
 
+	// The mask applies to the draw that reaches the destination, and only to it. The hop into the postprocess target
+	// is a move of the source's pixels, not a rendering of them, and masking it would cut away pixels the filters of
+	// phase 4 still have to see.
+	const StencilMode stencil = GetClipMaskMode();
+
 	if (via_postprocess)
 	{
 		const RenderTarget& postprocess = render_layers.GetPostprocessPrimary();
 		DrawTextureToTarget(postprocess, render_layers.GetLayer(source).color, Rml::BlendMode::Replace);
-		DrawTextureToTarget(render_layers.GetLayer(destination), postprocess.color, blend_mode);
+		DrawTextureToTarget(render_layers.GetLayer(destination), postprocess.color, blend_mode, stencil);
 	}
 	else
 	{
-		DrawTextureToTarget(render_layers.GetLayer(destination), render_layers.GetLayer(source).color, blend_mode);
+		DrawTextureToTarget(render_layers.GetLayer(destination), render_layers.GetLayer(source).color, blend_mode, stencil);
 	}
 
 	// No pass is opened for the new top layer here. Every path that draws opens the one it needs, and the caller pops

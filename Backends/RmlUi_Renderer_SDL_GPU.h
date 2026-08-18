@@ -30,6 +30,9 @@ public:
 	void EnableScissorRegion(bool enable) override;
 	void SetScissorRegion(Rml::Rectanglei region) override;
 
+	void EnableClipMask(bool enable) override;
+	void RenderToClipMask(Rml::ClipMaskOperation operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation) override;
+
 	void SetTransform(const Rml::Matrix4f* new_transform) override;
 
 	Rml::LayerHandle PushLayer() override;
@@ -56,6 +59,13 @@ private:
 	static constexpr SDL_GPUTextureFormat content_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
 	// Postprocess targets, used as both input and output when moving a layer's contents around.
 	static constexpr int num_postprocess_targets = 2;
+	// How deep clip masks may nest before the stencil runs out of room. Every Intersect raises the mask by one, so a
+	// generation has to keep this much space above it; past that the value clamps and the mask stops narrowing.
+	static constexpr int max_clip_mask_depth = 64;
+	// The clip mask is not cleared between masks; each one takes a stencil value never used before instead. The
+	// buffer holds eight bits, so the supply runs out and the stencil has to be cleared for real. A Set arriving at
+	// or above this asks for that clear first, which is what keeps the reserve above it free.
+	static constexpr int max_stencil_generation = 0xFF - max_clip_mask_depth;
 
 	struct Buffer {
 		SDL_GPUTransferBuffer* transfer_buffer = nullptr;
@@ -167,18 +177,35 @@ private:
 		RenderTarget postprocess[num_postprocess_targets];
 
 		SDL_GPUTexture* depth_stencil = nullptr;
+		// The format in use, INVALID while there is no stencil buffer to go with it. Kept apart from the format the
+		// device supports so that a failed allocation only disables clip masks until the targets are next rebuilt,
+		// rather than for the life of the renderer.
 		SDL_GPUTextureFormat depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
+		SDL_GPUTextureFormat supported_depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
 	};
 
 	enum class ProgramId { Color, Texture };
+
+	// What a draw does with the stencil buffer. Writing modes turn colour writes off: they exist only to shape the
+	// clip mask.
+	enum class StencilMode : uint8_t {
+		Off,            // No stencil test.
+		TestEqual,      // Draw only where the stencil holds the reference value.
+		WriteSet,       // Write the reference value over the drawn area.
+		WriteIntersect, // Raise the drawn area by one where it already holds the reference, leaving the rest behind.
+	};
 
 	// Pipelines in SDL GPU are immutable, so every combination of program and state needs its own object. They are
 	// built on demand and kept until shutdown; the set is small and bounded.
 	struct PipelineKey {
 		ProgramId program = ProgramId::Color;
 		Rml::BlendMode blend = Rml::BlendMode::Blend;
+		StencilMode stencil = StencilMode::Off;
 
-		bool operator==(const PipelineKey& other) const { return program == other.program && blend == other.blend; }
+		bool operator==(const PipelineKey& other) const
+		{
+			return program == other.program && blend == other.blend && stencil == other.stencil;
+		}
 	};
 	struct PipelineEntry {
 		PipelineKey key;
@@ -187,12 +214,12 @@ private:
 	};
 
 	bool CreateShaders();
-	SDL_GPUGraphicsPipeline* GetPipeline(ProgramId program, Rml::BlendMode blend);
+	SDL_GPUGraphicsPipeline* GetPipeline(ProgramId program, Rml::BlendMode blend, StencilMode stencil);
 	void ReleasePipelines();
 
-	// Opens a render pass on the given target, ending the one in progress if it belongs to another target. Pass state
-	// is invalidated whenever a new pass begins.
-	bool EnsureRenderPass(const RenderTarget& target, bool clear = false);
+	// Opens a render pass on the given target, ending the one in progress if it belongs to another target, or if
+	// something is to be cleared. Pass state is invalidated whenever a new pass begins.
+	bool EnsureRenderPass(const RenderTarget& target, bool clear_color = false, bool clear_stencil = false);
 	void EndRenderPass();
 
 	// Every transfer is recorded into a command buffer of its own rather than the frame's. That keeps the frame's
@@ -212,8 +239,34 @@ private:
 	// Records every upload queued since the last flush.
 	bool FlushGeometryUploads();
 
-	// Draws a texture over the whole of the destination target, honouring the active scissor.
-	void DrawTextureToTarget(const RenderTarget& destination, SDL_GPUTexture* source, Rml::BlendMode blend);
+	// The state a single draw needs on top of its geometry. Every field is compared against what the open pass
+	// already carries, so repeating a draw with the same state costs no more than the draw itself.
+	struct DrawState {
+		ProgramId program = ProgramId::Color;
+		Rml::BlendMode blend = Rml::BlendMode::Blend;
+		StencilMode stencil = StencilMode::Off;
+		uint8_t stencil_reference = 0;
+		SDL_GPUTexture* texture = nullptr;
+		// Null to use the transform RmlUi last set. The renderer's own target-sized quads are in target coordinates
+		// and pass the plain projection instead.
+		const Rml::Matrix4f* transform = nullptr;
+		Rml::Vector2f translation;
+	};
+	// Issues a draw into the open render pass. The pass must already be open on the wanted target. Returns false if
+	// the draw could not be issued, which matters to callers that record what it was meant to leave behind.
+	bool DrawGeometry(const GeometryView& geometry, const DrawState& state);
+
+	// The stencil mode geometry submitted by RmlUi is drawn with.
+	StencilMode GetClipMaskMode() const;
+	// Whether clip masks can be drawn at all. Both the stencil buffer and the pipelines that use it can fail to be
+	// created; either way masks are dropped and content is drawn unmasked, rather than tested against a mask that
+	// was never written and so culled altogether.
+	bool HasStencil() const;
+
+	// Draws a texture over the whole of the destination target, honouring the active scissor and, where asked for,
+	// the clip mask.
+	void DrawTextureToTarget(const RenderTarget& destination, SDL_GPUTexture* source, Rml::BlendMode blend,
+		StencilMode stencil = StencilMode::Off);
 	// Overwrites the active scissor region of the current target with transparent black.
 	void ClearScissorRegion();
 	// Rebuilds the quads used for compositing and clearing when the target size changes.
@@ -239,6 +292,9 @@ private:
 	// Whether the cached pipelines were built with a depth/stencil attachment, so that they can be rebuilt if the
 	// availability of one changes. A pipeline whose target layout disagrees with the pass is invalid.
 	SDL_GPUTextureFormat pipelines_depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
+	// Set when a pipeline that uses the stencil buffer could not be built, which takes clip masks out of service
+	// until the cache is rebuilt. Testing against a mask whose writing pipeline is missing would hide the document.
+	bool stencil_pipelines_failed = false;
 
 	SDL_GPUSampler* linear_sampler = nullptr;
 
@@ -272,6 +328,18 @@ private:
 	bool scissor_enabled = false;
 	Rml::Rectanglei scissor_region;
 	SDL_Rect applied_scissor = {};
+
+	// Clip mask state. Rather than clearing the stencil buffer for every mask, which SDL GPU can only do by breaking
+	// the render pass, each mask claims a stencil value that has never been written since the last real clear.
+	// stencil_high_water is an upper bound on what the buffer holds, so the next mask can pick a value above it and
+	// know that nothing else can match.
+	bool clip_mask_enabled = false;
+	uint8_t stencil_high_water = 0;
+	uint8_t stencil_test_value = 0;
+	// Reported once: past the reserve the mask can no longer be narrowed, and the artefact is otherwise silent.
+	bool stencil_reserve_exhausted = false;
+	uint8_t applied_stencil_reference = 0;
+	bool stencil_reference_dirty = true;
 
 	Rml::Matrix4f transform;
 	Rml::Matrix4f projection;
