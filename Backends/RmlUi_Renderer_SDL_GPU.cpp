@@ -104,129 +104,261 @@ static Colourf ConvertToColorf(ColourbPremultiplied c0)
 	return result;
 }
 
-// -- Buffer pool -------------------------------------------------------------
+// -- Transfer buffers --------------------------------------------------------
 
-// Returns the smallest bucket that can hold the given size, or -1 if the size exceeds the largest bucket.
-static int BucketForSize(uint32_t size, uint32_t min_size, int num_buckets)
+bool RenderInterface_SDL_GPU::TransferBuffer::Recreate(SDL_GPUDevice* device, uint32_t new_capacity)
 {
-	uint32_t capacity = min_size;
-	for (int bucket = 0; bucket < num_buckets; bucket++)
+	Release(device);
+
+	SDL_GPUTransferBufferCreateInfo info{};
+	info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+	info.size = new_capacity;
+	buffer = SDL_CreateGPUTransferBuffer(device, &info);
+	if (!buffer)
 	{
-		if (capacity >= size)
-			return bucket;
-		capacity <<= 1;
+		Log::Message(Log::LT_ERROR, "Failed to create transfer buffer: %s", SDL_GetError());
+		return false;
 	}
-	return -1;
+	capacity = new_capacity;
+	return true;
 }
 
-void RenderInterface_SDL_GPU::BufferPool::Initialize(SDL_GPUDevice* in_device, SDL_GPUBufferUsageFlags in_usage, const char* in_debug_name)
+void RenderInterface_SDL_GPU::TransferBuffer::Release(SDL_GPUDevice* device)
+{
+	if (buffer)
+		SDL_ReleaseGPUTransferBuffer(device, buffer);
+	buffer = nullptr;
+	capacity = 0;
+	used = 0;
+}
+
+// -- Geometry arena ----------------------------------------------------------
+
+void RenderInterface_SDL_GPU::GeometryArena::Initialize(SDL_GPUDevice* in_device, SDL_GPUBufferUsageFlags in_usage, uint32_t in_unit_size,
+	const char* in_debug_name)
 {
 	device = in_device;
 	usage = in_usage;
+	unit_size = in_unit_size;
 	debug_name = in_debug_name;
 }
 
-void RenderInterface_SDL_GPU::BufferPool::ReleaseAll()
+void RenderInterface_SDL_GPU::GeometryArena::ReleaseAll()
 {
-	for (const UniquePtr<Buffer>& buffer : buffers)
-	{
-		SDL_ReleaseGPUTransferBuffer(device, buffer->transfer_buffer);
-		SDL_ReleaseGPUBuffer(device, buffer->buffer);
-	}
-	buffers.clear();
-	for (Vector<Buffer*>& free_list : free_lists)
-		free_list.clear();
+	for (const UniquePtr<Block>& block : blocks)
+		SDL_ReleaseGPUBuffer(device, block->buffer);
+	blocks.clear();
+	pending_uploads.clear();
+	pending_frees.clear();
+	staging.clear();
+
+	transfers.Release(device);
 }
 
-RenderInterface_SDL_GPU::Buffer* RenderInterface_SDL_GPU::BufferPool::Acquire(uint32_t size, int frame)
+RenderInterface_SDL_GPU::GeometryArena::Block* RenderInterface_SDL_GPU::GeometryArena::CreateBlock(uint32_t capacity, int frame)
 {
-	const int bucket = BucketForSize(size, min_buffer_size, num_buffer_buckets);
-	if (bucket < 0)
+	SDL_GPUBufferCreateInfo info{};
+	info.usage = usage;
+	info.size = capacity * unit_size;
+
+	SDL_GPUBuffer* buffer = SDL_CreateGPUBuffer(device, &info);
+	if (!buffer)
 	{
-		Log::Message(Log::LT_ERROR, "Geometry of %u bytes exceeds the largest supported buffer size", size);
+		Log::Message(Log::LT_ERROR, "Failed to create geometry buffer: %s", SDL_GetError());
 		return nullptr;
 	}
+	SDL_SetGPUBufferName(device, buffer, debug_name);
 
-	Vector<Buffer*>& free_list = free_lists[bucket];
-	if (!free_list.empty())
-	{
-		Buffer* buffer = free_list.back();
-		free_list.pop_back();
-		buffer->last_used_frame = frame;
-		return buffer;
-	}
-
-	const uint32_t capacity = min_buffer_size << bucket;
-
-	UniquePtr<Buffer> buffer = MakeUnique<Buffer>();
-	{
-		SDL_GPUTransferBufferCreateInfo info{};
-		info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-		info.size = capacity;
-		buffer->transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
-	}
-	{
-		SDL_GPUBufferCreateInfo info{};
-		info.usage = usage;
-		info.size = capacity;
-		buffer->buffer = SDL_CreateGPUBuffer(device, &info);
-	}
-	if (!buffer->transfer_buffer || !buffer->buffer)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to create buffer(s): %s", SDL_GetError());
-		SDL_ReleaseGPUTransferBuffer(device, buffer->transfer_buffer);
-		SDL_ReleaseGPUBuffer(device, buffer->buffer);
-		return nullptr;
-	}
-
-	SDL_SetGPUBufferName(device, buffer->buffer, debug_name);
-
-	buffer->capacity = capacity;
-	buffer->bucket = bucket;
-	buffer->last_used_frame = frame;
-
-	buffers.push_back(std::move(buffer));
-	return buffers.back().get();
+	UniquePtr<Block> block = MakeUnique<Block>();
+	block->buffer = buffer;
+	block->capacity = capacity;
+	block->free_ranges.push_back({0, capacity});
+	block->last_used_frame = frame;
+	blocks.push_back(std::move(block));
+	return blocks.back().get();
 }
 
-void RenderInterface_SDL_GPU::BufferPool::Release(Buffer* buffer)
+bool RenderInterface_SDL_GPU::GeometryArena::Allocate(const void* data, uint32_t num_units, int frame, Allocation& out_allocation)
 {
-	RMLUI_ASSERT(buffer);
-	free_lists[buffer->bucket].push_back(buffer);
-}
+	if (num_units == 0)
+		return false;
 
-void RenderInterface_SDL_GPU::BufferPool::Trim(int frame)
-{
-	// Buffers are marked in place rather than collected into a list, so that the sweep stays linear in the pool size
-	// even when a whole document's worth of geometry expires at once.
-	bool any_expired = false;
-
-	for (Vector<Buffer*>& free_list : free_lists)
+	Block* found = nullptr;
+	uint32_t offset = 0;
+	for (const UniquePtr<Block>& block : blocks)
 	{
-		auto it = std::remove_if(free_list.begin(), free_list.end(), [&](Buffer* buffer) {
-			// A buffer whose upload has not been flushed is still referenced by the pending list.
-			if (buffer->pending_upload >= 0 || frame - buffer->last_used_frame <= buffer_retention_frames)
-				return false;
-			buffer->expired = true;
-			any_expired = true;
-			return true;
-		});
-		free_list.erase(it, free_list.end());
+		if (TakeRange(*block, num_units, offset))
+		{
+			found = block.get();
+			break;
+		}
 	}
 
-	if (!any_expired)
+	if (!found)
+	{
+		// A new block is one free range as large as the block, and the block is made at least as large as the mesh,
+		// so the second call can only fail if the first did.
+		const uint32_t block_units = Math::Max(geometry_block_size / unit_size, num_units);
+		found = CreateBlock(block_units, frame);
+		if (!found || !TakeRange(*found, num_units, offset))
+			return false;
+	}
+
+	found->last_used_frame = frame;
+
+	// Kept here and copied into a transfer buffer at the flush rather than written straight into one: meshes are
+	// compiled one at a time, and one map and one memcpy per flush stand in for a mapping each.
+	const size_t byte_size = static_cast<size_t>(num_units) * unit_size;
+	const size_t staging_offset = staging.size();
+	staging.resize(staging_offset + byte_size);
+	std::memcpy(staging.data() + staging_offset, data, byte_size);
+	pending_uploads.push_back({found, offset, num_units, staging_offset});
+
+	out_allocation.block = found;
+	out_allocation.offset = offset;
+	out_allocation.size = num_units;
+	return true;
+}
+
+void RenderInterface_SDL_GPU::GeometryArena::Free(const Allocation& allocation, int frame)
+{
+	if (!allocation.block || allocation.size == 0)
 		return;
+	pending_frees.push_back({allocation, frame});
+}
 
-	for (const UniquePtr<Buffer>& buffer : buffers)
+// Takes `num_units` out of the first free range large enough to hold them, and says where they went. False when the
+// block has no such range.
+bool RenderInterface_SDL_GPU::GeometryArena::TakeRange(Block& block, uint32_t num_units, uint32_t& out_offset)
+{
+	for (size_t i = 0; i < block.free_ranges.size(); i++)
 	{
-		if (!buffer->expired)
+		Range& range = block.free_ranges[i];
+		if (range.size < num_units)
 			continue;
-		SDL_ReleaseGPUTransferBuffer(device, buffer->transfer_buffer);
-		SDL_ReleaseGPUBuffer(device, buffer->buffer);
+
+		out_offset = range.offset;
+		if (range.size == num_units)
+			block.free_ranges.erase(block.free_ranges.begin() + static_cast<ptrdiff_t>(i));
+		else
+		{
+			range.offset += num_units;
+			range.size -= num_units;
+		}
+		return true;
+	}
+	return false;
+}
+
+void RenderInterface_SDL_GPU::GeometryArena::ReturnRange(Block& block, Range range)
+{
+	size_t i = 0;
+	while (i < block.free_ranges.size() && block.free_ranges[i].offset < range.offset)
+		i++;
+
+	const bool merge_before = (i > 0 && block.free_ranges[i - 1].offset + block.free_ranges[i - 1].size == range.offset);
+	const bool merge_after = (i < block.free_ranges.size() && range.offset + range.size == block.free_ranges[i].offset);
+
+	if (merge_before && merge_after)
+	{
+		block.free_ranges[i - 1].size += range.size + block.free_ranges[i].size;
+		block.free_ranges.erase(block.free_ranges.begin() + static_cast<ptrdiff_t>(i));
+	}
+	else if (merge_before)
+		block.free_ranges[i - 1].size += range.size;
+	else if (merge_after)
+	{
+		block.free_ranges[i].offset = range.offset;
+		block.free_ranges[i].size += range.size;
+	}
+	else
+		block.free_ranges.insert(block.free_ranges.begin() + static_cast<ptrdiff_t>(i), range);
+}
+
+void RenderInterface_SDL_GPU::GeometryArena::BeginFrame(int frame)
+{
+	size_t ready = 0;
+	while (ready < pending_frees.size() && frame - pending_frees[ready].frame >= frames_before_reuse)
+	{
+		const Allocation& allocation = pending_frees[ready].allocation;
+		ReturnRange(*allocation.block, {allocation.offset, allocation.size});
+		ready++;
+	}
+	if (ready > 0)
+		pending_frees.erase(pending_frees.begin(), pending_frees.begin() + static_cast<ptrdiff_t>(ready));
+
+	// Empty blocks are kept a while: a document that pushes and pops layers would otherwise rebuild them constantly.
+	blocks.erase(std::remove_if(blocks.begin(), blocks.end(),
+					 [&](const UniquePtr<Block>& block) {
+						 const bool empty = (block->free_ranges.size() == 1 && block->free_ranges[0].size == block->capacity);
+						 if (!empty || frame - block->last_used_frame <= geometry_retention_frames)
+							 return false;
+						 SDL_ReleaseGPUBuffer(device, block->buffer);
+						 return true;
+					 }),
+		blocks.end());
+}
+
+bool RenderInterface_SDL_GPU::GeometryArena::EnsureTransferBuffer(uint32_t byte_size)
+{
+	if (transfers.buffer && transfers.capacity >= byte_size)
+		return true;
+
+	uint32_t capacity = Math::Max(transfers.capacity, 64u * 1024u);
+	while (capacity < byte_size)
+		capacity *= 2;
+	return transfers.Recreate(device, capacity);
+}
+
+bool RenderInterface_SDL_GPU::GeometryArena::Flush(SDL_GPUCopyPass* copy_pass)
+{
+	if (pending_uploads.empty())
+		return true;
+
+	const uint32_t byte_size = static_cast<uint32_t>(staging.size());
+	if (!EnsureTransferBuffer(byte_size))
+		return false;
+
+	// Cycled, since the transfer buffer of the previous flush may still be feeding copies the GPU has not run yet.
+	void* mapped = SDL_MapGPUTransferBuffer(device, transfers.buffer, true);
+	if (!mapped)
+	{
+		Log::Message(Log::LT_ERROR, "Failed to map transfer buffer: %s", SDL_GetError());
+		return false;
+	}
+	std::memcpy(mapped, staging.data(), byte_size);
+	SDL_UnmapGPUTransferBuffer(device, transfers.buffer);
+
+	for (size_t i = 0; i < pending_uploads.size();)
+	{
+		const PendingUpload& first = pending_uploads[i];
+		uint32_t units = first.size;
+		size_t next = i + 1;
+		while (next < pending_uploads.size() && pending_uploads[next].block == first.block &&
+			pending_uploads[next].offset == first.offset + units &&
+			pending_uploads[next].staging_offset == first.staging_offset + static_cast<size_t>(units) * unit_size)
+		{
+			units += pending_uploads[next].size;
+			next++;
+		}
+
+		SDL_GPUTransferBufferLocation location{};
+		location.transfer_buffer = transfers.buffer;
+		location.offset = static_cast<Uint32>(first.staging_offset);
+
+		SDL_GPUBufferRegion region{};
+		region.buffer = first.block->buffer;
+		region.offset = first.offset * unit_size;
+		region.size = units * unit_size;
+
+		// Never cycled: the block holds other meshes, and cycling would leave them all behind in storage nothing points to.
+		SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
+		i = next;
 	}
 
-	buffers.erase(std::remove_if(buffers.begin(), buffers.end(), [](const UniquePtr<Buffer>& buffer) { return buffer->expired; }),
-		buffers.end());
+	pending_uploads.clear();
+	staging.clear();
+	return true;
 }
 
 // -- Render targets ----------------------------------------------------------
@@ -242,6 +374,41 @@ static SDL_GPUTextureFormat SelectDepthStencilFormat(SDL_GPUDevice* device)
 	return SDL_GPU_TEXTUREFORMAT_INVALID;
 }
 
+static SDL_GPUSampleCount SelectSampleCount(SDL_GPUDevice* device, SDL_GPUTextureFormat color_format, SDL_GPUTextureFormat depth_stencil_format)
+{
+	if (RMLUI_SDL_GPU_NUM_MSAA_SAMPLES <= 1)
+		return SDL_GPU_SAMPLECOUNT_1;
+
+	auto supported = [&](SDL_GPUSampleCount value) {
+		if (!SDL_GPUTextureSupportsSampleCount(device, color_format, value))
+			return false;
+		// The stencil buffer is attached to the passes the layers are drawn in, and an attachment has to match its colour
+		// target in sample count.
+		return depth_stencil_format == SDL_GPU_TEXTUREFORMAT_INVALID ||
+			SDL_GPUTextureSupportsSampleCount(device, depth_stencil_format, value);
+	};
+
+	const struct {
+		int samples;
+		SDL_GPUSampleCount value;
+	} candidates[] = {{2, SDL_GPU_SAMPLECOUNT_2}, {4, SDL_GPU_SAMPLECOUNT_4}, {8, SDL_GPU_SAMPLECOUNT_8}};
+	constexpr int num_candidates = sizeof(candidates) / sizeof(candidates[0]);
+
+	// Rounded up rather than down: a device offering only one and four samples gives four where two were asked for.
+	// Rounding down would leave such a device with no multisampling at all.
+	for (const auto& candidate : candidates)
+	{
+		if (candidate.samples >= RMLUI_SDL_GPU_NUM_MSAA_SAMPLES && supported(candidate.value))
+			return candidate.value;
+	}
+	for (int i = num_candidates - 1; i >= 0; i--)
+	{
+		if (candidates[i].samples < RMLUI_SDL_GPU_NUM_MSAA_SAMPLES && supported(candidates[i].value))
+			return candidates[i].value;
+	}
+	return SDL_GPU_SAMPLECOUNT_1;
+}
+
 void RenderInterface_SDL_GPU::RenderLayerStack::Initialize(SDL_GPUDevice* in_device)
 {
 	device = in_device;
@@ -249,23 +416,30 @@ void RenderInterface_SDL_GPU::RenderLayerStack::Initialize(SDL_GPUDevice* in_dev
 	depth_stencil_format = supported_depth_stencil_format;
 	if (depth_stencil_format == SDL_GPU_TEXTUREFORMAT_INVALID)
 		Log::Message(Log::LT_WARNING, "No supported depth/stencil format found, clip masks will be unavailable");
+
+	sample_count = SelectSampleCount(device, layer_format, depth_stencil_format);
 }
 
-bool RenderInterface_SDL_GPU::RenderLayerStack::CreateTarget(RenderTarget& target, const char* debug_name)
+bool RenderInterface_SDL_GPU::RenderLayerStack::CreateTarget(RenderTarget& target, const char* debug_name, bool is_layer)
 {
-	// Before the first frame the stack has no size yet. RmlUi can still ask for a layer then, if the backend skipped
-	// the frame; there is nothing to create and nothing to complain about.
+	// Before the first frame the stack has no size yet, and RmlUi can still ask for a layer if the backend skipped one.
 	if (width <= 0 || height <= 0)
 		return false;
 
+	const SDL_GPUSampleCount target_sample_count = is_layer ? sample_count : SDL_GPU_SAMPLECOUNT_1;
+
 	SDL_GPUTextureCreateInfo info{};
 	info.type = SDL_GPU_TEXTURETYPE_2D;
-	info.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER;
+	info.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
+	// A multisampled texture holds samples rather than pixels: it cannot be sampled, copied or blitted, only resolved.
+	if (target_sample_count == SDL_GPU_SAMPLECOUNT_1)
+		info.usage |= SDL_GPU_TEXTUREUSAGE_SAMPLER;
 	info.format = layer_format;
 	info.width = static_cast<Uint32>(width);
 	info.height = static_cast<Uint32>(height);
 	info.layer_count_or_depth = 1;
 	info.num_levels = 1;
+	info.sample_count = target_sample_count;
 
 	target.color = SDL_CreateGPUTexture(device, &info);
 	if (!target.color)
@@ -277,6 +451,8 @@ bool RenderInterface_SDL_GPU::RenderLayerStack::CreateTarget(RenderTarget& targe
 	SDL_SetGPUTextureName(device, target.color, debug_name);
 	target.width = width;
 	target.height = height;
+	target.sample_count = target_sample_count;
+	target.use_depth_stencil = is_layer;
 	return true;
 }
 
@@ -316,32 +492,38 @@ void RenderInterface_SDL_GPU::RenderLayerStack::BeginFrame(int in_width, int in_
 		width = in_width;
 		height = in_height;
 
-		// Every target is being built afresh, so an allocation that failed last time gets another go. Without this
-		// the format below latches to INVALID on the first failure and clip masks never come back.
 		depth_stencil_format = supported_depth_stencil_format;
-
-		if (depth_stencil_format != SDL_GPU_TEXTUREFORMAT_INVALID)
-		{
-			SDL_GPUTextureCreateInfo info{};
-			info.type = SDL_GPU_TEXTURETYPE_2D;
-			info.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
-			info.format = depth_stencil_format;
-			info.width = static_cast<Uint32>(width);
-			info.height = static_cast<Uint32>(height);
-			info.layer_count_or_depth = 1;
-			info.num_levels = 1;
-			depth_stencil = SDL_CreateGPUTexture(device, &info);
-			if (!depth_stencil)
-			{
-				Log::Message(Log::LT_ERROR, "Failed to create depth/stencil target: %s", SDL_GetError());
-				// Whether a pass carries the attachment and whether a pipeline declares one have to be the same
-				// question, or the two disagree and every draw becomes invalid. Drop the format so both say no.
-				depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
-			}
-		}
 	}
 
 	PushLayer();
+}
+
+SDL_GPUTexture* RenderInterface_SDL_GPU::RenderLayerStack::EnsureDepthStencil()
+{
+	if (depth_stencil || depth_stencil_format == SDL_GPU_TEXTUREFORMAT_INVALID || width <= 0 || height <= 0)
+		return depth_stencil;
+
+	SDL_GPUTextureCreateInfo info{};
+	info.type = SDL_GPU_TEXTURETYPE_2D;
+	info.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+	info.format = depth_stencil_format;
+	info.width = static_cast<Uint32>(width);
+	info.height = static_cast<Uint32>(height);
+	info.layer_count_or_depth = 1;
+	info.num_levels = 1;
+	info.sample_count = sample_count;
+
+	depth_stencil = SDL_CreateGPUTexture(device, &info);
+	if (!depth_stencil)
+	{
+		Log::Message(Log::LT_ERROR, "Failed to create depth/stencil target: %s", SDL_GetError());
+		depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
+	}
+	else
+	{
+		SDL_SetGPUTextureName(device, depth_stencil, "RmlUi depth/stencil");
+	}
+	return depth_stencil;
 }
 
 void RenderInterface_SDL_GPU::RenderLayerStack::EndFrame()
@@ -358,14 +540,12 @@ Rml::LayerHandle RenderInterface_SDL_GPU::RenderLayerStack::PushLayer()
 	if (layers_size == static_cast<int>(layers.size()))
 	{
 		RenderTarget target;
-		CreateTarget(target, "RmlUi layer");
+		CreateTarget(target, "RmlUi layer", true);
 		layers.push_back(target);
 	}
 	else if (!layers[static_cast<size_t>(layers_size)].color)
 	{
-		// An earlier push failed to allocate this target. Try again rather than leaving the layer dead for as long as
-		// the window keeps its size.
-		CreateTarget(layers[static_cast<size_t>(layers_size)], "RmlUi layer");
+		CreateTarget(layers[static_cast<size_t>(layers_size)], "RmlUi layer", true);
 	}
 
 	layers_size += 1;
@@ -400,10 +580,8 @@ const RenderInterface_SDL_GPU::RenderTarget& RenderInterface_SDL_GPU::RenderLaye
 {
 	RMLUI_ASSERT(index >= 0 && index < num_postprocess_targets);
 	RenderTarget& target = postprocess[index];
-	// Created on first use, and retried on every later one: a scene without layer effects never needs these, and a
-	// failed allocation should not disable compositing for as long as the window keeps its size.
 	if (!target.color)
-		CreateTarget(target, "RmlUi postprocess");
+		CreateTarget(target, "RmlUi postprocess", false);
 	return target;
 }
 
@@ -418,11 +596,9 @@ void RenderInterface_SDL_GPU::RenderLayerStack::SwapPostprocessPrimarySecondary(
 
 SDL_GPUShader* RenderInterface_SDL_GPU::GetShader(ShaderId id)
 {
-	// Indexed by ShaderId, and must stay in that order. It lives here rather than at file scope so that each row can
-	// name the enumerator it belongs to; the two asserts below are what that buys.
 	static const ShaderDefinition shader_definitions[] = {
 		SHADER_DEF(VertMain, shader_vert, 2, 0, SDL_GPU_SHADERSTAGE_VERTEX),
-		SHADER_DEF(VertPassthrough, shader_vert_passthrough, 0, 0, SDL_GPU_SHADERSTAGE_VERTEX),
+		SHADER_DEF(VertPassthrough, shader_vert_passthrough, 1, 0, SDL_GPU_SHADERSTAGE_VERTEX),
 		SHADER_DEF(VertBlur, shader_vert_blur, 1, 0, SDL_GPU_SHADERSTAGE_VERTEX),
 		SHADER_DEF(FragColor, shader_frag_color, 0, 0, SDL_GPU_SHADERSTAGE_FRAGMENT),
 		SHADER_DEF(FragTexture, shader_frag_texture, 0, 1, SDL_GPU_SHADERSTAGE_FRAGMENT),
@@ -556,16 +732,24 @@ SDL_GPUDepthStencilState RenderInterface_SDL_GPU::GetDepthStencilState(StencilMo
 	return state;
 }
 
-SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program, Blending blend, StencilMode stencil)
+SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program, Blending blend, StencilMode stencil,
+	SDL_GPUSampleCount sample_count, bool depth_stencil)
 {
 	const bool writes_stencil = (stencil == StencilMode::WriteSet || stencil == StencilMode::WriteIntersect);
-	// Colour writes are off in the writing modes, so the blend mode makes no difference there. Folding it away keeps
-	// the cache from holding pipelines that only differ in state nothing reads.
-	const PipelineKey key{program, writes_stencil ? Blending::Blend : blend, stencil};
+	const PipelineKey key{program, writes_stencil ? Blending::Blend : blend, stencil, sample_count, depth_stencil};
+
+	if (last_pipeline_valid && last_pipeline_key == key)
+		return last_pipeline;
+
 	for (const PipelineEntry& entry : pipelines)
 	{
 		if (entry.key == key)
+		{
+			last_pipeline_key = key;
+			last_pipeline = entry.pipeline;
+			last_pipeline_valid = true;
 			return entry.pipeline;
+		}
 	}
 
 	SDL_GPUColorTargetDescription target{};
@@ -601,11 +785,11 @@ SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program,
 
 	info.target_info.num_color_targets = 1;
 	info.target_info.color_target_descriptions = &target;
+	info.multisample_state.sample_count = key.sample_count;
 
-	// The stencil buffer is attached to every pass so that clip masks can use it without reopening passes. Depth
-	// testing is never used, and the stencil test stays off until there is a mask to apply.
+	// Attached to every pass drawing into a layer, so clip masks need no pass of their own.
 	const SDL_GPUTextureFormat depth_stencil_format = render_layers.GetDepthStencilFormat();
-	if (depth_stencil_format != SDL_GPU_TEXTUREFORMAT_INVALID)
+	if (key.depth_stencil && depth_stencil_format != SDL_GPU_TEXTUREFORMAT_INVALID)
 	{
 		info.target_info.has_depth_stencil_target = true;
 		info.target_info.depth_stencil_format = depth_stencil_format;
@@ -622,15 +806,51 @@ SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program,
 	if (!pipeline)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to create graphics pipeline: %s", SDL_GetError());
-		// A mask that cannot be written must not be tested against either, or every draw would be compared with a
-		// value no pixel holds and the whole document would disappear. Take clip masks out of service instead.
+		// A mask that cannot be written must not be tested against either, or every draw would be culled.
 		if (stencil != StencilMode::Off)
 			stencil_pipelines_failed = true;
 	}
 
-	// Cached even on failure. Without that, a pipeline that cannot be built is retried, and logged, once per draw call.
 	pipelines.push_back({key, pipeline});
 	return pipeline;
+}
+
+// Builds the pipelines a document is nearly certain to need, so the driver compiles them here rather than mid-frame.
+// The gradient, shader and filter programs are left until something asks for them.
+void RenderInterface_SDL_GPU::WarmPipelineCache()
+{
+	const SDL_GPUSampleCount samples = render_layers.GetSampleCount();
+	const bool stencil_available = (render_layers.GetDepthStencilFormat() != SDL_GPU_TEXTUREFORMAT_INVALID);
+
+	const struct {
+		ProgramId program;
+		Blending blend;
+		StencilMode stencil;
+	} layer_pipelines[] = {
+		{ProgramId::Color, Blending::Blend, StencilMode::Off},
+		{ProgramId::Color, Blending::Blend, StencilMode::TestEqual},
+		{ProgramId::Color, Blending::Replace, StencilMode::Off},
+		{ProgramId::Color, Blending::Blend, StencilMode::WriteSet},
+		{ProgramId::Color, Blending::Blend, StencilMode::WriteIntersect},
+		{ProgramId::Texture, Blending::Blend, StencilMode::Off},
+		{ProgramId::Texture, Blending::Blend, StencilMode::TestEqual},
+		{ProgramId::Passthrough, Blending::Blend, StencilMode::Off},
+		{ProgramId::Passthrough, Blending::Blend, StencilMode::TestEqual},
+		{ProgramId::Passthrough, Blending::Replace, StencilMode::Off},
+	};
+
+	// Whether the pass carries the stencil buffer identifies a pipeline, and it carries one only once a mask has been
+	// rendered, so both variants are warmed.
+	for (const auto& entry : layer_pipelines)
+	{
+		const bool depth_stencil = (entry.stencil != StencilMode::Off);
+		if (depth_stencil && !stencil_available)
+			continue;
+		GetPipeline(entry.program, entry.blend, entry.stencil, samples, depth_stencil);
+	}
+
+	GetPipeline(ProgramId::Passthrough, Blending::Replace, StencilMode::Off, SDL_GPU_SAMPLECOUNT_1, false);
+	GetPipeline(ProgramId::Color, Blending::Replace, StencilMode::Off, SDL_GPU_SAMPLECOUNT_1, false);
 }
 
 void RenderInterface_SDL_GPU::ReleasePipelines()
@@ -642,18 +862,17 @@ void RenderInterface_SDL_GPU::ReleasePipelines()
 	}
 	pipelines.clear();
 	bound_pipeline = nullptr;
-	// The cache is what remembers the refusal, so dropping it gives the stencil pipelines another go.
+	last_pipeline = nullptr;
+	last_pipeline_valid = false;
 	stencil_pipelines_failed = false;
 }
 
-// The window is not used: layers have a format of their own, so nothing here depends on what the swapchain looks like.
-// The parameter stays for the sake of the backend's call and of the renderers this one is modelled on.
-RenderInterface_SDL_GPU::RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Window* /*window*/) : device(device)
+RenderInterface_SDL_GPU::RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Window* window) : device(device), window(window)
 {
 	render_layers.Initialize(device);
 
-	vertex_buffers.Initialize(device, SDL_GPU_BUFFERUSAGE_VERTEX, "RmlUi vertices");
-	index_buffers.Initialize(device, SDL_GPU_BUFFERUSAGE_INDEX, "RmlUi indices");
+	vertex_arena.Initialize(device, SDL_GPU_BUFFERUSAGE_VERTEX, sizeof(Vertex), "RmlUi vertices");
+	index_arena.Initialize(device, SDL_GPU_BUFFERUSAGE_INDEX, sizeof(int), "RmlUi indices");
 
 	SDL_GPUSamplerCreateInfo info{};
 	info.min_filter = SDL_GPU_FILTER_LINEAR;
@@ -694,14 +913,15 @@ void RenderInterface_SDL_GPU::Shutdown()
 
 	ReleaseQuads();
 
-	pending_uploads.clear();
-	vertex_buffers.ReleaseAll();
-	index_buffers.ReleaseAll();
+	vertex_arena.ReleaseAll();
+	index_arena.ReleaseAll();
 	render_layers.ReleaseAll();
 
 	ReleasePipelines();
 	pipelines_depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
 	ReleaseShaders();
+
+	texture_transfers.Release(device);
 
 	if (linear_sampler)
 		SDL_ReleaseGPUSampler(device, linear_sampler);
@@ -724,6 +944,10 @@ void RenderInterface_SDL_GPU::BeginFrame(SDL_GPUCommandBuffer* in_command_buffer
 	swapchain_height = height;
 	frame_index += 1;
 	frame_active = true;
+	frame_resolved_into_postprocess = false;
+
+	vertex_arena.BeginFrame(frame_index);
+	index_arena.BeginFrame(frame_index);
 
 	projection = Matrix4f::ProjectOrtho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -10'000.f, 10'000.f);
 	transform = projection;
@@ -731,9 +955,16 @@ void RenderInterface_SDL_GPU::BeginFrame(SDL_GPUCommandBuffer* in_command_buffer
 	scissor_enabled = false;
 	scissor_region = Rectanglei::FromSize({static_cast<int>(width), static_cast<int>(height)});
 
-	// RmlUi resets its render state between frames, so no mask carries over. The stencil buffer is cleared with the
-	// base layer below, which resets the generation counters with it.
+	frame_num_draws = 0;
+	frame_num_passes = 0;
+	frame_num_resolves = 0;
+
+	// RmlUi resets its render state between frames, so no mask carries over. Nothing in the stencil buffer is worth
+	// keeping either: the first mask of the frame clears it, and until then no pass even carries it.
 	clip_mask_enabled = false;
+	frame_has_clip_mask = false;
+	stencil_high_water = 0;
+	stencil_test_value = 0;
 
 	InvalidateRenderPassState();
 
@@ -751,12 +982,12 @@ void RenderInterface_SDL_GPU::BeginFrame(SDL_GPUCommandBuffer* in_command_buffer
 		ReleasePipelines();
 		pipelines_depth_stencil_format = depth_stencil_format;
 	}
+	if (pipelines.empty())
+		WarmPipelineCache();
 
 	EnsureQuads(static_cast<int>(width), static_cast<int>(height));
 
-	// Opening the pass here rather than at the first draw gets the base layer cleared even for an empty frame, and
-	// clears the stencil buffer for the clip mask.
-	EnsureRenderPass(render_layers.GetTopLayer(), true, true);
+	EnsureRenderPass(render_layers.GetTopLayer(), true);
 }
 
 void RenderInterface_SDL_GPU::EndFrame()
@@ -768,27 +999,64 @@ void RenderInterface_SDL_GPU::EndFrame()
 	if (!frame_active)
 	{
 		SubmitUploads();
+
+		// Frames are counted in BeginFrame(), which a skipped frame never reaches, so a minimized window would never
+		// reclaim arena space at all. Count it here too; waiting for the device stands in for the frames in flight,
+		// since a skipped frame draws nothing and there is normally nothing left to wait for.
+		SDL_WaitForGPUIdle(device);
+		frame_index += 1;
+		vertex_arena.BeginFrame(frame_index);
+		index_arena.BeginFrame(frame_index);
 		return;
 	}
 	frame_active = false;
 
 	EndRenderPass();
 
-	// The base layer holds the frame; hand it to the swapchain. The blit converts to whatever format the window uses,
-	// which is why layers can keep a fixed one.
+	// Where the swapchain agrees with the layers in format and size, the frame resolves straight into it; otherwise
+	// the resolve goes to a postprocess target and a blit converts from there. Only the first route leaves the
+	// samples still needed, by CaptureScreen().
 	const RenderTarget* base_layer = render_layers.GetBaseLayer();
-	if (command_buffer && swapchain_texture && base_layer && base_layer->color)
+	const bool have_frame = (command_buffer && swapchain_texture && base_layer && base_layer->color);
+	const SDL_GPUTextureFormat swapchain_format =
+		(have_frame && window) ? SDL_GetGPUSwapchainTextureFormat(device, window) : SDL_GPU_TEXTUREFORMAT_INVALID;
+	const bool resolve_to_swapchain = have_frame && render_layers.IsMultisampled() && swapchain_format == layer_format &&
+		swapchain_width == static_cast<uint32_t>(base_layer->width) && swapchain_height == static_cast<uint32_t>(base_layer->height);
+
+	if (resolve_to_swapchain)
 	{
-		SDL_GPUBlitInfo blit{};
-		blit.source.texture = base_layer->color;
-		blit.source.w = static_cast<Uint32>(base_layer->width);
-		blit.source.h = static_cast<Uint32>(base_layer->height);
-		blit.destination.texture = swapchain_texture;
-		blit.destination.w = swapchain_width;
-		blit.destination.h = swapchain_height;
-		blit.load_op = SDL_GPU_LOADOP_DONT_CARE;
-		blit.filter = SDL_GPU_FILTER_NEAREST;
-		SDL_BlitGPUTexture(command_buffer, &blit);
+		RenderTarget swapchain_target;
+		swapchain_target.color = swapchain_texture;
+		swapchain_target.width = static_cast<int>(swapchain_width);
+		swapchain_target.height = static_cast<int>(swapchain_height);
+		ResolveTarget(command_buffer, *base_layer, swapchain_target, true);
+	}
+	else
+	{
+		// The blit samples its source, so a multisampled frame has to be resolved first -- into the postprocess
+		// target, which is where every other reader of a layer takes it from as well. Its samples are of no further
+		// use: nothing draws into the frame after this, and the capture below reads what the resolve left behind.
+		const RenderTarget* frame = base_layer;
+		if (have_frame && render_layers.IsMultisampled())
+		{
+			const RenderTarget& resolved = render_layers.GetPostprocessPrimary();
+			frame = ResolveTarget(command_buffer, *base_layer, resolved, false) ? &resolved : nullptr;
+			frame_resolved_into_postprocess = (frame != nullptr);
+		}
+
+		if (have_frame && frame && frame->color)
+		{
+			SDL_GPUBlitInfo blit{};
+			blit.source.texture = frame->color;
+			blit.source.w = static_cast<Uint32>(frame->width);
+			blit.source.h = static_cast<Uint32>(frame->height);
+			blit.destination.texture = swapchain_texture;
+			blit.destination.w = swapchain_width;
+			blit.destination.h = swapchain_height;
+			blit.load_op = SDL_GPU_LOADOP_DONT_CARE;
+			blit.filter = SDL_GPU_FILTER_NEAREST;
+			SDL_BlitGPUTexture(command_buffer, &blit);
+		}
 	}
 
 	render_layers.EndFrame();
@@ -796,19 +1064,15 @@ void RenderInterface_SDL_GPU::EndFrame()
 #if RMLUI_BACKEND_SDL_GPU_DEBUG
 	if (command_buffer)
 		SDL_PopGPUDebugGroup(command_buffer);
+
+	if (frame_index % 60 == 0)
+		Log::Message(Log::LT_INFO, "SDL GPU frame %d: %d draws, %d render passes, %d of them multisample resolves", frame_index,
+			frame_num_draws, frame_num_passes, frame_num_resolves);
 #endif
 
 	// The caller submits the frame's command buffer right after this returns, so this is the last moment at which the
 	// transfers this frame depends on can still be placed ahead of it.
 	SubmitUploads();
-
-	// Free buffers accumulate at the peak usage of the application. Release the ones that have gone unused, but only
-	// every so often since the sweep walks the whole pool.
-	if (frame_index % buffer_retention_frames == 0)
-	{
-		vertex_buffers.Trim(frame_index);
-		index_buffers.Trim(frame_index);
-	}
 
 	command_buffer = nullptr;
 	swapchain_texture = nullptr;
@@ -824,20 +1088,23 @@ void RenderInterface_SDL_GPU::InvalidateRenderPassState()
 	bound_index_buffer = nullptr;
 	transform_dirty = true;
 	translation_dirty = true;
+	pushed_fragment_uniforms_size = 0;
 	scissor_dirty = true;
 	stencil_reference_dirty = true;
 	blend_constant_dirty = true;
-	// A new pass starts with the scissor covering the whole target, so the cached value no longer reflects reality.
 	applied_scissor = {-1, -1, -1, -1};
 }
 
 bool RenderInterface_SDL_GPU::EnsureRenderPass(const RenderTarget& target, bool clear_color, bool clear_stencil)
 {
-	if (render_pass && active_target_texture == target.color && !clear_color && !clear_stencil)
+	// Only the layers carry the mask, and only once one has been rendered: every pass loads and stores the
+	// attachment, which on a multisampled target is megabytes. HasStencil() is asked as well because a buffer that
+	// failed to allocate drops the format, and the wish must not outlive what can grant it.
+	const bool want_depth_stencil = target.use_depth_stencil && frame_has_clip_mask && HasStencil();
+
+	if (render_pass && active_target_texture == target.color && active_depth_stencil == want_depth_stencil && !clear_color && !clear_stencil)
 		return true;
 
-	// Ended before the bail-out too, so that a caller which ignores the result can never go on to draw into whatever
-	// target the previous pass happened to hold.
 	EndRenderPass();
 
 	if (!command_buffer || !target.color)
@@ -851,7 +1118,8 @@ bool RenderInterface_SDL_GPU::EnsureRenderPass(const RenderTarget& target, bool 
 
 	SDL_GPUDepthStencilTargetInfo depth_stencil_info{};
 	SDL_GPUDepthStencilTargetInfo* depth_stencil_ptr = nullptr;
-	if (SDL_GPUTexture* depth_stencil = render_layers.GetDepthStencil())
+	SDL_GPUTexture* const depth_stencil = want_depth_stencil ? render_layers.EnsureDepthStencil() : nullptr;
+	if (depth_stencil)
 	{
 		depth_stencil_info.texture = depth_stencil;
 		depth_stencil_info.load_op = SDL_GPU_LOADOP_DONT_CARE;
@@ -872,6 +1140,7 @@ bool RenderInterface_SDL_GPU::EnsureRenderPass(const RenderTarget& target, bool 
 		active_target_texture = nullptr;
 		return false;
 	}
+	frame_num_passes += 1;
 
 	if (clear_stencil)
 	{
@@ -880,6 +1149,8 @@ bool RenderInterface_SDL_GPU::EnsureRenderPass(const RenderTarget& target, bool 
 	}
 
 	active_target_texture = target.color;
+	active_sample_count = target.sample_count;
+	active_depth_stencil = (depth_stencil_ptr != nullptr);
 	InvalidateRenderPassState();
 	return true;
 }
@@ -939,118 +1210,42 @@ void RenderInterface_SDL_GPU::SubmitUploads()
 
 bool RenderInterface_SDL_GPU::FlushGeometryUploads()
 {
-	if (pending_uploads.empty())
+	if (vertex_arena.GetPendingBytes() == 0 && index_arena.GetPendingBytes() == 0)
 		return true;
 	if (!EnsureUploadPass())
 		return false;
 
-	for (const PendingUpload& upload : pending_uploads)
-	{
-		upload.buffer->pending_upload = -1;
-		if (upload.size == 0)
-			continue;
-
-		SDL_GPUTransferBufferLocation location{};
-		location.transfer_buffer = upload.buffer->transfer_buffer;
-
-		SDL_GPUBufferRegion region{};
-		region.buffer = upload.buffer->buffer;
-		region.size = upload.size;
-
-		// Cycling lets the driver hand us fresh storage when the buffer is still being read by an earlier frame,
-		// which is what makes it safe to reuse a buffer immediately after releasing its geometry.
-		SDL_UploadToGPUBuffer(upload_copy_pass, &location, &region, true);
-
-		// A binding records the storage the buffer had at the time, not the buffer itself, so cycling leaves the one
-		// already recorded in the open pass pointing at the previous contents. The cache is keyed on the buffer, which
-		// has not changed, so without this the next draw would skip the rebind and read the old mesh.
-		if (upload.buffer->buffer == bound_vertex_buffer)
-			bound_vertex_buffer = nullptr;
-		if (upload.buffer->buffer == bound_index_buffer)
-			bound_index_buffer = nullptr;
-	}
-
-	pending_uploads.clear();
-	return true;
+	const bool vertices_flushed = vertex_arena.Flush(upload_copy_pass);
+	const bool indices_flushed = index_arena.Flush(upload_copy_pass);
+	return vertices_flushed && indices_flushed;
 }
 
 // -- Geometry ----------------------------------------------------------------
 
 CompiledGeometryHandle RenderInterface_SDL_GPU::CompileGeometry(Span<const Vertex> vertices, Span<const int> indices)
 {
-	const uint32_t vertex_size = static_cast<uint32_t>(vertices.size() * sizeof(Vertex));
-	const uint32_t index_size = static_cast<uint32_t>(indices.size() * sizeof(int));
-	if (vertex_size == 0 || index_size == 0)
+	if (vertices.empty() || indices.empty())
 		return 0;
 
-	Buffer* vertex_buffer = vertex_buffers.Acquire(vertex_size, frame_index);
-	Buffer* index_buffer = index_buffers.Acquire(index_size, frame_index);
-	if (!vertex_buffer || !index_buffer)
+	GeometryView geometry;
+	if (!vertex_arena.Allocate(vertices.data(), static_cast<uint32_t>(vertices.size()), frame_index, geometry.vertices))
+		return 0;
+	if (!index_arena.Allocate(indices.data(), static_cast<uint32_t>(indices.size()), frame_index, geometry.indices))
 	{
-		if (vertex_buffer)
-			vertex_buffers.Release(vertex_buffer);
-		if (index_buffer)
-			index_buffers.Release(index_buffer);
+		vertex_arena.Free(geometry.vertices, frame_index);
 		return 0;
 	}
+	geometry.num_indices = static_cast<int>(indices.size());
 
-	void* vertex_data = SDL_MapGPUTransferBuffer(device, vertex_buffer->transfer_buffer, true);
-	void* index_data = SDL_MapGPUTransferBuffer(device, index_buffer->transfer_buffer, true);
-	if (!vertex_data || !index_data)
+	// Loading a document compiles a great deal of geometry without ever ending a frame, and the data waits in main
+	// memory until a flush. Send it off rather than let that grow without bound.
+	if (vertex_arena.GetPendingBytes() + index_arena.GetPendingBytes() >= max_pending_upload_bytes)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to map transfer buffer(s): %s", SDL_GetError());
-		if (vertex_data)
-			SDL_UnmapGPUTransferBuffer(device, vertex_buffer->transfer_buffer);
-		if (index_data)
-			SDL_UnmapGPUTransferBuffer(device, index_buffer->transfer_buffer);
-		// Mapping cycles the transfer buffer, so whatever a queued upload was going to read is gone even on the side
-		// that succeeded. Drop those entries instead of letting them copy undefined bytes.
-		CancelUpload(vertex_buffer);
-		CancelUpload(index_buffer);
-		vertex_buffers.Release(vertex_buffer);
-		index_buffers.Release(index_buffer);
-		return 0;
+		if (FlushGeometryUploads())
+			SubmitUploads();
 	}
 
-	std::memcpy(vertex_data, vertices.data(), vertex_size);
-	std::memcpy(index_data, indices.data(), index_size);
-	SDL_UnmapGPUTransferBuffer(device, vertex_buffer->transfer_buffer);
-	SDL_UnmapGPUTransferBuffer(device, index_buffer->transfer_buffer);
-
-	// Uploads are queued rather than recorded here. RmlUi compiles each mesh immediately before drawing it, so
-	// recording on the spot would mean a copy pass per mesh; queueing lets the flush before the next draw collect all
-	// of them into one.
-	QueueUpload(vertex_buffer, vertex_size);
-	QueueUpload(index_buffer, index_size);
-
-	GeometryView* geometry = new GeometryView();
-	geometry->vertex_buffer = vertex_buffer;
-	geometry->index_buffer = index_buffer;
-	geometry->num_indices = static_cast<int>(indices.size());
-
-	return reinterpret_cast<CompiledGeometryHandle>(geometry);
-}
-
-void RenderInterface_SDL_GPU::QueueUpload(Buffer* buffer, uint32_t size)
-{
-	// A buffer can be released and handed out again before its upload has been flushed. In that case the transfer
-	// buffer already holds the new contents, so the queued entry is updated rather than duplicated.
-	if (buffer->pending_upload >= 0)
-	{
-		pending_uploads[static_cast<size_t>(buffer->pending_upload)].size = size;
-		return;
-	}
-
-	buffer->pending_upload = static_cast<int>(pending_uploads.size());
-	pending_uploads.push_back({buffer, size});
-}
-
-void RenderInterface_SDL_GPU::CancelUpload(Buffer* buffer)
-{
-	// The entry is kept but emptied: the indices of every other buffer point into this same list, so it must not be
-	// erased from. FlushGeometryUploads() skips zero-sized entries.
-	if (buffer->pending_upload >= 0)
-		pending_uploads[static_cast<size_t>(buffer->pending_upload)].size = 0;
+	return reinterpret_cast<CompiledGeometryHandle>(new GeometryView(geometry));
 }
 
 void RenderInterface_SDL_GPU::ReleaseGeometry(CompiledGeometryHandle handle)
@@ -1059,19 +1254,15 @@ void RenderInterface_SDL_GPU::ReleaseGeometry(CompiledGeometryHandle handle)
 	if (!geometry)
 		return;
 
-	// Releasing is immediate: the buffers keep their contents until they are handed out again, and cycling on the
-	// next upload protects any commands still in flight.
-	vertex_buffers.Release(geometry->vertex_buffer);
-	index_buffers.Release(geometry->index_buffer);
-	geometry->vertex_buffer->last_used_frame = frame_index;
-	geometry->index_buffer->last_used_frame = frame_index;
+	vertex_arena.Free(geometry->vertices, frame_index);
+	index_arena.Free(geometry->indices, frame_index);
 
 	delete geometry;
 }
 
 bool RenderInterface_SDL_GPU::DrawGeometry(const GeometryView& geometry, const DrawState& state)
 {
-	SDL_GPUGraphicsPipeline* pipeline = GetPipeline(state.program, state.blend, state.stencil);
+	SDL_GPUGraphicsPipeline* pipeline = GetPipeline(state.program, state.blend, state.stencil, active_sample_count, active_depth_stencil);
 	if (!pipeline)
 		return false;
 
@@ -1103,18 +1294,18 @@ bool RenderInterface_SDL_GPU::DrawGeometry(const GeometryView& geometry, const D
 		bound_sampler = sampler;
 	}
 
-	if (geometry.vertex_buffer->buffer != bound_vertex_buffer)
+	if (geometry.vertices.block->buffer != bound_vertex_buffer)
 	{
 		SDL_GPUBufferBinding binding{};
-		binding.buffer = geometry.vertex_buffer->buffer;
+		binding.buffer = geometry.vertices.block->buffer;
 		SDL_BindGPUVertexBuffers(render_pass, 0, &binding, 1);
 		bound_vertex_buffer = binding.buffer;
 	}
 
-	if (geometry.index_buffer->buffer != bound_index_buffer)
+	if (geometry.indices.block->buffer != bound_index_buffer)
 	{
 		SDL_GPUBufferBinding binding{};
-		binding.buffer = geometry.index_buffer->buffer;
+		binding.buffer = geometry.indices.block->buffer;
 		SDL_BindGPUIndexBuffer(render_pass, &binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 		bound_index_buffer = binding.buffer;
 	}
@@ -1167,9 +1358,27 @@ bool RenderInterface_SDL_GPU::DrawGeometry(const GeometryView& geometry, const D
 	}
 
 	if (state.fragment_uniforms)
-		SDL_PushGPUFragmentUniformData(command_buffer, 0, state.fragment_uniforms, state.fragment_uniforms_size);
+	{
+		// Compared against what was last pushed rather than sent every time: a document repeats the same gradient or
+		// colour matrix across element after element, and a push is the more expensive of the two by far -- it takes
+		// a slice of a uniform buffer and rebinds it, where this is a memcmp of a few hundred bytes.
+		const bool fits = (state.fragment_uniforms_size <= sizeof(pushed_fragment_uniforms));
+		const bool unchanged = fits && state.fragment_uniforms_size == pushed_fragment_uniforms_size &&
+			std::memcmp(pushed_fragment_uniforms, state.fragment_uniforms, state.fragment_uniforms_size) == 0;
+		if (!unchanged)
+		{
+			SDL_PushGPUFragmentUniformData(command_buffer, 0, state.fragment_uniforms, state.fragment_uniforms_size);
+			// A buffer too large to remember is simply not remembered; there is none today, and the alternative is a
+			// copy that can overrun.
+			if (fits)
+				std::memcpy(pushed_fragment_uniforms, state.fragment_uniforms, state.fragment_uniforms_size);
+			pushed_fragment_uniforms_size = fits ? state.fragment_uniforms_size : 0;
+		}
+	}
 
-	SDL_DrawGPUIndexedPrimitives(render_pass, geometry.num_indices, 1, 0, 0, 0);
+	SDL_DrawGPUIndexedPrimitives(render_pass, static_cast<Uint32>(geometry.num_indices), 1, geometry.indices.offset,
+		static_cast<Sint32>(geometry.vertices.offset), 0);
+	frame_num_draws += 1;
 	return true;
 }
 
@@ -1180,7 +1389,9 @@ bool RenderInterface_SDL_GPU::HasStencil() const
 
 RenderInterface_SDL_GPU::StencilMode RenderInterface_SDL_GPU::GetClipMaskMode() const
 {
-	return (clip_mask_enabled && HasStencil()) ? StencilMode::TestEqual : StencilMode::Off;
+	// Nothing has been written to the buffer until the frame's first mask, so there is nothing to test against and no
+	// reason to make the pass carry it.
+	return (clip_mask_enabled && frame_has_clip_mask && HasStencil()) ? StencilMode::TestEqual : StencilMode::Off;
 }
 
 void RenderInterface_SDL_GPU::RenderGeometry(CompiledGeometryHandle handle, Vector2f translation, TextureHandle texture)
@@ -1293,47 +1504,49 @@ TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, 
 		return 0;
 	}
 
-	SDL_GPUTransferBuffer* transfer_buffer = nullptr;
+	// One transfer buffer serves every texture, grown as needed and handed out in slices. Loading a document generates
+	// a great many of them, and a buffer created and destroyed for each was pure overhead.
+	if (texture_transfers.capacity < byte_size)
 	{
-		SDL_GPUTransferBufferCreateInfo info{};
-		info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-		info.size = byte_size;
-		transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
-		if (!transfer_buffer)
-		{
-			Log::Message(Log::LT_ERROR, "Failed to create transfer buffer: %s", SDL_GetError());
+		// At least twice what it held, so that a font atlas growing texture by texture does not rebuild this on
+		// every one of them. Worked out before the old buffer is let go, since it is the old capacity that says so.
+		if (!texture_transfers.Recreate(device, Math::Max(byte_size, texture_transfers.capacity * 2)))
 			return 0;
-		}
 	}
 
-	void* dst = SDL_MapGPUTransferBuffer(device, transfer_buffer, false);
+	// Textures are placed one after another and the buffer is cycled only once it has no room left. Cycling for every
+	// texture instead hands back storage the size of the whole buffer each time, and every one of those stays alive
+	// until the copy reading it has run: the peak then grows with the number of textures in flight rather than with
+	// the bytes in them, which on a document that loads one large texture before many small ones is hundreds of
+	// megabytes. Writing past what the copies already recorded read is what makes going without the cycle safe.
+	if (texture_transfers.used + byte_size > texture_transfers.capacity)
+		texture_transfers.used = 0;
+	const uint32_t transfer_offset = texture_transfers.used;
+
+	void* dst = SDL_MapGPUTransferBuffer(device, texture_transfers.buffer, transfer_offset == 0);
 	if (!dst)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to map transfer buffer: %s", SDL_GetError());
-		SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
 		return 0;
 	}
 
-	std::memcpy(dst, source.data(), byte_size);
-	SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+	std::memcpy(static_cast<byte*>(dst) + transfer_offset, source.data(), byte_size);
+	SDL_UnmapGPUTransferBuffer(device, texture_transfers.buffer);
 
 	SDL_GPUTexture* texture =
 		CreateTexture(source_dimensions.x, source_dimensions.y, content_format, SDL_GPU_TEXTUREUSAGE_SAMPLER, "RmlUi texture");
 	if (!texture)
-	{
-		SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
 		return 0;
-	}
 
 	if (!EnsureUploadPass())
 	{
-		SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
 		SDL_ReleaseGPUTexture(device, texture);
 		return 0;
 	}
 
 	SDL_GPUTextureTransferInfo transfer_info{};
-	transfer_info.transfer_buffer = transfer_buffer;
+	transfer_info.transfer_buffer = texture_transfers.buffer;
+	transfer_info.offset = transfer_offset;
 
 	SDL_GPUTextureRegion region{};
 	region.texture = texture;
@@ -1342,10 +1555,7 @@ TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, 
 	region.d = 1;
 
 	SDL_UploadToGPUTexture(upload_copy_pass, &transfer_info, &region, false);
-
-	// Releasing here is a request, not a destruction: the recorded copy holds a reference, and SDL frees the transfer
-	// buffer once the command buffer it belongs to has completed.
-	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+	texture_transfers.used = transfer_offset + byte_size;
 
 	// Loading a document generates many textures without ever ending a frame, so cap how much a single command buffer
 	// is allowed to accumulate.
@@ -1475,13 +1685,21 @@ void RenderInterface_SDL_GPU::RenderToClipMask(Rml::ClipMaskOperation operation,
 	if (!FlushGeometryUploads())
 		return;
 
+	// The first mask of the frame is what brings the stencil buffer into the passes, and it starts by clearing it:
+	// what the buffer holds is whatever the previous frame left, since no pass has touched it since.
+	const bool first_mask_of_frame = !frame_has_clip_mask;
+	frame_has_clip_mask = true;
+
 	// Eight bits hold only so many generations. When they run out the buffer has to be cleared for real, which means
 	// restarting the pass; the colour is loaded back, so only the mask is lost. Worth doing solely where the mask is
 	// about to be replaced wholesale, since Intersect builds on what is already there.
 	const bool replaces_mask = (operation != Rml::ClipMaskOperation::Intersect);
-	const bool clear_stencil = replaces_mask && (stencil_high_water >= max_stencil_generation);
+	const bool clear_stencil = first_mask_of_frame || (replaces_mask && stencil_high_water >= max_stencil_generation);
 	if (!EnsureRenderPass(render_layers.GetTopLayer(), false, clear_stencil))
+	{
+		frame_has_clip_mask = !first_mask_of_frame;
 		return;
+	}
 
 	// What a replacing operation takes: the value just above everything the buffer holds. The clear above guarantees
 	// there is one left, so this cannot wrap.
@@ -2080,12 +2298,12 @@ void RenderInterface_SDL_GPU::RenderFilters(Span<const CompiledFilterHandle> fil
 
 void RenderInterface_SDL_GPU::ReleaseQuads()
 {
-	if (fullscreen_quad)
-		ReleaseGeometry(fullscreen_quad);
+	if (postprocess_quad)
+		ReleaseGeometry(postprocess_quad);
 	if (clear_quad)
 		ReleaseGeometry(clear_quad);
 
-	fullscreen_quad = {};
+	postprocess_quad = {};
 	clear_quad = {};
 	quad_width = 0;
 	quad_height = 0;
@@ -2093,7 +2311,7 @@ void RenderInterface_SDL_GPU::ReleaseQuads()
 
 bool RenderInterface_SDL_GPU::EnsureQuads(int width, int height)
 {
-	if (fullscreen_quad && clear_quad && quad_width == width && quad_height == height)
+	if (postprocess_quad && clear_quad && quad_width == width && quad_height == height)
 		return true;
 
 	ReleaseQuads();
@@ -2102,19 +2320,18 @@ bool RenderInterface_SDL_GPU::EnsureQuads(int width, int height)
 	const float w = static_cast<float>(width);
 	const float h = static_cast<float>(height);
 
-	// Given in clip space and so the same whatever the target size, unlike the clear quad below. Texture coordinate
-	// (0,0) belongs at the top-left corner, which is where clip space has y at +1. The colour goes unread -- the
-	// postprocess programs take none -- but the vertex format has one.
+	// Only the corners matter here: the postprocess vertex stage reads the texture coordinate as which corner a
+	// vertex is and takes the rectangle itself from its constant buffer, so this same mesh covers a whole target in
+	// one pass and a corner of it in the next. Position and colour go unread, but the vertex format has them.
 	const ColourbPremultiplied white(255, 255, 255, 255);
-	const Vertex fullscreen_vertices[4] = {
+	const Vertex postprocess_vertices[4] = {
 		{{-1.f, 1.f}, white, {0.f, 0.f}},
 		{{1.f, 1.f}, white, {1.f, 0.f}},
 		{{1.f, -1.f}, white, {1.f, 1.f}},
 		{{-1.f, -1.f}, white, {0.f, 1.f}},
 	};
-	fullscreen_quad = CompileGeometry({fullscreen_vertices, 4}, {indices, 6});
+	postprocess_quad = CompileGeometry({postprocess_vertices, 4}, {indices, 6});
 
-	// Drawn with blending off, this writes transparent black over whatever it covers.
 	const ColourbPremultiplied transparent(0, 0, 0, 0);
 	const Vertex clear_vertices[4] = {
 		{{0.f, 0.f}, transparent, {0.f, 0.f}},
@@ -2124,7 +2341,7 @@ bool RenderInterface_SDL_GPU::EnsureQuads(int width, int height)
 	};
 	clear_quad = CompileGeometry({clear_vertices, 4}, {indices, 6});
 
-	if (!fullscreen_quad || !clear_quad)
+	if (!postprocess_quad || !clear_quad)
 	{
 		// Without these, PushLayer() falls back to clearing the whole attachment and CompositeLayers() cannot run at
 		// all, so say so rather than letting layers silently stop working.
@@ -2162,61 +2379,97 @@ void RenderInterface_SDL_GPU::ClearRegion(const RenderTarget& target)
 bool RenderInterface_SDL_GPU::DrawPostprocessQuad(const RenderTarget& destination, const DrawState& state, Rectanglei region,
 	Vector2f uv_offset, Vector2f uv_scaling)
 {
-	if (!command_buffer || !destination.color || destination.width <= 0 || destination.height <= 0)
+	if (!command_buffer || !destination.color || destination.width <= 0 || destination.height <= 0 || !postprocess_quad)
 		return false;
 
-	const Rectanglei full_target = Rectanglei::FromSize({destination.width, destination.height});
-	const bool covers_target = (region == full_target && uv_offset == Vector2f(0.f) && uv_scaling == Vector2f(1.f));
+	const float width = static_cast<float>(destination.width);
+	const float height = static_cast<float>(destination.height);
 
-	// Built for this draw alone whenever the quad is not simply the whole target: a downscaling pass covers a corner
-	// of it, and an upscaling one maps a rectangle onto a rectangle. The buffers come from the same pool as any other
-	// mesh, so a released one is normally handed straight back on the next call.
-	CompiledGeometryHandle temporary_quad = {};
-	if (!covers_target)
+	QuadUniforms quad = {};
+	quad.position[0] = 2.f * static_cast<float>(region.Left()) / width - 1.f;
+	quad.position[1] = 1.f - 2.f * static_cast<float>(region.Top()) / height;
+	quad.position[2] = 2.f * static_cast<float>(region.Right()) / width - 1.f;
+	quad.position[3] = 1.f - 2.f * static_cast<float>(region.Bottom()) / height;
+	quad.tex_coord[0] = uv_offset.x;
+	quad.tex_coord[1] = uv_offset.y;
+	quad.tex_coord[2] = uv_scaling.x;
+	quad.tex_coord[3] = uv_scaling.y;
+
+	DrawState quad_state = state;
+	// The blur is the one program whose vertex stage wants more than the quad. It has left room for the quad at the
+	// front of what it sent, so fill that in and pass the buffer on whole.
+	BlurVertexUniforms blur_uniforms;
+	if (state.vertex_uniforms)
 	{
-		const float width = static_cast<float>(destination.width);
-		const float height = static_cast<float>(destination.height);
-		// Clip space runs from -1 to 1 across the target, with y pointing the other way to the pixel rows.
-		const float x0 = 2.f * static_cast<float>(region.Left()) / width - 1.f;
-		const float x1 = 2.f * static_cast<float>(region.Right()) / width - 1.f;
-		const float y0 = 1.f - 2.f * static_cast<float>(region.Top()) / height;
-		const float y1 = 1.f - 2.f * static_cast<float>(region.Bottom()) / height;
-		const Vector2f uv0 = uv_offset;
-		const Vector2f uv1 = uv_offset + uv_scaling;
-
-		const ColourbPremultiplied white(255, 255, 255, 255);
-		const Vertex vertices[4] = {
-			{{x0, y0}, white, {uv0.x, uv0.y}},
-			{{x1, y0}, white, {uv1.x, uv0.y}},
-			{{x1, y1}, white, {uv1.x, uv1.y}},
-			{{x0, y1}, white, {uv0.x, uv1.y}},
-		};
-		const int indices[6] = {0, 1, 2, 0, 2, 3};
-		temporary_quad = CompileGeometry({vertices, 4}, {indices, 6});
-		if (!temporary_quad)
-			return false;
+		RMLUI_ASSERT(state.vertex_uniforms_size == sizeof(BlurVertexUniforms));
+		blur_uniforms = *static_cast<const BlurVertexUniforms*>(state.vertex_uniforms);
+		blur_uniforms.quad = quad;
+		quad_state.vertex_uniforms = &blur_uniforms;
 	}
-	else if (!fullscreen_quad)
+	else
 	{
+		quad_state.vertex_uniforms = &quad;
+		quad_state.vertex_uniforms_size = sizeof(quad);
+	}
+
+	if (!FlushGeometryUploads() || !EnsureRenderPass(destination))
 		return false;
-	}
 
-	const CompiledGeometryHandle quad = covers_target ? fullscreen_quad : temporary_quad;
-
-	bool drawn = false;
-	if (FlushGeometryUploads() && EnsureRenderPass(destination))
-		drawn = DrawGeometry(*reinterpret_cast<GeometryView*>(quad), state);
-
-	if (temporary_quad)
-		ReleaseGeometry(temporary_quad);
-
-	return drawn;
+	return DrawGeometry(*reinterpret_cast<GeometryView*>(postprocess_quad), quad_state);
 }
 
 bool RenderInterface_SDL_GPU::DrawPostprocessQuad(const RenderTarget& destination, const DrawState& state)
 {
 	return DrawPostprocessQuad(destination, state, Rectanglei::FromSize({destination.width, destination.height}), Vector2f(0.f),
 		Vector2f(1.f));
+}
+
+// SDL performs the resolve as a render pass ends, so the pass here contains no draws: it exists for its store
+// operation.
+bool RenderInterface_SDL_GPU::ResolveTarget(SDL_GPUCommandBuffer* in_command_buffer, const RenderTarget& source, const RenderTarget& destination,
+	bool keep_samples)
+{
+	RMLUI_ASSERT(source.sample_count != SDL_GPU_SAMPLECOUNT_1 && destination.sample_count == SDL_GPU_SAMPLECOUNT_1);
+	if (!in_command_buffer || !source.color || !destination.color)
+		return false;
+
+	if (in_command_buffer == command_buffer)
+		EndRenderPass();
+
+	SDL_GPUColorTargetInfo color_info{};
+	color_info.texture = source.color;
+	color_info.load_op = SDL_GPU_LOADOP_LOAD;
+	// Writing the samples back as well as resolving them costs bandwidth, so it is asked for only where they still
+	// matter.
+	color_info.store_op = keep_samples ? SDL_GPU_STOREOP_RESOLVE_AND_STORE : SDL_GPU_STOREOP_RESOLVE;
+	color_info.resolve_texture = destination.color;
+
+	SDL_GPURenderPass* resolve_pass = SDL_BeginGPURenderPass(in_command_buffer, &color_info, 1, nullptr);
+	if (!resolve_pass)
+	{
+		Log::Message(Log::LT_ERROR, "Failed to begin resolve pass: %s", SDL_GetError());
+		return false;
+	}
+	SDL_EndGPURenderPass(resolve_pass);
+	frame_num_passes += 1;
+	frame_num_resolves += 1;
+	return true;
+}
+
+// With multisampling this is the resolve, and it covers the whole target: SDL resolves a render pass, and a pass
+// covers its attachment. Without it the contents are drawn across under the active scissor.
+bool RenderInterface_SDL_GPU::BlitLayerToPostprocessPrimary(const RenderTarget& layer)
+{
+	const RenderTarget& destination = render_layers.GetPostprocessPrimary();
+	if (!layer.color || !destination.color)
+		return false;
+
+	if (layer.sample_count == SDL_GPU_SAMPLECOUNT_1)
+		return DrawTextureToTarget(destination, layer.color, Blending::Replace);
+
+	// The samples are kept: RmlUi goes on drawing into a layer after compositing it -- a backdrop filter reads the
+	// very layer it is being drawn into -- so dropping them would lose the frame so far.
+	return ResolveTarget(command_buffer, layer, destination, true);
 }
 
 bool RenderInterface_SDL_GPU::DrawTextureToTarget(const RenderTarget& destination, SDL_GPUTexture* source, Blending blend, StencilMode stencil)
@@ -2281,22 +2534,23 @@ LayerHandle RenderInterface_SDL_GPU::PushLayer()
 void RenderInterface_SDL_GPU::PopLayer()
 {
 	render_layers.PopLayer();
-	// The next draw re-targets the new top layer through EnsureRenderPass().
 }
 
 void RenderInterface_SDL_GPU::CompositeLayers(LayerHandle source, LayerHandle destination, Rml::BlendMode blend_mode,
 	Span<const CompiledFilterHandle> filters)
 {
-	// Compositing goes via the postprocess targets when the source cannot simply be sampled into the destination. The
-	// contract allows both handles to name the same layer, and a texture cannot be a colour attachment and a sampler
-	// binding at once; filters read and write those targets in turn and so need the detour as well. Everything else
-	// takes the direct path: the detour costs a second full-region draw, which measures at about a quarter of the
-	// frame on a filter-heavy document.
+	// Via the postprocess targets when the source cannot simply be sampled into the destination: the contract allows
+	// both handles to name the same layer, and a texture cannot be a colour attachment and a sampler binding at once.
+	// Filters read and write those targets in turn and need the detour as well. Everything else takes the direct
+	// path, since the detour costs a second full-region draw.
 	// A layer whose texture could not be created has nothing to composite.
-	if (!render_layers.GetLayer(source).color)
+	const RenderTarget& source_layer = render_layers.GetLayer(source);
+	if (!source_layer.color)
 		return;
 
-	const bool via_postprocess = (source == destination) || !filters.empty();
+	// Multisampled layers always take the detour: the first hop is the resolve, and without it there is nothing the
+	// destination could sample.
+	const bool via_postprocess = (source == destination) || !filters.empty() || render_layers.IsMultisampled();
 
 	// The mask applies to the draw that reaches the destination, and only to it. The hop into the postprocess target
 	// is a move of the source's pixels, not a rendering of them, and masking it would cut away pixels the filters
@@ -2310,7 +2564,7 @@ void RenderInterface_SDL_GPU::CompositeLayers(LayerHandle source, LayerHandle de
 		// -- no target to allocate, no buffer to build the quad from -- that target still holds the previous
 		// composite, and going on would blend a stale image into the destination. Better to leave the destination as
 		// it is: the frame is already degraded, and an error has been logged where the failure happened.
-		if (!DrawTextureToTarget(render_layers.GetPostprocessPrimary(), render_layers.GetLayer(source).color, Blending::Replace))
+		if (!BlitLayerToPostprocessPrimary(source_layer))
 			return;
 
 		RenderFilters(filters);
@@ -2345,6 +2599,16 @@ TextureHandle RenderInterface_SDL_GPU::SaveLayerAsTexture()
 	const RenderTarget& source = render_layers.GetTopLayer();
 	if (!source.color)
 		return 0;
+
+	// A multisampled layer cannot be copied from: its bytes hold samples, not pixels. Resolve it into the postprocess
+	// target first and copy from there.
+	const RenderTarget* copy_source = &source;
+	if (render_layers.IsMultisampled())
+	{
+		if (!BlitLayerToPostprocessPrimary(source))
+			return 0;
+		copy_source = &render_layers.GetPostprocessPrimary();
+	}
 
 	// The copy fills only the part of the region the layer actually holds. When the two differ, the rest of the
 	// texture has to be cleared, or it would hand RmlUi whatever the allocation happened to contain.
@@ -2381,7 +2645,7 @@ TextureHandle RenderInterface_SDL_GPU::SaveLayerAsTexture()
 	}
 
 	SDL_GPUTextureLocation source_location{};
-	source_location.texture = source.color;
+	source_location.texture = copy_source->color;
 	source_location.x = static_cast<Uint32>(copy_region.Left());
 	source_location.y = static_cast<Uint32>(copy_region.Top());
 
@@ -2413,11 +2677,11 @@ CompiledFilterHandle RenderInterface_SDL_GPU::SaveLayerAsMaskImage()
 	if (!source.color || !primary.color || !blend_mask.color)
 		return {};
 
-	// By way of the postprocess target rather than straight across, which is the route the other backends take too:
-	// this first hop is where a multisampled layer will be resolved. As in CompositeLayers(), the second hop copies
-	// whatever the first one left, so a failure there must not be carried forward -- handing back a mask filter that
-	// multiplies by the previous mask is worse than handing back none, which leaves the element simply unmasked.
-	if (!DrawTextureToTarget(primary, source.color, Blending::Replace))
+	// By way of the postprocess target rather than straight across: this first hop is where a multisampled layer is
+	// resolved. As in CompositeLayers(), the second hop copies whatever the first one left, so a failure there must
+	// not be carried forward -- a mask filter that multiplies by the previous mask is worse than none at all, which
+	// leaves the element simply unmasked.
+	if (!BlitLayerToPostprocessPrimary(source))
 		return {};
 	if (!DrawTextureToTarget(blend_mask, primary.color, Blending::Replace))
 		return {};
@@ -2487,6 +2751,19 @@ bool RenderInterface_SDL_GPU::CaptureScreen(int& out_width, int& out_height, int
 		return false;
 	}
 
+	// The frame cannot be downloaded while it holds several samples per pixel. Where EndFrame() resolved it into the
+	// postprocess target on its way to the swapchain, that is the copy to read -- and the only one, since the layer's
+	// samples were dropped by the same resolve. Where it resolved straight into the swapchain instead, the samples
+	// were kept for exactly this, and the resolve happens here.
+	const RenderTarget* download_source = base_layer;
+	if (render_layers.IsMultisampled())
+	{
+		const RenderTarget& resolved = render_layers.GetPostprocessPrimary();
+		if (!frame_resolved_into_postprocess && !ResolveTarget(capture.buffer, *base_layer, resolved, false))
+			return false;
+		download_source = &resolved;
+	}
+
 	SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(capture.buffer);
 	if (!copy_pass)
 	{
@@ -2495,7 +2772,7 @@ bool RenderInterface_SDL_GPU::CaptureScreen(int& out_width, int& out_height, int
 	}
 
 	SDL_GPUTextureRegion region{};
-	region.texture = base_layer->color;
+	region.texture = download_source->color;
 	region.w = static_cast<Uint32>(width);
 	region.h = static_cast<Uint32>(height);
 	region.d = 1;
