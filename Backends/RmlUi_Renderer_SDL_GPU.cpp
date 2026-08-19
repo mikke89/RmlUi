@@ -930,6 +930,12 @@ void RenderInterface_SDL_GPU::Shutdown()
 		SDL_ReleaseGPUSampler(device, clamp_sampler);
 	clamp_sampler = nullptr;
 
+	// Anything RmlUi has not given back is still alive on the device, so report it rather than leaking silently.
+	if (live_geometry || live_textures || live_shaders || live_filters)
+		Log::Message(Log::LT_WARNING,
+			"Render resources not balanced at shutdown (negative: released more than handed out): %d geometry, %d textures, %d shaders, %d filters",
+			live_geometry, live_textures, live_shaders, live_filters);
+
 	shutdown_complete = true;
 }
 
@@ -1245,6 +1251,7 @@ CompiledGeometryHandle RenderInterface_SDL_GPU::CompileGeometry(Span<const Verte
 			SubmitUploads();
 	}
 
+	live_geometry += 1;
 	return reinterpret_cast<CompiledGeometryHandle>(new GeometryView(geometry));
 }
 
@@ -1256,6 +1263,7 @@ void RenderInterface_SDL_GPU::ReleaseGeometry(CompiledGeometryHandle handle)
 
 	vertex_arena.Free(geometry->vertices, frame_index);
 	index_arena.Free(geometry->indices, frame_index);
+	live_geometry -= 1;
 
 	delete geometry;
 }
@@ -1563,13 +1571,14 @@ TextureHandle RenderInterface_SDL_GPU::GenerateTexture(Span<const byte> source, 
 	if (pending_upload_bytes >= max_pending_upload_bytes)
 		SubmitUploads();
 
+	live_textures += 1;
 	return reinterpret_cast<TextureHandle>(texture);
 }
 
 void RenderInterface_SDL_GPU::ReleaseTexture(TextureHandle texture_handle)
 {
-	// SDL defers the actual destruction until the GPU is done with the texture, so this is safe mid-frame.
 	SDL_ReleaseGPUTexture(device, reinterpret_cast<SDL_GPUTexture*>(texture_handle));
+	live_textures -= 1;
 	if (reinterpret_cast<SDL_GPUTexture*>(texture_handle) == bound_texture)
 		bound_texture = nullptr;
 }
@@ -1834,7 +1843,10 @@ CompiledShaderHandle RenderInterface_SDL_GPU::CompileShader(const String& name, 
 	}
 
 	if (shader.type != CompiledShaderType::Invalid)
+	{
+		live_shaders += 1;
 		return reinterpret_cast<CompiledShaderHandle>(new CompiledShader(std::move(shader)));
+	}
 
 	Log::Message(Log::LT_WARNING, "Unsupported shader type '%s'.", name.c_str());
 	return {};
@@ -1906,6 +1918,7 @@ void RenderInterface_SDL_GPU::RenderShader(CompiledShaderHandle shader_handle, C
 
 void RenderInterface_SDL_GPU::ReleaseShader(CompiledShaderHandle shader_handle)
 {
+	live_shaders -= 1;
 	delete reinterpret_cast<CompiledShader*>(shader_handle);
 }
 
@@ -2056,7 +2069,10 @@ CompiledFilterHandle RenderInterface_SDL_GPU::CompileFilter(const String& name, 
 	}
 
 	if (filter.type != FilterType::Invalid)
+	{
+		live_filters += 1;
 		return reinterpret_cast<CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
+	}
 
 	Log::Message(Log::LT_WARNING, "Unsupported filter type '%s'.", name.c_str());
 	return {};
@@ -2064,6 +2080,7 @@ CompiledFilterHandle RenderInterface_SDL_GPU::CompileFilter(const String& name, 
 
 void RenderInterface_SDL_GPU::ReleaseFilter(CompiledFilterHandle filter)
 {
+	live_filters -= 1;
 	delete reinterpret_cast<CompiledFilter*>(filter);
 }
 
@@ -2654,12 +2671,15 @@ TextureHandle RenderInterface_SDL_GPU::SaveLayerAsTexture()
 	destination_location.x = static_cast<Uint32>(copy_region.Left() - region.Left());
 	destination_location.y = static_cast<Uint32>(copy_region.Top() - region.Top());
 
+	// Never cycled, and on the partial path that is not a choice: cycling would give the copy a fresh allocation with
+	// undefined contents, throwing away the clear made above and putting back the very border it was there to remove.
 	SDL_CopyGPUTextureToTexture(copy_pass, &source_location, &destination_location, static_cast<Uint32>(copy_region.Width()),
 		static_cast<Uint32>(copy_region.Height()), 1, false);
 	SDL_EndGPUCopyPass(copy_pass);
 
 	EnsureRenderPass(source);
 
+	live_textures += 1;
 	return reinterpret_cast<TextureHandle>(texture);
 }
 
@@ -2688,6 +2708,7 @@ CompiledFilterHandle RenderInterface_SDL_GPU::SaveLayerAsMaskImage()
 
 	CompiledFilter filter = {};
 	filter.type = FilterType::MaskImage;
+	live_filters += 1;
 	return reinterpret_cast<CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
 }
 

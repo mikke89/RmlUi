@@ -5,6 +5,10 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Log.h>
 
+// When true, the GPU device is created in debug mode: SDL then validates its own calls, loads the driver's validation
+// layers where it has them, and names resources for graphics debuggers. Turn it on from the build with the CMake
+// option -DRMLUI_BACKEND_SDL_GPU_DEBUG=ON, which defines the macro for every file of the backend. Defining it here
+// alone would only reach this one: the renderer keys its debug groups and frame statistics off the same macro.
 #ifndef RMLUI_BACKEND_SDL_GPU_DEBUG
 	#define RMLUI_BACKEND_SDL_GPU_DEBUG false
 #endif

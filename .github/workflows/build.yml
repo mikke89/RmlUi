@@ -84,6 +84,58 @@ jobs:
       run: ./Build/rmlui_unit_tests
 
 
+  Linux-SDL3:
+    runs-on: ubuntu-24.04
+
+    env:
+      SDL_VERSION: 3.2.10
+      SDL_IMAGE_VERSION: 3.2.4
+      SDL_PREFIX: ${{ github.workspace }}/SDL3-install
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install Dependencies
+      run: |-
+        sudo apt-get update
+        sudo apt-get install cmake ninja-build libfreetype6-dev libx11-dev libxext-dev libgl1-mesa-dev
+
+    # The runner image carries SDL2 but no SDL3, which the SDL GPU backend requires, so build the two libraries from
+    # their release tarballs. The versions are pinned rather than tracking the latest release, so that a release
+    # upstream cannot turn this job red on its own; they are also what the cache is keyed on, so the build below only
+    # runs when a pin moves.
+    - name: Cache SDL3
+      id: cache-sdl3
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.SDL_PREFIX }}
+        key: sdl3-${{ runner.os }}-${{ env.SDL_VERSION }}-${{ env.SDL_IMAGE_VERSION }}
+
+    - name: Build SDL3
+      if: ${{ steps.cache-sdl3.outputs.cache-hit != 'true' }}
+      run: |-
+        curl -fsSL "https://github.com/libsdl-org/SDL/releases/download/release-$SDL_VERSION/SDL3-$SDL_VERSION.tar.gz" | tar -xz
+        cmake -S "SDL3-$SDL_VERSION" -B Build-SDL3 -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$SDL_PREFIX" -DSDL_TEST_LIBRARY=OFF
+        cmake --build Build-SDL3
+        cmake --install Build-SDL3
+        curl -fsSL "https://github.com/libsdl-org/SDL_image/releases/download/release-$SDL_IMAGE_VERSION/SDL3_image-$SDL_IMAGE_VERSION.tar.gz" | tar -xz
+        cmake -S "SDL3_image-$SDL_IMAGE_VERSION" -B Build-SDL3_image -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$SDL_PREFIX" -DCMAKE_PREFIX_PATH="$SDL_PREFIX" -DSDLIMAGE_SAMPLES=OFF
+        cmake --build Build-SDL3_image
+        cmake --install Build-SDL3_image
+
+    - name: Configure CMake
+      run: >-
+        cmake -B Build -G Ninja --preset samples -Wdev -Werror=dev -DRMLUI_WARNINGS_AS_ERRORS=ON
+        -DCMAKE_PREFIX_PATH="$SDL_PREFIX" -DRMLUI_BACKEND=SDL_GPU -DBUILD_TESTING=ON
+
+    - name: Build
+      run: cmake --build Build
+
+    - name: Test
+      working-directory: ${{github.workspace}}/Build
+      run: ctest
+
+
   Linux-legacy:
     runs-on: ubuntu-22.04
 
@@ -134,6 +186,7 @@ jobs:
         include:
           - cmake_options: -DRMLUI_BACKEND=auto
           - cmake_options: -DRMLUI_BACKEND=GLFW_GL2
+          - cmake_options: -DRMLUI_BACKEND=SDL_GPU
 
     steps:
     - uses: actions/checkout@v6
@@ -172,6 +225,8 @@ jobs:
           - cmake_options: -DRMLUI_BACKEND=GLFW_DX11 -DRMLUI_DX_DEBUG=ON
           - cmake_options: -DRMLUI_BACKEND=Win32_DX12
           - cmake_options: -DRMLUI_BACKEND=SDL_DX12
+          - cmake_options: -DRMLUI_BACKEND=SDL_GPU
+            build_type: Debug
           - cmake_options: -DRMLUI_BACKEND=GLFW_DX12 -DRMLUI_DX_DEBUG=ON
             build_type: Debug
 

@@ -523,17 +523,22 @@ private:
 	// CaptureScreen() read the frame without resolving again and what tells it that resolving again is not an option.
 	bool frame_resolved_into_postprocess = false;
 
+	// Everything RmlUi asked for and has not given back. RmlUi releases each of them during Rml::Shutdown(), which
+	// clients call before shutting the backend down, so all four are zero by the time Shutdown() runs. A leak in a
+	// client that drives the interface itself, or in the interface, shows up there as a number instead of going
+	// unnoticed until the driver complains; a negative number is the same accounting seen from the other side.
+	int live_geometry = 0;
+	int live_textures = 0;
+	int live_shaders = 0;
+	int live_filters = 0;
+
 	SDL_GPURenderPass* render_pass = nullptr;
-	// The colour texture the open render pass draws into, or nullptr when no pass is open. Identified by texture
-	// rather than by RenderTarget address, since the targets live in a vector that grows.
 	SDL_GPUTexture* active_target_texture = nullptr;
-	// The target layout of the open pass, which every pipeline used in it has to have been built for.
 	SDL_GPUSampleCount active_sample_count = SDL_GPU_SAMPLECOUNT_1;
 	bool active_depth_stencil = false;
 
-	// Cached render pass state, so that redundant bindings and uniform pushes can be skipped. Bindings and scissor are
-	// pass state and do not survive across passes; the uniforms belong to the command buffer, but re-pushing them
-	// along with the rest is cheap and keeps a single invalidation point.
+	// So that redundant bindings and uniform pushes can be skipped. Bindings and scissor do not survive a pass; the
+	// uniforms belong to the command buffer, but re-pushing them along with the rest keeps one invalidation point.
 	SDL_GPUGraphicsPipeline* bound_pipeline = nullptr;
 	SDL_GPUTexture* bound_texture = nullptr;
 	SDL_GPUTexture* bound_mask_texture = nullptr;
