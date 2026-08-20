@@ -572,6 +572,8 @@ public:
 	ElementScroll* GetElementScroll() const;
 	/// Returns the element's nearest scroll container that can be scrolled, if any.
 	Element* GetClosestScrollableContainer();
+	/// Returns the element's nearest scroll container for any non-zero axis in the scroll delta, if any.
+	Element* GetClosestScrollableContainer(Vector2f scroll_delta);
 	/// Returns the element's transform state.
 	const TransformState* GetTransformState() const noexcept;
 	/// Returns the data model of this element.

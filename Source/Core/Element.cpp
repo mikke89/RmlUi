@@ -2015,6 +2015,27 @@ Element* Element::GetClosestScrollableContainer()
 	return nullptr;
 }
 
+Element* Element::GetClosestScrollableContainer(Vector2f scroll_delta)
+{
+	using namespace Style;
+
+	const Overflow overflow_x = meta->computed_values.overflow_x();
+	const Overflow overflow_y = meta->computed_values.overflow_y();
+	const bool scroll_container_x = (scroll_delta.x != 0.f && (overflow_x == Overflow::Auto || overflow_x == Overflow::Scroll));
+	const bool scroll_container_y = (scroll_delta.y != 0.f && (overflow_y == Overflow::Auto || overflow_y == Overflow::Scroll));
+	const bool scrollable_x = (scroll_container_x && GetScrollWidth() > GetClientWidth());
+	const bool scrollable_y = (scroll_container_y && GetScrollHeight() > GetClientHeight());
+	const bool contains_scroll =
+		(scroll_container_x || scroll_container_y) && meta->computed_values.overscroll_behavior() == OverscrollBehavior::Contain;
+
+	if (scrollable_x || scrollable_y || contains_scroll)
+		return this;
+	else if (parent)
+		return parent->GetClosestScrollableContainer(scroll_delta);
+
+	return nullptr;
+}
+
 void Element::ProcessDefaultAction(Event& event)
 {
 	if (event == EventId::Mousedown)
