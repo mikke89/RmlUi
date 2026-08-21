@@ -125,6 +125,7 @@ static const String document_scroll_target_rml = R"(
 <head>
 	<style>
 		body { margin: 0; }
+		div { display: block; }
 		#vertical {
 			width: 100px;
 			height: 100px;
@@ -140,7 +141,6 @@ static const String document_scroll_target_rml = R"(
 			height: 50px;
 			overflow-x: auto;
 			overflow-y: hidden;
-			overscroll-behavior: contain;
 		}
 		#horizontal-content {
 			width: 200px;
@@ -387,6 +387,11 @@ TEST_CASE("Element.GetClosestScrollableContainer")
 	CHECK(target->GetClosestScrollableContainer() == horizontal);
 	CHECK(target->GetClosestScrollableContainer({1.f, 0.f}) == horizontal);
 	CHECK(target->GetClosestScrollableContainer({0.f, 1.f}) == vertical);
+	REQUIRE(horizontal->SetProperty("overscroll-behavior", "contain"));
+	TestsShell::RenderLoop();
+	CHECK(target->GetClosestScrollableContainer({0.f, 1.f}) == horizontal);
+	horizontal->RemoveProperty(PropertyId::OverscrollBehavior);
+	TestsShell::RenderLoop();
 	CHECK(contained_target->GetClosestScrollableContainer() == contained_y);
 	CHECK(contained_target->GetClosestScrollableContainer({0.f, 1.f}) == contained_y);
 
