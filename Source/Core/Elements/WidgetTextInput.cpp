@@ -1432,13 +1432,11 @@ void WidgetTextInput::GenerateCursor()
 	cursor_size.x = Math::Round(ElementUtilities::GetDensityIndependentPixelRatio(text_element));
 	cursor_size.y = GetLineHeight();
 
-	Colourb color = parent->GetComputedValues().color();
-
-	if (const Property* property = parent->GetProperty(PropertyId::CaretColor))
-	{
-		if (property->unit == Unit::COLOUR)
-			color = property->Get<Colourb>();
-	}
+	Colourb color;
+	if (const Property* property = parent->GetProperty(PropertyId::CaretColor); property && property->unit == Unit::COLOUR)
+		color = property->Get<Colourb>();
+	else
+		color = parent->GetComputedValues().color();
 
 	Mesh mesh = cursor_geometry.Release(Geometry::ReleaseMode::ClearMesh);
 	MeshUtilities::GenerateQuad(mesh, Vector2f(0, 0), cursor_size, color.ToPremultiplied());

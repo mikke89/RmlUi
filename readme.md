@@ -53,6 +53,7 @@ RmlUi supports most of CSS2 with some CSS3 features such as
 - Flexbox layout
 - Media queries
 - Border radius
+- Custom properties and variables
 - Box shadows and mask images
 - Gradients (linear, radial, and conic) as decorators
 - Filters and backdrop filters (with all CSS filter functions)
@@ -165,19 +166,20 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Platforms
 
-| Platform | Basic windowing | Clipboard | High DPI | Touch | Comments                                                                      |
-|----------|:---------------:|:---------:|:--------:|:-----:|-------------------------------------------------------------------------------|
-| Win32    |       ✔️        |    ✔️     |    ✔️    |   ❌   | High DPI only supported on Windows 10 and newer.                              |
-| X11      |       ✔️        |    ✔️     |    ❌     |   ❌   |                                                                               |
-| Wayland  |       ✔️        |    ❌     |    ❌     |   ❌   | Clipboard is process-local.                                                   |
-| SFML     |       ✔️        |    🟡     |    ❌     |   ❌   | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
-| GLFW     |       ✔️        |    ✔️     |    ✔️    |   ❌   |                                                                               |
-| SDL      |       ✔️        |    ✔️     |    ✔️    |  ✔️   | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3.                   |
+| Platform | Basic windowing | Clipboard | High DPI | Touch | IME | Comments                                                                      |
+|----------|:---------------:|:---------:|:--------:|:-----:|:---:|-------------------------------------------------------------------------------|
+| SDL      |       ✔️        |    ✔️     |    ✔️    |  ✔️   | ✔️  | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3.                   |
+| GLFW     |       ✔️        |    ✔️     |    ✔️    |  ❌   | ❌  |                                                                               |
+| Win32    |       ✔️        |    ✔️     |    ✔️    |  ❌   | ✔️  |                                                                               |
+| X11      |       ✔️        |    ✔️     |    ❌    |  ❌   | ❌  |                                                                               |
+| Wayland  |       ✔️        |    ❌     |    ❌    |  ❌   | ❌  |                                                                               |
+| SFML     |       ✔️        |    🟡     |    ❌    |  ❌   | ❌  | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
 
 **Basic windowing**: Open windows, react to resize events, submit inputs to the RmlUi context.\
 **Clipboard**: Read from and write to the system clipboard.\
 **High DPI**: Scale the [dp-ratio](https://mikke89.github.io/RmlUiDoc/pages/rcss/syntax.html#dp-unit) of RmlUi contexts based on the monitor's DPI settings. React to DPI-changes, either because of changed settings or when moving the window to another monitor. \
-**Touch**: Process touch events, enable dragging and inertial scrolling with touch movement.
+**Touch**: Process touch events, enable dragging and inertial scrolling with touch movement. \
+**IME**: [Input method editor](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/ime.html) support, for typing characters not available on QWERTY keyboards.
 
 ### Backends
 

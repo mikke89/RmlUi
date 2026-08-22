@@ -109,7 +109,8 @@ RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = fa
 	int face_index = 0);
 
 /// Adds a new font face from file to the font engine. The face's family, style, and weight are given by the parameters.
-/// @param[in] data The font data.
+/// @param[in] file_path The path to the file to load the face from. The path is passed directly to the file interface which is used to load the file.
+/// The default file interface accepts both absolute paths and paths relative to the working directory.
 /// @param[in] family The family to register the font as.
 /// @param[in] style The style to register the font as.
 /// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default, it
