@@ -179,7 +179,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: RmlUi-vs2022-${{ matrix.architecture }}
+          name: RmlUi-vs2026-${{ matrix.architecture }}
           path: ./
 
   Release:
@@ -191,7 +191,7 @@ jobs:
     steps:
       - name: Download release artifacts
         run: |
-          $release_artifacts = "RmlUi-vs2022-win64", "RmlUi-vs2022-win32", "samples-win64"
+          $release_artifacts = "RmlUi-vs2026-win64", "RmlUi-vs2026-win32", "samples-win64"
           $headers = @{ "Authorization" = "token ${{ secrets.GITHUB_TOKEN }}" }
           $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts" -Headers $headers
           foreach ($name in $release_artifacts) {
