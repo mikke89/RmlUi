@@ -826,7 +826,7 @@ bool Context::ProcessMouseWheel(Vector2f wheel_delta, int key_modifier_state)
 
 	const float unit_scroll_length = UNIT_SCROLL_LENGTH * density_independent_pixel_ratio;
 	const Vector2f scroll_length = wheel_delta * unit_scroll_length;
-	Element* target = hover->GetClosestScrollableContainer();
+	Element* target = hover->GetClosestScrollableContainer(wheel_delta);
 
 	if (scroll_controller->GetMode() == ScrollController::Mode::Smoothscroll && scroll_controller->GetTarget() == target)
 		scroll_controller->IncrementSmoothscrollTarget(scroll_length);

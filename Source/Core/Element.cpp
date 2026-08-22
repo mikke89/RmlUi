@@ -1995,22 +1995,21 @@ bool Element::IsLayoutDirty()
 	return false;
 }
 
-Element* Element::GetClosestScrollableContainer()
+Element* Element::GetClosestScrollableContainer(Vector2f scroll_delta)
 {
 	using namespace Style;
 
-	Overflow overflow_x = meta->computed_values.overflow_x();
-	Overflow overflow_y = meta->computed_values.overflow_y();
-	bool scrollable_x = (overflow_x == Overflow::Auto || overflow_x == Overflow::Scroll);
-	bool scrollable_y = (overflow_y == Overflow::Auto || overflow_y == Overflow::Scroll);
-
-	scrollable_x = (scrollable_x && GetScrollWidth() > GetClientWidth());
-	scrollable_y = (scrollable_y && GetScrollHeight() > GetClientHeight());
+	const Overflow overflow_x = meta->computed_values.overflow_x();
+	const Overflow overflow_y = meta->computed_values.overflow_y();
+	const bool scrollable_x =
+		(scroll_delta.x != 0.f && (overflow_x == Overflow::Auto || overflow_x == Overflow::Scroll) && GetScrollWidth() > GetClientWidth());
+	const bool scrollable_y =
+		(scroll_delta.y != 0.f && (overflow_y == Overflow::Auto || overflow_y == Overflow::Scroll) && GetScrollHeight() > GetClientHeight());
 
 	if (scrollable_x || scrollable_y || meta->computed_values.overscroll_behavior() == OverscrollBehavior::Contain)
 		return this;
 	else if (parent)
-		return parent->GetClosestScrollableContainer();
+		return parent->GetClosestScrollableContainer(scroll_delta);
 
 	return nullptr;
 }
