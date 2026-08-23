@@ -518,8 +518,12 @@ void RenderInterface_VK::Initialize_Instance(Rml::Vector<const char*> required_e
 	info_instance.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	// the validation-features block is only initialized when the CPU validation layer was found (debug builds);
 	// never attach it uninitialized (its sType would be 0, which is invalid)
+#ifdef RMLUI_VK_DEBUG
 	info_instance.pNext =
 		(debug_validation_features_ext.sType == VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT) ? &debug_validation_features_ext : nullptr;
+#else
+	info_instance.pNext = nullptr;
+#endif
 	info_instance.flags = 0;
 	info_instance.pApplicationInfo = &info;
 	info_instance.enabledExtensionCount = static_cast<uint32_t>(instance_extension_names.size());
