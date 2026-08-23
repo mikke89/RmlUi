@@ -3577,12 +3577,12 @@ RenderInterface_VK::ConstantBufferType* RenderInterface_VK::Get_ConstantBuffer(u
 	RMLUI_ZoneScopedN("Vulkan - Get_ConstantBuffer");
 	RMLUI_ASSERTMSG(current_back_buffer_index != uint32_t(-1), "invalid index!");
 
-	auto max_index = RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS - 1;
+	size_t max_index = RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS - 1;
 
 	if (m_constantbuffers[current_back_buffer_index].size() > RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS)
-		max_index = static_cast<int>(m_constantbuffers[current_back_buffer_index].size() - 1);
+		max_index = m_constantbuffers[current_back_buffer_index].size() - 1;
 
-	auto current_constant_buffer_index = m_constant_buffer_count_per_frame[current_back_buffer_index];
+	const size_t current_constant_buffer_index = m_constant_buffer_count_per_frame[current_back_buffer_index];
 	if (current_constant_buffer_index > max_index)
 	{
 		// resizing...
@@ -5970,13 +5970,13 @@ VkBuffer RenderInterface_VK::BufferMemoryManager::Get_BufferByIndex(int buffer_i
 {
 	RMLUI_ZoneScopedN("Vulkan - BufferMemoryManager::Get_BufferByIndex");
 	RMLUI_ASSERTMSG(buffer_index >= 0, "index must be valid!");
-	RMLUI_ASSERTMSG(buffer_index < m_buffers.size(), "overflow index!");
+	RMLUI_ASSERTMSG(buffer_index < static_cast<int>(m_buffers.size()), "overflow index!");
 
 	VkBuffer p_result{};
 
 	if (buffer_index >= 0)
 	{
-		if (buffer_index < m_buffers.size())
+		if (buffer_index < static_cast<int>(m_buffers.size()))
 		{
 			p_result = m_buffers.at(buffer_index);
 		}
@@ -5989,13 +5989,13 @@ VkDescriptorSet RenderInterface_VK::BufferMemoryManager::Get_ConstantBufferDescr
 {
 	RMLUI_ZoneScopedN("Vulkan - BufferMemoryManager::Get_ConstantBufferDescriptorSetByIndex");
 	RMLUI_ASSERTMSG(buffer_index >= 0, "index must be valid!");
-	RMLUI_ASSERTMSG(buffer_index < m_cb_descriptor_sets.size(), "overflow index!");
+	RMLUI_ASSERTMSG(buffer_index < static_cast<int>(m_cb_descriptor_sets.size()), "overflow index!");
 
 	VkDescriptorSet p_result{};
 
 	if (buffer_index >= 0)
 	{
-		if (buffer_index < m_cb_descriptor_sets.size())
+		if (buffer_index < static_cast<int>(m_cb_descriptor_sets.size()))
 		{
 			p_result = m_cb_descriptor_sets.at(buffer_index);
 		}
@@ -6170,7 +6170,7 @@ VmaVirtualBlock_T* RenderInterface_VK::BufferMemoryManager::Get_NotOutOfMemoryAn
 	// we skip out of memory block since it shows to us as available
 	auto from = *p_result_buffer_index + 1;
 
-	for (int i = from; i < m_virtual_blocks.size(); ++i)
+	for (int i = from; i < static_cast<int>(m_virtual_blocks.size()); ++i)
 	{
 		auto& p_block = m_virtual_blocks.at(i);
 		if (p_block)
@@ -6331,9 +6331,9 @@ void RenderInterface_VK::BufferMemoryManager::TryToFreeAvailableBlock(uint64_t f
 void RenderInterface_VK::BufferMemoryManager::Destroy_BufferAtIndex(int buffer_index)
 {
 	RMLUI_ZoneScopedN("Vulkan - BufferMemoryManager::Destroy_BufferAtIndex");
-	RMLUI_VK_ASSERTMSG(buffer_index >= 0 && buffer_index < m_buffers.size(), "invalid index!");
+	RMLUI_VK_ASSERTMSG(buffer_index >= 0 && buffer_index < static_cast<int>(m_buffers.size()), "invalid index!");
 
-	if (buffer_index < 0 || buffer_index >= m_buffers.size())
+	if (buffer_index < 0 || buffer_index >= static_cast<int>(m_buffers.size()))
 		return;
 
 	if (m_cb_descriptor_sets.at(buffer_index))
@@ -6749,7 +6749,7 @@ void RenderInterface_VK::TextureMemoryManager::Upload(TextureHandleType* p_textu
 	if (image_size > m_p_upload_manager->Get_UploadBufferSize())
 	{
 		Rml::Log::Message(Rml::Log::Type::LT_WARNING,
-			"! [Vulkan]: you are trying to upload huge texture = %zu bytes (%d Mb), so if you can't optimize its size for loading then ignore this "
+			"! [Vulkan]: you are trying to upload huge texture = %zu bytes (%zu Mb), so if you can't optimize its size for loading then ignore this "
 			"message, otherwise we "
 			"expect you to upload using staging buffer from UploadResourceManager instance",
 			image_size, image_size / (1024 * 1024));
