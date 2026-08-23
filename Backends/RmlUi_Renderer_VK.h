@@ -785,9 +785,6 @@ private:
 	// Render-pass recording state: which framebuffer (and its render pass) is currently being recorded into.
 	VkRenderPass m_p_active_render_pass;
 	VkFramebuffer m_p_active_framebuffer;
-	// false right after a render pass begin and true once any draw was recorded into it; lets Clear() restart the
-	// pass with LOAD_OP_CLEAR instead of a vkCmdClearAttachments command when nothing was drawn yet
-	bool m_active_render_pass_has_draws;
 
 	VkQueue m_p_queue_present;
 	VkQueue m_p_queue_graphics;

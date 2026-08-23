@@ -406,7 +406,7 @@ RenderInterface_VK::RenderInterface_VK() :
 	m_p_pipeline_layout_texture_effect{}, m_p_pipeline_layout_blend_mask{}, m_p_render_pass_layer{}, m_p_render_pass_layer_clear{},
 	m_p_render_pass_layer_clear_all{}, m_p_render_pass_layer_clear_ds{}, m_p_render_pass_postprocess{}, m_p_render_pass_swapchain{},
 	m_p_sampler_linear{}, m_scissor_original{}, m_viewport{}, m_p_active_render_pass{}, m_p_active_framebuffer{},
-	m_active_render_pass_has_draws{false}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
+	m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
 #ifdef RMLUI_VK_DEBUG
 	m_debug_messenger{},
 #endif
@@ -3009,7 +3009,8 @@ void RenderInterface_VK::BindRenderTarget(const Gfx::FramebufferData& framebuffe
 	info.renderArea.offset.y = 0;
 	info.renderArea.extent.width = static_cast<uint32_t>(framebuffer.Get_Width());
 	info.renderArea.extent.height = static_cast<uint32_t>(framebuffer.Get_Height());
-	// contents are preserved between passes (load op is LOAD); explicit clears are done through vkCmdClearAttachments
+	// contents are preserved between passes (load op is LOAD); clears ride the load ops of the clear-variant passes
+	// (BindRenderTarget_Clear / Clear), only subregion clears use vkCmdClearAttachments
 	info.pClearValues = nullptr;
 	info.clearValueCount = 0;
 
@@ -3017,7 +3018,6 @@ void RenderInterface_VK::BindRenderTarget(const Gfx::FramebufferData& framebuffe
 
 	m_p_active_render_pass = p_render_pass;
 	m_p_active_framebuffer = framebuffer.Get_Framebuffer();
-	m_active_render_pass_has_draws = false;
 }
 
 void RenderInterface_VK::BindRenderTarget_Clear(const Gfx::FramebufferData& framebuffer, bool clear_depth_stencil)
@@ -3055,7 +3055,6 @@ void RenderInterface_VK::BindRenderTarget_Clear(const Gfx::FramebufferData& fram
 
 	m_p_active_render_pass = p_render_pass;
 	m_p_active_framebuffer = framebuffer.Get_Framebuffer();
-	m_active_render_pass_has_draws = false;
 }
 
 void RenderInterface_VK::TransitionImageLayout(TextureHandleType* p_texture, VkImageLayout new_layout, VkImageAspectFlags aspect_mask) noexcept
@@ -3287,7 +3286,6 @@ void RenderInterface_VK::EndFrame()
 
 	m_p_active_render_pass = m_p_render_pass_swapchain;
 	m_p_active_framebuffer = m_swapchain_frame_buffers[m_image_index];
-	m_active_render_pass_has_draws = false;
 
 	UseProgram(ProgramId::Passthrough);
 
@@ -3324,10 +3322,11 @@ void RenderInterface_VK::Clear()
 		const bool is_layer_pass = (m_p_active_render_pass == m_p_render_pass_layer || m_p_active_render_pass == m_p_render_pass_layer_clear ||
 			m_p_active_render_pass == m_p_render_pass_layer_clear_all || m_p_active_render_pass == m_p_render_pass_layer_clear_ds);
 
-		// nothing was drawn into the pass yet (the common shell flow: Clear() right after BeginFrame): restart the
-		// pass in its clear-everything variant so the clear rides the attachment load ops instead of an explicit
-		// clear command (what the validation layers recommend, and cheaper on tilers)
-		if (is_layer_pass && !m_active_render_pass_has_draws)
+		// restart the layer pass in its clear-everything variant: the clear rides the attachment load ops instead of
+		// an explicit vkCmdClearAttachments command (the clear-after-load best practice, and cheaper on tilers). Safe
+		// even when draws were already recorded — a Clear() call discards them anyway. The common shell flow hits
+		// this right after BeginFrame, before anything was drawn.
+		if (is_layer_pass)
 		{
 			// note: grab the framebuffer first, EndActiveRenderPass() resets the active fields
 			VkFramebuffer p_active_framebuffer = m_p_active_framebuffer;
@@ -3355,7 +3354,6 @@ void RenderInterface_VK::Clear()
 
 			m_p_active_render_pass = m_p_render_pass_layer_clear_all;
 			m_p_active_framebuffer = p_active_framebuffer;
-			m_active_render_pass_has_draws = false;
 
 			return;
 		}
@@ -3773,8 +3771,6 @@ void RenderInterface_VK::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rm
 	vkCmdBindIndexBuffer(m_p_current_command_buffer, p_buffer_index, p_handle_geometry->Get_InfoIndex().offset, VK_INDEX_TYPE_UINT32);
 
 	vkCmdDrawIndexed(m_p_current_command_buffer, p_handle_geometry->Get_NumIndices(), 1, 0, 0, 0);
-
-	m_active_render_pass_has_draws = true;
 }
 
 void RenderInterface_VK::ReleaseGeometry(Rml::CompiledGeometryHandle geometry)
@@ -3814,34 +3810,11 @@ void RenderInterface_VK::RenderToClipMask(Rml::ClipMaskOperation mask_operation,
 		const Gfx::FramebufferData& framebuffer = m_manager_render_layer.GetLayer(m_manager_render_layer.GetTopLayerHandle());
 		RMLUI_ASSERTMSG(framebuffer.Get_SharedDepthStencilTexture(), "you have to set shared depth stencil texture for layer!");
 
-		BindRenderTarget(framebuffer);
-
-		const bool is_layer_pass = (m_p_active_render_pass == m_p_render_pass_layer || m_p_active_render_pass == m_p_render_pass_layer_clear ||
-			m_p_active_render_pass == m_p_render_pass_layer_clear_all || m_p_active_render_pass == m_p_render_pass_layer_clear_ds);
-
-		if (is_layer_pass && !m_active_render_pass_has_draws)
-		{
-			// the pass just began and nothing was drawn into it yet: restart it with the depth-stencil-clearing
-			// variant (the color contents are preserved via LOAD) instead of an explicit clear command
-			BindRenderTarget_Clear(framebuffer, true);
-		}
-		else
-		{
-			VkClearAttachment clear_attachment = {};
-			clear_attachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-			clear_attachment.clearValue.depthStencil = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE,
-				RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE};
-
-			VkClearRect clear_rect = {};
-			clear_rect.rect.offset.x = 0;
-			clear_rect.rect.offset.y = 0;
-			clear_rect.rect.extent.width = static_cast<uint32_t>(framebuffer.Get_Width());
-			clear_rect.rect.extent.height = static_cast<uint32_t>(framebuffer.Get_Height());
-			clear_rect.baseArrayLayer = 0;
-			clear_rect.layerCount = 1;
-
-			vkCmdClearAttachments(m_p_current_command_buffer, 1, &clear_attachment, 1, &clear_rect);
-		}
+		// (re)begin the layer pass in its depth-stencil-clearing variant: the stencil clear rides the attachment load
+		// op instead of an explicit vkCmdClearAttachments command (the clear-after-load best practice), and the color
+		// contents are preserved via LOAD — draws already recorded into the pass are stored at its end, exactly like
+		// the DX12 renderer's ClearDepthStencilView, which doesn't disturb the color target either
+		BindRenderTarget_Clear(framebuffer, true);
 	}
 
 	switch (mask_operation)
@@ -4994,8 +4967,6 @@ void RenderInterface_VK::RenderShader(Rml::CompiledShaderHandle shader_handle, R
 		vkCmdBindIndexBuffer(m_p_current_command_buffer, p_buffer_index, geometry->Get_InfoIndex().offset, VK_INDEX_TYPE_UINT32);
 
 		vkCmdDrawIndexed(m_p_current_command_buffer, geometry->Get_NumIndices(), 1, 0, 0, 0);
-
-		m_active_render_pass_has_draws = true;
 	};
 
 	switch (type)
