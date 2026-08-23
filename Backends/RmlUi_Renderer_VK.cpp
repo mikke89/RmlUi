@@ -5096,8 +5096,6 @@ void RenderInterface_VK::ReleaseShader(Rml::CompiledShaderHandle effect_handle)
 	delete reinterpret_cast<CompiledShader*>(effect_handle);
 }
 
-static int nGlobalID{};
-
 Rml::TextureHandle RenderInterface_VK::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
 	RMLUI_ZoneScopedN("Vulkan - LoadTexture");
@@ -5194,6 +5192,7 @@ Rml::TextureHandle RenderInterface_VK::GenerateTexture(Rml::Span<const Rml::byte
 	Rml::String source_name = "generated-texture";
 
 #ifdef RMLUI_VK_DEBUG
+	static int nGlobalID{};
 	source_name += "[" + std::to_string(nGlobalID) + "]";
 	++nGlobalID;
 #endif
