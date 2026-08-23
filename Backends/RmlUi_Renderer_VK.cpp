@@ -19,6 +19,15 @@
 // (they live outside the include guards of vulkan.h/vk_mem_alloc.h).
 #if defined _MSC_VER
 	#pragma warning(push, 0)
+#elif defined __clang__
+	#pragma clang diagnostic push
+	#pragma clang diagnostic ignored "-Wall"
+	#pragma clang diagnostic ignored "-Wextra"
+	#pragma clang diagnostic ignored "-Wnullability-extension"
+	#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+	#pragma clang diagnostic ignored "-Wnullability-completeness"
+#elif defined __GNUC__
+	#pragma GCC system_header
 #endif
 #define GLAD_VULKAN_IMPLEMENTATION
 #include "RmlUi_Vulkan/vulkan.h"
@@ -26,6 +35,8 @@
 #include "RmlUi_Vulkan/vk_mem_alloc.h"
 #if defined _MSC_VER
 	#pragma warning(pop)
+#elif defined __clang__
+	#pragma clang diagnostic pop
 #endif
 
 // AlignUp(314, 256) = 512
