@@ -46,6 +46,7 @@ static T AlignUp(T val, T alignment)
 	return (val + alignment - (T)1) & ~(alignment - (T)1);
 }
 
+#ifdef RMLUI_VK_DEBUG
 static VkValidationFeaturesEXT debug_validation_features_ext = {};
 static VkValidationFeatureEnableEXT debug_validation_features_ext_requested[] = {
 	VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
@@ -53,7 +54,6 @@ static VkValidationFeatureEnableEXT debug_validation_features_ext_requested[] = 
 	VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT,
 };
 
-#ifdef RMLUI_VK_DEBUG
 inline Rml::String FormatByteSize(VkDeviceSize size) noexcept
 {
 	constexpr VkDeviceSize K = VkDeviceSize(1024);
