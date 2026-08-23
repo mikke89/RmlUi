@@ -14,30 +14,12 @@
 #include <math.h>
 #include <string.h>
 
-// The implementation translation unit for the bundled glad Vulkan loader and VulkanMemoryAllocator (both header-only
-// style). The first include above pulled in the declarations; these re-includes expand only the implementation blocks
-// (they live outside the include guards of vulkan.h/vk_mem_alloc.h).
-#if defined _MSC_VER
-	#pragma warning(push, 0)
-#elif defined __clang__
-	#pragma clang diagnostic push
-	#pragma clang diagnostic ignored "-Wall"
-	#pragma clang diagnostic ignored "-Wextra"
-	#pragma clang diagnostic ignored "-Wnullability-extension"
-	#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-	#pragma clang diagnostic ignored "-Wnullability-completeness"
-#elif defined __GNUC__
-	#pragma GCC system_header
-#endif
+// Include the implementation of the bundled glad Vulkan loader and VulkanMemoryAllocator in this translation unit. The
+// first include pulled in the declarations; these re-includes expand only the implementation blocks (they live outside
+// the include guards of vulkan.h/vk_mem_alloc.h).
 #define GLAD_VULKAN_IMPLEMENTATION
-#include "RmlUi_Vulkan/vulkan.h"
 #define VMA_IMPLEMENTATION
-#include "RmlUi_Vulkan/vk_mem_alloc.h"
-#if defined _MSC_VER
-	#pragma warning(pop)
-#elif defined __clang__
-	#pragma clang diagnostic pop
-#endif
+#include "RmlUi_Include_Vulkan.h"
 
 // AlignUp(314, 256) = 512
 template <typename T>
@@ -416,8 +398,8 @@ RenderInterface_VK::RenderInterface_VK() :
 	m_p_descriptor_set_layout_blend_mask{}, m_p_pipeline_layout_transform{}, m_p_pipeline_layout_transform_texture{}, m_p_pipeline_layout_texture{},
 	m_p_pipeline_layout_texture_effect{}, m_p_pipeline_layout_blend_mask{}, m_p_render_pass_layer{}, m_p_render_pass_layer_clear{},
 	m_p_render_pass_layer_clear_all{}, m_p_render_pass_layer_clear_ds{}, m_p_render_pass_postprocess{}, m_p_render_pass_swapchain{},
-	m_p_sampler_linear{}, m_scissor_original{}, m_viewport{}, m_p_active_render_pass{}, m_p_active_framebuffer{},
-	m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
+	m_p_sampler_linear{}, m_scissor_original{}, m_viewport{}, m_p_active_render_pass{}, m_p_active_framebuffer{}, m_p_queue_present{},
+	m_p_queue_graphics{}, m_p_queue_compute{},
 #ifdef RMLUI_VK_DEBUG
 	m_debug_messenger{},
 #endif

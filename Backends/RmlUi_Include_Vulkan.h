@@ -6,8 +6,93 @@
 	#endif
 	#define VMA_STATIC_VULKAN_FUNCTIONS 0
 	#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+
+	#ifdef RMLUI_DEBUG
+		#define RMLUI_VK_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(statement, msg)
+
+	// Uncomment the following line to enable additional Vulkan debugging.
+	// #define RMLUI_VK_DEBUG
+
+	#else
+		#define RMLUI_VK_ASSERTMSG(statement, msg) static_cast<void>(statement)
+	#endif
+
+	#include "RmlUi_Vulkan/ShadersList.h"
+
+	// Your specified API version. Ideally, this will be dynamic in the future.
+	#ifndef RMLUI_VK_API_VERSION
+		#define RMLUI_VK_API_VERSION VK_API_VERSION_1_0
+	#endif
+
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT
+		#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT 2
+	#endif
+
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
+		// system field (it is not supposed to specify by initialization structure)
+	    // on some render backend implementations (Vulkan/DirectX-12) we have to check memory leaks but
+	    // if we don't reserve memory for a field that contains layers (it is vector)
+	    // at runtime we will get a called dtor of move-to-copy object (because of reallocation)
+	    // and for that matter we will get a false-positive trigger of assert and it is not right generally
+		#define RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS 6
+	#endif
+
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_SIZE
+		#define RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_SIZE 1024 * 1024 * 8
+	#endif
+
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED
+		#define RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED 1
+	#endif
+
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE
+		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE 0.0f, 0.0f, 0.0f, 1.0f
+	#endif
+
+	// specifies general (for all depth stencil textures that might be allocated by backend) depth value on clear operation (::Clear)
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE
+		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE 1.0f
+	#endif
+
+	// specifies general (for all depth stencil textures that might be allocated by backend) stencil value on clear operation
+    // (::Clear)
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE
+		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE 0
+	#endif
+
+	// Size of one pool block of the buffer memory manager (vertex/index/constant data). Mirrors the DX12 renderer.
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION
+		#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION 1024 * 1024 * 2
+	#endif
+
+	// Alignment of constant-buffer suballocations (dynamic UBO offsets). The renderer raises this to the device's
+    // minUniformBufferOffsetAlignment at runtime when it is larger.
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_ALIGNMENT_FOR_BUFFER
+		#define RMLUI_RENDER_BACKEND_FIELD_ALIGNMENT_FOR_BUFFER 256
+	#endif
+
+	// Texture format of the UI color textures (layers, postprocess, generated textures). Mirrors the DX12 renderer.
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT
+		#define RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT VK_FORMAT_R8G8B8A8_UNORM
+	#endif
+
+	// Amount of constant buffers preallocated per backbuffer slot (per draw call one buffer is consumed).
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS
+		#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS 512
+	#endif
+
+	// Descriptor pool capacity: amount of combined image sampler descriptors (one per texture plus transient sets).
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_IMAGE_SAMPLER
+		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_IMAGE_SAMPLER 1024
+	#endif
+
+	// Descriptor pool capacity: amount of dynamic uniform buffer descriptors (two per pool buffer are created at most).
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_UNIFORM_BUFFER_DYNAMIC
+		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_UNIFORM_BUFFER_DYNAMIC 64
+	#endif
 #endif
 
+// The remainder of this file is purposefully placed outside the header guard, so the header can be included again with implementation macros defined.
 #if defined _MSC_VER
 	#pragma warning(push, 0)
 #elif defined __clang__
@@ -23,93 +108,10 @@
 
 #include "RmlUi_Vulkan/vulkan.h"
 // Always include "vulkan.h" first, this comment prevents clang-format from reordering the includes.
-#include "RmlUi_Vulkan/ShadersList.h"
 #include "RmlUi_Vulkan/vk_mem_alloc.h"
 
 #if defined _MSC_VER
 	#pragma warning(pop)
 #elif defined __clang__
 	#pragma clang diagnostic pop
-#endif
-
-#ifdef RMLUI_DEBUG
-	#define RMLUI_VK_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(statement, msg)
-
-// Uncomment the following line to enable additional Vulkan debugging.
-// #define RMLUI_VK_DEBUG
-
-#else
-	#define RMLUI_VK_ASSERTMSG(statement, msg) static_cast<void>(statement)
-#endif
-
-// Your specified API version. Ideally, this will be dynamic in the future.
-#ifndef RMLUI_VK_API_VERSION
-	#define RMLUI_VK_API_VERSION VK_API_VERSION_1_0
-#endif
-
-#ifndef RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT
-	#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT 2
-#endif
-
-#ifndef RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
-	// system field (it is not supposed to specify by initialization structure)
-    // on some render backend implementations (Vulkan/DirectX-12) we have to check memory leaks but
-    // if we don't reserve memory for a field that contains layers (it is vector)
-    // at runtime we will get a called dtor of move-to-copy object (because of reallocation)
-    // and for that matter we will get a false-positive trigger of assert and it is not right generally
-	#define RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS 6
-#endif
-
-#ifndef RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_SIZE
-	#define RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_SIZE 1024 * 1024 * 8
-#endif
-
-#ifndef RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED
-	#define RMLUI_RENDER_BACKEND_FIELD_STAGING_BUFFER_CACHE_ENABLED 1
-#endif
-
-#ifndef RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE
-	#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE 0.0f, 0.0f, 0.0f, 1.0f
-#endif
-
-// specifies general (for all depth stencil textures that might be allocated by backend) depth value on clear operation (::Clear)
-#ifndef RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE
-	#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE 1.0f
-#endif
-
-// specifies general (for all depth stencil textures that might be allocated by backend) stencil value on clear operation
-// (::Clear)
-#ifndef RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE
-	#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE 0
-#endif
-
-// Size of one pool block of the buffer memory manager (vertex/index/constant data). Mirrors the DX12 renderer.
-#ifndef RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION
-	#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION 1024 * 1024 * 2
-#endif
-
-// Alignment of constant-buffer suballocations (dynamic UBO offsets). The renderer raises this to the device's
-// minUniformBufferOffsetAlignment at runtime when it is larger.
-#ifndef RMLUI_RENDER_BACKEND_FIELD_ALIGNMENT_FOR_BUFFER
-	#define RMLUI_RENDER_BACKEND_FIELD_ALIGNMENT_FOR_BUFFER 256
-#endif
-
-// Texture format of the UI color textures (layers, postprocess, generated textures). Mirrors the DX12 renderer.
-#ifndef RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT
-	#define RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT VK_FORMAT_R8G8B8A8_UNORM
-#endif
-
-// Amount of constant buffers preallocated per backbuffer slot (per draw call one buffer is consumed).
-#ifndef RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS
-	#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS 512
-#endif
-
-// Descriptor pool capacity: amount of combined image sampler descriptors (one per texture plus transient sets).
-#ifndef RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_IMAGE_SAMPLER
-	#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_IMAGE_SAMPLER 1024
-#endif
-
-// Descriptor pool capacity: amount of dynamic uniform buffer descriptors (two per pool buffer are created at most).
-#ifndef RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_UNIFORM_BUFFER_DYNAMIC
-	#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_UNIFORM_BUFFER_DYNAMIC 64
 #endif
