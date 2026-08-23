@@ -15,7 +15,7 @@
     Requires Windows 10, version 1703.
  */
 #ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
-	#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((HANDLE)-4)
+	#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((HANDLE) - 4)
 #endif
 #ifndef WM_DPICHANGED
 	#define WM_DPICHANGED 0x02E0
@@ -233,7 +233,6 @@ void Backend::BeginFrame()
 {
 	RMLUI_ASSERT(data);
 	data->render_interface.BeginFrame();
-	data->render_interface.Clear();
 }
 
 void Backend::PresentFrame()
