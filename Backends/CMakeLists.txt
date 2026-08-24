@@ -16,7 +16,6 @@ if(RMLUI_BACKEND_SIMULATE_TOUCH)
 		"SDL_GL2"
 		"SDL_GL3"
 		"SDL_VK"
-		"SDL_SDLrenderer"
 		"SDL_GPU"
 	)
 	if(NOT RMLUI_BACKEND IN_LIST RMLUI_BACKEND_SIMULATE_TOUCH_SUPPORTED)
@@ -206,16 +205,6 @@ target_sources(rmlui_backend_SDL_DX12 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_DirectX_12.h"
 )
 target_link_libraries(rmlui_backend_SDL_DX12 INTERFACE rmlui_backend_common_headers SDL::SDL SDL_image::SDL_image)
-
-add_library(rmlui_backend_SDL_SDLrenderer INTERFACE)
-target_sources(rmlui_backend_SDL_SDLrenderer INTERFACE
-	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_SDL.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_SDL_SDLrenderer.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.h"
-	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_SDL.h"
-)
-target_link_libraries(rmlui_backend_SDL_SDLrenderer INTERFACE rmlui_backend_common_headers SDL::SDL SDL_image::SDL_image)
 
 add_library(rmlui_backend_SDL_GPU INTERFACE)
 target_sources(rmlui_backend_SDL_GPU INTERFACE
