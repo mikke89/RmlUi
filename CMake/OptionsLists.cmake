@@ -16,7 +16,6 @@ set(RMLUI_BACKEND_OPTIONS
 	"SDL_GL2"
 	"SDL_GL3"
 	"SDL_VK"
-	"SDL_SDLrenderer"
 	"SDL_GPU"
 	"SFML_GL2"
 	"GLFW_GL2"

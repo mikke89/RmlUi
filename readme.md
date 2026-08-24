@@ -150,7 +150,6 @@ The provided backends on the other hand are not intended to be used directly by 
 | OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |   ❌    |   ❌    | Uncompressed TGA                                                  |
 | Vulkan (VK)       |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
 | SDL GPU           |       ✔️        |     ✔️     |     ❌     |   ❌    |   ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
-| SDLrenderer       |       ✔️        |     ❌     |     ❌     |   ❌    |   ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 | DirectX 11¹       |       ✔️        |     ✔️     |     ✔️     |   🟡    |   ✔️    | Uncompressed TGA                                                  |
 | DirectX 12        |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
 
@@ -183,14 +182,14 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Backends
 
-| Platform \ Renderer |     OpenGL 2      |      OpenGL 3       |      Vulkan      |     SDL GPU     |       SDLrenderer       |     DirectX 11     |     DirectX 12     |
-|---------------------|:-----------------:|:-------------------:|:----------------:|:---------------:|:-----------------------:|:------------------:|:------------------:|
-| Win32               | ✔️<br>`Win32_GL2` |                     | ✔️<br>`Win32_VK` |                 |                         | ✔️<br>`Win32_DX11` | ✔️<br>`Win32_DX12` |
-| X11                 |  ✔️<br>`X11_GL2`  |                     |                  |                 |                         |                    |                    |
-| Wayland             |                   | ✔️<br>`Wayland_GL3` |                  |                 |                         |                    |                    |
-| SFML                | ✔️<br>`SFML_GL2`  |                     |                  |                 |                         |                    |                    |
-| GLFW                | ✔️<br>`GLFW_GL2`  |  ✔️<br>`GLFW_GL3`   | ✔️<br>`GLFW_VK`  |                 |                         | ✔️<br>`GLFW_DX11`  | ✔️<br>`GLFW_DX12`  |
-| SDL¹                |  ✔️<br>`SDL_GL2`  |  ✔️²<br>`SDL_GL3`   |  ✔️<br>`SDL_VK`  | ✔️<br>`SDL_GPU` | ✔️<br>`SDL_SDLrenderer` |                    |  ✔️<br>`SDL_DX12`  |
+| Platform \ Renderer |     OpenGL 2      |      OpenGL 3       |      Vulkan      |     SDL GPU     |     DirectX 11     |     DirectX 12     |
+|---------------------|:-----------------:|:-------------------:|:----------------:|:---------------:|:------------------:|:------------------:|
+| Win32               | ✔️<br>`Win32_GL2` |                     | ✔️<br>`Win32_VK` |                 | ✔️<br>`Win32_DX11` | ✔️<br>`Win32_DX12` |
+| X11                 |  ✔️<br>`X11_GL2`  |                     |                  |                 |                    |                    |
+| Wayland             |                   | ✔️<br>`Wayland_GL3` |                  |                 |                    |                    |
+| SFML                | ✔️<br>`SFML_GL2`  |                     |                  |                 |                    |                    |
+| GLFW                | ✔️<br>`GLFW_GL2`  |  ✔️<br>`GLFW_GL3`   | ✔️<br>`GLFW_VK`  |                 | ✔️<br>`GLFW_DX11`  | ✔️<br>`GLFW_DX12`  |
+| SDL¹                |  ✔️<br>`SDL_GL2`  |  ✔️²<br>`SDL_GL3`   |  ✔️<br>`SDL_VK`  | ✔️<br>`SDL_GPU` |                    |  ✔️<br>`SDL_DX12`  |
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
