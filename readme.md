@@ -146,13 +146,13 @@ The provided backends on the other hand are not intended to be used directly by 
 
 | Renderer features | Basic rendering | Transforms | Clip masks | Filters | Shaders | Built-in image support                                            |
 |-------------------|:---------------:|:----------:|:----------:|:-------:|:-------:|-------------------------------------------------------------------|
-| OpenGL 3 (GL3)*   |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
-| OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |    ❌    |    ❌    | Uncompressed TGA                                                  |
-| Vulkan (VK)       |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Uncompressed TGA                                                  |
-| SDL GPU           |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
-| SDLrenderer       |       ✔️        |     ❌     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
-| DirectX 11¹       |       ✔️        |     ✔️     |     ✔️     |    🟡    |    ✔️    | Uncompressed TGA                                                  |
-| DirectX 12        |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
+| OpenGL 3 (GL3)*   |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
+| OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |   ❌    |   ❌    | Uncompressed TGA                                                  |
+| Vulkan (VK)       |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
+| SDL GPU           |       ✔️        |     ✔️     |     ❌     |   ❌    |   ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| SDLrenderer       |       ✔️        |     ❌     |     ❌     |   ❌    |   ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| DirectX 11¹       |       ✔️        |     ✔️     |     ✔️     |   🟡    |   ✔️    | Uncompressed TGA                                                  |
+| DirectX 12        |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
 
 *\* Reference implementation* \
 *¹ Filters are fully featured, but some open issues remain ([details](https://github.com/mikke89/RmlUi/pull/675#issuecomment-2821714716))*
