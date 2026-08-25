@@ -42,6 +42,11 @@ public:
 
 	Rml::TextureHandle SaveLayerAsTexture() override;
 
+	Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) override;
+	void RenderShader(Rml::CompiledShaderHandle shader, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation,
+		Rml::TextureHandle texture) override;
+	void ReleaseShader(Rml::CompiledShaderHandle shader) override;
+
 private:
 	// Buffers are handed out in power-of-two sized buckets so that the same allocations can be reused across frames
 	// instead of creating a new buffer for every distinct mesh size.
@@ -59,6 +64,11 @@ private:
 	static constexpr SDL_GPUTextureFormat content_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
 	// Postprocess targets, used as both input and output when moving a layer's contents around.
 	static constexpr int num_postprocess_targets = 2;
+	// Mirrors MAX_NUM_STOPS in RmlUi_SDL_GPU/shader_common.hlsli. A gradient with more stops than this is truncated,
+	// as it is in every other backend.
+	static constexpr int max_num_stops = 16;
+	// Stop positions are packed four to a row of the constant buffer; see the shader for why.
+	static constexpr int max_num_stops_packed = (max_num_stops + 3) / 4;
 	// How deep clip masks may nest before the stencil runs out of room. Every Intersect raises the mask by one, so a
 	// generation has to keep this much space above it; past that the value clamps and the mask stops narrowing.
 	static constexpr int max_clip_mask_depth = 64;
@@ -107,6 +117,55 @@ private:
 		Buffer* index_buffer = nullptr;
 		int num_indices = 0;
 	};
+
+	// Must match the definitions at the top of shader_frag_gradient.frag.
+	enum class ShaderGradientFunction { Linear, Radial, Conic, RepeatingLinear, RepeatingRadial, RepeatingConic };
+
+	/*
+	    A shader RmlUi has asked for and will render with later. Only the parameters are kept; the GPU-side work
+	    happens in RenderShader().
+	*/
+	enum class CompiledShaderType { Invalid = 0, Gradient, Creation };
+	struct CompiledShader {
+		CompiledShaderType type = CompiledShaderType::Invalid;
+
+		// Gradient.
+		ShaderGradientFunction gradient_function = ShaderGradientFunction::Linear;
+		Rml::Vector2f p;
+		Rml::Vector2f v;
+		Rml::Vector<float> stop_positions;
+		Rml::Vector<Rml::Colourf> stop_colors;
+
+		// Creation.
+		Rml::Vector2f dimensions;
+	};
+
+	/*
+	    The constant buffers the fragment shaders read, laid out to match them byte for byte.
+
+	    HLSL packs a constant buffer into 16-byte rows: a member never straddles a row boundary, and an array element
+	    always starts one. Get this wrong and nothing fails loudly -- the shader compiles, the draw goes through, and
+	    the values are simply read from the wrong offsets. The static_asserts below check what can be checked.
+	*/
+	struct GradientUniforms {
+		Rml::Vector2f p;
+		Rml::Vector2f v;
+		int func;
+		int num_stops;
+		float padding[2];
+		Rml::Colourf stop_colors[max_num_stops];
+		float stop_positions[max_num_stops_packed * 4];
+	};
+	static_assert(sizeof(Rml::Colourf) == 16, "A colour is expected to be one row of a constant buffer");
+	static_assert(sizeof(GradientUniforms) == 32 + 16 * max_num_stops + 16 * max_num_stops_packed,
+		"GradientUniforms does not match the constant buffer rows of shader_frag_gradient.frag");
+
+	struct CreationUniforms {
+		Rml::Vector2f dimensions;
+		float value;
+		float padding;
+	};
+	static_assert(sizeof(CreationUniforms) == 16, "CreationUniforms does not match the constant buffer of shader_frag_creation.frag");
 
 	// A buffer upload waiting for the next copy pass.
 	struct PendingUpload {
@@ -177,14 +236,30 @@ private:
 		RenderTarget postprocess[num_postprocess_targets];
 
 		SDL_GPUTexture* depth_stencil = nullptr;
-		// The format in use, INVALID while there is no stencil buffer to go with it. Kept apart from the format the
-		// device supports so that a failed allocation only disables clip masks until the targets are next rebuilt,
-		// rather than for the life of the renderer.
+		// INVALID while there is no stencil buffer to go with it. Kept apart from what the device supports so that a
+		// failed allocation only disables clip masks until the next rebuild, not for the life of the renderer.
 		SDL_GPUTextureFormat depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
 		SDL_GPUTextureFormat supported_depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
 	};
 
-	enum class ProgramId { Color, Texture };
+	enum class ShaderId : uint8_t {
+		VertMain,
+		VertPassthrough,
+		VertBlur,
+		FragColor,
+		FragTexture,
+		FragGradient,
+		FragCreation,
+		FragPassthrough,
+		FragColorMatrix,
+		FragBlendMask,
+		FragBlur,
+		FragDropShadow,
+		Count,
+	};
+	static constexpr int num_shaders = static_cast<int>(ShaderId::Count);
+
+	enum class ProgramId : uint8_t { Color, Texture, Gradient, Creation };
 
 	// What a draw does with the stencil buffer. Writing modes turn colour writes off: they exist only to shape the
 	// clip mask.
@@ -213,7 +288,11 @@ private:
 		SDL_GPUGraphicsPipeline* pipeline = nullptr;
 	};
 
-	bool CreateShaders();
+	// Shaders are built the first time a program needs them, so that the ones a document never reaches for cost
+	// nothing. Null is returned, and logged once, if creation fails.
+	SDL_GPUShader* GetShader(ShaderId id);
+	void ReleaseShaders();
+	static void GetProgramShaders(ProgramId program, ShaderId& out_vertex, ShaderId& out_fragment);
 	SDL_GPUGraphicsPipeline* GetPipeline(ProgramId program, Rml::BlendMode blend, StencilMode stencil);
 	void ReleasePipelines();
 
@@ -251,6 +330,10 @@ private:
 		// and pass the plain projection instead.
 		const Rml::Matrix4f* transform = nullptr;
 		Rml::Vector2f translation;
+		// The constant buffer of a program that takes one, or null. Pushed on every draw rather than cached: this is
+		// per-draw data, and comparing it would cost more than sending it.
+		const void* fragment_uniforms = nullptr;
+		uint32_t fragment_uniforms_size = 0;
 	};
 	// Issues a draw into the open render pass. The pass must already be open on the wanted target. Returns false if
 	// the draw could not be issued, which matters to callers that record what it was meant to leave behind.
@@ -285,9 +368,9 @@ private:
 
 	SDL_GPUDevice* device = nullptr;
 
-	SDL_GPUShader* color_shader = nullptr;
-	SDL_GPUShader* texture_shader = nullptr;
-	SDL_GPUShader* vertex_shader = nullptr;
+	SDL_GPUShader* shaders[num_shaders] = {};
+	// Set once creation of a shader has failed, so that the failure is not retried on every draw.
+	bool shader_failed[num_shaders] = {};
 	Rml::Vector<PipelineEntry> pipelines;
 	// Whether the cached pipelines were built with a depth/stencil attachment, so that they can be rebuilt if the
 	// availability of one changes. A pipeline whose target layout disagrees with the pass is invalid.

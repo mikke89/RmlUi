@@ -1,9 +1,11 @@
 #include "RmlUi_Renderer_SDL_GPU.h"
-#include "RmlUi_SDL_GPU/ShadersCompiledSPV.h"
+#include "RmlUi_SDL_GPU/compiled/ShadersCompiled.h"
 #include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/DecorationTypes.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Math.h>
+#include <RmlUi/Core/SystemInterface.h>
 #include <RmlUi/Core/Types.h>
 #include <SDL3_image/SDL_image.h>
 #include <algorithm>
@@ -16,13 +18,6 @@
 
 using namespace Rml;
 
-enum ShaderType {
-	ShaderTypeColor,
-	ShaderTypeTexture,
-	ShaderTypeVert,
-	ShaderTypeCount,
-};
-
 enum ShaderFormat {
 	ShaderFormatSPIRV,
 	ShaderFormatMSL,
@@ -30,8 +25,12 @@ enum ShaderFormat {
 	ShaderFormatCount,
 };
 
-struct Shader {
+struct ShaderDefinition {
+	// The ShaderId this row stands for, as an int because the enum is private to the renderer.
+	int id;
 	Span<const byte> data[ShaderFormatCount];
+	// SDL takes the application's word for these rather than deriving them from the blob. They come from the
+	// reflection compile_shaders.py can emit (`-d json`).
 	int uniforms;
 	int samplers;
 	SDL_GPUShaderStage stage;
@@ -43,15 +42,19 @@ struct Shader {
 	{                      \
 		name, sizeof(name) \
 	}
+// Metal Shading Language is text, and is stored as a string literal rather than a byte array -- see
+// compile_shaders.py. The terminator is not part of the shader, and SDL takes the length rather than looking for one,
+// so it has to come off here.
+#define X_TEXT(name)                                            \
+	Span<const byte>                                            \
+	{                                                           \
+		reinterpret_cast<const byte*>(name), sizeof(name) - 1   \
+	}
+#define SHADER_BLOBS(name) {X(name##_spirv), X_TEXT(name##_msl), X(name##_dxil)}
+#define SHADER_DEF(id, name, uniforms, samplers, stage) \
+	{static_cast<int>(ShaderId::id), SHADER_BLOBS(name), uniforms, samplers, stage}
 
-static const Shader shaders[ShaderTypeCount] = {
-	{{X(shader_frag_color_spirv), X(shader_frag_color_msl), X(shader_frag_color_dxil)}, 0, 0, SDL_GPU_SHADERSTAGE_FRAGMENT},
-	{{X(shader_frag_texture_spirv), X(shader_frag_texture_msl), X(shader_frag_texture_dxil)}, 0, 1, SDL_GPU_SHADERSTAGE_FRAGMENT},
-	{{X(shader_vert_spirv), X(shader_vert_msl), X(shader_vert_dxil)}, 2, 0, SDL_GPU_SHADERSTAGE_VERTEX}};
-
-#undef X
-
-static SDL_GPUShader* CreateShaderFromMemory(SDL_GPUDevice* device, ShaderType type)
+static SDL_GPUShader* CreateShaderFromMemory(SDL_GPUDevice* device, const ShaderDefinition& shader)
 {
 	SDL_GPUShaderFormat sdl_shader_format = SDL_GetGPUShaderFormats(device);
 	ShaderFormat format = ShaderFormatCount;
@@ -79,7 +82,6 @@ static SDL_GPUShader* CreateShaderFromMemory(SDL_GPUDevice* device, ShaderType t
 		RMLUI_ERRORMSG("Invalid shader format");
 		return nullptr;
 	}
-	const Shader& shader = shaders[type];
 	SDL_GPUShaderCreateInfo info{};
 	info.code = static_cast<const Uint8*>(shader.data[format].data());
 	info.code_size = shader.data[format].size();
@@ -90,11 +92,16 @@ static SDL_GPUShader* CreateShaderFromMemory(SDL_GPUDevice* device, ShaderType t
 	info.num_uniform_buffers = shader.uniforms;
 	SDL_GPUShader* sdl_shader = SDL_CreateGPUShader(device, &info);
 	if (!sdl_shader)
-	{
 		Log::Message(Log::LT_ERROR, "Failed to create shader: %s", SDL_GetError());
-		RMLUI_ERROR;
-	}
 	return sdl_shader;
+}
+
+static Colourf ConvertToColorf(ColourbPremultiplied c0)
+{
+	Colourf result;
+	for (int i = 0; i < 4; i++)
+		result[i] = (1.f / 255.f) * float(c0[i]);
+	return result;
 }
 
 // -- Buffer pool -------------------------------------------------------------
@@ -409,12 +416,63 @@ void RenderInterface_SDL_GPU::RenderLayerStack::SwapPostprocessPrimarySecondary(
 
 // -- Setup -------------------------------------------------------------------
 
-bool RenderInterface_SDL_GPU::CreateShaders()
+SDL_GPUShader* RenderInterface_SDL_GPU::GetShader(ShaderId id)
 {
-	color_shader = CreateShaderFromMemory(device, ShaderTypeColor);
-	texture_shader = CreateShaderFromMemory(device, ShaderTypeTexture);
-	vertex_shader = CreateShaderFromMemory(device, ShaderTypeVert);
-	return color_shader && texture_shader && vertex_shader;
+	// Indexed by ShaderId, and must stay in that order. It lives here rather than at file scope so that each row can
+	// name the enumerator it belongs to; the two asserts below are what that buys.
+	static const ShaderDefinition shader_definitions[] = {
+		SHADER_DEF(VertMain, shader_vert, 2, 0, SDL_GPU_SHADERSTAGE_VERTEX),
+		SHADER_DEF(VertPassthrough, shader_vert_passthrough, 0, 0, SDL_GPU_SHADERSTAGE_VERTEX),
+		SHADER_DEF(VertBlur, shader_vert_blur, 1, 0, SDL_GPU_SHADERSTAGE_VERTEX),
+		SHADER_DEF(FragColor, shader_frag_color, 0, 0, SDL_GPU_SHADERSTAGE_FRAGMENT),
+		SHADER_DEF(FragTexture, shader_frag_texture, 0, 1, SDL_GPU_SHADERSTAGE_FRAGMENT),
+		SHADER_DEF(FragGradient, shader_frag_gradient, 1, 0, SDL_GPU_SHADERSTAGE_FRAGMENT),
+		SHADER_DEF(FragCreation, shader_frag_creation, 1, 0, SDL_GPU_SHADERSTAGE_FRAGMENT),
+		SHADER_DEF(FragPassthrough, shader_frag_passthrough, 0, 1, SDL_GPU_SHADERSTAGE_FRAGMENT),
+		SHADER_DEF(FragColorMatrix, shader_frag_color_matrix, 1, 1, SDL_GPU_SHADERSTAGE_FRAGMENT),
+		SHADER_DEF(FragBlendMask, shader_frag_blend_mask, 0, 2, SDL_GPU_SHADERSTAGE_FRAGMENT),
+		SHADER_DEF(FragBlur, shader_frag_blur, 1, 1, SDL_GPU_SHADERSTAGE_FRAGMENT),
+		SHADER_DEF(FragDropShadow, shader_frag_drop_shadow, 1, 1, SDL_GPU_SHADERSTAGE_FRAGMENT),
+	};
+	static_assert(sizeof(shader_definitions) / sizeof(shader_definitions[0]) == num_shaders,
+		"shader_definitions needs one row per ShaderId, in ShaderId order");
+
+	const int index = static_cast<int>(id);
+	RMLUI_ASSERT(shader_definitions[index].id == index);
+
+	if (shaders[index] || shader_failed[index])
+		return shaders[index];
+
+	shaders[index] = CreateShaderFromMemory(device, shader_definitions[index]);
+	shader_failed[index] = !shaders[index];
+	return shaders[index];
+}
+
+#undef SHADER_DEF
+#undef SHADER_BLOBS
+#undef X
+
+void RenderInterface_SDL_GPU::ReleaseShaders()
+{
+	for (int i = 0; i < num_shaders; i++)
+	{
+		if (shaders[i])
+			SDL_ReleaseGPUShader(device, shaders[i]);
+		shaders[i] = nullptr;
+		shader_failed[i] = false;
+	}
+}
+
+void RenderInterface_SDL_GPU::GetProgramShaders(ProgramId program, ShaderId& out_vertex, ShaderId& out_fragment)
+{
+	out_vertex = ShaderId::VertMain;
+	switch (program)
+	{
+	case ProgramId::Color: out_fragment = ShaderId::FragColor; break;
+	case ProgramId::Texture: out_fragment = ShaderId::FragTexture; break;
+	case ProgramId::Gradient: out_fragment = ShaderId::FragGradient; break;
+	case ProgramId::Creation: out_fragment = ShaderId::FragCreation; break;
+	}
 }
 
 SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program, Rml::BlendMode blend, StencilMode stencil)
@@ -464,8 +522,19 @@ SDL_GPUGraphicsPipeline* RenderInterface_SDL_GPU::GetPipeline(ProgramId program,
 	buffer.pitch = sizeof(Vertex);
 
 	SDL_GPUGraphicsPipelineCreateInfo info{};
-	info.vertex_shader = vertex_shader;
-	info.fragment_shader = (program == ProgramId::Texture) ? texture_shader : color_shader;
+	ShaderId vertex_id = ShaderId::VertMain;
+	ShaderId fragment_id = ShaderId::FragColor;
+	GetProgramShaders(program, vertex_id, fragment_id);
+	info.vertex_shader = GetShader(vertex_id);
+	info.fragment_shader = GetShader(fragment_id);
+	if (!info.vertex_shader || !info.fragment_shader)
+	{
+		// A mask this program cannot draw is a mask nothing may be tested against.
+		if (writes_stencil)
+			stencil_pipelines_failed = true;
+		pipelines.push_back({key, nullptr});
+		return nullptr;
+	}
 
 	info.target_info.num_color_targets = 1;
 	info.target_info.color_target_descriptions = &target;
@@ -549,11 +618,6 @@ void RenderInterface_SDL_GPU::ReleasePipelines()
 RenderInterface_SDL_GPU::RenderInterface_SDL_GPU(SDL_GPUDevice* device, SDL_Window* /*window*/) : device(device)
 {
 	render_layers.Initialize(device);
-	if (!CreateShaders())
-	{
-		Log::Message(Log::LT_ERROR, "Failed to create the renderer's shaders, nothing will be drawn");
-		RMLUI_ERROR;
-	}
 
 	vertex_buffers.Initialize(device, SDL_GPU_BUFFERUSAGE_VERTEX, "RmlUi vertices");
 	index_buffers.Initialize(device, SDL_GPU_BUFFERUSAGE_INDEX, "RmlUi indices");
@@ -596,19 +660,10 @@ void RenderInterface_SDL_GPU::Shutdown()
 
 	ReleasePipelines();
 	pipelines_depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
+	ReleaseShaders();
 
-	if (color_shader)
-		SDL_ReleaseGPUShader(device, color_shader);
-	if (texture_shader)
-		SDL_ReleaseGPUShader(device, texture_shader);
-	if (vertex_shader)
-		SDL_ReleaseGPUShader(device, vertex_shader);
 	if (linear_sampler)
 		SDL_ReleaseGPUSampler(device, linear_sampler);
-
-	color_shader = nullptr;
-	texture_shader = nullptr;
-	vertex_shader = nullptr;
 	linear_sampler = nullptr;
 
 	shutdown_complete = true;
@@ -1037,6 +1092,9 @@ bool RenderInterface_SDL_GPU::DrawGeometry(const GeometryView& geometry, const D
 		translation_dirty = false;
 	}
 
+	if (state.fragment_uniforms)
+		SDL_PushGPUFragmentUniformData(command_buffer, 0, state.fragment_uniforms, state.fragment_uniforms_size);
+
 	SDL_DrawGPUIndexedPrimitives(render_pass, geometry.num_indices, 1, 0, 0, 0);
 	return true;
 }
@@ -1404,6 +1462,143 @@ void RenderInterface_SDL_GPU::RenderToClipMask(Rml::ClipMaskOperation operation,
 		stencil_test_value = generation;
 		stencil_high_water = generation;
 	}
+}
+
+// -- Shaders -----------------------------------------------------------------
+
+CompiledShaderHandle RenderInterface_SDL_GPU::CompileShader(const String& name, const Dictionary& parameters)
+{
+	auto ApplyColorStopList = [](CompiledShader& shader, const Dictionary& shader_parameters) {
+		auto it = shader_parameters.find("color_stop_list");
+		RMLUI_ASSERT(it != shader_parameters.end() && it->second.GetType() == Variant::COLORSTOPLIST);
+		const ColorStopList& color_stop_list = it->second.GetReference<ColorStopList>();
+		const int num_stops = Math::Min((int)color_stop_list.size(), max_num_stops);
+
+		shader.stop_positions.resize(num_stops);
+		shader.stop_colors.resize(num_stops);
+		for (int i = 0; i < num_stops; i++)
+		{
+			const ColorStop& stop = color_stop_list[i];
+			RMLUI_ASSERT(stop.position.unit == Unit::NUMBER);
+			shader.stop_positions[i] = stop.position.number;
+			shader.stop_colors[i] = ConvertToColorf(stop.color);
+		}
+	};
+
+	CompiledShader shader = {};
+
+	if (name == "linear-gradient")
+	{
+		shader.type = CompiledShaderType::Gradient;
+		const bool repeating = Rml::Get(parameters, "repeating", false);
+		shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingLinear : ShaderGradientFunction::Linear);
+		shader.p = Rml::Get(parameters, "p0", Vector2f(0.f));
+		shader.v = Rml::Get(parameters, "p1", Vector2f(0.f)) - shader.p;
+		ApplyColorStopList(shader, parameters);
+	}
+	else if (name == "radial-gradient")
+	{
+		shader.type = CompiledShaderType::Gradient;
+		const bool repeating = Rml::Get(parameters, "repeating", false);
+		shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingRadial : ShaderGradientFunction::Radial);
+		shader.p = Rml::Get(parameters, "center", Vector2f(0.f));
+		shader.v = Vector2f(1.f) / Rml::Get(parameters, "radius", Vector2f(1.f));
+		ApplyColorStopList(shader, parameters);
+	}
+	else if (name == "conic-gradient")
+	{
+		shader.type = CompiledShaderType::Gradient;
+		const bool repeating = Rml::Get(parameters, "repeating", false);
+		shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingConic : ShaderGradientFunction::Conic);
+		shader.p = Rml::Get(parameters, "center", Vector2f(0.f));
+		const float angle = Rml::Get(parameters, "angle", 0.f);
+		shader.v = {Math::Cos(angle), Math::Sin(angle)};
+		ApplyColorStopList(shader, parameters);
+	}
+	else if (name == "shader")
+	{
+		const String value = Rml::Get(parameters, "value", String());
+		if (value == "creation")
+		{
+			shader.type = CompiledShaderType::Creation;
+			shader.dimensions = Rml::Get(parameters, "dimensions", Vector2f(0.f));
+		}
+	}
+
+	if (shader.type != CompiledShaderType::Invalid)
+		return reinterpret_cast<CompiledShaderHandle>(new CompiledShader(std::move(shader)));
+
+	Log::Message(Log::LT_WARNING, "Unsupported shader type '%s'.", name.c_str());
+	return {};
+}
+
+void RenderInterface_SDL_GPU::RenderShader(CompiledShaderHandle shader_handle, CompiledGeometryHandle geometry_handle, Vector2f translation,
+	TextureHandle /*texture*/)
+{
+	const CompiledShader* shader = reinterpret_cast<CompiledShader*>(shader_handle);
+	GeometryView* geometry = reinterpret_cast<GeometryView*>(geometry_handle);
+	if (!shader || !geometry || !command_buffer)
+		return;
+
+	if (!FlushGeometryUploads())
+		return;
+	if (!EnsureRenderPass(render_layers.GetTopLayer()))
+		return;
+
+	DrawState state;
+	state.stencil = GetClipMaskMode();
+	state.stencil_reference = stencil_test_value;
+	state.translation = translation;
+
+	switch (shader->type)
+	{
+	case CompiledShaderType::Gradient:
+	{
+		RMLUI_ASSERT(shader->stop_positions.size() == shader->stop_colors.size());
+		const int num_stops = Math::Min((int)shader->stop_positions.size(), max_num_stops);
+
+		// Built on the stack every draw. The buffer is a few hundred bytes and SDL copies it out of here as the draw
+		// is recorded, so there is nothing to be gained by keeping it around between calls.
+		GradientUniforms uniforms = {};
+		uniforms.p = shader->p;
+		uniforms.v = shader->v;
+		uniforms.func = static_cast<int>(shader->gradient_function);
+		uniforms.num_stops = num_stops;
+		for (int i = 0; i < num_stops; i++)
+		{
+			uniforms.stop_colors[i] = shader->stop_colors[i];
+			uniforms.stop_positions[i] = shader->stop_positions[i];
+		}
+
+		state.program = ProgramId::Gradient;
+		state.fragment_uniforms = &uniforms;
+		state.fragment_uniforms_size = sizeof(uniforms);
+		DrawGeometry(*geometry, state);
+	}
+	break;
+	case CompiledShaderType::Creation:
+	{
+		CreationUniforms uniforms = {};
+		uniforms.dimensions = shader->dimensions;
+		uniforms.value = static_cast<float>(GetSystemInterface()->GetElapsedTime());
+
+		state.program = ProgramId::Creation;
+		state.fragment_uniforms = &uniforms;
+		state.fragment_uniforms_size = sizeof(uniforms);
+		DrawGeometry(*geometry, state);
+	}
+	break;
+	case CompiledShaderType::Invalid:
+	{
+		Log::Message(Log::LT_WARNING, "Unhandled render shader %d.", static_cast<int>(shader->type));
+	}
+	break;
+	}
+}
+
+void RenderInterface_SDL_GPU::ReleaseShader(CompiledShaderHandle shader_handle)
+{
+	delete reinterpret_cast<CompiledShader*>(shader_handle);
 }
 
 // -- Layers ------------------------------------------------------------------
