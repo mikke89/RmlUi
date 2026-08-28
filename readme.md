@@ -378,6 +378,12 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 ![Game interface](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/invader.png?raw=true)
 
+### LichtFeld Studio
+
+[LichtFeld Studio](https://lichtfeld.io). Open-source software for 3D Gaussian Splatting reconstruction and editing. The whole user interface is made with RmlUi, from the panels and asset manager to the built-in Python editor.
+
+![LichtFeld Studio](https://raw.githubusercontent.com/MrNeRF/LichtFeld-Studio/02492ad3955c5967e9d660e99811ea37298e9694/lichtfeld-studio-rmlui-gallery.webp)
+
 ### The Thing: Remastered
 
 [The Thing: Remastered](https://nightdivestudios.com/the-thing-remastered/) by [Nightdive Studios](https://www.nightdivestudios.com/). Restoration of the cult-classic 2002 third-person survival horror shooter game inspired by the 1982 film, The Thing. User interface made with RmlUi.
