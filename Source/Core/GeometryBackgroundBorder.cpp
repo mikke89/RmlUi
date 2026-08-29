@@ -42,12 +42,14 @@ BorderMetrics GeometryBackgroundBorder::ComputeBorderMetrics(Vector2f outer_posi
 		auto& outer_radii = metrics.outer_radii;
 		outer_radii = outer_radii_def;
 
-		// Scale the radii such that we have no overlapping curves.
+		// Scale the radii such that we have no overlapping curves. The outer radii lie on the border
+		// box, so they scale against the outer size (css corner-overlap rule); scaling them against
+		// the inner size makes a fully rounded shape impossible on any box with borders.
 		float scale_factor = FLT_MAX;
-		scale_factor = Math::Min(scale_factor, inner_size.x / (outer_radii[TOP_LEFT] + outer_radii[TOP_RIGHT]));       // Top
-		scale_factor = Math::Min(scale_factor, inner_size.y / (outer_radii[TOP_RIGHT] + outer_radii[BOTTOM_RIGHT]));   // Right
-		scale_factor = Math::Min(scale_factor, inner_size.x / (outer_radii[BOTTOM_RIGHT] + outer_radii[BOTTOM_LEFT])); // Bottom
-		scale_factor = Math::Min(scale_factor, inner_size.y / (outer_radii[BOTTOM_LEFT] + outer_radii[TOP_LEFT]));     // Left
+		scale_factor = Math::Min(scale_factor, outer_size.x / (outer_radii[TOP_LEFT] + outer_radii[TOP_RIGHT]));       // Top
+		scale_factor = Math::Min(scale_factor, outer_size.y / (outer_radii[TOP_RIGHT] + outer_radii[BOTTOM_RIGHT]));   // Right
+		scale_factor = Math::Min(scale_factor, outer_size.x / (outer_radii[BOTTOM_RIGHT] + outer_radii[BOTTOM_LEFT])); // Bottom
+		scale_factor = Math::Min(scale_factor, outer_size.y / (outer_radii[BOTTOM_LEFT] + outer_radii[TOP_LEFT]));     // Left
 		scale_factor = Math::Min(1.0f, scale_factor);
 
 		for (float& radius : outer_radii)
