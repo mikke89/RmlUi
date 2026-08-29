@@ -13,6 +13,9 @@
 #include "ComputeProperty.h"
 #include "ElementStyle.h"
 #include "TransformUtilities.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "CalculationResolver.h"
+#endif
 
 namespace Rml {
 
@@ -77,6 +80,23 @@ static bool CombineAndDecompose(Transform& t, Element& e)
 
 	return true;
 }
+
+static bool PrepareSingleTransform(Transform& transform, Element& element)
+{
+	bool must_decompose = false;
+	for (TransformPrimitive& primitive : transform.GetPrimitives())
+	{
+		if (!TransformUtilities::PrepareForInterpolation(primitive, element))
+		{
+			must_decompose = true;
+			break;
+		}
+	}
+	return !must_decompose || CombineAndDecompose(transform, element);
+}
+
+enum class PrepareTransformResult { Unchanged = 0, ChangedT0 = 1, ChangedT1 = 2, ChangedT0andT1 = 3, Invalid = 4 };
+static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1, Element& element);
 
 /**
     An abstraction for decorator and filter declarations.
@@ -182,7 +202,7 @@ static NumericValue InterpolateNumericValue(NumericValue v0, NumericValue v1, fl
 	if (Any(v0.unit & Unit::LENGTH) && Any(v1.unit & Unit::LENGTH))
 	{
 		float f0 = element.ResolveLength(v0);
-		float f1 = element.ResolveLength(v0);
+		float f1 = element.ResolveLength(v1);
 		return NumericValue{Mix(f0, f1, alpha), Unit::PX};
 	}
 
@@ -196,15 +216,194 @@ static NumericValue InterpolateNumericValue(NumericValue v0, NumericValue v1, fl
 	return alpha < 0.5f ? v0 : v1;
 }
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+static bool ResolveCalculatedAnimationEndpoint(const Property& property, Element& element, const PropertyDefinition* definition, NumericValue& result)
+{
+	if (Any(property.unit & Unit::NUMERIC))
+	{
+		result = property.GetNumericValue();
+		return true;
+	}
+	if (property.unit != Unit::CALCULATION)
+		return false;
+
+	const CalculationPtr calculation = property.value.Get<CalculationPtr>();
+	if (!calculation || !calculation->GetRoot())
+		return false;
+
+	RelativeTarget relative_target = (definition ? definition->GetRelativeTarget() : RelativeTarget::None);
+	float percentage_basis = 1.f;
+	switch (relative_target)
+	{
+	case RelativeTarget::ContainingBlockWidth: percentage_basis = element.GetContainingBlock().x; break;
+	case RelativeTarget::ContainingBlockHeight: percentage_basis = element.GetContainingBlock().y; break;
+	case RelativeTarget::FontSize: percentage_basis = element.GetComputedValues().font_size(); break;
+	case RelativeTarget::ParentFontSize:
+		if (Element* parent = element.GetParentNode())
+			percentage_basis = parent->GetComputedValues().font_size();
+		else
+			percentage_basis = DefaultComputedValues().font_size();
+		break;
+	case RelativeTarget::LineHeight: percentage_basis = element.GetLineHeight(); break;
+	case RelativeTarget::None: break;
+	}
+
+	float value = 0.f;
+	if (!ResolveElementCalculation(*calculation, element, percentage_basis, value, relative_target))
+		return false;
+
+	const CalculationNumericType& type = calculation->GetType();
+	auto is_dimension = [&](CalculationDimension dimension) {
+		for (size_t i = 0; i < type.exponents.size(); i++)
+		{
+			const int expected = (i == size_t(dimension) ? 1 : 0);
+			if (type.exponents[i] != expected)
+				return false;
+		}
+		return true;
+	};
+	auto is_number = [&]() {
+		for (int exponent : type.exponents)
+			if (exponent != 0)
+				return false;
+		return true;
+	};
+
+	Unit unit = Unit::UNKNOWN;
+	if (is_number() || is_dimension(CalculationDimension::Percent))
+		unit = Unit::NUMBER;
+	else if (is_dimension(CalculationDimension::Length))
+		unit = Unit::PX;
+	else if (is_dimension(CalculationDimension::Angle))
+		unit = Unit::RAD;
+	else if (is_dimension(CalculationDimension::Resolution))
+		unit = Unit::X;
+	else
+		return false;
+
+	result = NumericValue(value, unit);
+	return true;
+}
+
+static bool CalculationContainsUnit(const Calculation::Node& node, Unit unit)
+{
+	if (node.kind == Calculation::Kind::Value && node.unit == unit)
+		return true;
+	for (const auto& child : node.children)
+		if (child && CalculationContainsUnit(*child, unit))
+			return true;
+	return false;
+}
+
+static SharedPtr<const Calculation::Node> MakeCalculationEndpointNode(const Property& property, const CalculationNumericType& target_type)
+{
+	if (property.unit == Unit::CALCULATION)
+	{
+		const CalculationPtr calculation = property.value.Get<CalculationPtr>();
+		if (!calculation || !calculation->GetRoot() || calculation->GetType() != target_type)
+			return nullptr;
+		return calculation->GetRoot();
+	}
+
+	if (!Any(property.unit & Unit::NUMERIC))
+		return nullptr;
+	auto node = MakeShared<Calculation::Node>();
+	node->value = property.Get<float>();
+	node->unit = property.unit;
+	node->type = target_type;
+	return node;
+}
+
+static CalculationPtr InterpolateCalculations(const Property& p0, const Property& p1, float alpha)
+{
+	const CalculationPtr c0 = (p0.unit == Unit::CALCULATION ? p0.value.Get<CalculationPtr>() : nullptr);
+	const CalculationPtr c1 = (p1.unit == Unit::CALCULATION ? p1.value.Get<CalculationPtr>() : nullptr);
+	const CalculationNumericType* target_type = c0 && c0->GetRoot() ? &c0->GetType() : (c1 && c1->GetRoot() ? &c1->GetType() : nullptr);
+	if (!target_type)
+		return nullptr;
+
+	const auto endpoint0 = MakeCalculationEndpointNode(p0, *target_type);
+	const auto endpoint1 = MakeCalculationEndpointNode(p1, *target_type);
+	if (!endpoint0 || !endpoint1)
+		return nullptr;
+
+	auto make_weighted = [&](float weight, SharedPtr<const Calculation::Node> endpoint) -> SharedPtr<const Calculation::Node> {
+		auto weight_node = MakeShared<Calculation::Node>();
+		weight_node->value = weight;
+		weight_node->unit = Unit::NUMBER;
+
+		auto product = MakeShared<Calculation::Node>();
+		product->kind = Calculation::Kind::Product;
+		product->type = *target_type;
+		product->children = {std::move(weight_node), std::move(endpoint)};
+		return product;
+	};
+
+	auto sum = MakeShared<Calculation::Node>();
+	sum->kind = Calculation::Kind::Sum;
+	sum->type = *target_type;
+	sum->children = {make_weighted(1.f - alpha, endpoint0), make_weighted(alpha, endpoint1)};
+	return MakeShared<Calculation>(std::move(sum));
+}
+
+static bool ShouldDeferCalculatedPercentageInterpolation(const Property& p0, const Property& p1, const PropertyDefinition* definition)
+{
+	if (definition && definition->GetRelativeTarget() != RelativeTarget::None)
+		return false;
+
+	const CalculationPtr calculations[] = {
+		p0.unit == Unit::CALCULATION ? p0.value.Get<CalculationPtr>() : nullptr,
+		p1.unit == Unit::CALCULATION ? p1.value.Get<CalculationPtr>() : nullptr,
+	};
+	if (!calculations[0] && !calculations[1])
+		return false;
+	bool has_length_calculation = false;
+	for (const CalculationPtr& calculation : calculations)
+	{
+		if (!calculation || !calculation->GetRoot())
+			continue;
+		const CalculationNumericType& type = calculation->GetType();
+		bool is_length = true;
+		for (size_t i = 0; i < type.exponents.size(); ++i)
+			is_length &= type.exponents[i] == (i == size_t(CalculationDimension::Length) ? 1 : 0);
+		if (!is_length)
+			continue;
+		has_length_calculation = true;
+		if (CalculationContainsUnit(*calculation->GetRoot(), Unit::PERCENT))
+			return true;
+	}
+	return has_length_calculation && (p0.unit == Unit::PERCENT || p1.unit == Unit::PERCENT);
+}
+#endif
+
 static Property InterpolateProperties(const Property& p0, const Property& p1, float alpha, Element& element, const PropertyDefinition* definition)
 {
 	const Property& p_discrete = (alpha < 0.5f ? p0 : p1);
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if ((Any(p0.unit & Unit::NUMERIC) || p0.unit == Unit::CALCULATION) && (Any(p1.unit & Unit::NUMERIC) || p1.unit == Unit::CALCULATION))
+	{
+		if (ShouldDeferCalculatedPercentageInterpolation(p0, p1, definition))
+		{
+			if (CalculationPtr calculation = InterpolateCalculations(p0, p1, alpha))
+				return Property{std::move(calculation), Unit::CALCULATION};
+			return p_discrete;
+		}
+		NumericValue v0, v1;
+		if (ResolveCalculatedAnimationEndpoint(p0, element, definition, v0) && ResolveCalculatedAnimationEndpoint(p1, element, definition, v1))
+		{
+			NumericValue v = InterpolateNumericValue(v0, v1, alpha, element, definition);
+			return Property{v.number, v.unit};
+		}
+		return p_discrete;
+	}
+#else
 	if (Any(p0.unit & Unit::NUMERIC) && Any(p1.unit & Unit::NUMERIC))
 	{
 		NumericValue v = InterpolateNumericValue(p0.GetNumericValue(), p1.GetNumericValue(), alpha, element, definition);
 		return Property{v.number, v.unit};
 	}
+#endif
 
 	if (p0.unit == Unit::KEYWORD && p1.unit == Unit::KEYWORD)
 	{
@@ -240,6 +439,39 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 	{
 		auto& t0 = p0.value.GetReference<TransformPtr>();
 		auto& t1 = p1.value.GetReference<TransformPtr>();
+
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (t0 && t1 && (t0->HasCalculations() || t1->HasCalculations()))
+		{
+			auto resolve_transform = [&](const Transform& source) {
+				Transform result;
+				for (int i = 0; i < source.GetNumPrimitives(); i++)
+					result.AddPrimitive(source.HasCalculations() ? source.ResolvePrimitive(i, element) : source.GetPrimitive(i));
+				return result;
+			};
+
+			Transform resolved0 = resolve_transform(*t0);
+			Transform resolved1 = resolve_transform(*t1);
+			if (!PrepareSingleTransform(resolved0, element) || !PrepareSingleTransform(resolved1, element) ||
+				PrepareTransformPair(resolved0, resolved1, element) == PrepareTransformResult::Invalid)
+				return p_discrete;
+
+			const auto& resolved_prims0 = resolved0.GetPrimitives();
+			const auto& resolved_prims1 = resolved1.GetPrimitives();
+			if (resolved_prims0.size() != resolved_prims1.size())
+				return p_discrete;
+
+			auto interpolated = MakeShared<Transform>();
+			for (size_t i = 0; i < resolved_prims0.size(); i++)
+			{
+				TransformPrimitive primitive = resolved_prims0[i];
+				if (!TransformUtilities::InterpolateWith(primitive, resolved_prims1[i], alpha))
+					return p_discrete;
+				interpolated->AddPrimitive(primitive);
+			}
+			return Property{TransformPtr(std::move(interpolated)), Unit::TRANSFORM};
+		}
+#endif
 
 		const auto& prim0 = t0->GetPrimitives();
 		const auto& prim1 = t1->GetPrimitives();
@@ -378,6 +610,21 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 		{
 			result[i].color = InterpolateColour(c0[i].color.ToNonPremultiplied(), c1[i].color.ToNonPremultiplied(), alpha).ToPremultiplied();
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+			if (c0[i].position_calculation || c1[i].position_calculation)
+			{
+				const Property position0 = c0[i].position_calculation ? Property(c0[i].position_calculation, Unit::CALCULATION)
+																	  : Property(c0[i].position.number, c0[i].position.unit);
+				const Property position1 = c1[i].position_calculation ? Property(c1[i].position_calculation, Unit::CALCULATION)
+																	  : Property(c1[i].position.number, c1[i].position.unit);
+				result[i].position_calculation = InterpolateCalculations(position0, position1, alpha);
+				if (!result[i].position_calculation)
+					return p_discrete;
+				result[i].position = c0[i].position_calculation ? c0[i].position : c1[i].position;
+				continue;
+			}
+#endif
+
 			// We don't provide the property definition in the following, because it doesn't actually represent how
 			// percentages are resolved for stop positions. Here, we don't trivially know how they are resolved, so if
 			// users try to mix lengths and percentages, we instead fall back to discrete interpolation. See the
@@ -391,8 +638,6 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 	// Fall back to discrete interpolation for incompatible units.
 	return p_discrete;
 }
-
-enum class PrepareTransformResult { Unchanged = 0, ChangedT0 = 1, ChangedT1 = 2, ChangedT0andT1 = 3, Invalid = 4 };
 
 static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1, Element& element)
 {
@@ -533,20 +778,12 @@ static bool PrepareTransforms(Vector<AnimationKey>& keys, Element& element, int 
 		if (!property.value.GetReference<TransformPtr>())
 			property.value = MakeShared<Transform>();
 
-		bool must_decompose = false;
 		Transform& transform = *property.value.GetReference<TransformPtr>();
-
-		for (TransformPrimitive& primitive : transform.GetPrimitives())
-		{
-			if (!TransformUtilities::PrepareForInterpolation(primitive, element))
-			{
-				must_decompose = true;
-				break;
-			}
-		}
-
-		if (must_decompose)
-			result &= CombineAndDecompose(transform, element);
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (transform.HasCalculations())
+			continue;
+#endif
+		result &= PrepareSingleTransform(transform, element);
 	}
 
 	if (!result)
@@ -582,6 +819,15 @@ static bool PrepareTransforms(Vector<AnimationKey>& keys, Element& element, int 
 
 		auto& t0 = prop0.value.GetReference<TransformPtr>();
 		auto& t1 = prop1.value.GetReference<TransformPtr>();
+
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if ((t0 && t0->HasCalculations()) || (t1 && t1->HasCalculations()))
+		{
+			dirty_list[i] = false;
+			++i;
+			continue;
+		}
+#endif
 
 		auto prepare_result = PrepareTransformPair(*t0, *t1, element);
 
@@ -640,7 +886,11 @@ bool ElementAnimation::InternalAddKey(float time, const Property& in_property, E
 	const Units valid_units =
 		(Unit::NUMBER_LENGTH_PERCENT | Unit::ANGLE | Unit::COLOUR | Unit::TRANSFORM | Unit::KEYWORD | Unit::DECORATOR | Unit::FILTER);
 
-	if (!Any(in_property.unit & valid_units))
+	if (!Any(in_property.unit & valid_units)
+#ifdef RMLUI_MATH_EXPRESSIONS
+		&& in_property.unit != Unit::CALCULATION
+#endif
+	)
 	{
 		const char* property_type = (in_property.unit == Unit::BOXSHADOWLIST ? "Box shadows do not" : "Property value does not");
 		Log::Message(Log::LT_WARNING, "%s support animations or transitions. Value: %s", property_type, in_property.ToString().c_str());

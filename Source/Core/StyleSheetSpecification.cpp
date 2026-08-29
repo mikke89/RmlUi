@@ -21,12 +21,25 @@ namespace Rml {
 static StyleSheetSpecification* instance = nullptr;
 
 struct DefaultStyleSheetParsers : NonCopyMoveable {
+#ifdef RMLUI_MATH_EXPRESSIONS
+	PropertyParserNumber number = PropertyParserNumber(Unit::NUMBER, Unit::UNKNOWN, MakeCalculationParseTarget(CalculationFinalType::Number));
+	PropertyParserNumber length = PropertyParserNumber(Unit::LENGTH, Unit::PX, MakeCalculationParseTarget(CalculationFinalType::Length));
+	PropertyParserNumber length_percent = PropertyParserNumber(Unit::LENGTH_PERCENT, Unit::PX,
+		MakeCalculationParseTarget(CalculationFinalType::Length, CalculationPercentageHint::Length));
+	PropertyParserNumber number_percent = PropertyParserNumber(Unit::NUMBER_PERCENT, Unit::UNKNOWN,
+		{CalculationFinalType::Number | CalculationFinalType::Percent, CalculationPercentageHint::None});
+	PropertyParserNumber number_length_percent = PropertyParserNumber(Unit::NUMBER_LENGTH_PERCENT, Unit::PX);
+	PropertyParserNumber line_height = PropertyParserNumber(Unit::NUMBER_LENGTH_PERCENT, Unit::PX,
+		{CalculationFinalType::Number | CalculationFinalType::Length, CalculationPercentageHint::Length});
+	PropertyParserNumber angle = PropertyParserNumber(Unit::ANGLE, Unit::RAD, MakeCalculationParseTarget(CalculationFinalType::Angle));
+#else
 	PropertyParserNumber number = PropertyParserNumber(Unit::NUMBER);
 	PropertyParserNumber length = PropertyParserNumber(Unit::LENGTH, Unit::PX);
 	PropertyParserNumber length_percent = PropertyParserNumber(Unit::LENGTH_PERCENT, Unit::PX);
 	PropertyParserNumber number_percent = PropertyParserNumber(Unit::NUMBER_PERCENT);
 	PropertyParserNumber number_length_percent = PropertyParserNumber(Unit::NUMBER_LENGTH_PERCENT, Unit::PX);
 	PropertyParserNumber angle = PropertyParserNumber(Unit::ANGLE, Unit::RAD);
+#endif
 	PropertyParserKeyword keyword = PropertyParserKeyword();
 	PropertyParserString string = PropertyParserString();
 	PropertyParserAnimation animation = PropertyParserAnimation(PropertyParserAnimation::ANIMATION_PARSER);
@@ -38,7 +51,11 @@ struct DefaultStyleSheetParsers : NonCopyMoveable {
 	PropertyParserFontEffect font_effect = PropertyParserFontEffect();
 	PropertyParserTransform transform = PropertyParserTransform();
 	PropertyParserRatio ratio = PropertyParserRatio();
+#ifdef RMLUI_MATH_EXPRESSIONS
+	PropertyParserNumber resolution = PropertyParserNumber(Unit::X, Unit::UNKNOWN, MakeCalculationParseTarget(CalculationFinalType::Resolution));
+#else
 	PropertyParserNumber resolution = PropertyParserNumber(Unit::X);
+#endif
 	PropertyParserBoxShadow box_shadow = PropertyParserBoxShadow(&color, &length);
 };
 
@@ -229,6 +246,9 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("length_percent", &default_parsers->length_percent);
 	RegisterParser("number_percent", &default_parsers->number_percent);
 	RegisterParser("number_length_percent", &default_parsers->number_length_percent);
+#ifdef RMLUI_MATH_EXPRESSIONS
+	RegisterParser("line_height", &default_parsers->line_height);
+#endif
 	RegisterParser("angle", &default_parsers->angle);
 	RegisterParser("keyword", &default_parsers->keyword);
 	RegisterParser("string", &default_parsers->string);
@@ -327,7 +347,11 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::MinHeight, "min-height", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
 	RegisterProperty(PropertyId::MaxHeight, "max-height", "none", false, true).AddParser("keyword", "none").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+	RegisterProperty(PropertyId::LineHeight, "line-height", "1.2", true, true).AddParser("line_height").SetRelativeTarget(RelativeTarget::FontSize);
+#else
 	RegisterProperty(PropertyId::LineHeight, "line-height", "1.2", true, true).AddParser("number_length_percent").SetRelativeTarget(RelativeTarget::FontSize);
+#endif
 	RegisterProperty(PropertyId::VerticalAlign, "vertical-align", "baseline", false, true)
 		.AddParser("keyword", "baseline, middle, sub, super, text-top, text-bottom, top, center, bottom")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::LineHeight);

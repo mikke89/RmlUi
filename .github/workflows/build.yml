@@ -23,6 +23,10 @@ jobs:
             cmake_options: -DRMLUI_BACKEND=SDL_VK -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
           - cmake_options: -DRMLUI_BACKEND=GLFW_GL3 -DBUILD_TESTING=ON
             enable_testing: true
+          - cc: clang
+            cxx: clang++
+            cmake_options: -DRMLUI_BACKEND=GLFW_GL3 -DBUILD_TESTING=ON -DBUILD_SHARED_LIBS=OFF -DRMLUI_MATH_EXPRESSIONS=ON
+            enable_testing: true
           - cmake_options: -DRMLUI_BACKEND=X11_GL2 -DRMLUI_LOTTIE_PLUGIN=ON
           - cmake_options: -DRMLUI_BACKEND=SDL_GL2 -DCMAKE_CXX_FLAGS="-fno-exceptions -fno-rtti"
           - cmake_options: -DRMLUI_BACKEND=SFML_GL2 -DRMLUI_THIRDPARTY_CONTAINERS=OFF

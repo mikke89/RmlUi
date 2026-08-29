@@ -53,12 +53,41 @@ bool PropertyParserBoxShadow::ParseValue(Property& property, const String& value
 			Property prop;
 			if (parser_length->ParseValue(prop, argument, empty_parameter_map))
 			{
+				NumericValue numeric_value;
+#ifdef RMLUI_MATH_EXPRESSIONS
+				CalculationPtr calculation;
+				if (prop.unit == Unit::CALCULATION)
+				{
+					calculation = prop.value.Get<CalculationPtr>();
+					if (!calculation)
+						return false;
+					numeric_value = NumericValue(0.f, Unit::PX);
+				}
+				else
+#endif
+					numeric_value = prop.GetNumericValue();
 				switch (length_argument_index)
 				{
-				case 0: shadow.offset_x = prop.GetNumericValue(); break;
-				case 1: shadow.offset_y = prop.GetNumericValue(); break;
-				case 2: shadow.blur_radius = prop.GetNumericValue(); break;
-				case 3: shadow.spread_distance = prop.GetNumericValue(); break;
+				case 0: shadow.offset_x = numeric_value;
+#ifdef RMLUI_MATH_EXPRESSIONS
+					shadow.offset_x_calculation = calculation;
+#endif
+					break;
+				case 1: shadow.offset_y = numeric_value;
+#ifdef RMLUI_MATH_EXPRESSIONS
+					shadow.offset_y_calculation = calculation;
+#endif
+					break;
+				case 2: shadow.blur_radius = numeric_value;
+#ifdef RMLUI_MATH_EXPRESSIONS
+					shadow.blur_radius_calculation = calculation;
+#endif
+					break;
+				case 3: shadow.spread_distance = numeric_value;
+#ifdef RMLUI_MATH_EXPRESSIONS
+					shadow.spread_distance_calculation = calculation;
+#endif
+					break;
 				default: return false;
 				}
 				length_argument_index += 1;

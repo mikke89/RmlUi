@@ -132,10 +132,19 @@ FontEffectGlowInstancer::~FontEffectGlowInstancer() {}
 SharedPtr<FontEffect> FontEffectGlowInstancer::InstanceFontEffect(const String& /*name*/, const PropertyDictionary& properties)
 {
 	Vector2i offset;
-	int width_outline = properties.GetProperty(id_width_outline)->Get<int>();
-	int width_blur = properties.GetProperty(id_width_blur)->Get<int>();
-	offset.x = properties.GetProperty(id_offset_x)->Get<int>();
-	offset.y = properties.GetProperty(id_offset_y)->Get<int>();
+	const Property* p_width_outline = properties.GetProperty(id_width_outline);
+	const Property* p_width_blur = properties.GetProperty(id_width_blur);
+	const Property* p_offset_x = properties.GetProperty(id_offset_x);
+	const Property* p_offset_y = properties.GetProperty(id_offset_y);
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (p_width_outline->unit == Unit::CALCULATION || p_width_blur->unit == Unit::CALCULATION || p_offset_x->unit == Unit::CALCULATION ||
+		p_offset_y->unit == Unit::CALCULATION)
+		return nullptr;
+#endif
+	int width_outline = p_width_outline->Get<int>();
+	int width_blur = p_width_blur->Get<int>();
+	offset.x = p_offset_x->Get<int>();
+	offset.y = p_offset_y->Get<int>();
 	Colourb color = properties.GetProperty(id_color)->Get<Colourb>();
 
 	if (width_blur < 0)

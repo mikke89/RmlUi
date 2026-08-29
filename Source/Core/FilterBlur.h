@@ -9,6 +9,9 @@ namespace Rml {
 class FilterBlur : public Filter {
 public:
 	bool Initialise(NumericValue sigma);
+#ifdef RMLUI_MATH_EXPRESSIONS
+	bool Initialise(CalculationPtr sigma);
+#endif
 
 	CompiledFilter CompileFilter(Element* element) const override;
 
@@ -16,6 +19,9 @@ public:
 
 private:
 	NumericValue sigma_value;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	CalculationPtr sigma_calculation;
+#endif
 };
 
 class FilterBlurInstancer : public FilterInstancer {

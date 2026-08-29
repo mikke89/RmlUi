@@ -54,6 +54,9 @@ bool Variant::GetInto(T& value) const
 		case SCRIPTINTERFACE: return TypeConverter<ScriptInterface*, T>::Convert(*reinterpret_cast<ScriptInterface* const*>(data), value);
 		case VOIDPTR: return TypeConverter<void*, T>::Convert(*reinterpret_cast<void* const*>(data), value);
 		case TRANSFORMPTR: return TypeConverter<TransformPtr, T>::Convert(*reinterpret_cast<const TransformPtr*>(data), value);
+#ifdef RMLUI_MATH_EXPRESSIONS
+		case CALCULATIONPTR: return TypeConverter<CalculationPtr, T>::Convert(*reinterpret_cast<const CalculationPtr*>(data), value);
+#endif
 		case TRANSITIONLIST: return TypeConverter<TransitionList, T>::Convert(*reinterpret_cast<const TransitionList*>(data), value);
 		case ANIMATIONLIST: return TypeConverter<AnimationList, T>::Convert(*reinterpret_cast<const AnimationList*>(data), value);
 		case DECORATORSPTR: return TypeConverter<DecoratorsPtr, T>::Convert(*reinterpret_cast<const DecoratorsPtr*>(data), value);

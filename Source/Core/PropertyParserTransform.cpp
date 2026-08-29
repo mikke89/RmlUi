@@ -7,7 +7,30 @@
 namespace Rml {
 
 PropertyParserTransform::PropertyParserTransform() :
-	number(Unit::NUMBER), length(Unit::LENGTH, Unit::PX), length_pct(Unit::LENGTH_PERCENT, Unit::PX), angle(Unit::ANGLE, Unit::RAD)
+	number(Unit::NUMBER, Unit::NUMBER
+#ifdef RMLUI_MATH_EXPRESSIONS
+		,
+		MakeCalculationParseTarget(CalculationFinalType::Number)
+#endif
+			),
+	length(Unit::LENGTH, Unit::PX
+#ifdef RMLUI_MATH_EXPRESSIONS
+		,
+		MakeCalculationParseTarget(CalculationFinalType::Length)
+#endif
+			),
+	length_pct(Unit::LENGTH_PERCENT, Unit::PX
+#ifdef RMLUI_MATH_EXPRESSIONS
+		,
+		MakeCalculationParseTarget(CalculationFinalType::Length, CalculationPercentageHint::Length)
+#endif
+			),
+	angle(Unit::ANGLE, Unit::RAD
+#ifdef RMLUI_MATH_EXPRESSIONS
+		,
+		MakeCalculationParseTarget(CalculationFinalType::Angle)
+#endif
+	)
 {}
 
 PropertyParserTransform::~PropertyParserTransform() {}
@@ -26,6 +49,9 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 	char const* next = value.c_str();
 
 	NumericValue args[16];
+#ifdef RMLUI_MATH_EXPRESSIONS
+	CalculationPtr calculations[16];
+#endif
 
 	const PropertyParser* number16[] = {&number, &number, &number, &number, &number, &number, &number, &number, &number, &number, &number, &number,
 		&number, &number, &number, &number};
@@ -43,99 +69,126 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 	auto number3 = number16;
 	auto number6 = number16;
 
+	auto scan = [&](int& bytes_read, const char* input, const char* keyword, const PropertyParser** parsers, int nargs) {
+		return Scan(bytes_read, input, keyword, parsers, args, nargs
+#ifdef RMLUI_MATH_EXPRESSIONS
+			,
+			calculations
+#endif
+		);
+	};
+	auto add_primitive = [&](const TransformPrimitive& primitive, int nargs) {
+#ifdef RMLUI_MATH_EXPRESSIONS
+		const int primitive_index = transform->GetNumPrimitives();
+#endif
+		transform->AddPrimitive(primitive);
+#ifdef RMLUI_MATH_EXPRESSIONS
+		for (int argument_index = 0; argument_index < nargs; ++argument_index)
+		{
+			if (calculations[argument_index])
+				transform->AddCalculation(primitive_index, argument_index, calculations[argument_index]);
+		}
+#else
+		(void)nargs;
+#endif
+	};
+
 	while (*next)
 	{
 		using namespace Transforms;
 		int bytes_read = 0;
 
-		if (Scan(bytes_read, next, "perspective", length1, args, 1))
+		if (scan(bytes_read, next, "perspective", length1, 1))
 		{
-			transform->AddPrimitive({Perspective(args)});
+			add_primitive({Perspective(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "matrix", number6, args, 6))
+		else if (scan(bytes_read, next, "matrix", number6, 6))
 		{
-			transform->AddPrimitive({Matrix2D(args)});
+			add_primitive({Matrix2D(args)}, 6);
 		}
-		else if (Scan(bytes_read, next, "matrix3d", number16, args, 16))
+		else if (scan(bytes_read, next, "matrix3d", number16, 16))
 		{
-			transform->AddPrimitive({Matrix3D(args)});
+			add_primitive({Matrix3D(args)}, 16);
 		}
-		else if (Scan(bytes_read, next, "translateX", lengthpct1, args, 1))
+		else if (scan(bytes_read, next, "translateX", lengthpct1, 1))
 		{
-			transform->AddPrimitive({TranslateX(args)});
+			add_primitive({TranslateX(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "translateY", lengthpct1, args, 1))
+		else if (scan(bytes_read, next, "translateY", lengthpct1, 1))
 		{
-			transform->AddPrimitive({TranslateY(args)});
+			add_primitive({TranslateY(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "translateZ", length1, args, 1))
+		else if (scan(bytes_read, next, "translateZ", length1, 1))
 		{
-			transform->AddPrimitive({TranslateZ(args)});
+			add_primitive({TranslateZ(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "translate", lengthpct2, args, 2))
+		else if (scan(bytes_read, next, "translate", lengthpct2, 2))
 		{
-			transform->AddPrimitive({Translate2D(args)});
+			add_primitive({Translate2D(args)}, 2);
 		}
-		else if (Scan(bytes_read, next, "translate3d", lengthpct2_length1, args, 3))
+		else if (scan(bytes_read, next, "translate3d", lengthpct2_length1, 3))
 		{
-			transform->AddPrimitive({Translate3D(args)});
+			add_primitive({Translate3D(args)}, 3);
 		}
-		else if (Scan(bytes_read, next, "scaleX", number1, args, 1))
+		else if (scan(bytes_read, next, "scaleX", number1, 1))
 		{
-			transform->AddPrimitive({ScaleX(args)});
+			add_primitive({ScaleX(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "scaleY", number1, args, 1))
+		else if (scan(bytes_read, next, "scaleY", number1, 1))
 		{
-			transform->AddPrimitive({ScaleY(args)});
+			add_primitive({ScaleY(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "scaleZ", number1, args, 1))
+		else if (scan(bytes_read, next, "scaleZ", number1, 1))
 		{
-			transform->AddPrimitive({ScaleZ(args)});
+			add_primitive({ScaleZ(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "scale", number2, args, 2))
+		else if (scan(bytes_read, next, "scale", number2, 2))
 		{
-			transform->AddPrimitive({Scale2D(args)});
+			add_primitive({Scale2D(args)}, 2);
 		}
-		else if (Scan(bytes_read, next, "scale", number1, args, 1))
+		else if (scan(bytes_read, next, "scale", number1, 1))
 		{
 			args[1] = args[0];
-			transform->AddPrimitive({Scale2D(args)});
+#ifdef RMLUI_MATH_EXPRESSIONS
+			calculations[1] = calculations[0];
+#endif
+			add_primitive({Scale2D(args)}, 2);
 		}
-		else if (Scan(bytes_read, next, "scale3d", number3, args, 3))
+		else if (scan(bytes_read, next, "scale3d", number3, 3))
 		{
-			transform->AddPrimitive({Scale3D(args)});
+			add_primitive({Scale3D(args)}, 3);
 		}
-		else if (Scan(bytes_read, next, "rotateX", angle1, args, 1))
+		else if (scan(bytes_read, next, "rotateX", angle1, 1))
 		{
-			transform->AddPrimitive({RotateX(args)});
+			add_primitive({RotateX(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "rotateY", angle1, args, 1))
+		else if (scan(bytes_read, next, "rotateY", angle1, 1))
 		{
-			transform->AddPrimitive({RotateY(args)});
+			add_primitive({RotateY(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "rotateZ", angle1, args, 1))
+		else if (scan(bytes_read, next, "rotateZ", angle1, 1))
 		{
-			transform->AddPrimitive({RotateZ(args)});
+			add_primitive({RotateZ(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "rotate", angle1, args, 1))
+		else if (scan(bytes_read, next, "rotate", angle1, 1))
 		{
-			transform->AddPrimitive({Rotate2D(args)});
+			add_primitive({Rotate2D(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "rotate3d", number3angle1, args, 4))
+		else if (scan(bytes_read, next, "rotate3d", number3angle1, 4))
 		{
-			transform->AddPrimitive({Rotate3D(args)});
+			add_primitive({Rotate3D(args)}, 4);
 		}
-		else if (Scan(bytes_read, next, "skewX", angle1, args, 1))
+		else if (scan(bytes_read, next, "skewX", angle1, 1))
 		{
-			transform->AddPrimitive({SkewX(args)});
+			add_primitive({SkewX(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "skewY", angle1, args, 1))
+		else if (scan(bytes_read, next, "skewY", angle1, 1))
 		{
-			transform->AddPrimitive({SkewY(args)});
+			add_primitive({SkewY(args)}, 1);
 		}
-		else if (Scan(bytes_read, next, "skew", angle2, args, 2))
+		else if (scan(bytes_read, next, "skew", angle2, 2))
 		{
-			transform->AddPrimitive({Skew2D(args)});
+			add_primitive({Skew2D(args)}, 2);
 		}
 
 		if (bytes_read > 0)
@@ -155,109 +208,131 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 }
 
 bool PropertyParserTransform::Scan(int& out_bytes_read, const char* str, const char* keyword, const PropertyParser** parsers, NumericValue* args,
-	int nargs) const
+	int nargs
+#ifdef RMLUI_MATH_EXPRESSIONS
+	,
+	CalculationPtr* calculations
+#endif
+) const
 {
 	out_bytes_read = 0;
-	int total_bytes_read = 0, bytes_read = 0;
-
-	/* skip leading white space */
-	bytes_read = 0;
-	sscanf(str, " %n", &bytes_read);
-	str += bytes_read;
-	total_bytes_read += bytes_read;
-
-	/* find the keyword */
-	if (!memcmp(str, keyword, strlen(keyword)))
-	{
-		bytes_read = (int)strlen(keyword);
-		str += bytes_read;
-		total_bytes_read += bytes_read;
-	}
-	else
-	{
+	const char* begin = str;
+	while (StringUtilities::IsWhitespace(*str))
+		++str;
+	const size_t keyword_length = strlen(keyword);
+	if (strlen(str) < keyword_length)
 		return false;
-	}
-
-	/* skip any white space */
-	bytes_read = 0;
-	sscanf(str, " %n", &bytes_read);
-	str += bytes_read;
-	total_bytes_read += bytes_read;
-
-	/* find the opening brace */
-	bytes_read = 0;
-	if (sscanf(str, " ( %n", &bytes_read), bytes_read)
-	{
-		str += bytes_read;
-		total_bytes_read += bytes_read;
-	}
-	else
-	{
+	if (memcmp(str, keyword, keyword_length) != 0)
 		return false;
-	}
-
-	/* use the quicker stack-based argument buffer, if possible */
-	char* arg = nullptr;
-	char arg_stack[1024];
-	String arg_heap;
-	if (strlen(str) < sizeof(arg_stack))
+	str += keyword_length;
+	while (StringUtilities::IsWhitespace(*str))
+		++str;
+	if (*str != '(')
+		return false;
+	const char* arguments_begin = ++str;
+	int depth = 1;
+	char quote = 0;
+	bool escaped = false;
+	for (; *str && depth > 0; ++str)
 	{
-		arg = arg_stack;
-	}
-	else
-	{
-		arg_heap = str;
-		arg = &arg_heap[0];
-	}
-
-	/* parse the arguments */
-	for (int i = 0; i < nargs; ++i)
-	{
-		Property prop;
-
-		bytes_read = 0;
-		if (sscanf(str, " %[^,)] %n", arg, &bytes_read), bytes_read && parsers[i]->ParseValue(prop, String(arg), ParameterMap()))
+		const char c = *str;
+		if (quote)
 		{
-			args[i].number = prop.value.Get<float>();
-			args[i].unit = prop.unit;
-			str += bytes_read;
-			total_bytes_read += bytes_read;
+			if (escaped)
+				escaped = false;
+			else if (c == '\\')
+				escaped = true;
+			else if (c == quote)
+				quote = 0;
+			continue;
+		}
+		if (c == '\'' || c == '"')
+			quote = c;
+		else if (c == '(')
+			++depth;
+		else if (c == ')')
+			--depth;
+	}
+	if (depth != 0 || quote)
+		return false;
+
+	const char* arguments_end = str - 1;
+	StringList argument_list;
+	String current;
+	depth = 0;
+	quote = 0;
+	escaped = false;
+	for (const char* p = arguments_begin; p < arguments_end; ++p)
+	{
+		const char c = *p;
+		if (quote)
+		{
+			current += c;
+			if (escaped)
+				escaped = false;
+			else if (c == '\\')
+				escaped = true;
+			else if (c == quote)
+				quote = 0;
+			continue;
+		}
+		if (c == '\'' || c == '"')
+		{
+			quote = c;
+			current += c;
+		}
+		else if (c == '(')
+		{
+			++depth;
+			current += c;
+		}
+		else if (c == ')')
+		{
+			--depth;
+			current += c;
+		}
+		else if (c == ',' && depth == 0)
+		{
+			argument_list.push_back(StringUtilities::StripWhitespace(current));
+			current.clear();
 		}
 		else
-		{
-			return false;
-		}
-
-		/* find the comma */
-		if (i < nargs - 1)
-		{
-			bytes_read = 0;
-			if (sscanf(str, " , %n", &bytes_read), bytes_read)
-			{
-				str += bytes_read;
-				total_bytes_read += bytes_read;
-			}
-			else
-			{
-				return false;
-			}
-		}
+			current += c;
 	}
-
-	/* find the closing brace */
-	bytes_read = 0;
-	if (sscanf(str, " ) %n", &bytes_read), bytes_read)
-	{
-		str += bytes_read;
-		total_bytes_read += bytes_read;
-	}
-	else
-	{
+	argument_list.push_back(StringUtilities::StripWhitespace(current));
+	if ((int)argument_list.size() != nargs)
 		return false;
+
+	for (int i = 0; i < nargs; ++i)
+	{
+#ifdef RMLUI_MATH_EXPRESSIONS
+		calculations[i].reset();
+#endif
+		Property prop;
+		if (argument_list[i].empty() || !parsers[i]->ParseValue(prop, argument_list[i], ParameterMap()))
+			return false;
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (prop.unit == Unit::CALCULATION)
+		{
+			calculations[i] = prop.value.Get<CalculationPtr>();
+			if (!calculations[i])
+				return false;
+			if (parsers[i] == &angle)
+				args[i] = NumericValue(0.f, Unit::RAD);
+			else if (parsers[i] == &number)
+				args[i] = NumericValue(0.f, Unit::NUMBER);
+			else
+				args[i] = NumericValue(0.f, Unit::PX);
+			continue;
+		}
+#endif
+		args[i] = prop.GetNumericValue();
 	}
 
-	out_bytes_read = total_bytes_read;
-	return total_bytes_read > 0;
+	while (StringUtilities::IsWhitespace(*str))
+		++str;
+	out_bytes_read = int(str - begin);
+	return out_bytes_read > 0;
 }
 
 } // namespace Rml

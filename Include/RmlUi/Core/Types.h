@@ -57,6 +57,10 @@ class Event;
 class Property;
 class Variant;
 class Transform;
+#ifdef RMLUI_MATH_EXPRESSIONS
+class Calculation;
+using CalculationPtr = SharedPtr<const Calculation>;
+#endif
 class PropertyIdSet;
 class Decorator;
 class FontEffect;
