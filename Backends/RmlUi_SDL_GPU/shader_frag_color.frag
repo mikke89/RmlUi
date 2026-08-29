@@ -1,3 +1,5 @@
-float4 main(float4 Color : TEXCOORD0) : SV_Target0 {
-    return Color;
+#include "shader_common.hlsli"
+
+float4 main(Varyings input) : SV_Target0 {
+    return input.Color;
 }

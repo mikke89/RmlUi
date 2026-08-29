@@ -1,3 +1,4 @@
+* [RmlUi 6.4](#rmlui-64)
 * [RmlUi 6.3](#rmlui-63)
 * [RmlUi 6.2](#rmlui-62)
 * [RmlUi 6.1](#rmlui-61)
@@ -14,6 +15,22 @@
 * [RmlUi 3.1](#rmlui-31)
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
+
+## RmlUi 6.4
+
+### Backends
+
+The SDL GPU renderer is now fully featured, on par with the OpenGL 3 reference renderer:
+
+- Clip masks, so that transformed elements and elements with `border-radius` clip their contents properly.
+- All filters, including `backdrop-filter`, and the render-to-texture and masking support behind `box-shadow` and `mask-image`.
+- All built-in decorators that need shaders, such as `linear-gradient` and `radial-gradient`.
+- Multisample anti-aliasing, tuned with `RMLUI_SDL_GPU_NUM_MSAA_SAMPLES` as in the other renderers.
+- Screen capture, which makes the visual test suite usable with this backend.
+- Shaders are written in HLSL and compiled offline into SPIR-V, DXIL and MSL with
+  [SDL_shadercross](https://github.com/libsdl-org/SDL_shadercross); the results are checked in, so building the
+  backend needs no shader toolchain.
+
 
 ## RmlUi 6.3
 

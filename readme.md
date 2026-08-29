@@ -149,13 +149,14 @@ The provided backends on the other hand are not intended to be used directly by 
 | OpenGL 3 (GL3)*   |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
 | OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |   ❌    |   ❌    | Uncompressed TGA                                                  |
 | Vulkan (VK)       |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
-| SDL GPU           |       ✔️        |     ✔️     |     ❌     |   ❌    |   ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| SDL GPU¹          |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 | SDLrenderer       |       ✔️        |     ❌     |     ❌     |   ❌    |   ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
-| DirectX 11¹       |       ✔️        |     ✔️     |     ✔️     |   🟡    |   ✔️    | Uncompressed TGA                                                  |
+| DirectX 11²       |       ✔️        |     ✔️     |     ✔️     |   🟡    |   ✔️    | Uncompressed TGA                                                  |
 | DirectX 12        |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
 
 *\* Reference implementation* \
-*¹ Filters are fully featured, but some open issues remain ([details](https://github.com/mikke89/RmlUi/pull/675#issuecomment-2821714716))*
+*¹ The renderer has been verified on the Vulkan driver of SDL GPU. Its Direct3D 12 and Metal drivers are built in CI, but not yet exercised at runtime.* \
+*² Filters are fully featured, but some open issues remain ([details](https://github.com/mikke89/RmlUi/pull/675#issuecomment-2821714716))*
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2D layouts.\
 **Transforms**: Enables the `transform` and `perspective` properties to take effect.\
