@@ -10,6 +10,7 @@
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "ComputeProperty.h"
 #include "ControlledLifetimeResource.h"
 #include "StyleSheetFactory.h"
