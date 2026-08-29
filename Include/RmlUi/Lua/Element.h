@@ -73,17 +73,9 @@ extern RegType<Element> ElementMethods[];
 extern luaL_Reg ElementGetters[];
 extern luaL_Reg ElementSetters[];
 
-RMLUI_LUATYPE_DECLARE(Element)
+RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(Element, Element)
 
-template <>
-void ExtraInit<ElementPtr>(lua_State* L, int metatable_index);
 int LogMessage(lua_State* L);
-
-extern RegType<ElementPtr> ElementPtrMethods[];
-extern luaL_Reg ElementPtrGetters[];
-extern luaL_Reg ElementPtrSetters[];
-
-RMLUI_LUATYPE_DECLARE(ElementPtr)
 
 } // namespace Lua
 } // namespace Rml
