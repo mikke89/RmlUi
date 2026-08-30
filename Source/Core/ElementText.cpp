@@ -97,6 +97,8 @@ void LogMissingFontFace(Element* element)
 	}
 }
 
+RMLUI_RTTI_Define(ElementText)
+
 ElementText::ElementText(const String& tag) :
 	Element(tag), colour(255, 255, 255), opacity(1), font_handle_version(0), geometry_dirty(true), dirty_layout_on_change(true),
 	generated_decoration(Style::TextDecoration::None), decoration_property(Style::TextDecoration::None), font_effects_dirty(true),

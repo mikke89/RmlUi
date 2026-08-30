@@ -11,7 +11,7 @@ namespace Rml {
 
 class RMLUICORE_API ElementTabSet : public Element {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementTabSet, Element)
+	RMLUI_RTTI_DeclareWithParent(ElementTabSet, Element)
 
 	ElementTabSet(const String& tag);
 	~ElementTabSet();

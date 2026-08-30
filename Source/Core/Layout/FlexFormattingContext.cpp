@@ -63,9 +63,14 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 		}
 
 		// Format the flexbox and all its children.
-		Vector2f flex_resulting_content_size, content_overflow_size;
+		Vector2f flex_resulting_content_size, visible_overflow_size, scrollable_content_size;
 		float flex_baseline = 0.f;
-		context.Format(flex_resulting_content_size, content_overflow_size, flex_baseline);
+		context.Format(flex_resulting_content_size, visible_overflow_size, scrollable_content_size, flex_baseline);
+
+		// Catch overflow before our height becomes fixed. This way the enabled scrollbar can extend the height of the flex container, instead of
+		// eating into the content size, which could otherwise result in an unnecessary scrollbar on the opposite axis.
+		if (auto_height && !flex_container_box->CatchOverflow(visible_overflow_size, scrollable_content_size, box, context.flex_max_size.y))
+			continue;
 
 		// Output the size of the formatted flexbox. The width is determined as a normal block box so we don't need to change that.
 		Vector2f formatted_content_size = box_content_size;
@@ -80,7 +85,7 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 			sized_box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border) + sized_box.GetEdge(BoxArea::Margin, BoxEdge::Bottom) - flex_baseline;
 
 		// Close the box, and break out of the loop if it did not produce any new scrollbars, otherwise continue to format the flexbox again.
-		if (flex_container_box->Close(content_overflow_size, sized_box, element_baseline))
+		if (flex_container_box->Close(visible_overflow_size, scrollable_content_size, sized_box, element_baseline))
 			break;
 	}
 
@@ -102,9 +107,9 @@ Vector2f FlexFormattingContext::GetMaxContentSize(Element* element)
 	context.flex_max_size = Vector2f(FLT_MAX, FLT_MAX);
 
 	// Format the flexbox and all its children.
-	Vector2f flex_resulting_content_size, content_overflow_size;
+	Vector2f flex_resulting_content_size, visible_overflow_size, scrollable_content_size;
 	float flex_baseline = 0.f;
-	context.Format(flex_resulting_content_size, content_overflow_size, flex_baseline);
+	context.Format(flex_resulting_content_size, visible_overflow_size, scrollable_content_size, flex_baseline);
 	return flex_resulting_content_size;
 }
 
@@ -208,7 +213,8 @@ static float GetInnerUsedCrossSize(const FlexItem& item)
 	return Math::Max(item.used_cross_size - item.cross.sum_edges, 0.f);
 }
 
-void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector2f& flex_content_overflow_size, float& flex_baseline) const
+void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector2f& flex_visible_overflow_size,
+	Vector2f& flex_scrollable_content_size, float& flex_baseline) const
 {
 	// The following procedure is based on the CSS flexible box layout algorithm.
 	// For details, see https://drafts.csswg.org/css-flexbox/#layout-algorithm
@@ -959,10 +965,15 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				baseline_set = true;
 			}
 
-			// The cell contents may overflow, propagate this to the flex container.
+			// The item and its contents may overflow, propagate their border-box overflow to the flex container.
 			const Vector2f overflow_size = item_offset + item_layout_box->GetVisibleOverflowSize();
+			flex_visible_overflow_size = Math::Max(flex_visible_overflow_size, overflow_size);
 
-			flex_content_overflow_size = Math::Max(flex_content_overflow_size, overflow_size);
+			// Return the margin size of the direct flex items, so that we can scroll over to them with their full margin visible.
+			const Vector2f margin_bottom_right =
+				Vector2f{item.box.GetEdge(BoxArea::Margin, BoxEdge::Right), item.box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)};
+			const Vector2f item_scrollable_content_size = item_offset + item.box.GetSize(BoxArea::Border) + margin_bottom_right;
+			flex_scrollable_content_size = Math::Max(flex_scrollable_content_size, item_scrollable_content_size);
 		}
 	}
 

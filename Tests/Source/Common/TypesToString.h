@@ -34,6 +34,18 @@ inline std::ostream& operator<<(std::ostream& os, const Vector2i& value)
 	return os;
 }
 
+inline std::ostream& operator<<(std::ostream& os, const Matrix4f& value)
+{
+	os << "[\n";
+	for (int i = 0; i < 4; i++)
+	{
+		const Vector4f row = value.GetRow(i);
+		os << ' ' << row.x << ", " << row.y << ", " << row.z << ", " << row.w << ";\n";
+	}
+	os << "]";
+	return os;
+}
+
 inline std::ostream& operator<<(std::ostream& os, Span<const Vertex> vertices)
 {
 	for (const Vertex& vertex : vertices)

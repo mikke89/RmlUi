@@ -46,7 +46,7 @@ struct StackingContextChild;
 
 class RMLUICORE_API Element : public ScriptInterface, public EnableObserverPtr<Element> {
 public:
-	RMLUI_RTTI_DefineWithParent(Element, ScriptInterface)
+	RMLUI_RTTI_DeclareWithParent(Element, ScriptInterface)
 
 	/// Constructs a new RmlUi element. This should not be called directly; use the Factory instead.
 	/// @param[in] tag The tag the element was declared as in RML.
@@ -570,8 +570,8 @@ public:
 	ElementBackgroundBorder* GetElementBackgroundBorder() const;
 	/// Returns the element's scrollbar functionality.
 	ElementScroll* GetElementScroll() const;
-	/// Returns the element's nearest scroll container that can be scrolled, if any.
-	Element* GetClosestScrollableContainer();
+	/// Returns the element's nearest scroll container for any non-zero axis in the scroll delta, if any. Defaults to both axes.
+	Element* GetClosestScrollableContainer(Vector2f scroll_delta = Vector2f(1.f));
 	/// Returns the element's transform state.
 	const TransformState* GetTransformState() const noexcept;
 	/// Returns the data model of this element.

@@ -4,6 +4,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define(ElementTabSet)
+
 ElementTabSet::ElementTabSet(const String& tag) : Element(tag)
 {
 	active_tab = 0;

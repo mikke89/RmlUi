@@ -67,6 +67,8 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 	return 0.f;
 }
 
+RMLUI_RTTI_Define(Element)
+
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
 	visible(true), offset_fixed(false), absolute_offset_dirty(true), rounded_main_padding_size_dirty(true), dirty_definition(false),
@@ -1993,22 +1995,21 @@ bool Element::IsLayoutDirty()
 	return false;
 }
 
-Element* Element::GetClosestScrollableContainer()
+Element* Element::GetClosestScrollableContainer(Vector2f scroll_delta)
 {
 	using namespace Style;
 
-	Overflow overflow_x = meta->computed_values.overflow_x();
-	Overflow overflow_y = meta->computed_values.overflow_y();
-	bool scrollable_x = (overflow_x == Overflow::Auto || overflow_x == Overflow::Scroll);
-	bool scrollable_y = (overflow_y == Overflow::Auto || overflow_y == Overflow::Scroll);
-
-	scrollable_x = (scrollable_x && GetScrollWidth() > GetClientWidth());
-	scrollable_y = (scrollable_y && GetScrollHeight() > GetClientHeight());
+	const Overflow overflow_x = meta->computed_values.overflow_x();
+	const Overflow overflow_y = meta->computed_values.overflow_y();
+	const bool scrollable_x =
+		(scroll_delta.x != 0.f && (overflow_x == Overflow::Auto || overflow_x == Overflow::Scroll) && GetScrollWidth() > GetClientWidth());
+	const bool scrollable_y =
+		(scroll_delta.y != 0.f && (overflow_y == Overflow::Auto || overflow_y == Overflow::Scroll) && GetScrollHeight() > GetClientHeight());
 
 	if (scrollable_x || scrollable_y || meta->computed_values.overscroll_behavior() == OverscrollBehavior::Contain)
 		return this;
 	else if (parent)
-		return parent->GetClosestScrollableContainer();
+		return parent->GetClosestScrollableContainer(scroll_delta);
 
 	return nullptr;
 }
@@ -2370,6 +2371,13 @@ void Element::BuildLocalStackingContext()
 	stacking_context.resize(stacking_children.size());
 	for (size_t i = 0; i < stacking_children.size(); i++)
 		stacking_context[i] = stacking_children[i].element;
+
+	// If the stacking context changed, any previously hidden elements may not have had their transforms updated. Ensure they will be updated now.
+	if (transform_state)
+	{
+		for (Element* child : stacking_context)
+			child->DirtyTransformState(false, true);
+	}
 }
 
 void Element::AddChildrenToStackingContext(Vector<StackingContextChild>& stacking_children)

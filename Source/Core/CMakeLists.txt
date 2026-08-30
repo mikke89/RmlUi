@@ -167,6 +167,7 @@ add_library(rmlui_core
 	RenderManager.cpp
 	RenderManagerAccess.cpp
 	RenderManagerAccess.h
+	ScriptInterface.cpp
 	ScrollController.cpp
 	ScrollController.h
 	Spritesheet.cpp
@@ -435,11 +436,6 @@ endif()
 if(NOT RMLUI_THIRDPARTY_CONTAINERS)
 	target_compile_definitions(rmlui_core PUBLIC "RMLUI_NO_THIRDPARTY_CONTAINERS")
 	message(STATUS "Disabling third-party containers for RmlUi.")
-endif()
-
-if(RMLUI_CUSTOM_RTTI)
-	target_compile_definitions(rmlui_core PUBLIC "RMLUI_CUSTOM_RTTI")
-	message(STATUS "Enabling custom RTTI for RmlUi.")
 endif()
 
 if(RMLUI_MATRIX_ROW_MAJOR)

@@ -39,7 +39,10 @@ bool BlockContainer::Close(BlockContainer* parent_block_container)
 		float content_height = box_cursor;
 
 		if (!parent_block_container)
+		{
 			content_height = Math::Max(content_height, space->GetDimensions(FloatedBoxEdge::Margin).y - (position.y + box.GetPosition().y));
+			content_height += element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
+		}
 
 		content_height = Math::Clamp(content_height, min_height, max_height);
 		box.SetContent({box.GetSize().x, content_height});
@@ -50,7 +53,7 @@ bool BlockContainer::Close(BlockContainer* parent_block_container)
 	Vector2f content_box = Math::Max(inner_content_size, space_box);
 	content_box.y = Math::Max(content_box.y, box_cursor);
 
-	if (!SubmitBox(content_box, box, max_height))
+	if (!SubmitBox(content_box, inner_content_margin_size, box, max_height))
 		return false;
 
 	// If we are the root of our block formatting context, this will be null. Otherwise increment our parent's cursor to account for this box.
@@ -59,8 +62,8 @@ bool BlockContainer::Close(BlockContainer* parent_block_container)
 		RMLUI_ASSERTMSG(GetParent() == parent_block_container, "Mismatched parent box.");
 
 		// If this close fails, it means this block box has caused our parent box to generate an automatic vertical scrollbar.
-		if (!parent_block_container->EncloseChildBox(this, position, box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border),
-				box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)))
+		if (!parent_block_container->EncloseChildBox(this, position, box.GetSize(BoxArea::Border),
+				{box.GetEdge(BoxArea::Margin, BoxEdge::Right), box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)}))
 			return false;
 	}
 
@@ -96,18 +99,21 @@ bool BlockContainer::Close(BlockContainer* parent_block_container)
 	return true;
 }
 
-bool BlockContainer::EncloseChildBox(LayoutBox* child, Vector2f child_position, float child_height, float child_margin_bottom)
+bool BlockContainer::EncloseChildBox(LayoutBox* child, Vector2f child_position, Vector2f child_border_size, Vector2f child_margin_bottom_right)
 {
 	child_position -= (box.GetPosition() + position);
 
-	box_cursor = child_position.y + child_height + child_margin_bottom;
+	box_cursor = child_position.y + child_border_size.y + child_margin_bottom_right.y;
 
 	// Extend the inner content size. The vertical size can be larger than the box_cursor due to overflow.
 	inner_content_size = Math::Max(inner_content_size, child_position + child->GetVisibleOverflowSize());
 
+	// Separately extend the margin-box size of the child's margin box, since this does not propagate to parents unlike visible overflow.
+	inner_content_margin_size = Math::Max(inner_content_margin_size, child_position + child_border_size + child_margin_bottom_right);
+
 	const Vector2f content_size = Math::Max(Vector2f{box.GetSize().x, box_cursor}, inner_content_size);
 
-	const bool result = CatchOverflow(content_size, box, max_height);
+	const bool result = CatchOverflow(content_size, inner_content_margin_size, box, max_height);
 
 	return result;
 }
@@ -154,8 +160,8 @@ LayoutBox* BlockContainer::AddBlockLevelBox(UniquePtr<LayoutBox> block_level_box
 	LayoutBox* block_level_box = block_level_box_ptr.get();
 	child_boxes.push_back(std::move(block_level_box_ptr));
 
-	if (!EncloseChildBox(block_level_box, child_position, child_box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border),
-			child_box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)))
+	if (!EncloseChildBox(block_level_box, child_position, child_box.GetSize(BoxArea::Border),
+			{child_box.GetEdge(BoxArea::Margin, BoxEdge::Right), child_box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)}))
 		return nullptr;
 
 	return block_level_box;
@@ -412,6 +418,7 @@ void BlockContainer::ResetContents()
 	interrupted_line_box.reset();
 
 	inner_content_size = {};
+	inner_content_margin_size = {};
 }
 
 String BlockContainer::DebugDumpTree(int depth) const
@@ -479,7 +486,7 @@ bool BlockContainer::CloseOpenInlineContainer()
 		inline_container->Close(&interrupted_line_box, child_position, child_height);
 
 		// Increment our cursor. If this close fails, it means this block container generated an automatic scrollbar.
-		if (!EncloseChildBox(inline_container, child_position, child_height, 0.f))
+		if (!EncloseChildBox(inline_container, child_position, {0, child_height}, {0.f, 0.f}))
 			return false;
 	}
 

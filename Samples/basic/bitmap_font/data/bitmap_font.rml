@@ -25,7 +25,7 @@ div#content
 @font-face
 {
 	font-family: "bitmap";
-	src: "basic/bitmap_font/data/Comfortaa_Regular_22.fnt";
+	src: "Comfortaa_Regular_22.fnt";
 }
 
 .custom_family

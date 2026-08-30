@@ -10,6 +10,7 @@
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "ComputeProperty.h"
 #include "ControlledLifetimeResource.h"
 #include "StyleSheetFactory.h"
@@ -558,7 +559,9 @@ bool StyleSheetParser::ParseFontFaceBlock(const SharedPtr<const PropertySource>&
 
 	for (const String& src : font_face_property_parser.sources)
 	{
-		Rml::LoadFontFace(src, family, style, weight, is_fallback, face_index);
+		String joined_src_path;
+		GetSystemInterface()->JoinPath(joined_src_path, source->path, src);
+		Rml::LoadFontFace(joined_src_path, family, style, weight, is_fallback, face_index);
 	}
 
 	return true;

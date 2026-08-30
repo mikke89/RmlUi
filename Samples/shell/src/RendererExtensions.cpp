@@ -31,6 +31,10 @@
 
 	#include <RmlUi_Renderer_DX12.h>
 
+#elif defined RMLUI_RENDERER_VK
+
+	#include <RmlUi_Renderer_VK.h>
+
 #endif
 
 #if defined RMLUI_RENDERER_GL2 || defined RMLUI_RENDERER_GL3
@@ -82,6 +86,27 @@ RendererExtensions::Image RendererExtensions::CaptureScreen()
 	if (!render_interface->CaptureScreen(image.width, image.height, image.num_components, image.data))
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "The DirectX 12 renderer was unable to capture screen.");
+		return {};
+	}
+
+	return image;
+}
+
+#elif defined RMLUI_RENDERER_VK
+
+RendererExtensions::Image RendererExtensions::CaptureScreen()
+{
+	auto* render_interface = rmlui_static_cast<RenderInterface_VK*>(Rml::GetRenderInterface());
+	if (!render_interface)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not capture screen. RmlUi render interface not set, or unexpected type.");
+		return {};
+	}
+
+	RendererExtensions::Image image;
+	if (!render_interface->CaptureScreen(image.width, image.height, image.num_components, image.data))
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "The Vulkan renderer was unable to capture screen.");
 		return {};
 	}
 

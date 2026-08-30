@@ -53,6 +53,7 @@ RmlUi supports most of CSS2 with some CSS3 features such as
 - Flexbox layout
 - Media queries
 - Border radius
+- Custom properties and variables
 - Box shadows and mask images
 - Gradients (linear, radial, and conic) as decorators
 - Filters and backdrop filters (with all CSS filter functions)
@@ -111,6 +112,11 @@ Make sure to replace `<path-to-vcpkg>` as appropriate. This example uses the `GL
 
 To make all the samples available, you can additionally install `lua lunasvg rlottie harfbuzz` and pass `--preset samples-all` during CMake configuration.
 
+### Conan
+
+RmlUi is readily available from [ConanCenter](https://conan.io/center/recipes/rmlui).
+
+
 ## Integrating RmlUi
 
 Here are the general steps to integrate the library into a C++ application, have a look at the [integration documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/integrating.html) for details.
@@ -140,14 +146,15 @@ The provided backends on the other hand are not intended to be used directly by 
 
 | Renderer features | Basic rendering | Transforms | Clip masks | Filters | Shaders | Built-in image support                                            |
 |-------------------|:---------------:|:----------:|:----------:|:-------:|:-------:|-------------------------------------------------------------------|
-| OpenGL 3 (GL3)*   |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
-| OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |    ❌    |    ❌    | Uncompressed TGA                                                  |
-| Vulkan (VK)       |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Uncompressed TGA                                                  |
-| SDL GPU           |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
-| SDLrenderer       |       ✔️        |     ❌     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
-| DirectX 12        |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
+| OpenGL 3 (GL3)*   |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
+| OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |   ❌    |   ❌    | Uncompressed TGA                                                  |
+| Vulkan (VK)       |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
+| SDL GPU           |       ✔️        |     ✔️     |     ❌     |   ❌    |   ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| DirectX 11¹       |       ✔️        |     ✔️     |     ✔️     |   🟡    |   ✔️    | Uncompressed TGA                                                  |
+| DirectX 12        |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
 
-*\* Reference implementation*
+*\* Reference implementation* \
+*¹ Filters are fully featured, but some open issues remain ([details](https://github.com/mikke89/RmlUi/pull/675#issuecomment-2821714716))*
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2D layouts.\
 **Transforms**: Enables the `transform` and `perspective` properties to take effect.\
@@ -158,28 +165,31 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Platforms
 
-| Platform | Basic windowing | Clipboard | High DPI | Touch | Comments                                                                      |
-|----------|:---------------:|:---------:|:--------:|:-----:|-------------------------------------------------------------------------------|
-| Win32    |       ✔️        |    ✔️     |    ✔️    |   ❌   | High DPI only supported on Windows 10 and newer.                              |
-| X11      |       ✔️        |    ✔️     |    ❌     |   ❌   |                                                                               |
-| SFML     |       ✔️        |    ⚠️     |    ❌     |   ❌   | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
-| GLFW     |       ✔️        |    ✔️     |    ✔️    |   ❌   |                                                                               |
-| SDL      |       ✔️        |    ✔️     |    ✔️    |  ✔️   | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3.                   |
+| Platform | Basic windowing | Clipboard | High DPI | Touch | IME | Comments                                                                      |
+|----------|:---------------:|:---------:|:--------:|:-----:|:---:|-------------------------------------------------------------------------------|
+| SDL      |       ✔️        |    ✔️     |    ✔️    |  ✔️   | ✔️  | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3.                   |
+| GLFW     |       ✔️        |    ✔️     |    ✔️    |  ❌   | ❌  |                                                                               |
+| Win32    |       ✔️        |    ✔️     |    ✔️    |  ❌   | ✔️  |                                                                               |
+| X11      |       ✔️        |    ✔️     |    ❌    |  ❌   | ❌  |                                                                               |
+| Wayland  |       ✔️        |    ❌     |    ❌    |  ❌   | ❌  |                                                                               |
+| SFML     |       ✔️        |    🟡     |    ❌    |  ❌   | ❌  | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
 
 **Basic windowing**: Open windows, react to resize events, submit inputs to the RmlUi context.\
 **Clipboard**: Read from and write to the system clipboard.\
 **High DPI**: Scale the [dp-ratio](https://mikke89.github.io/RmlUiDoc/pages/rcss/syntax.html#dp-unit) of RmlUi contexts based on the monitor's DPI settings. React to DPI-changes, either because of changed settings or when moving the window to another monitor. \
-**Touch**: Process touch events, enable dragging and inertial scrolling with touch movement.
+**Touch**: Process touch events, enable dragging and inertial scrolling with touch movement. \
+**IME**: [Input method editor](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/ime.html) support, for typing characters not available on QWERTY keyboards.
 
 ### Backends
 
-| Platform \ Renderer |     OpenGL 2      |     OpenGL 3     |      Vulkan      |     SDL GPU     |       SDLrenderer       |     DirectX 12     |
-|---------------------|:-----------------:|:----------------:|:----------------:|:---------------:|:-----------------------:|:------------------:|
-| Win32               | ✔️<br>`Win32_GL2` |                  | ✔️<br>`Win32_VK` |                 |                         | ✔️<br>`Win32_DX12` |
-| X11                 |  ✔️<br>`X11_GL2`  |                  |                  |                 |                         |                    |
-| SFML                | ✔️<br>`SFML_GL2`  |                  |                  |                 |                         |                    |
-| GLFW                | ✔️<br>`GLFW_GL2`  | ✔️<br>`GLFW_GL3` | ✔️<br>`GLFW_VK`  |                 |                         | ✔️<br>`GLFW_DX12`  |
-| SDL¹                |  ✔️<br>`SDL_GL2`  | ✔️²<br>`SDL_GL3` |  ✔️<br>`SDL_VK`  | ✔️<br>`SDL_GPU` | ✔️<br>`SDL_SDLrenderer` |  ✔️<br>`SDL_DX12`  |
+| Platform \ Renderer |     OpenGL 2      |      OpenGL 3       |      Vulkan      |     SDL GPU     |     DirectX 11     |     DirectX 12     |
+|---------------------|:-----------------:|:-------------------:|:----------------:|:---------------:|:------------------:|:------------------:|
+| Win32               | ✔️<br>`Win32_GL2` |                     | ✔️<br>`Win32_VK` |                 | ✔️<br>`Win32_DX11` | ✔️<br>`Win32_DX12` |
+| X11                 |  ✔️<br>`X11_GL2`  |                     |                  |                 |                    |                    |
+| Wayland             |                   | ✔️<br>`Wayland_GL3` |                  |                 |                    |                    |
+| SFML                | ✔️<br>`SFML_GL2`  |                     |                  |                 |                    |                    |
+| GLFW                | ✔️<br>`GLFW_GL2`  |  ✔️<br>`GLFW_GL3`   | ✔️<br>`GLFW_VK`  |                 | ✔️<br>`GLFW_DX11`  | ✔️<br>`GLFW_DX12`  |
+| SDL¹                |  ✔️<br>`SDL_GL2`  |  ✔️²<br>`SDL_GL3`   |  ✔️<br>`SDL_VK`  | ✔️<br>`SDL_GPU` |                    |  ✔️<br>`SDL_DX12`  |
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
@@ -366,6 +376,12 @@ Users can now edit the text field to change the animal. The data bindings ensure
 ### RmlUi 'invaders' sample
 
 ![Game interface](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/invader.png?raw=true)
+
+### LichtFeld Studio
+
+[LichtFeld Studio](https://lichtfeld.io). Open-source software for 3D Gaussian Splatting reconstruction and editing. The whole user interface is made with RmlUi, from the panels and asset manager to the built-in Python editor.
+
+![LichtFeld Studio](https://raw.githubusercontent.com/MrNeRF/LichtFeld-Studio/02492ad3955c5967e9d660e99811ea37298e9694/lichtfeld-studio-rmlui-gallery.webp)
 
 ### The Thing: Remastered
 

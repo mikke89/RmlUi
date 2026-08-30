@@ -11,6 +11,8 @@ namespace Debugger {
 
 const int MAX_LOG_MESSAGES = 50;
 
+RMLUI_RTTI_Define(ElementLog)
+
 ElementLog::ElementLog(const String& tag) : ElementDebugDocument(tag)
 {
 	dirty_logs = false;

@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.10...3.27)
 
 project("RmlUi"
-	VERSION "6.3"
+	VERSION "6.4"
 	DESCRIPTION "C++ user interface library based on the HTML and CSS standards"
 	LANGUAGES "C" "CXX"
 )
@@ -72,8 +72,6 @@ option(RMLUI_HARFBUZZ_SAMPLE "Enable harfbuzz text shaping sample. Requires the 
 option(RMLUI_THIRDPARTY_CONTAINERS "Enable integrated third-party containers for improved performance, rather than their standard library counterparts." ON)
 
 option(RMLUI_MATRIX_ROW_MAJOR "Use row-major matrices. Column-major matrices are used by default." OFF)
-
-option(RMLUI_CUSTOM_RTTI "Build RmlUi with a custom implementation of run-time type information (RTTI). When enabled, all usage of language RTTI features such as dynamic_cast will be disabled." OFF)
 
 option(RMLUI_PRECOMPILED_HEADERS "Enable precompiled headers for RmlUi." ON)
 

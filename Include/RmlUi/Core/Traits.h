@@ -5,6 +5,10 @@
 #include "Header.h"
 #include <type_traits>
 
+#ifdef RMLUI_HAS_RTTI
+	#include <typeinfo>
+#endif
+
 namespace Rml {
 
 class RMLUICORE_API NonCopyMoveable {
@@ -36,7 +40,7 @@ class RMLUICORE_API Releaser : public ReleaserBase {
 public:
 	void operator()(T* target) const
 	{
-		static_assert(std::is_base_of<Releasable, T>::value, "Rml::Releaser can only operate with classes derived from ::Rml::Releasable.");
+		static_assert(std::is_base_of_v<Releasable, T>, "Rml::Releaser can only operate with classes derived from ::Rml::Releasable.");
 		Release(static_cast<Releasable*>(target));
 	}
 };
@@ -60,45 +64,57 @@ public:
 	}
 };
 
+using ClassId = void*;
+
 } // namespace Rml
 
-#ifdef RMLUI_CUSTOM_RTTI
+#define RMLUI_RTTI_Declare(NAME)                     \
+	using RttiClassType = NAME;                      \
+	using RttiParentClassType = NAME;                \
+	static Rml::ClassId GetStaticClassIdentifier();  \
+	virtual Rml::ClassId GetClassIdentifier() const; \
+	virtual bool IsClass(Rml::ClassId type_identifier) const;
 
-	#define RMLUI_RTTI_Define(_NAME_)                             \
-		using RttiClassType = _NAME_;                             \
-		static void* GetStaticClassIdentifier()                   \
-		{                                                         \
-			static int dummy;                                     \
-			return &dummy;                                        \
-		}                                                         \
-		virtual bool IsClass(void* type_identifier) const         \
-		{                                                         \
-			return type_identifier == GetStaticClassIdentifier(); \
-		}
+#define RMLUI_RTTI_DeclareWithParent(NAME, PARENT)                                       \
+	using RttiClassType = NAME;                                                          \
+	using RttiParentClassType = PARENT;                                                  \
+	static_assert(std::is_same_v<typename PARENT::RttiClassType, PARENT>,                \
+		"Parent does not implement RMLUI_RTTI_Declare or RMLUI_RTTI_DeclareWithParent"); \
+	static Rml::ClassId GetStaticClassIdentifier();                                      \
+	Rml::ClassId GetClassIdentifier() const override;                                    \
+	bool IsClass(Rml::ClassId type_identifier) const override;
 
-	#define RMLUI_RTTI_DefineWithParent(_NAME_, _PARENT_)                                               \
-		using RttiClassType = _NAME_;                                                                   \
-		static void* GetStaticClassIdentifier()                                                         \
-		{                                                                                               \
-			static int dummy;                                                                           \
-			return &dummy;                                                                              \
-		}                                                                                               \
-		bool IsClass(void* type_identifier) const override                                              \
-		{                                                                                               \
-			static_assert(std::is_same<typename _PARENT_::RttiClassType, _PARENT_>::value,              \
-				"Parent does not implement RMLUI_RTTI_Define or RMLUI_RTTI_DefineWithParent");          \
-			return type_identifier == GetStaticClassIdentifier() || _PARENT_::IsClass(type_identifier); \
-		}
+#define RMLUI_RTTI_Define(NAME)                                                                                    \
+	Rml::ClassId NAME::GetStaticClassIdentifier()                                                                  \
+	{                                                                                                              \
+		static int dummy;                                                                                          \
+		return &dummy;                                                                                             \
+	}                                                                                                              \
+	Rml::ClassId NAME::GetClassIdentifier() const                                                                  \
+	{                                                                                                              \
+		return GetStaticClassIdentifier();                                                                         \
+	}                                                                                                              \
+	bool NAME::IsClass(Rml::ClassId type_identifier) const                                                         \
+	{                                                                                                              \
+		if constexpr (!std::is_same_v<NAME, NAME::RttiParentClassType>)                                            \
+		{                                                                                                          \
+			return type_identifier == GetStaticClassIdentifier() || RttiParentClassType::IsClass(type_identifier); \
+		}                                                                                                          \
+		else                                                                                                       \
+		{                                                                                                          \
+			return type_identifier == GetStaticClassIdentifier();                                                  \
+		}                                                                                                          \
+	}
 
 template <class Derived, class Base>
 Derived rmlui_dynamic_cast(Base base_instance)
 {
-	static_assert(std::is_pointer<Derived>::value && std::is_pointer<Base>::value, "rmlui_dynamic_cast can only cast pointer types");
-	using T_Derived = typename std::remove_cv<typename std::remove_pointer<Derived>::type>::type;
+	static_assert(std::is_pointer_v<Derived> && std::is_pointer_v<Base>, "rmlui_dynamic_cast can only cast pointer types");
+	using T_Derived = std::remove_cv_t<std::remove_pointer_t<Derived>>;
+	static_assert(std::is_same_v<typename T_Derived::RttiClassType, T_Derived>,
+		"Derived type does not implement RMLUI_RTTI_Declare or RMLUI_RTTI_DeclareWithParent");
 
-	static_assert(std::is_same<typename T_Derived::RttiClassType, T_Derived>::value, "Derived type does not implement RMLUI_RTTI_DefineWithParent");
-
-	if (base_instance->IsClass(T_Derived::GetStaticClassIdentifier()))
+	if (base_instance && base_instance->IsClass(T_Derived::GetStaticClassIdentifier()))
 		return static_cast<Derived>(base_instance);
 	else
 		return nullptr;
@@ -107,54 +123,37 @@ Derived rmlui_dynamic_cast(Base base_instance)
 template <class Derived, class Base>
 Derived rmlui_static_cast(Base base_instance)
 {
-	static_assert(std::is_pointer<Derived>::value && std::is_pointer<Base>::value, "rmlui_static_cast can only cast pointer types");
-	return static_cast<Derived>(base_instance);
-}
-
-template <class T>
-const char* rmlui_type_name(const T& /*var*/)
-{
-	return "(type name unavailable)";
-}
-
-template <class T>
-const char* rmlui_type_name()
-{
-	return "(type name unavailable)";
-}
-
-#else
-
-	#include <typeinfo>
-
-	#define RMLUI_RTTI_Define(_NAME_)
-	#define RMLUI_RTTI_DefineWithParent(_NAME_, _PARENT_)
-
-template <class Derived, class Base>
-Derived rmlui_dynamic_cast(Base base_instance)
-{
-	static_assert(std::is_pointer<Derived>::value && std::is_pointer<Base>::value, "rmlui_dynamic_cast can only cast pointer types");
-	return dynamic_cast<Derived>(base_instance);
-}
-
-template <class Derived, class Base>
-Derived rmlui_static_cast(Base base_instance)
-{
-	static_assert(std::is_pointer<Derived>::value && std::is_pointer<Base>::value, "rmlui_static_cast can only cast pointer types");
+	static_assert(std::is_pointer_v<Derived> && std::is_pointer_v<Base>, "rmlui_static_cast can only cast pointer types");
+#ifdef RMLUI_HAS_RTTI
 	RMLUI_ASSERT(dynamic_cast<Derived>(base_instance));
+#endif
 	return static_cast<Derived>(base_instance);
 }
+
+#ifdef RMLUI_HAS_RTTI
 
 template <class T>
 const char* rmlui_type_name(const T& var)
 {
 	return typeid(var).name();
 }
-
 template <class T>
 const char* rmlui_type_name()
 {
 	return typeid(T).name();
 }
 
-#endif // RMLUI_CUSTOM_RTTI
+#else
+
+template <class T>
+const char* rmlui_type_name(const T& /*var*/)
+{
+	return "(type name unavailable)";
+}
+template <class T>
+const char* rmlui_type_name()
+{
+	return "(type name unavailable)";
+}
+
+#endif

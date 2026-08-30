@@ -19,6 +19,8 @@
 namespace Rml {
 namespace Debugger {
 
+RMLUI_RTTI_Define(ElementInfo)
+
 ElementInfo::ElementInfo(const String& tag) : ElementDebugDocument(tag)
 {
 	hover_element = nullptr;

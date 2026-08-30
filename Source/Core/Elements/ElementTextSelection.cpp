@@ -4,6 +4,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define(ElementTextSelection)
+
 ElementTextSelection::ElementTextSelection(const String& tag) : Element(tag)
 {
 	widget = nullptr;

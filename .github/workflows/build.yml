@@ -24,7 +24,7 @@ jobs:
           - cmake_options: -DRMLUI_BACKEND=GLFW_GL3 -DBUILD_TESTING=ON
             enable_testing: true
           - cmake_options: -DRMLUI_BACKEND=X11_GL2 -DRMLUI_LOTTIE_PLUGIN=ON
-          - cmake_options: -DRMLUI_BACKEND=SDL_GL2 -DRMLUI_CUSTOM_RTTI=ON -DCMAKE_CXX_FLAGS="-fno-exceptions -fno-rtti"
+          - cmake_options: -DRMLUI_BACKEND=SDL_GL2 -DCMAKE_CXX_FLAGS="-fno-exceptions -fno-rtti"
           - cmake_options: -DRMLUI_BACKEND=SFML_GL2 -DRMLUI_THIRDPARTY_CONTAINERS=OFF
           - cmake_options: -DRMLUI_BACKEND=GLFW_VK -DCMAKE_BUILD_TYPE=Debug -DRMLUI_VK_DEBUG=ON -DRMLUI_PRECOMPILED_HEADERS=OFF
 
@@ -168,6 +168,8 @@ jobs:
             build_type: Debug
           - cmake_options: -DRMLUI_BACKEND=SDL_VK -DRMLUI_LUA_BINDINGS_LIBRARY=luajit
           - cmake_options: -DRMLUI_BACKEND=GLFW_VK
+          - cmake_options: -DRMLUI_BACKEND=Win32_DX11 -DRMLUI_PRECOMPILED_HEADERS=OFF
+          - cmake_options: -DRMLUI_BACKEND=GLFW_DX11 -DRMLUI_DX_DEBUG=ON
           - cmake_options: -DRMLUI_BACKEND=Win32_DX12
           - cmake_options: -DRMLUI_BACKEND=SDL_DX12
           - cmake_options: -DRMLUI_BACKEND=GLFW_DX12 -DRMLUI_DX_DEBUG=ON

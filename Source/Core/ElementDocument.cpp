@@ -121,6 +121,8 @@ namespace {
 
 } // namespace
 
+RMLUI_RTTI_Define(ElementDocument)
+
 ElementDocument::ElementDocument(const String& tag) : Element(tag)
 {
 	context = nullptr;
