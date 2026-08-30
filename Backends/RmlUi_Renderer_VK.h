@@ -44,6 +44,18 @@ struct FramebufferData;
  *    to both vertex and fragment stages, so one bind covers what DX12 does with up to three root CBV indices.
  *  - Swapchain images are acquired from the presentation engine, so there is no user-selectable backbuffer index
  *    equivalent; UserSetBackbufferIndex() is intentionally not overridden.
+ *
+ * Frame-level batching (RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED): eligible RenderGeometry draws (ordinary
+ * color/texture geometry; no postprocess, override-constant-buffer, or clip-mask state) are not drawn immediately.
+ * Instead GeometryBatcher copies their vertices (with the draw translation baked into the positions, which the
+ * shader's pre-transform translation makes exactly equivalent) and indices (with the vertex base baked in) into
+ * per-ring-slot persistently-mapped arenas, and appends a 16-byte BatchDraw record keyed by unsigned-char ids into
+ * per-run intern tables (texture, scissor, transform). Consecutive records with identical keys merge into one draw.
+ * Anything that ends the render pass, changes the render target, or takes the legacy path first flushes the
+ * accumulated records (FlushBatches): one draw per record, emitting only the state that changed between records.
+ * Arena cursors reset only when the slot's fence passes at BeginFrame — never at flush, since draws recorded earlier
+ * in the frame still reference the data; arena growth doubles the buffer and retires the old one through the same
+ * frame-counter-stamped deferred destruction as geometry. Set to 0 to compile the batching code out entirely.
  */
 class RenderInterface_VK : public Rml::RenderInterface {
 private:
@@ -481,6 +493,129 @@ public:
 		Rml::Vector<Gfx::FramebufferData> m_fb_postprocess;
 	};
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	/**
+	 * Frame-level geometry batcher (see the class-level comment of RenderInterface_VK).
+	 *
+	 * Owns only memory and batch records; the renderer keeps doing all GPU binding itself. The per-ring-slot arenas
+	 * are persistently-mapped host-visible VMA buffers created with the same allocation flags as the buffer pool
+	 * (vertex data in one buffer, index data in another). Growth doubles the buffer, copies the used range at
+	 * identical offsets (batch records reference arena offsets, not buffer objects, and the buffers are only bound at
+	 * flush time), and retires the old buffer into a frame-counter-stamped deferred-destruction list, the same idiom
+	 * as the renderer's pending-for-deletion geometry.
+	 */
+	class GeometryBatcher : Rml::NonCopyMoveable {
+	public:
+		// One batched draw run over the frame index arena. 16 bytes, unsigned-char keyed — the minimal memory layout
+		// is a hard requirement. ProgramId is incomplete in this header, so the program is stored as uint8_t and cast
+		// at the use sites in the .cpp.
+		struct BatchDraw {
+			uint32_t first_index; // first index (in indices, not bytes) in the frame index arena
+			uint32_t index_count; // number of indices in this run
+			uint8_t texture_id;   // interned texture table index; kBatchNoTexture (0xFF) = color pipeline
+			uint8_t scissor_id;   // 0 = full-frame scissor; 1..255 index into the scissor table
+			uint8_t program_id;   // ProgramId (values < 32)
+			uint8_t stencil_ref;  // stencil reference in effect (saturated at 255)
+			uint8_t transform_id; // interned transform-matrix table index
+			uint8_t reserved[3];  // zero
+		};
+		static_assert(sizeof(BatchDraw) == 16, "the batch record must stay 16 bytes");
+
+		// texture_id sentinel: the draw runs a color pipeline and binds no texture
+		static constexpr uint8_t kBatchNoTexture = 0xFF;
+		// 0xFF is the none-sentinel, so at most 254 real texture entries fit
+		static constexpr uint32_t kMaxInternedTextures = 254;
+		// scissor id 0 is reserved for the full-frame scissor; ids 1..255 map to table entries 0..254
+		static constexpr uint32_t kMaxInternedScissors = 255;
+		static constexpr uint32_t kMaxInternedTransforms = 255;
+
+		enum class AccumulateResult {
+			Done,        // the draw was merged into (or appended to) the accumulation run
+			NeedFlush,   // an intern table ran full; the renderer must flush the run and retry the accumulate
+			NotBatchable // the draw cannot be accumulated after all (a flush broke the texture-reuse chain)
+		};
+
+		GeometryBatcher();
+		~GeometryBatcher();
+
+		void Initialize(VkDevice p_device, VmaAllocator p_allocator, BufferMemoryManager* p_manager_buffer) noexcept;
+		// Also drains the retired-buffer list; the device must be idle (Destroy_Resources runs after a GPU drain).
+		void Shutdown();
+
+		// Restarts the slot's arena cursors (its fence just passed), resets the accumulation state, and destroys
+		// retired arena buffers that aged a full swapchain cycle out.
+		void BeginFrame(uint32_t slot_index, uint64_t frame_counter) noexcept;
+
+		// Batchable: ordinary color/texture draws only — no postprocess passthrough, no override constant buffer, no
+		// clip-mask operation. TextureEnableWithoutBinding additionally requires a textured previous record to reuse.
+		bool CanAccumulate(Rml::TextureHandle texture, const GeometryHandleType* p_handle_geometry, int current_clip_operation) const noexcept;
+
+		// Appends the draw to the current run: copies the vertices (baking the translation into their positions) and
+		// the indices (baking the vertex base) into the slot's arenas, then extends or pushes a BatchDraw record.
+		AccumulateResult Accumulate(Rml::TextureHandle texture, Rml::Vector2f translation, const GeometryHandleType* p_handle_geometry,
+			ProgramId program_id, bool is_scissor_set, const Rml::Rectanglei& scissor, const Rml::Matrix4f& transform, uint32_t stencil_ref);
+
+		// Clears the records and intern tables after a flush; the arena cursors are NOT reset here (draws recorded
+		// earlier in the frame still reference the arena data).
+		void ResetAccumulation() noexcept;
+
+		const Rml::Vector<BatchDraw>& Get_Records() const noexcept { return m_records; }
+		// geometries merged into the current accumulation run so far (for the per-flush label)
+		uint32_t Get_AccumulatedGeometryCount() const noexcept { return m_geometry_count; }
+		Rml::TextureHandle Get_TextureById(uint8_t texture_id) const noexcept;
+		const Rml::Rectanglei& Get_ScissorById(uint8_t scissor_id) const noexcept;
+		const Rml::Matrix4f& Get_TransformById(uint8_t transform_id) const noexcept { return m_transforms[transform_id]; }
+		uint32_t Get_TransformCount() const noexcept { return static_cast<uint32_t>(m_transforms.size()); }
+		VkBuffer Get_VertexArenaBuffer() const noexcept { return m_arenas[m_current_slot].p_buffer_vertex; }
+		VkBuffer Get_IndexArenaBuffer() const noexcept { return m_arenas[m_current_slot].p_buffer_index; }
+
+	private:
+		// Per-ring-slot arena pair. The used cursors restart only in BeginFrame, once the slot's fence passed.
+		struct ArenaSlot {
+			VkBuffer p_buffer_vertex = nullptr;
+			VmaAllocation p_allocation_vertex = nullptr;
+			std::uint8_t* p_mapped_vertex = nullptr;
+			size_t capacity_vertex = 0; // bytes
+			size_t used_vertex = 0;     // bytes
+
+			VkBuffer p_buffer_index = nullptr;
+			VmaAllocation p_allocation_index = nullptr;
+			std::uint8_t* p_mapped_index = nullptr;
+			size_t capacity_index = 0; // bytes
+			uint32_t used_index = 0;   // in indices (uint32_t units); the first free index cursor
+		};
+
+		// An arena buffer replaced by growth; destroyed once a full swapchain cycle passed.
+		struct RetiredArenaBuffer {
+			VkBuffer p_buffer;
+			VmaAllocation p_allocation;
+			uint64_t frame_stamp;
+		};
+
+		void Create_ArenaBuffer(ArenaSlot& slot, bool is_vertex, size_t size);
+		void Grow_Arena(ArenaSlot& slot, bool is_vertex, size_t required_size);
+		void Destroy_ArenaBuffer(VkBuffer& p_buffer, VmaAllocation& p_allocation) noexcept;
+
+		VkDevice m_p_device;
+		VmaAllocator m_p_allocator;
+		// the source geometry bytes are read out of the buffer pool's persistently-mapped memory
+		BufferMemoryManager* m_p_manager_buffer;
+		uint32_t m_current_slot;
+		uint64_t m_frame_counter;
+
+		Rml::Vector<BatchDraw> m_records;
+		uint32_t m_geometry_count = 0;
+		Rml::TextureHandle m_textures[kMaxInternedTextures];
+		uint8_t m_texture_count;
+		Rml::Rectanglei m_scissors[kMaxInternedScissors];
+		uint8_t m_scissor_count;
+		Rml::Vector<Rml::Matrix4f> m_transforms;
+
+		Rml::Array<ArenaSlot, CommandBufferRing::kNumFramesToBuffer> m_arenas;
+		Rml::Vector<RetiredArenaBuffer> m_retired_buffers;
+	};
+#endif
+
 	struct PhysicalDeviceWrapper {
 		VkPhysicalDevice m_p_physical_device;
 		VkPhysicalDeviceProperties m_physical_device_properties;
@@ -676,6 +811,23 @@ private:
 
 	void SubmitTransformUniform(ConstantBufferType& constant_buffer, const Rml::Vector2f& translation);
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// -- Batching (RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED) --
+
+	// Draws the accumulated batch records in order, emitting only the state that changed between records (one
+	// vkCmdDrawIndexed per record), then restores the dynamic state (scissor, stencil reference) the legacy path
+	// expects to find. No-op when nothing was accumulated. Requires an active render pass.
+	void FlushBatches();
+	// Program selection for the batch path; duplicates the legacy RenderGeometry if-chain (left untouched) for the
+	// batchable cases (m_current_clip_operation == -1 is guaranteed by GeometryBatcher::CanAccumulate).
+	ProgramId SelectBatchProgramId(bool is_textured) const noexcept;
+	// Explicit-transform overload used by the batch path: the transform comes from the intern table, not the member.
+	void SubmitTransformUniform(ConstantBufferType& constant_buffer, const Rml::Matrix4f& transform, const Rml::Vector2f& translation);
+	// Emits the scissor matching the current renderer state (m_is_scissor_was_set/m_scissor, already clamped by
+	// SetScissor). While batching is enabled SetScissor records nothing, so every legacy-path draw calls this first.
+	void EmitCurrentScissorState();
+#endif
+
 	ConstantBufferType* Get_ConstantBuffer(uint32_t current_back_buffer_index);
 
 	void Free_Geometry(GeometryHandleType* p_handle);
@@ -792,6 +944,9 @@ private:
 
 #ifdef RMLUI_VK_DEBUG
 	VkDebugUtilsMessengerEXT m_debug_messenger;
+	// VK_EXT_debug_utils entry points for RenderDoc command labels (loaded at device creation, null when unsupported)
+	PFN_vkCmdBeginDebugUtilsLabelEXT m_pfn_cmd_begin_debug_utils_label = nullptr;
+	PFN_vkCmdEndDebugUtilsLabelEXT m_pfn_cmd_end_debug_utils_label = nullptr;
 #endif
 
 	VkSurfaceFormatKHR m_swapchain_format;
@@ -833,4 +988,12 @@ private:
 	BufferMemoryManager m_manager_buffer;
 	TextureMemoryManager m_manager_texture;
 	RenderLayerStack m_manager_render_layer;
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the last member on purpose: it destructs first, before the buffer manager whose mapped memory it reads
+	GeometryBatcher m_manager_batch;
+	// per-frame batching stats: reset in BeginFrame, logged in EndFrame under RMLUI_VK_DEBUG
+	uint32_t m_batch_stats_geometry_draws = 0;
+	uint32_t m_batch_stats_draw_calls = 0;
+#endif
 };

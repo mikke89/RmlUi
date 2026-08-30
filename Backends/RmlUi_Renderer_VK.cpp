@@ -166,6 +166,15 @@ enum class ProgramId : int {
 	Count
 };
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+// the batch records key the program id by uint8_t
+static_assert(static_cast<size_t>(ProgramId::Count) <= 32, "ProgramId must stay below 32 for the uint8_t batch key");
+// the batching arenas copy raw Rml::Vertex blobs (position 8 + colour 4 + tex_coord 8)
+static_assert(sizeof(Rml::Vertex) == 20, "the batching vertex arena assumes packed 20-byte vertices");
+// the transform intern table dedupes with a memcmp of the whole matrix
+static_assert(sizeof(Rml::Matrix4f) == 64, "the batching transform table assumes 64-byte matrices");
+#endif
+
 static Rml::Colourf ConvertToColorf(Rml::ColourbPremultiplied c0)
 {
 	RMLUI_ZoneScopedN("Vulkan - ConvertToColorf");
@@ -247,6 +256,27 @@ static void SigmaToParameters(const float desired_sigma, int& out_pass_level, fl
 		default: return m_p_pipeline_layout_texture;                                            \
 		}                                                                                       \
 	}
+
+#ifdef RMLUI_VK_DEBUG
+	// RenderDoc command labels, mirroring the DX12 renderer's RMLUI_DX_MARKER_* (ID3D12GraphicsCommandList events).
+	// Member-function scope only: labels are recorded into m_p_current_command_buffer through the VK_EXT_debug_utils
+	// entry points loaded at device creation (the instance extension is requested whenever the driver supports it;
+	// the pointers stay null otherwise and the macros become runtime no-ops).
+	#define RMLUI_VK_MARKER_BEGIN(name)                                                                    \
+		if (m_p_current_command_buffer && m_pfn_cmd_begin_debug_utils_label)                               \
+		{                                                                                                  \
+			VkDebugUtilsLabelEXT rmlui_vk_debug_label = {};                                                \
+			rmlui_vk_debug_label.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;                          \
+			rmlui_vk_debug_label.pLabelName = (name);                                                      \
+			m_pfn_cmd_begin_debug_utils_label(m_p_current_command_buffer, &rmlui_vk_debug_label);          \
+		}
+	#define RMLUI_VK_MARKER_END()                                                                          \
+		if (m_p_current_command_buffer && m_pfn_cmd_end_debug_utils_label)                                 \
+			m_pfn_cmd_end_debug_utils_label(m_p_current_command_buffer);
+#else
+	#define RMLUI_VK_MARKER_BEGIN(name)
+	#define RMLUI_VK_MARKER_END()
+#endif
 
 namespace Gfx {
 struct FramebufferData {
@@ -582,6 +612,15 @@ void RenderInterface_VK::Initialize_Device() noexcept
 	VkResult status = vkCreateDevice(m_p_physical_device, &info_device, nullptr, &m_p_device);
 
 	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "failed to vkCreateDevice");
+
+#ifdef RMLUI_VK_DEBUG
+	// command-label entry points for RenderDoc captures (VK_EXT_debug_utils is an instance-level extension here, so
+	// the device-level functions are fetched with vkGetDeviceProcAddr; they stay null when unsupported)
+	m_pfn_cmd_begin_debug_utils_label =
+		reinterpret_cast<PFN_vkCmdBeginDebugUtilsLabelEXT>(vkGetDeviceProcAddr(m_p_device, "vkCmdBeginDebugUtilsLabelEXT"));
+	m_pfn_cmd_end_debug_utils_label =
+		reinterpret_cast<PFN_vkCmdEndDebugUtilsLabelEXT>(vkGetDeviceProcAddr(m_p_device, "vkCmdEndDebugUtilsLabelEXT"));
+#endif
 }
 
 void RenderInterface_VK::Initialize_PhysicalDevice(VkPhysicalDeviceProperties& out_physical_device_properties) noexcept
@@ -856,6 +895,9 @@ void RenderInterface_VK::Initialize_Resources(const VkPhysicalDeviceProperties& 
 		constant_buffer_alignment = RMLUI_RENDER_BACKEND_FIELD_ALIGNMENT_FOR_BUFFER;
 
 	m_manager_buffer.Initialize(m_p_device, m_p_allocator, &m_manager_descriptors, m_p_descriptor_set_layout_transform, constant_buffer_alignment);
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	m_manager_batch.Initialize(m_p_device, m_p_allocator, &m_manager_buffer);
+#endif
 	m_manager_texture.Initialize(this, m_p_device, m_p_allocator, &m_upload_manager, &m_manager_descriptors, m_p_descriptor_set_layout_texture,
 		m_p_sampler_linear);
 	m_manager_render_layer.Initialize(this);
@@ -960,6 +1002,11 @@ void RenderInterface_VK::Destroy_Resources() noexcept
 
 	Destroy_Geometries();
 	Destroy_Textures();
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the device is idle here (Shutdown drains it), so the batching arenas and their retired buffers go immediately
+	m_manager_batch.Shutdown();
+#endif
 
 	m_manager_buffer.Shutdown();
 	m_manager_texture.Shutdown();
@@ -2982,9 +3029,13 @@ void RenderInterface_VK::BindRenderTarget(const Gfx::FramebufferData& framebuffe
 {
 	(void)depth_included;
 	RMLUI_ZoneScopedN("Vulkan - BindRenderTarget");
+	RMLUI_VK_MARKER_BEGIN("BindRenderTarget");
 
 	if (m_p_active_framebuffer == framebuffer.Get_Framebuffer() && m_p_active_render_pass != nullptr)
+	{
+		RMLUI_VK_MARKER_END();
 		return;
+	}
 
 	EndActiveRenderPass();
 
@@ -3015,6 +3066,8 @@ void RenderInterface_VK::BindRenderTarget(const Gfx::FramebufferData& framebuffe
 
 	m_p_active_render_pass = p_render_pass;
 	m_p_active_framebuffer = framebuffer.Get_Framebuffer();
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::BindRenderTarget_Clear(const Gfx::FramebufferData& framebuffer, bool clear_depth_stencil)
@@ -3165,6 +3218,18 @@ void RenderInterface_VK::BeginFrame()
 	m_command_buffer_ring.OnBeginFrame();
 	m_constant_buffer_count_per_frame[m_command_buffer_ring.Get_ActiveFrameIndex()] = 0;
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// defensive only: EndFrame always drains the accumulation list, so this is a no-op; it must run before the slot's
+	// arena cursors restart below (a stale record would otherwise resolve against a restarted arena)
+	FlushBatches();
+
+	// the slot's fence just passed: restart its arena cursors and recycle its retired arena buffers
+	m_manager_batch.BeginFrame(m_command_buffer_ring.Get_ActiveFrameIndex(), m_frame_counter);
+
+	m_batch_stats_geometry_draws = 0;
+	m_batch_stats_draw_calls = 0;
+#endif
+
 	m_p_current_command_buffer = m_command_buffer_ring.GetCommandBufferForActiveFrame(CommandBufferName::Primary);
 
 	VkCommandBufferBeginInfo info = {};
@@ -3177,6 +3242,8 @@ void RenderInterface_VK::BeginFrame()
 	auto status = vkBeginCommandBuffer(m_p_current_command_buffer, &info);
 
 	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkBeginCommandBuffer");
+
+	RMLUI_VK_MARKER_BEGIN("BeginFrame");
 
 	m_stencil_ref_value = 0;
 	m_is_scissor_was_set = false;
@@ -3196,6 +3263,8 @@ void RenderInterface_VK::BeginFrame()
 	vkCmdSetViewport(m_p_current_command_buffer, 0, 1, &m_viewport);
 	vkCmdSetScissor(m_p_current_command_buffer, 0, 1, &m_scissor_original);
 	vkCmdSetStencilReference(m_p_current_command_buffer, VK_STENCIL_FACE_FRONT_AND_BACK, 0);
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::EndFrame()
@@ -3204,6 +3273,18 @@ void RenderInterface_VK::EndFrame()
 
 	if (m_p_current_command_buffer == nullptr)
 		return;
+
+	RMLUI_VK_MARKER_BEGIN("EndFrame");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// all pending batch draws must be recorded while the layer render pass is still active
+	FlushBatches();
+
+#ifdef RMLUI_VK_DEBUG
+	Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[Vulkan] batching: %u RenderGeometry calls merged into %u draw calls", m_batch_stats_geometry_draws,
+		m_batch_stats_draw_calls);
+#endif
+#endif
 
 	EndActiveRenderPass();
 
@@ -3296,6 +3377,8 @@ void RenderInterface_VK::EndFrame()
 
 	m_manager_render_layer.EndFrame();
 
+	RMLUI_VK_MARKER_END();
+
 	auto status = vkEndCommandBuffer(m_p_current_command_buffer);
 
 	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkEndCommandBuffer");
@@ -3311,8 +3394,16 @@ void RenderInterface_VK::EndFrame()
 void RenderInterface_VK::Clear()
 {
 	RMLUI_ZoneScopedN("Vulkan - Clear");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the clear restarts the render pass in its clear variant, so pending batch draws must land in the current pass first
+	FlushBatches();
+#endif
+
 	RMLUI_ASSERT(m_p_current_command_buffer);
 	RMLUI_ASSERTMSG(m_p_active_render_pass, "a render pass must be active (BeginFrame binds the top layer)");
+
+	RMLUI_VK_MARKER_BEGIN("Clear");
 
 	if (m_p_current_command_buffer && m_p_active_render_pass)
 	{
@@ -3352,6 +3443,7 @@ void RenderInterface_VK::Clear()
 			m_p_active_render_pass = m_p_render_pass_layer_clear_all;
 			m_p_active_framebuffer = p_active_framebuffer;
 
+			RMLUI_VK_MARKER_END();
 			return;
 		}
 
@@ -3385,6 +3477,8 @@ void RenderInterface_VK::Clear()
 
 		vkCmdClearAttachments(m_p_current_command_buffer, has_depth_stencil_attachment ? 2u : 1u, attaches, 1, &clear_rect);
 	}
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::SetViewport(int width, int height)
@@ -3444,6 +3538,12 @@ void RenderInterface_VK::UseProgram(ProgramId id)
 	RMLUI_ZoneScopedN("Vulkan - UseProgram");
 	RMLUI_ASSERTMSG(id < ProgramId::Count, "overflow, too big value for indexing");
 
+#ifdef RMLUI_VK_DEBUG
+	char msg[64];
+	std::sprintf(msg, "UseProgram = %d", static_cast<int>(id));
+#endif
+	RMLUI_VK_MARKER_BEGIN(msg);
+
 	// the DX12 renderer has no early-out for repeated program selection; keep the same behavior (a plain rebind)
 	if (id != ProgramId::None)
 	{
@@ -3452,6 +3552,8 @@ void RenderInterface_VK::UseProgram(ProgramId id)
 	}
 
 	m_active_program_id = id;
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::SetScissor(Rml::Rectanglei region)
@@ -3464,10 +3566,12 @@ void RenderInterface_VK::SetScissor(Rml::Rectanglei region)
 		{
 			m_is_scissor_was_set = false;
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 0
 			if (m_p_current_command_buffer)
 			{
 				vkCmdSetScissor(m_p_current_command_buffer, 0, 1, &m_scissor_original);
 			}
+#endif
 
 			return;
 		}
@@ -3485,6 +3589,11 @@ void RenderInterface_VK::SetScissor(Rml::Rectanglei region)
 		const int x_max = Rml::Math::Clamp(region.Right(), 0, m_width);
 		const int y_max = Rml::Math::Clamp(region.Bottom(), 0, m_height);
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+		// batched draws carry the scissor inside their batch record (emitted per batch by FlushBatches) and
+		// legacy-path draws set it themselves, so nothing is recorded here
+		m_is_scissor_was_set = true;
+#else
 		if (m_p_current_command_buffer)
 		{
 			VkRect2D scissor = {};
@@ -3496,6 +3605,7 @@ void RenderInterface_VK::SetScissor(Rml::Rectanglei region)
 			vkCmdSetScissor(m_p_current_command_buffer, 0, 1, &scissor);
 			m_is_scissor_was_set = true;
 		}
+#endif
 
 		m_scissor.p0 = Rml::Vector2i(x_min, y_min);
 		m_scissor.p1 = Rml::Vector2i(x_max, y_max);
@@ -3512,7 +3622,13 @@ void RenderInterface_VK::EnableScissorRegion(bool enable)
 
 	if (!enable)
 	{
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 0
+		RMLUI_VK_MARKER_BEGIN("EnableScissorRegion");
+#endif
 		SetScissor(Rml::Rectanglei::MakeInvalid());
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 0
+		RMLUI_VK_MARKER_END();
+#endif
 	}
 }
 
@@ -3520,7 +3636,14 @@ void RenderInterface_VK::SetScissorRegion(Rml::Rectanglei region)
 {
 	RMLUI_ZoneScopedN("Vulkan - SetScissorRegion");
 
+	// under batching this is a state-only update (no commands are recorded), so the label would be empty
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 0
+	RMLUI_VK_MARKER_BEGIN("SetScissorRegion");
+#endif
 	SetScissor(region);
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 0
+	RMLUI_VK_MARKER_END();
+#endif
 }
 
 void RenderInterface_VK::SetTransform(const Rml::Matrix4f* transform)
@@ -3613,6 +3736,191 @@ Rml::CompiledGeometryHandle RenderInterface_VK::CompileGeometry(Rml::Span<const 
 	return reinterpret_cast<Rml::CompiledGeometryHandle>(p_handle);
 }
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+ProgramId RenderInterface_VK::SelectBatchProgramId(bool is_textured) const noexcept
+{
+	// duplicates the legacy RenderGeometry program selection for the batchable cases (clip operation == -1)
+	if (is_textured)
+	{
+		if (m_is_stencil_enabled)
+			return m_is_stencil_equal ? ProgramId::Texture_Stencil_Equal : ProgramId::Texture_Stencil_Always;
+		return ProgramId::Texture_Stencil_Disabled;
+	}
+
+	if (m_is_stencil_enabled)
+		return m_is_stencil_equal ? ProgramId::Color_Stencil_Equal : ProgramId::Color_Stencil_Always;
+	return ProgramId::Color_Stencil_Disabled;
+}
+
+void RenderInterface_VK::SubmitTransformUniform(ConstantBufferType& constant_buffer, const Rml::Matrix4f& transform, const Rml::Vector2f& translation)
+{
+	RMLUI_ZoneScopedN("Vulkan - SubmitTransformUniform(explicit)");
+
+	std::uint8_t* p_gpu_binding_start = reinterpret_cast<std::uint8_t*>(constant_buffer.m_p_gpu_start_memory_for_binding_data);
+
+	RMLUI_ASSERTMSG(p_gpu_binding_start,
+		"your allocated constant buffer must contain a valid pointer of beginning mapping of its GPU buffer. Otherwise you destroyed it!");
+
+	if (p_gpu_binding_start)
+	{
+		std::uint8_t* p_gpu_binding_offset_to_transform = p_gpu_binding_start + constant_buffer.m_alloc_info.offset;
+
+		std::memcpy(p_gpu_binding_offset_to_transform, transform.data(), sizeof(transform));
+		std::memcpy(p_gpu_binding_offset_to_transform + sizeof(transform), &translation.x, sizeof(translation));
+	}
+}
+
+void RenderInterface_VK::EmitCurrentScissorState()
+{
+	RMLUI_ZoneScopedN("Vulkan - EmitCurrentScissorState");
+
+	if (m_is_scissor_was_set)
+	{
+		// m_scissor is already clamped to the framebuffer by SetScissor (and it is not updated on disable, so its
+		// Valid() flag cannot be consulted here)
+		VkRect2D scissor = {};
+		scissor.offset.x = m_scissor.Left();
+		scissor.offset.y = m_scissor.Top();
+		scissor.extent.width = static_cast<uint32_t>(m_scissor.Width());
+		scissor.extent.height = static_cast<uint32_t>(m_scissor.Height());
+
+		vkCmdSetScissor(m_p_current_command_buffer, 0, 1, &scissor);
+	}
+	else
+	{
+		vkCmdSetScissor(m_p_current_command_buffer, 0, 1, &m_scissor_original);
+	}
+}
+
+void RenderInterface_VK::FlushBatches()
+{
+	RMLUI_ZoneScopedN("Vulkan - FlushBatches");
+
+	const Rml::Vector<GeometryBatcher::BatchDraw>& records = m_manager_batch.Get_Records();
+	if (records.empty())
+		return;
+
+	// every flush hook point guarantees a recording command buffer with an active render pass
+	RMLUI_ASSERTMSG(m_p_current_command_buffer, "must be valid!");
+	RMLUI_ASSERTMSG(m_p_active_render_pass, "batch draws must be recorded inside an active render pass");
+
+#ifdef RMLUI_VK_DEBUG
+	// the label carries the actual information of the region: how many draw calls the accumulated geometry merged into
+	char msg[96];
+	std::sprintf(msg, "FlushBatches: %zu draw call(s) from %u geometry(ies)", records.size(), m_manager_batch.Get_AccumulatedGeometryCount());
+#endif
+	RMLUI_VK_MARKER_BEGIN(msg);
+
+	RMLUI_VK_PROGRAM_PIPELINE_LAYOUT_LOOKUP(get_pipeline_layout_for_program);
+
+	// lazily create one constant buffer per interned transform; the translation is baked into the arena vertices, so
+	// the constant-buffer translation is always (0,0) here
+	const uint32_t transform_count = m_manager_batch.Get_TransformCount();
+	RMLUI_ASSERTMSG(transform_count > 0, "batch records always carry a transform");
+
+	Rml::Vector<ConstantBufferType*> batch_constant_buffers;
+	batch_constant_buffers.reserve(transform_count);
+
+	for (uint32_t i = 0; i < transform_count; ++i)
+	{
+		ConstantBufferType* p_constant_buffer = Get_ConstantBuffer(m_command_buffer_ring.Get_ActiveFrameIndex());
+		RMLUI_VK_ASSERTMSG(p_constant_buffer, "failed to obtain constant buffer for a batch draw");
+
+		SubmitTransformUniform(*p_constant_buffer, m_manager_batch.Get_TransformById(static_cast<uint8_t>(i)), Rml::Vector2f(0.0f, 0.0f));
+		batch_constant_buffers.push_back(p_constant_buffer);
+	}
+
+	// the arenas are bound once for the whole walk; the batch records reference arena offsets, not buffer objects, so
+	// mid-frame arena growth is transparent here (the used range was copied into the grown buffer)
+	const VkBuffer p_vertex_arena = m_manager_batch.Get_VertexArenaBuffer();
+	const VkBuffer p_index_arena = m_manager_batch.Get_IndexArenaBuffer();
+	RMLUI_VK_ASSERTMSG(p_vertex_arena && p_index_arena, "the batching arenas must be initialized");
+
+	const VkDeviceSize arena_offset = 0;
+	vkCmdBindVertexBuffers(m_p_current_command_buffer, 0, 1, &p_vertex_arena, &arena_offset);
+	vkCmdBindIndexBuffer(m_p_current_command_buffer, p_index_arena, 0, VK_INDEX_TYPE_UINT32);
+
+	ProgramId last_program_id = ProgramId::None;
+	int last_texture_id = -1;
+	int last_scissor_id = -1;
+	int last_stencil_ref = -1;
+	int last_transform_id = -1;
+
+	for (const GeometryBatcher::BatchDraw& record : records)
+	{
+		const ProgramId program_id = static_cast<ProgramId>(record.program_id);
+		const bool is_program_changed = (program_id != last_program_id);
+
+		if (is_program_changed)
+		{
+			UseProgram(program_id);
+			last_program_id = program_id;
+		}
+
+		// a program change can switch the pipeline layout (color vs texture programs), which disturbs the descriptor
+		// bindings, so the transform constant buffer is rebound on program changes too
+		if (is_program_changed || record.transform_id != last_transform_id)
+		{
+			ConstantBufferType* p_constant_buffer = batch_constant_buffers[record.transform_id];
+
+			VkDescriptorSet p_set = m_manager_buffer.Get_ConstantBufferDescriptorSetByIndex(p_constant_buffer->m_alloc_info.buffer_index);
+			RMLUI_VK_ASSERTMSG(p_set, "must be valid!");
+
+			const uint32_t dynamic_offset = static_cast<uint32_t>(p_constant_buffer->m_alloc_info.offset);
+
+			vkCmdBindDescriptorSets(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, get_pipeline_layout_for_program(program_id), 0, 1,
+				&p_set, 1, &dynamic_offset);
+
+			last_transform_id = record.transform_id;
+		}
+
+		if (record.texture_id != GeometryBatcher::kBatchNoTexture && (is_program_changed || record.texture_id != last_texture_id))
+		{
+			BindTexture(reinterpret_cast<TextureHandleType*>(m_manager_batch.Get_TextureById(record.texture_id)), 1);
+			last_texture_id = record.texture_id;
+		}
+
+		if (record.scissor_id != last_scissor_id)
+		{
+			VkRect2D scissor = m_scissor_original;
+			if (record.scissor_id != 0)
+			{
+				// the interned rectangle was already clamped to the framebuffer by SetScissor
+				const Rml::Rectanglei& region = m_manager_batch.Get_ScissorById(record.scissor_id);
+				scissor.offset.x = region.Left();
+				scissor.offset.y = region.Top();
+				scissor.extent.width = static_cast<uint32_t>(region.Width());
+				scissor.extent.height = static_cast<uint32_t>(region.Height());
+			}
+			vkCmdSetScissor(m_p_current_command_buffer, 0, 1, &scissor);
+			last_scissor_id = record.scissor_id;
+		}
+
+		if (record.stencil_ref != last_stencil_ref)
+		{
+			vkCmdSetStencilReference(m_p_current_command_buffer, VK_STENCIL_FACE_FRONT_AND_BACK, record.stencil_ref);
+			last_stencil_ref = record.stencil_ref;
+		}
+
+		// the vertex base is baked into the arena indices, so vertexOffset stays 0
+		vkCmdDrawIndexed(m_p_current_command_buffer, record.index_count, 1, record.first_index, 0, 0);
+	}
+
+	m_batch_stats_draw_calls += static_cast<uint32_t>(records.size());
+
+	// restore the dynamic state the legacy path expects to find: legacy-path draws rely on the command buffer's
+	// scissor being current, and stencil draws rely on the reference set by EnableClipMask/RenderToClipMask
+	EmitCurrentScissorState();
+
+	vkCmdSetStencilReference(m_p_current_command_buffer, VK_STENCIL_FACE_FRONT_AND_BACK, m_is_stencil_enabled ? m_stencil_ref_value : 0);
+
+	// the arena cursors are NOT reset: draws recorded earlier in the frame still reference the arena data
+	m_manager_batch.ResetAccumulation();
+
+	RMLUI_VK_MARKER_END();
+}
+#endif
+
 void RenderInterface_VK::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderGeometry");
@@ -3624,6 +3932,41 @@ void RenderInterface_VK::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rm
 	TextureHandleType* p_handle_texture{};
 
 	RMLUI_ASSERTMSG(p_handle_geometry, "expected valid pointer!");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	if (m_manager_batch.CanAccumulate(texture, p_handle_geometry, m_current_clip_operation))
+	{
+		// an intern table can run full mid-accumulation: drain the run and retry against the emptied tables (the retry
+		// reports NotBatchable only when the flush broke the TextureEnableWithoutBinding reuse chain)
+		for (;;)
+		{
+			const GeometryBatcher::AccumulateResult result = m_manager_batch.Accumulate(texture, translation, p_handle_geometry,
+				SelectBatchProgramId(static_cast<bool>(texture)), m_is_scissor_was_set, m_scissor, m_constant_buffer_data_transform,
+				m_is_stencil_enabled ? m_stencil_ref_value : 0);
+
+			if (result == GeometryBatcher::AccumulateResult::NeedFlush)
+			{
+				FlushBatches();
+				continue;
+			}
+
+			if (result == GeometryBatcher::AccumulateResult::Done)
+			{
+				++m_batch_stats_geometry_draws;
+				return;
+			}
+
+			break; // NotBatchable: fall through to the legacy path below
+		}
+	}
+
+	// non-batchable: drain pending batches first to preserve draw order
+	FlushBatches();
+#endif
+
+	// when batching is enabled the label covers only the legacy (immediate) path: the batched path above records no
+	// GPU commands, so an always-empty "RenderGeometry" region would only pollute RenderDoc captures
+	RMLUI_VK_MARKER_BEGIN("RenderGeometry");
 
 	ConstantBufferType* p_constant_buffer{};
 
@@ -3731,10 +4074,16 @@ void RenderInterface_VK::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rm
 		SubmitTransformUniform(*p_constant_buffer, translation);
 	}
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// SetScissor records no commands while batching is enabled (batched draws carry per-batch scissors inside
+	// FlushBatches), so the legacy path sets the scissor itself on every draw
+	EmitCurrentScissorState();
+#else
 	if (!m_is_scissor_was_set)
 	{
 		vkCmdSetScissor(m_p_current_command_buffer, 0, 1, &m_scissor_original);
 	}
+#endif
 
 	if (p_constant_buffer)
 	{
@@ -3768,6 +4117,8 @@ void RenderInterface_VK::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rm
 	vkCmdBindIndexBuffer(m_p_current_command_buffer, p_buffer_index, p_handle_geometry->Get_InfoIndex().offset, VK_INDEX_TYPE_UINT32);
 
 	vkCmdDrawIndexed(m_p_current_command_buffer, p_handle_geometry->Get_NumIndices(), 1, 0, 0, 0);
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::ReleaseGeometry(Rml::CompiledGeometryHandle geometry)
@@ -3799,6 +4150,13 @@ void RenderInterface_VK::RenderToClipMask(Rml::ClipMaskOperation mask_operation,
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderToClipMask");
 	RMLUI_ASSERTMSG(m_is_stencil_enabled, "must be enabled!");
+	RMLUI_VK_MARKER_BEGIN("RenderToClipMask");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the stencil clear below restarts the render pass, and the mask draws use their own stencil choreography
+	// (Color_Stencil_Set/SetInverse/Intersect pipelines), so pending batch draws must be drained first
+	FlushBatches();
+#endif
 
 	const bool clear_stencil = (mask_operation == Rml::ClipMaskOperation::Set || mask_operation == Rml::ClipMaskOperation::SetInverse);
 
@@ -3843,11 +4201,19 @@ void RenderInterface_VK::RenderToClipMask(Rml::ClipMaskOperation mask_operation,
 	m_is_stencil_equal = true;
 	m_current_clip_operation = -1;
 	vkCmdSetStencilReference(m_p_current_command_buffer, VK_STENCIL_FACE_FRONT_AND_BACK, m_stencil_ref_value);
+
+	RMLUI_VK_MARKER_END();
 }
 
 Rml::LayerHandle RenderInterface_VK::PushLayer()
 {
 	RMLUI_ZoneScopedN("Vulkan - PushLayer");
+	RMLUI_VK_MARKER_BEGIN("PushLayer");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the layer push ends the active render pass; pending batch draws belong to the current one
+	FlushBatches();
+#endif
 
 	EndActiveRenderPass();
 
@@ -3861,21 +4227,37 @@ Rml::LayerHandle RenderInterface_VK::PushLayer()
 	// begin (the DX12 renderer clears the pushed layer's RTV here)
 	BindRenderTarget_Clear(framebuffer);
 
+	RMLUI_VK_MARKER_END();
+
 	return layer_handle;
 }
 
 void RenderInterface_VK::PopLayer()
 {
 	RMLUI_ZoneScopedN("Vulkan - PopLayer");
+	RMLUI_VK_MARKER_BEGIN("PopLayer");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the pop rebinds the render target (ends the active pass); pending batch draws belong to the current pass
+	FlushBatches();
+#endif
 
 	m_manager_render_layer.PopLayer();
 	BindRenderTarget(m_manager_render_layer.GetTopLayer());
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::CompositeLayers(Rml::LayerHandle source, Rml::LayerHandle destination, Rml::BlendMode blend_mode,
 	Rml::Span<const Rml::CompiledFilterHandle> filters)
 {
 	RMLUI_ZoneScopedN("Vulkan - CompositeLayers");
+	RMLUI_VK_MARKER_BEGIN("CompositeLayers");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// compositing does blits/barriers outside the render pass and rebinds render targets; drain the pending batches first
+	FlushBatches();
+#endif
 
 	BlitLayerToPostprocessPrimary(source);
 
@@ -3924,11 +4306,14 @@ void RenderInterface_VK::CompositeLayers(Rml::LayerHandle source, Rml::LayerHand
 	// barriers don't disturb the render-target binding), so the top layer must be bound again unconditionally — even
 	// when destination == top — otherwise subsequent draws would be recorded without an active render pass.
 	BindRenderTarget(m_manager_render_layer.GetTopLayer());
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_id)
 {
 	RMLUI_ZoneScopedN("Vulkan - BlitLayerToPostprocessPrimary");
+	RMLUI_VK_MARKER_BEGIN("BlitLayerToPostprocessPrimary");
 
 	const Gfx::FramebufferData& source_framebuffer = m_manager_render_layer.GetLayer(layer_id);
 	const Gfx::FramebufferData& destination_framebuffer = m_manager_render_layer.GetPostprocessPrimary();
@@ -3986,16 +4371,36 @@ void RenderInterface_VK::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_id
 
 	TransitionImageLayout(p_src, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	TransitionImageLayout(p_dst, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles)
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderFilters");
+	RMLUI_VK_MARKER_BEGIN("RenderFilters");
 
 	for (const Rml::CompiledFilterHandle filter_handle : filter_handles)
 	{
 		const CompiledFilter& filter = *reinterpret_cast<const CompiledFilter*>(filter_handle);
 		const FilterType type = filter.type;
+
+#ifdef RMLUI_VK_DEBUG
+		const auto filter_type_to_string = [](FilterType type) -> const char* {
+			switch (type)
+			{
+			case FilterType::Invalid: return "Invalid";
+			case FilterType::Passthrough: return "Passthrough";
+			case FilterType::Blur: return "Blur";
+			case FilterType::DropShadow: return "DropShadow";
+			case FilterType::ColorMatrix: return "ColorMatrix";
+			case FilterType::MaskImage: return "MaskImage";
+			default: return "UnknownFilterType";
+			}
+		};
+		const auto marker_name = Rml::CreateString("RenderFilter=%s", filter_type_to_string(type));
+		RMLUI_VK_MARKER_BEGIN(marker_name.c_str());
+#endif
 
 		switch (type)
 		{
@@ -4223,13 +4628,20 @@ void RenderInterface_VK::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle
 			break;
 		}
 		}
+
+#ifdef RMLUI_VK_DEBUG
+		RMLUI_VK_MARKER_END();
+#endif
 	}
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::RenderBlur(float sigma, const Gfx::FramebufferData& source_destination, const Gfx::FramebufferData& temp,
 	const Rml::Rectanglei window)
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderBlur");
+	RMLUI_VK_MARKER_BEGIN("RenderBlur");
 	RMLUI_ASSERTMSG(&source_destination != &temp, "you can't pass the same object to source_destination and temp arguments!");
 	RMLUI_ASSERTMSG(source_destination.Get_Width() == temp.Get_Width(), "must be equal to the same size!");
 	RMLUI_ASSERTMSG(source_destination.Get_Height() == temp.Get_Height(), "must be equal to the same size!");
@@ -4436,12 +4848,20 @@ void RenderInterface_VK::RenderBlur(float sigma, const Gfx::FramebufferData& sou
 	viewport.maxDepth = 1.0f;
 	vkCmdSetViewport(m_p_current_command_buffer, 0, 1, &viewport);
 	SetScissor(original_scissor);
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::DrawFullscreenQuad(ConstantBufferType* p_override_constant_buffer)
 {
 	RMLUI_ZoneScopedN("Vulkan - DrawFullscreenQuad()");
 	RMLUI_ASSERTMSG(m_p_current_command_buffer, "must be valid!");
+	RMLUI_VK_MARKER_BEGIN("DrawFullscreenQuad");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the postprocess draw below goes through the legacy path; drain pending batch draws first to preserve order
+	FlushBatches();
+#endif
 
 	// actually rml doesn't support anything for by passing custom data as additional argument for RenderGeometry method so
 	// some kind of variant for resolving a such situation
@@ -4454,12 +4874,20 @@ void RenderInterface_VK::DrawFullscreenQuad(ConstantBufferType* p_override_const
 		GeometryHandleType* p_geometry = reinterpret_cast<GeometryHandleType*>(m_precompiled_fullscreen_quad_geometry);
 		p_geometry->Reset_ConstantBuffer();
 	}
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling, ConstantBufferType* p_override_constant_buffer)
 {
 	RMLUI_ZoneScopedN("Vulkan - DrawFullscreenQuad(uv_offset,uv_scaling)");
 	RMLUI_ASSERTMSG(m_p_current_command_buffer, "must be valid!");
+	RMLUI_VK_MARKER_BEGIN("DrawFullscreenQuad(uv_offset,uv_scaling)");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the postprocess draw below goes through the legacy path; drain pending batch draws first to preserve order
+	FlushBatches();
+#endif
 
 	Rml::Mesh mesh;
 	Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
@@ -4480,6 +4908,8 @@ void RenderInterface_VK::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector
 		GeometryHandleType* p_geometry = reinterpret_cast<GeometryHandleType*>(geometry);
 		p_geometry->Reset_ConstantBuffer();
 	}
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::BindTexture(TextureHandleType* p_texture, uint32_t set_index)
@@ -4487,6 +4917,7 @@ void RenderInterface_VK::BindTexture(TextureHandleType* p_texture, uint32_t set_
 	RMLUI_ZoneScopedN("Vulkan - BindTexture");
 	RMLUI_ASSERTMSG(p_texture, "you have to pass a valid pointer!");
 	RMLUI_ASSERTMSG(m_p_current_command_buffer, "early calling must be initialized before calling this method!");
+	RMLUI_VK_MARKER_BEGIN("BindTexture");
 
 	if (m_p_current_command_buffer)
 	{
@@ -4501,6 +4932,8 @@ void RenderInterface_VK::BindTexture(TextureHandleType* p_texture, uint32_t set_
 				set_index, 1, &p_set, 0, nullptr);
 		}
 	}
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::OverrideConstantBufferOfGeometry(Rml::CompiledGeometryHandle geometry, ConstantBufferType* p_override_constant_buffer)
@@ -4549,6 +4982,8 @@ void RenderInterface_VK::BlitFramebuffer(const Gfx::FramebufferData& source, con
 	// degenerate rectangle: nothing to copy, and Vulkan forbids zero-sized copy extents
 	if (src_width <= 0 || src_height <= 0 || dest_width <= 0 || dest_height <= 0)
 		return;
+
+	RMLUI_VK_MARKER_BEGIN("BlitFramebuffer");
 
 	const bool is_flipped = src_width < 0 || src_height < 0 || dest_width < 0 || dest_height < 0;
 	const bool is_stretched = src_width != dest_width || src_height != dest_height;
@@ -4658,11 +5093,21 @@ void RenderInterface_VK::BlitFramebuffer(const Gfx::FramebufferData& source, con
 		TransitionImageLayout(p_texture_source, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		TransitionImageLayout(p_texture_destination, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	}
+
+	RMLUI_VK_MARKER_END();
 }
 
 Rml::TextureHandle RenderInterface_VK::SaveLayerAsTexture()
 {
 	RMLUI_ZoneScopedN("Vulkan - SaveLayerAsTexture");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the layer is blitted/copied below; its contents must be final, so drain pending batch draws first
+	FlushBatches();
+#endif
+
+	RMLUI_VK_MARKER_BEGIN("SaveLayerAsTexture");
+
 	RMLUI_ASSERT(m_scissor.Valid());
 
 	const Rml::Rectanglei bounds = m_scissor;
@@ -4670,6 +5115,7 @@ Rml::TextureHandle RenderInterface_VK::SaveLayerAsTexture()
 	Rml::TextureHandle render_texture = GenerateTexture({}, bounds.Size());
 	if (!render_texture)
 	{
+		RMLUI_VK_MARKER_END();
 		return {};
 	}
 
@@ -4709,12 +5155,20 @@ Rml::TextureHandle RenderInterface_VK::SaveLayerAsTexture()
 	SetScissor(bounds);
 	BindRenderTarget(m_manager_render_layer.GetTopLayer());
 
+	RMLUI_VK_MARKER_END();
+
 	return render_texture;
 }
 
 Rml::CompiledFilterHandle RenderInterface_VK::SaveLayerAsMaskImage()
 {
 	RMLUI_ZoneScopedN("Vulkan - SaveLayerAsMaskImage");
+	RMLUI_VK_MARKER_BEGIN("SaveLayerAsMaskImage");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the layer is blitted below; its contents must be final, so drain pending batch draws first
+	FlushBatches();
+#endif
 
 	BlitLayerToPostprocessPrimary(m_manager_render_layer.GetTopLayerHandle());
 
@@ -4735,6 +5189,8 @@ Rml::CompiledFilterHandle RenderInterface_VK::SaveLayerAsMaskImage()
 
 	CompiledFilter filter = {};
 	filter.type = FilterType::MaskImage;
+
+	RMLUI_VK_MARKER_END();
 
 	return reinterpret_cast<Rml::CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
 }
@@ -4930,6 +5386,15 @@ void RenderInterface_VK::RenderShader(Rml::CompiledShaderHandle shader_handle, R
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderShader");
 	RMLUI_ASSERT(shader_handle && geometry_handle);
+	RMLUI_VK_MARKER_BEGIN("RenderShader");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// gradient/creation shaders use their own constant-buffer payloads and legacy draws; drain pending batches first
+	FlushBatches();
+
+	// SetScissor records no commands while batching is enabled, so set the scissor for these draws explicitly
+	EmitCurrentScissorState();
+#endif
 
 	// fixing unreferenced parameter
 	(void)(texture);
@@ -4970,6 +5435,8 @@ void RenderInterface_VK::RenderShader(Rml::CompiledShaderHandle shader_handle, R
 	{
 	case CompiledShaderType::Gradient:
 	{
+		RMLUI_VK_MARKER_BEGIN("Gradient");
+
 		RMLUI_ASSERT(shader.stop_positions.size() == shader.stop_colors.size());
 		const int num_stops = (int)shader.stop_positions.size();
 
@@ -5020,10 +5487,13 @@ void RenderInterface_VK::RenderShader(Rml::CompiledShaderHandle shader_handle, R
 
 		bind_constant_buffer_and_draw(p_cb);
 
+		RMLUI_VK_MARKER_END();
 		break;
 	}
 	case CompiledShaderType::Creation:
 	{
+		RMLUI_VK_MARKER_BEGIN("Creation");
+
 		UseProgram(ProgramId::Creation);
 		ConstantBufferType* p_cb = Get_ConstantBuffer(m_command_buffer_ring.Get_ActiveFrameIndex());
 		RMLUI_ASSERTMSG(p_cb, "failed to obtain constant buffer for creation");
@@ -5062,6 +5532,7 @@ void RenderInterface_VK::RenderShader(Rml::CompiledShaderHandle shader_handle, R
 
 		bind_constant_buffer_and_draw(p_cb);
 
+		RMLUI_VK_MARKER_END();
 		break;
 	}
 	case CompiledShaderType::Invalid:
@@ -5070,6 +5541,8 @@ void RenderInterface_VK::RenderShader(Rml::CompiledShaderHandle shader_handle, R
 		break;
 	}
 	}
+
+	RMLUI_VK_MARKER_END();
 }
 
 void RenderInterface_VK::ReleaseShader(Rml::CompiledShaderHandle effect_handle)
@@ -6342,6 +6815,403 @@ void RenderInterface_VK::BufferMemoryManager::Destroy_BufferAtIndex(int buffer_i
 		m_buffers_mapped_memory.at(buffer_index) = nullptr;
 	}
 }
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+RenderInterface_VK::GeometryBatcher::GeometryBatcher() :
+	m_p_device{}, m_p_allocator{}, m_p_manager_buffer{}, m_current_slot{}, m_frame_counter{}, m_texture_count{}, m_scissor_count{}
+{
+	RMLUI_ZoneScopedN("Vulkan - GeometryBatcher::Constructor");
+
+	// the tables reset on every flush, so they never need to be big
+	m_records.reserve(64);
+	m_transforms.reserve(4);
+}
+
+RenderInterface_VK::GeometryBatcher::~GeometryBatcher()
+{
+	RMLUI_ZoneScopedN("Vulkan - GeometryBatcher::Destructor");
+	RMLUI_VK_ASSERTMSG(m_p_device == nullptr, "Shutdown must run before the VMA allocator is destroyed");
+}
+
+void RenderInterface_VK::GeometryBatcher::Initialize(VkDevice p_device, VmaAllocator p_allocator, BufferMemoryManager* p_manager_buffer) noexcept
+{
+	RMLUI_ZoneScopedN("Vulkan - GeometryBatcher::Initialize");
+	RMLUI_ASSERTMSG(p_device, "must be valid!");
+	RMLUI_ASSERTMSG(p_allocator, "must be valid!");
+	RMLUI_ASSERTMSG(p_manager_buffer, "must be valid!");
+
+	m_p_device = p_device;
+	m_p_allocator = p_allocator;
+	m_p_manager_buffer = p_manager_buffer;
+
+	for (ArenaSlot& slot : m_arenas)
+	{
+		Create_ArenaBuffer(slot, true, RMLUI_RENDER_BACKEND_FIELD_BATCHING_VERTEX_ARENA_SIZE);
+		Create_ArenaBuffer(slot, false, RMLUI_RENDER_BACKEND_FIELD_BATCHING_INDEX_ARENA_SIZE);
+	}
+}
+
+void RenderInterface_VK::GeometryBatcher::Shutdown()
+{
+	RMLUI_ZoneScopedN("Vulkan - GeometryBatcher::Shutdown");
+
+	if (m_p_allocator == nullptr)
+		return;
+
+	// the device is idle here (the renderer's Shutdown drains it), so immediate destruction is safe
+	for (const RetiredArenaBuffer& retired : m_retired_buffers)
+	{
+		vmaDestroyBuffer(m_p_allocator, retired.p_buffer, retired.p_allocation);
+	}
+	m_retired_buffers.clear();
+
+	for (ArenaSlot& slot : m_arenas)
+	{
+		Destroy_ArenaBuffer(slot.p_buffer_vertex, slot.p_allocation_vertex);
+		Destroy_ArenaBuffer(slot.p_buffer_index, slot.p_allocation_index);
+		slot.p_mapped_vertex = nullptr;
+		slot.p_mapped_index = nullptr;
+		slot.capacity_vertex = 0;
+		slot.capacity_index = 0;
+		slot.used_vertex = 0;
+		slot.used_index = 0;
+	}
+
+	m_records.clear();
+	m_transforms.clear();
+	m_texture_count = 0;
+	m_scissor_count = 0;
+
+	m_p_device = nullptr;
+	m_p_allocator = nullptr;
+	m_p_manager_buffer = nullptr;
+}
+
+void RenderInterface_VK::GeometryBatcher::BeginFrame(uint32_t slot_index, uint64_t frame_counter) noexcept
+{
+	RMLUI_ZoneScopedN("Vulkan - GeometryBatcher::BeginFrame");
+	RMLUI_ASSERTMSG(slot_index < CommandBufferRing::kNumFramesToBuffer, "invalid slot index");
+
+	m_current_slot = slot_index;
+	m_frame_counter = frame_counter;
+
+	// the slot's fence just passed: its arena cursors restart (never anywhere else — draws recorded earlier in the
+	// frame still reference the data), and retired buffers old enough can't be referenced by the GPU anymore
+	ArenaSlot& slot = m_arenas[slot_index];
+	slot.used_vertex = 0;
+	slot.used_index = 0;
+
+	ResetAccumulation();
+
+	for (auto it = m_retired_buffers.begin(); it != m_retired_buffers.end();)
+	{
+		if (frame_counter - it->frame_stamp >= uint64_t(RenderInterface_VK::kSwapchainBackBufferCount))
+		{
+			vmaDestroyBuffer(m_p_allocator, it->p_buffer, it->p_allocation);
+			it = m_retired_buffers.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+}
+
+bool RenderInterface_VK::GeometryBatcher::CanAccumulate(Rml::TextureHandle texture, const GeometryHandleType* p_handle_geometry,
+	int current_clip_operation) const noexcept
+{
+	RMLUI_ZoneScopedN("Vulkan - GeometryBatcher::CanAccumulate");
+
+	// postprocess draws leave the bound program/texture unchanged and rely on the override constant buffer
+	if (texture == RenderInterface_VK::TexturePostprocess)
+		return false;
+
+	// geometry with an override constant buffer (fullscreen postprocess quads) goes through the legacy path
+	if (p_handle_geometry == nullptr || p_handle_geometry->Get_ConstantBuffer() != nullptr)
+		return false;
+
+	// clip-mask draws use the Color_Stencil_Set/SetInverse/Intersect pipelines with their own stencil choreography
+	if (current_clip_operation != -1)
+		return false;
+
+	if (texture == RenderInterface_VK::TextureEnableWithoutBinding)
+	{
+		// batchable only when the previous record is textured, so its texture can be reused for this draw
+		if (m_records.empty())
+			return false;
+
+		const ProgramId last_program = static_cast<ProgramId>(m_records.back().program_id);
+		if (last_program != ProgramId::Texture_Stencil_Always && last_program != ProgramId::Texture_Stencil_Equal &&
+			last_program != ProgramId::Texture_Stencil_Disabled)
+			return false;
+	}
+
+	return true;
+}
+
+RenderInterface_VK::GeometryBatcher::AccumulateResult RenderInterface_VK::GeometryBatcher::Accumulate(Rml::TextureHandle texture,
+	Rml::Vector2f translation, const GeometryHandleType* p_handle_geometry, ProgramId program_id, bool is_scissor_set,
+	const Rml::Rectanglei& scissor, const Rml::Matrix4f& transform, uint32_t stencil_ref)
+{
+	RMLUI_ZoneScopedN("Vulkan - GeometryBatcher::Accumulate");
+	RMLUI_ASSERTMSG(p_handle_geometry, "expected valid pointer!");
+
+	const int num_vertices = p_handle_geometry->Get_NumVertices();
+	const int num_indices = p_handle_geometry->Get_NumIndices();
+
+	// skip empty geometry (the legacy path would record a zero-index draw; there is nothing to merge here)
+	if (num_vertices <= 0 || num_indices <= 0)
+		return AccumulateResult::Done;
+
+	// intern the texture; 0xFF is the none-sentinel, so the table holds at most 254 real entries
+	uint8_t texture_id = kBatchNoTexture;
+	if (texture == RenderInterface_VK::TextureEnableWithoutBinding)
+	{
+		// reuse the previous record's texture; CanAccumulate guaranteed a textured predecessor on the first attempt,
+		// but a flush retry can leave the run empty
+		if (m_records.empty())
+			return AccumulateResult::NotBatchable;
+
+		texture_id = m_records.back().texture_id;
+		RMLUI_ASSERTMSG(texture_id != kBatchNoTexture, "the previous record must be textured");
+	}
+	else if (texture)
+	{
+		uint32_t index = 0;
+		for (; index < m_texture_count; ++index)
+		{
+			if (m_textures[index] == texture)
+				break;
+		}
+		if (index == m_texture_count)
+		{
+			if (m_texture_count >= kMaxInternedTextures)
+				return AccumulateResult::NeedFlush;
+			m_textures[m_texture_count++] = texture;
+		}
+		texture_id = static_cast<uint8_t>(index);
+	}
+
+	// intern the scissor rectangle (already clamped to the framebuffer by SetScissor); id 0 is the full-frame scissor
+	uint8_t scissor_id = 0;
+	if (is_scissor_set)
+	{
+		uint32_t index = 0;
+		for (; index < m_scissor_count; ++index)
+		{
+			if (m_scissors[index] == scissor)
+				break;
+		}
+		if (index == m_scissor_count)
+		{
+			if (m_scissor_count >= kMaxInternedScissors)
+				return AccumulateResult::NeedFlush;
+			m_scissors[m_scissor_count++] = scissor;
+		}
+		scissor_id = static_cast<uint8_t>(index + 1);
+	}
+
+	// intern the transform; dedupe against the last entry only (consecutive draws usually share the transform)
+	uint8_t transform_id = 0;
+	if (!m_transforms.empty() && std::memcmp(m_transforms.back().data(), transform.data(), sizeof(Rml::Matrix4f)) == 0)
+	{
+		transform_id = static_cast<uint8_t>(m_transforms.size() - 1);
+	}
+	else
+	{
+		if (m_transforms.size() >= kMaxInternedTransforms)
+			return AccumulateResult::NeedFlush;
+		m_transforms.push_back(transform);
+		transform_id = static_cast<uint8_t>(m_transforms.size() - 1);
+	}
+
+	const uint8_t stencil_ref_saturated = static_cast<uint8_t>(stencil_ref > 255 ? 255 : stencil_ref);
+
+	ArenaSlot& slot = m_arenas[m_current_slot];
+
+	const size_t vertex_bytes = static_cast<size_t>(num_vertices) * sizeof(Rml::Vertex);
+	const size_t index_bytes = static_cast<size_t>(num_indices) * sizeof(uint32_t);
+
+	if (slot.used_vertex + vertex_bytes > slot.capacity_vertex)
+		Grow_Arena(slot, true, slot.used_vertex + vertex_bytes);
+	if (static_cast<size_t>(slot.used_index) * sizeof(uint32_t) + index_bytes > slot.capacity_index)
+		Grow_Arena(slot, false, static_cast<size_t>(slot.used_index) * sizeof(uint32_t) + index_bytes);
+
+	// extend the previous record when the whole key matches, otherwise start a new run at the index cursor
+	BatchDraw* p_record = nullptr;
+	if (!m_records.empty())
+	{
+		BatchDraw& last = m_records.back();
+		if (last.texture_id == texture_id && last.scissor_id == scissor_id && last.program_id == static_cast<uint8_t>(program_id) &&
+			last.stencil_ref == stencil_ref_saturated && last.transform_id == transform_id)
+		{
+			p_record = &last;
+		}
+	}
+
+	if (p_record == nullptr)
+	{
+		BatchDraw record = {};
+		record.first_index = slot.used_index;
+		record.texture_id = texture_id;
+		record.scissor_id = scissor_id;
+		record.program_id = static_cast<uint8_t>(program_id);
+		record.stencil_ref = stencil_ref_saturated;
+		record.transform_id = transform_id;
+		m_records.push_back(record);
+		p_record = &m_records.back();
+	}
+
+	// the source geometry bytes live in the buffer pool's persistently-mapped memory
+	const Rml::Vertex* p_source_vertices =
+		static_cast<const Rml::Vertex*>(m_p_manager_buffer->Get_WritableMemoryFromBufferByOffset(p_handle_geometry->Get_InfoVertex()));
+	const int* p_source_indices =
+		static_cast<const int*>(m_p_manager_buffer->Get_WritableMemoryFromBufferByOffset(p_handle_geometry->Get_InfoIndex()));
+
+	RMLUI_ASSERTMSG(p_source_vertices && p_source_indices, "the geometry pool memory must be mapped");
+
+	// the shader applies the translation before the transform (translatedPos = IN.position + m_translate), so baking
+	// it into the vertex positions here and using translation (0,0) in the constant buffer is exactly equivalent
+	const uint32_t vertex_base = static_cast<uint32_t>(slot.used_vertex / sizeof(Rml::Vertex));
+
+	Rml::Vertex* p_dst_vertex = reinterpret_cast<Rml::Vertex*>(slot.p_mapped_vertex + slot.used_vertex);
+	for (int i = 0; i < num_vertices; ++i)
+	{
+		p_dst_vertex[i] = p_source_vertices[i];
+		p_dst_vertex[i].position.x += translation.x;
+		p_dst_vertex[i].position.y += translation.y;
+	}
+
+	// bake the vertex base into the indices, so the batch draw can use vertexOffset 0
+	uint32_t* p_dst_index = reinterpret_cast<uint32_t*>(slot.p_mapped_index) + slot.used_index;
+	for (int i = 0; i < num_indices; ++i)
+	{
+		RMLUI_ASSERTMSG(p_source_indices[i] >= 0, "geometry indices must be non-negative");
+		p_dst_index[i] = static_cast<uint32_t>(p_source_indices[i]) + vertex_base;
+	}
+
+	p_record->index_count += static_cast<uint32_t>(num_indices);
+	slot.used_vertex += vertex_bytes;
+	slot.used_index += static_cast<uint32_t>(num_indices);
+
+	// counts only geometry that actually landed in the arena (used by the per-flush label)
+	++m_geometry_count;
+
+	return AccumulateResult::Done;
+}
+
+void RenderInterface_VK::GeometryBatcher::ResetAccumulation() noexcept
+{
+	m_records.clear();
+	m_texture_count = 0;
+	m_scissor_count = 0;
+	m_transforms.clear();
+	m_geometry_count = 0;
+}
+
+Rml::TextureHandle RenderInterface_VK::GeometryBatcher::Get_TextureById(uint8_t texture_id) const noexcept
+{
+	RMLUI_ASSERTMSG(texture_id < m_texture_count, "invalid batch texture id");
+	return m_textures[texture_id];
+}
+
+const Rml::Rectanglei& RenderInterface_VK::GeometryBatcher::Get_ScissorById(uint8_t scissor_id) const noexcept
+{
+	RMLUI_ASSERTMSG(scissor_id > 0 && scissor_id <= m_scissor_count, "invalid batch scissor id");
+	return m_scissors[scissor_id - 1];
+}
+
+void RenderInterface_VK::GeometryBatcher::Create_ArenaBuffer(ArenaSlot& slot, bool is_vertex, size_t size)
+{
+	RMLUI_ZoneScopedN("Vulkan - GeometryBatcher::Create_ArenaBuffer");
+	RMLUI_ASSERTMSG(size > 0, "must be greater than 0");
+
+	VkBufferCreateInfo info_buffer = {};
+	info_buffer.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	info_buffer.pNext = nullptr;
+	info_buffer.size = size;
+	info_buffer.usage = is_vertex ? VK_BUFFER_USAGE_VERTEX_BUFFER_BIT : VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+	info_buffer.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	// persistently mapped host-visible memory, mirroring the buffer pool's VMA allocation flags
+	VmaAllocationCreateInfo info_allocation = {};
+	info_allocation.usage = VMA_MEMORY_USAGE_AUTO;
+	info_allocation.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+	info_allocation.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	info_allocation.preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+	VkBuffer p_buffer = nullptr;
+	VmaAllocation p_allocation = nullptr;
+	VmaAllocationInfo info_stats = {};
+
+	VkResult status = vmaCreateBuffer(m_p_allocator, &info_buffer, &info_allocation, &p_buffer, &p_allocation, &info_stats);
+	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vmaCreateBuffer (batching arena)");
+	RMLUI_VK_ASSERTMSG(info_stats.pMappedData, "the batching arena must be persistently mapped");
+
+	if (is_vertex)
+	{
+		slot.p_buffer_vertex = p_buffer;
+		slot.p_allocation_vertex = p_allocation;
+		slot.p_mapped_vertex = static_cast<std::uint8_t*>(info_stats.pMappedData);
+		slot.capacity_vertex = size;
+	}
+	else
+	{
+		slot.p_buffer_index = p_buffer;
+		slot.p_allocation_index = p_allocation;
+		slot.p_mapped_index = static_cast<std::uint8_t*>(info_stats.pMappedData);
+		slot.capacity_index = size;
+	}
+
+#ifdef RMLUI_VK_DEBUG
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] Allocated batching %s arena [%s]", is_vertex ? "vertex" : "index",
+		FormatByteSize(info_stats.size).c_str());
+#endif
+}
+
+void RenderInterface_VK::GeometryBatcher::Grow_Arena(ArenaSlot& slot, bool is_vertex, size_t required_size)
+{
+	RMLUI_ZoneScopedN("Vulkan - GeometryBatcher::Grow_Arena");
+
+	const size_t old_capacity = is_vertex ? slot.capacity_vertex : slot.capacity_index;
+	const size_t used_bytes = is_vertex ? slot.used_vertex : static_cast<size_t>(slot.used_index) * sizeof(uint32_t);
+	RMLUI_ASSERTMSG(required_size > old_capacity, "growth must exceed the current capacity");
+
+	size_t new_capacity = old_capacity * 2;
+	if (new_capacity < required_size)
+		new_capacity = required_size;
+
+	VkBuffer p_old_buffer = is_vertex ? slot.p_buffer_vertex : slot.p_buffer_index;
+	VmaAllocation p_old_allocation = is_vertex ? slot.p_allocation_vertex : slot.p_allocation_index;
+	const std::uint8_t* p_old_mapped = is_vertex ? slot.p_mapped_vertex : slot.p_mapped_index;
+
+	Create_ArenaBuffer(slot, is_vertex, new_capacity);
+
+	// the used range is kept at identical offsets: batch records reference arena offsets, not buffer objects, and the
+	// buffers are only bound at flush time, so the growth is transparent to the accumulated records
+	const std::uint8_t* p_new_mapped = is_vertex ? slot.p_mapped_vertex : slot.p_mapped_index;
+	std::memcpy(const_cast<std::uint8_t*>(p_new_mapped), p_old_mapped, used_bytes);
+
+	// retire the old buffer through the renderer's frame-counter-stamped deferred-destruction idiom: command buffers
+	// recorded earlier this frame (previous flushes) can still reference it
+	m_retired_buffers.push_back({p_old_buffer, p_old_allocation, m_frame_counter});
+
+#ifdef RMLUI_VK_DEBUG
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] Grew batching %s arena [%s] -> [%s]", is_vertex ? "vertex" : "index",
+		FormatByteSize(old_capacity).c_str(), FormatByteSize(new_capacity).c_str());
+#endif
+}
+
+void RenderInterface_VK::GeometryBatcher::Destroy_ArenaBuffer(VkBuffer& p_buffer, VmaAllocation& p_allocation) noexcept
+{
+	if (p_buffer)
+	{
+		vmaDestroyBuffer(m_p_allocator, p_buffer, p_allocation);
+		p_buffer = nullptr;
+		p_allocation = nullptr;
+	}
+}
+#endif
 
 RenderInterface_VK::TextureMemoryManager::TextureMemoryManager() :
 	m_p_renderer{}, m_p_device{}, m_p_allocator{}, m_p_upload_manager{}, m_p_manager_descriptors{}, m_p_set_layout_texture{}, m_p_sampler_linear{}
