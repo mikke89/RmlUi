@@ -1,4 +1,4 @@
-﻿#include "RmlUi_Renderer_DX12.h"
+#include "RmlUi_Renderer_DX12.h"
 #include "RmlUi_Backend.h"
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/DecorationTypes.h>
@@ -934,6 +934,10 @@ RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, const Backend:
 		m_p_descriptor_heap_depth_stencil_view_for_texture_manager, m_p_copy_queue, &m_handle_shaders, this);
 	m_manager_render_layer.Initialize(this);
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	m_manager_batch.Initialize(m_p_device, m_p_allocator, this);
+#endif
+
 	Create_Resource_Pipelines();
 
 	Rml::Mesh mesh;
@@ -969,6 +973,12 @@ RenderInterface_DX12::~RenderInterface_DX12()
 
 	m_manager_buffer.Shutdown();
 	m_manager_texture.Shutdown();
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// Flush() above drained the GPU, so every fence stamp has passed: the arenas and the retired (grown-out)
+	// buffers are freed immediately; must happen before Destroy_Allocator below
+	m_manager_batch.Shutdown();
+#endif
 
 	if (m_p_offset_allocator_for_descriptor_heap_shaders)
 	{
@@ -1160,6 +1170,14 @@ void RenderInterface_DX12::BeginFrame()
 		RMLUI_DX_VERIFY_MSG(m_p_command_graphics_list->Reset(p_command_allocator, nullptr), "failed to reset command graphics list");
 		RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "BeginFrame");
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+		// normally a no-op since EndFrame drains the batch; covers pathological leftovers before the slot reset
+		FlushBatches();
+		m_manager_batch.BeginFrame(m_current_back_buffer_index);
+		m_batch_stats_geometry_draws = 0;
+		m_batch_stats_draw_calls = 0;
+#endif
+
 		m_stencil_ref_value = 0;
 		m_is_scissor_was_set = false;
 
@@ -1193,6 +1211,12 @@ void RenderInterface_DX12::EndFrame()
 	if (m_p_command_graphics_list)
 	{
 		RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "EndFrame");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+		// drain the accumulated geometry while the top layer is still bound as render target, before the resolve below
+		FlushBatches();
+#endif
+
 		D3D12_RESOURCE_BARRIER backbuffer_barrier_from_rt_to_present;
 
 		backbuffer_barrier_from_rt_to_present.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -1363,6 +1387,10 @@ void RenderInterface_DX12::EndFrame()
 #ifdef RMLUI_DX_DEBUG
 		Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] current allocated constant buffers per draw (for frame[%d]): %zu",
 			m_current_back_buffer_index, m_constant_buffer_count_per_frame[m_current_back_buffer_index]);
+	#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+		Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] batching stats (for frame[%d]): %zu accumulated geometries into %zu draw calls",
+			m_current_back_buffer_index, m_batch_stats_geometry_draws, m_batch_stats_draw_calls);
+	#endif
 #endif
 
 		m_constant_buffer_count_per_frame[m_current_back_buffer_index] = 0;
@@ -1381,6 +1409,10 @@ void RenderInterface_DX12::Clear()
 	RMLUI_ZoneScopedN("DirectX 12 - Clear");
 	RMLUI_ASSERTMSG(m_p_command_graphics_list, "early calling prob!");
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "Clear");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	FlushBatches();
+#endif
 
 	auto* p_backbuffer = m_backbuffers_resources.at(m_current_back_buffer_index);
 
@@ -1459,12 +1491,27 @@ void RenderInterface_DX12::SetViewport(int viewport_width, int viewport_height)
 void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - RenderGeometry");
-	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "RenderGeometry");
 
 	GeometryHandleType* p_handle_geometry = reinterpret_cast<GeometryHandleType*>(geometry);
 	TextureHandleType* p_handle_texture{};
 
 	RMLUI_ASSERTMSG(p_handle_geometry, "expected valid pointer!");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	if (m_manager_batch.CanAccumulate(p_handle_geometry, texture))
+	{
+		// the draw is deferred to FlushBatches: this call records no GPU commands, so it must not emit a marker
+		// (an always-empty "RenderGeometry" region only pollutes RenderDoc captures)
+		m_manager_batch.Accumulate(p_handle_geometry, translation, texture);
+		return;
+	}
+
+	// not batchable: drain pending batches first to preserve the submission order
+	FlushBatches();
+#endif
+
+	// when batching is enabled the marker covers only the legacy (immediate) path, which records real commands
+	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "RenderGeometry");
 
 	ConstantBufferType* p_constant_buffer{};
 	uint32_t default_index_for_one_cbv_that_will_be_used_in_vertex_shader{};
@@ -1587,6 +1634,11 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 		SubmitTransformUniform(*p_constant_buffer, translation);
 	}
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// SetScissor records no commands while batching is enabled (batched draws carry per-batch scissors inside
+	// FlushBatches), so the legacy path sets the scissor itself on every draw
+	EmitCurrentScissorRect();
+#else
 	if (!m_is_scissor_was_set)
 	{
 		D3D12_RECT scissor;
@@ -1597,6 +1649,7 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 
 		m_p_command_graphics_list->RSSetScissorRects(1, &scissor);
 	}
+#endif
 
 	if (p_constant_buffer)
 	{
@@ -1717,20 +1770,31 @@ void RenderInterface_DX12::EnableScissorRegion(bool enable)
 
 	if (!enable)
 	{
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+		// state-only update under batching: no commands are recorded, so no marker is emitted either
+		SetScissor(Rml::Rectanglei::MakeInvalid(), false);
+#else
 		RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "EnableScissorRegion");
 		SetScissor(Rml::Rectanglei::MakeInvalid(), false);
 		RMLUI_DX_MARKER_END(m_p_command_graphics_list);
+#endif
 	}
 }
 
 void RenderInterface_DX12::SetScissorRegion(Rml::Rectanglei region)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SetScissorRegion");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// state-only update under batching: no commands are recorded, so no marker is emitted either
+	SetScissor(region);
+#else
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "SetScissorRegion");
 
 	SetScissor(region);
 
 	RMLUI_DX_MARKER_END(m_p_command_graphics_list);
+#endif
 }
 
 void RenderInterface_DX12::EnableClipMask(bool enable)
@@ -1762,6 +1826,11 @@ void RenderInterface_DX12::RenderToClipMask(Rml::ClipMaskOperation mask_operatio
 	RMLUI_ZoneScopedN("DirectX 12 - RenderToClipMask");
 	RMLUI_ASSERTMSG(m_is_stencil_enabled, "must be enabled!");
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "RenderToClipMask");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// must precede the ClearDepthStencilView below: pending batched draws still test against the old stencil content
+	FlushBatches();
+#endif
 
 	const bool clear_stencil = (mask_operation == Rml::ClipMaskOperation::Set || mask_operation == Rml::ClipMaskOperation::SetInverse);
 
@@ -2369,6 +2438,11 @@ Rml::LayerHandle RenderInterface_DX12::PushLayer()
 	RMLUI_ZoneScopedN("DirectX 12 - PushLayer");
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "PushLayer");
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the render target switches below, pending batched draws still target the current layer
+	FlushBatches();
+#endif
+
 	const Rml::LayerHandle layer_handle = m_manager_render_layer.PushLayer();
 
 	const auto& framebuffer = m_manager_render_layer.GetLayer(layer_handle);
@@ -2511,6 +2585,10 @@ void RenderInterface_DX12::DrawFullscreenQuad(ConstantBufferType* p_override_con
 	RMLUI_ASSERTMSG(m_p_command_graphics_list, "must be valid!");
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "DrawFullscreenQuad");
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	FlushBatches();
+#endif
+
 	// actually rml doesn't support anything for by passing custom data as additional argument for RenderGeometry method so
 	// some kind of variant for resolving a such situation
 	OverrideConstantBufferOfGeometry(m_precompiled_fullscreen_quad_geometry, p_override_constant_buffer);
@@ -2532,6 +2610,10 @@ void RenderInterface_DX12::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vect
 	RMLUI_ASSERTMSG(m_p_command_graphics_list, "must be valid!");
 
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "DrawFullscreenQuad(uv_offset,uv_scaling)");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	FlushBatches();
+#endif
 
 	Rml::Mesh mesh;
 	Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
@@ -3587,6 +3669,10 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "CompositeLayers");
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	FlushBatches();
+#endif
+
 	BlitLayerToPostprocessPrimary(source);
 
 	RenderFilters(filters);
@@ -3665,6 +3751,10 @@ void RenderInterface_DX12::PopLayer()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - PopLayer");
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "PopLayer");
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// the render target switches below, pending batched draws still target the current layer
+	FlushBatches();
+#endif
 	m_manager_render_layer.PopLayer();
 	BindRenderTarget(m_manager_render_layer.GetTopLayer());
 	RMLUI_DX_MARKER_END(m_p_command_graphics_list);
@@ -3676,6 +3766,10 @@ Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 	RMLUI_ASSERT(m_scissor.Valid());
 
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "SaveLayerAsTexture");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	FlushBatches();
+#endif
 
 	const Rml::Rectanglei bounds = m_scissor;
 
@@ -3832,6 +3926,10 @@ Rml::CompiledFilterHandle RenderInterface_DX12::SaveLayerAsMaskImage()
 	RMLUI_ZoneScopedN("DirectX 12 - SaveLayerAsMaskImage");
 
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "SaveLayerAsMaskImage");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	FlushBatches();
+#endif
 
 	BlitLayerToPostprocessPrimary(m_manager_render_layer.GetTopLayerHandle());
 
@@ -4078,6 +4176,14 @@ void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle,
 	RMLUI_ZoneScopedN("DirectX 12 - RenderShader");
 	RMLUI_ASSERT(shader_handle && geometry_handle);
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "RenderShader");
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// custom shaders use their own constant buffer layouts and programs, they never join the batch
+	FlushBatches();
+
+	// SetScissor records no commands while batching is enabled, so set the scissor for these draws explicitly
+	EmitCurrentScissorRect();
+#endif
 
 	// fixing unreferenced parameter
 	(void)(texture);
@@ -7887,6 +7993,7 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 		{
 			m_is_scissor_was_set = false;
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 0
 			if (m_p_command_graphics_list)
 			{
 				D3D12_RECT disable_scissor = {};
@@ -7896,12 +8003,17 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 				disable_scissor.bottom = m_height;
 				m_p_command_graphics_list->RSSetScissorRects(1, &disable_scissor);
 			}
+#endif
 
 			return;
 		}
 	}
 
+	// when batching is enabled the scissor is carried inside the batch records and emitted per batch by FlushBatches
+	// (legacy-path draws set it themselves), so nothing is recorded here and the marker would be empty
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 0
 	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, "SetScissor");
+#endif
 
 	if (region.Valid() && vertically_flip)
 	{
@@ -7910,6 +8022,9 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 
 	if (region.Valid())
 	{
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+		m_is_scissor_was_set = true;
+#else
 		if (m_p_command_graphics_list)
 		{
 			D3D12_RECT scissor;
@@ -7927,9 +8042,12 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 			m_p_command_graphics_list->RSSetScissorRects(1, &scissor);
 			m_is_scissor_was_set = true;
 		}
+#endif
 	}
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 0
 	RMLUI_DX_MARKER_END(m_p_command_graphics_list);
+#endif
 
 	m_scissor = region;
 }
@@ -8058,6 +8176,837 @@ RenderInterface_DX12::ConstantBufferType* RenderInterface_DX12::Get_ConstantBuff
 
 	return p_result;
 }
+
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+
+static_assert(sizeof(Rml::Vertex) == 20, "batching assumes a tightly packed Rml::Vertex (Vector2f + Colourb + Vector2f)");
+static_assert(sizeof(Rml::Matrix4f) == 64, "batching interns transform matrices by a raw 64-byte comparison");
+static_assert((size_t)ProgramId::Count <= 32, "batch records store ProgramId on a single byte (values must stay < 32)");
+static_assert(RMLUI_RENDER_BACKEND_FIELD_BATCHING_VERTEX_ARENA_SIZE > 0, "vertex arena size must be greater than 0");
+static_assert(RMLUI_RENDER_BACKEND_FIELD_BATCHING_INDEX_ARENA_SIZE > 0, "index arena size must be greater than 0");
+
+// Clamps a raw scissor region to the viewport exactly like SetScissor does when it emits RSSetScissorRects
+// (the batch path never vertically flips).
+static Rml::Rectanglei GetClampedScissorEmissionRect(Rml::Rectanglei region, int width, int height)
+{
+	const int x_min = Rml::Math::Clamp(region.Left(), 0, width);
+	const int y_min = Rml::Math::Clamp(region.Top(), 0, height);
+	const int x_max = Rml::Math::Clamp(region.Right(), 0, width);
+	const int y_max = Rml::Math::Clamp(region.Bottom(), 0, height);
+
+	return Rml::Rectanglei::FromCorners(Rml::Vector2i(x_min, y_min), Rml::Vector2i(x_max, y_max));
+}
+
+ProgramId RenderInterface_DX12::Get_ProgramIdForBatch(bool is_textured) const
+{
+	RMLUI_ZoneScopedN("DirectX 12 - Get_ProgramIdForBatch");
+
+	// mirrors the legacy if-chain of RenderGeometry for the m_current_clip_operation == -1 case (clip-mask
+	// programs are never batched, RenderToClipMask flushes first)
+	if (is_textured)
+	{
+		if (m_is_stencil_enabled)
+		{
+			if (m_is_stencil_equal)
+			{
+				return ProgramId::Texture_Stencil_Equal;
+			}
+
+			return ProgramId::Texture_Stencil_Always;
+		}
+
+		return ProgramId::Texture_Stencil_Disabled;
+	}
+
+	if (m_is_stencil_enabled)
+	{
+		if (m_is_stencil_equal)
+		{
+			return ProgramId::Color_Stencil_Equal;
+		}
+
+		return ProgramId::Color_Stencil_Always;
+	}
+
+	return ProgramId::Color_Stencil_Disabled;
+}
+
+void RenderInterface_DX12::SubmitTransformUniformExplicit(ConstantBufferType& constant_buffer, const Rml::Matrix4f& transform,
+	const Rml::Vector2f& translation)
+{
+	RMLUI_ZoneScopedN("DirectX 12 - SubmitTransformUniformExplicit");
+
+	std::uint8_t* p_gpu_binding_start = reinterpret_cast<std::uint8_t*>(constant_buffer.m_p_gpu_start_memory_for_binding_data);
+
+	RMLUI_ASSERTMSG(p_gpu_binding_start,
+		"your allocated constant buffer must contain a valid pointer of beginning mapping of its GPU buffer. Otherwise you destroyed it!");
+
+	if (p_gpu_binding_start)
+	{
+		std::uint8_t* p_gpu_binding_offset_to_transform = p_gpu_binding_start + constant_buffer.m_alloc_info.offset;
+
+		std::memcpy(p_gpu_binding_offset_to_transform, transform.data(), sizeof(transform));
+		std::memcpy(p_gpu_binding_offset_to_transform + sizeof(transform), &translation.x, sizeof(translation));
+	}
+}
+
+void RenderInterface_DX12::FlushBatches()
+{
+	RMLUI_ZoneScopedN("DirectX 12 - FlushBatches");
+
+	if (!m_manager_batch.Has_Batches())
+		return;
+
+	const uint32_t slot_index = m_current_back_buffer_index;
+	const auto& batches = m_manager_batch.Get_BatchDraws();
+	const auto& transforms = m_manager_batch.Get_InternedTransforms();
+
+#ifdef RMLUI_DX_DEBUG
+	// the marker name carries the actual information of the region: how many draw calls the accumulated geometry
+	// was merged into (same pattern as the UseProgram marker)
+	char msg[96];
+	std::sprintf(msg, "FlushBatches: %zu draw call(s) from %zu geometry(ies)", batches.size(), m_manager_batch.Get_AccumulatedGeometryCount());
+#endif
+	RMLUI_DX_MARKER_BEGIN(m_p_command_graphics_list, msg);
+
+	// one constant buffer per interned transform, created lazily at flush time; the translation is always zero
+	// because the per-draw translation was baked into the vertex positions during accumulation (the vertex shader
+	// applies the translation before the transform, so this is exactly equivalent)
+	Rml::Vector<D3D12_GPU_VIRTUAL_ADDRESS> transform_cb_addresses;
+	transform_cb_addresses.resize(transforms.size());
+
+	for (size_t i = 0; i < transforms.size(); ++i)
+	{
+		ConstantBufferType* p_constant_buffer = Get_ConstantBuffer(slot_index);
+
+		RMLUI_ASSERTMSG(p_constant_buffer, "must be valid!");
+
+		if (p_constant_buffer)
+		{
+			SubmitTransformUniformExplicit(*p_constant_buffer, transforms[i], Rml::Vector2f(0.f, 0.f));
+
+			auto* p_dx_constant_buffer = m_manager_buffer.Get_BufferByIndex(p_constant_buffer->m_alloc_info.buffer_index);
+
+			RMLUI_ASSERTMSG(p_dx_constant_buffer, "must be valid!");
+
+			if (p_dx_constant_buffer)
+			{
+				auto* p_dx_resource = p_dx_constant_buffer->GetResource();
+
+				RMLUI_ASSERTMSG(p_dx_resource, "must be valid!");
+
+				if (p_dx_resource)
+				{
+					transform_cb_addresses[i] = p_dx_resource->GetGPUVirtualAddress() + p_constant_buffer->m_alloc_info.offset;
+				}
+			}
+		}
+	}
+
+	// the arenas are bound once per flush; batch records reference offsets inside them and indices were pre-offset
+	// with the vertex base during accumulation, so every draw uses base vertex 0
+	m_p_command_graphics_list->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	if (auto* p_arena_vertex = m_manager_batch.Get_VertexArena(slot_index))
+	{
+		auto* p_dx_resource = p_arena_vertex->GetResource();
+
+		RMLUI_ASSERTMSG(p_dx_resource, "must be valid!");
+
+		if (p_dx_resource)
+		{
+			D3D12_VERTEX_BUFFER_VIEW view_vertex_buffer = {};
+
+			view_vertex_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress();
+			view_vertex_buffer.StrideInBytes = sizeof(Rml::Vertex);
+			view_vertex_buffer.SizeInBytes = static_cast<UINT>(m_manager_batch.Get_VertexArenaUsed(slot_index));
+
+			m_p_command_graphics_list->IASetVertexBuffers(0, 1, &view_vertex_buffer);
+		}
+	}
+
+	if (auto* p_arena_index = m_manager_batch.Get_IndexArena(slot_index))
+	{
+		auto* p_dx_resource = p_arena_index->GetResource();
+
+		RMLUI_ASSERTMSG(p_dx_resource, "must be valid!");
+
+		if (p_dx_resource)
+		{
+			D3D12_INDEX_BUFFER_VIEW view_index_buffer = {};
+
+			view_index_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress();
+			view_index_buffer.Format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT;
+			view_index_buffer.SizeInBytes = static_cast<UINT>(m_manager_batch.Get_IndexArenaUsed(slot_index));
+
+			m_p_command_graphics_list->IASetIndexBuffer(&view_index_buffer);
+		}
+	}
+
+	// state is emitted only when it changed vs the previous record; the -1 sentinel forces full emission for the
+	// first record
+	int previous_program = -1;
+	int previous_texture = -1;
+	int previous_scissor = -1;
+	int previous_stencil_ref = -1;
+	int previous_transform = -1;
+
+	for (const GeometryBatcher::BatchDraw& batch : batches)
+	{
+		if (batch.program_id != previous_program)
+		{
+			UseProgram(static_cast<ProgramId>(batch.program_id));
+
+			previous_program = batch.program_id;
+			// a new root signature invalidates the previous root argument bindings, re-emit them below
+			previous_transform = -1;
+			previous_texture = -1;
+		}
+
+		if (batch.transform_id != previous_transform)
+		{
+			m_p_command_graphics_list->SetGraphicsRootConstantBufferView(0, transform_cb_addresses[batch.transform_id]);
+			previous_transform = batch.transform_id;
+		}
+
+		if (batch.texture_id != GeometryBatcher::kBatchNoTexture && batch.texture_id != previous_texture)
+		{
+			TextureHandleType* p_handle_texture = reinterpret_cast<TextureHandleType*>(m_manager_batch.Get_InternedTexture(batch.texture_id));
+
+			RMLUI_ASSERTMSG(p_handle_texture, "expected valid pointer!");
+
+			if (p_handle_texture)
+			{
+				if (p_handle_texture->Get_Allocation_DescriptorHeap().offset != OffsetAllocator::Allocation::NO_SPACE)
+				{
+					D3D12_GPU_DESCRIPTOR_HANDLE srv_handle;
+					srv_handle.ptr = m_p_descriptor_heap_shaders->GetGPUDescriptorHandleForHeapStart().ptr +
+						p_handle_texture->Get_Allocation_DescriptorHeap().offset;
+
+					m_p_command_graphics_list->SetGraphicsRootDescriptorTable(1, srv_handle);
+				}
+			}
+
+			previous_texture = batch.texture_id;
+		}
+
+		if (batch.scissor_id != previous_scissor)
+		{
+			D3D12_RECT scissor;
+
+			if (batch.scissor_id == 0)
+			{
+				scissor.left = 0;
+				scissor.top = 0;
+				scissor.right = m_width;
+				scissor.bottom = m_height;
+			}
+			else
+			{
+				const Rml::Rectanglei region = m_manager_batch.Get_InternedScissor(batch.scissor_id);
+
+				scissor.left = region.Left();
+				scissor.top = region.Top();
+				scissor.right = region.Right();
+				scissor.bottom = region.Bottom();
+			}
+
+			m_p_command_graphics_list->RSSetScissorRects(1, &scissor);
+			previous_scissor = batch.scissor_id;
+		}
+
+		if (batch.stencil_ref != previous_stencil_ref)
+		{
+			m_p_command_graphics_list->OMSetStencilRef(batch.stencil_ref);
+			previous_stencil_ref = batch.stencil_ref;
+		}
+
+		m_p_command_graphics_list->DrawIndexedInstanced(batch.index_count, 1, batch.first_index, 0, 0);
+	}
+
+	m_batch_stats_draw_calls += batches.size();
+
+	// restore legacy-visible dynamic state so subsequent legacy-path draws observe exactly what they would have
+	// observed without batching; m_active_program_id stays as the last UseProgram left it (every legacy path
+	// re-selects its program before drawing)
+	EmitCurrentScissorRect();
+
+	m_p_command_graphics_list->OMSetStencilRef(m_is_stencil_enabled ? m_stencil_ref_value : 0);
+
+	m_manager_batch.Reset_Accumulation();
+
+	RMLUI_DX_MARKER_END(m_p_command_graphics_list);
+}
+
+void RenderInterface_DX12::EmitCurrentScissorRect()
+{
+	RMLUI_ZoneScopedN("DirectX 12 - EmitCurrentScissorRect");
+
+	D3D12_RECT scissor;
+
+	if (m_is_scissor_was_set)
+	{
+		// m_scissor holds the region that was last set while scissoring was active (it is not updated on disable,
+		// so its Valid() flag cannot be consulted here)
+		const Rml::Rectanglei region = GetClampedScissorEmissionRect(m_scissor, m_width, m_height);
+
+		scissor.left = region.Left();
+		scissor.top = region.Top();
+		scissor.right = region.Right();
+		scissor.bottom = region.Bottom();
+	}
+	else
+	{
+		scissor.left = 0;
+		scissor.top = 0;
+		scissor.right = m_width;
+		scissor.bottom = m_height;
+	}
+
+	m_p_command_graphics_list->RSSetScissorRects(1, &scissor);
+}
+
+RenderInterface_DX12::GeometryBatcher::GeometryBatcher()
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::Constructor");
+}
+
+RenderInterface_DX12::GeometryBatcher::~GeometryBatcher()
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::Destructor");
+
+	m_p_device = nullptr;
+	m_p_allocator = nullptr;
+	m_p_renderer = nullptr;
+}
+
+void RenderInterface_DX12::GeometryBatcher::Initialize(ID3D12Device* p_device, D3D12MA::Allocator* p_allocator, RenderInterface_DX12* p_renderer)
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::Initialize");
+	RMLUI_ASSERTMSG(p_device, "must be valid!");
+	RMLUI_ASSERTMSG(p_allocator, "must be valid!");
+	RMLUI_ASSERTMSG(p_renderer, "must be valid!");
+
+	m_p_device = p_device;
+	m_p_allocator = p_allocator;
+	m_p_renderer = p_renderer;
+
+	m_transforms.reserve(4);
+	m_batches.reserve(64);
+
+	for (auto& slot : m_slots)
+	{
+		slot.vertex_capacity = RMLUI_RENDER_BACKEND_FIELD_BATCHING_VERTEX_ARENA_SIZE;
+		slot.index_capacity = RMLUI_RENDER_BACKEND_FIELD_BATCHING_INDEX_ARENA_SIZE;
+
+		void* p_vertex_mapped = nullptr;
+		void* p_index_mapped = nullptr;
+
+		slot.p_vertex_buffer = Alloc_ArenaBuffer(slot.vertex_capacity, &p_vertex_mapped);
+		slot.p_index_buffer = Alloc_ArenaBuffer(slot.index_capacity, &p_index_mapped);
+
+		slot.p_vertex_mapped = static_cast<uint8_t*>(p_vertex_mapped);
+		slot.p_index_mapped = static_cast<uint8_t*>(p_index_mapped);
+	}
+}
+
+void RenderInterface_DX12::GeometryBatcher::Shutdown()
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::Shutdown");
+
+	// the renderer drained the GPU (Flush) before calling this, so every fence stamp has already passed and both
+	// the live arenas and the retired (grown-out) buffers can be freed immediately
+	for (auto& slot : m_slots)
+	{
+		Free_ArenaBuffer(slot.p_vertex_buffer);
+		Free_ArenaBuffer(slot.p_index_buffer);
+
+		slot.p_vertex_buffer = nullptr;
+		slot.p_index_buffer = nullptr;
+		slot.p_vertex_mapped = nullptr;
+		slot.p_index_mapped = nullptr;
+		slot.vertex_capacity = 0;
+		slot.index_capacity = 0;
+		slot.vertex_used = 0;
+		slot.index_used = 0;
+	}
+
+	for (auto& retired : m_retired_arenas)
+	{
+		Free_ArenaBuffer(retired.first);
+	}
+
+	m_retired_arenas.clear();
+	Reset_Accumulation();
+
+	m_p_device = nullptr;
+	m_p_allocator = nullptr;
+	m_p_renderer = nullptr;
+}
+
+void RenderInterface_DX12::GeometryBatcher::BeginFrame(uint32_t slot_index)
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::BeginFrame");
+	RMLUI_ASSERTMSG(slot_index < m_slots.size(), "overflow of slot index!");
+
+	if (slot_index >= m_slots.size())
+		return;
+
+	m_slot_index = slot_index;
+
+	SlotArena& slot = m_slots.at(slot_index);
+
+	// the only place where arena cursors are reset: a new frame for this slot means the GPU has passed the slot's
+	// fence, so everything written by the previous frame of this slot is safe to overwrite
+	slot.vertex_used = 0;
+	slot.index_used = 0;
+
+	Reset_Accumulation();
+
+	// recycle grown-out arena buffers whose fence has passed (same retirement rule as Update_PendingForDeletion_Geometry)
+	const uint64_t completed_fence_value = m_p_renderer->m_p_backbuffer_fence ? m_p_renderer->m_p_backbuffer_fence->GetCompletedValue() : ~0ull;
+
+	m_retired_arenas.erase(std::remove_if(m_retired_arenas.begin(), m_retired_arenas.end(),
+							   [&](const Rml::Pair<D3D12MA::Allocation*, uint64_t>& entry) {
+								   if (entry.second <= completed_fence_value)
+								   {
+									   Free_ArenaBuffer(entry.first);
+									   return true;
+								   }
+								   return false;
+							   }),
+		m_retired_arenas.end());
+}
+
+bool RenderInterface_DX12::GeometryBatcher::CanAccumulate(const GeometryHandleType* p_handle_geometry, Rml::TextureHandle texture) const
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::CanAccumulate");
+
+	if (!m_p_renderer->m_p_command_graphics_list)
+		return false;
+
+	if (!p_handle_geometry)
+		return false;
+
+	if (texture == RenderInterface_DX12::TexturePostprocess)
+		return false;
+
+	// geometries with an override constant buffer (custom shaders, fullscreen quads) keep the legacy path
+	if (p_handle_geometry->Get_ConstantBuffer())
+		return false;
+
+	// clip-mask rendering mutates the stencil buffer and uses its own programs
+	if (m_p_renderer->m_current_clip_operation != -1)
+		return false;
+
+	if (texture == RenderInterface_DX12::TextureEnableWithoutBinding)
+	{
+		// batchable only when the previous record is a textured draw whose texture binding this draw inherits
+		if (m_batches.empty())
+			return false;
+
+		const uint8_t last_program_id = m_batches.back().program_id;
+
+		if (last_program_id != static_cast<uint8_t>(ProgramId::Texture_Stencil_Always) &&
+			last_program_id != static_cast<uint8_t>(ProgramId::Texture_Stencil_Equal) &&
+			last_program_id != static_cast<uint8_t>(ProgramId::Texture_Stencil_Disabled))
+			return false;
+	}
+
+	return true;
+}
+
+void RenderInterface_DX12::GeometryBatcher::Accumulate(GeometryHandleType* p_handle_geometry, Rml::Vector2f translation, Rml::TextureHandle texture)
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::Accumulate");
+	RMLUI_ASSERTMSG(p_handle_geometry, "expected valid pointer!");
+
+	++m_p_renderer->m_batch_stats_geometry_draws;
+
+	const int num_vertices = p_handle_geometry->Get_NumVertices();
+	const int num_indices = p_handle_geometry->Get_NumIndices();
+
+	if (num_vertices <= 0 || num_indices <= 0)
+		return;
+
+	// the geometry data is read back from its pool allocation (UPLOAD heap, persistently mapped)
+	const std::uint8_t* p_src_vertices = reinterpret_cast<const std::uint8_t*>(
+		m_p_renderer->m_manager_buffer.Get_WritableMemoryFromBufferByOffset(p_handle_geometry->Get_InfoVertex()));
+	const std::uint8_t* p_src_indices = reinterpret_cast<const std::uint8_t*>(
+		m_p_renderer->m_manager_buffer.Get_WritableMemoryFromBufferByOffset(p_handle_geometry->Get_InfoIndex()));
+
+	RMLUI_ASSERTMSG(p_src_vertices && p_src_indices, "geometry pool memory must be persistently mapped and readable!");
+
+	if (!p_src_vertices || !p_src_indices)
+		return;
+
+	// 1. the program selection mirrors the legacy if-chain (clip-mask programs never reach this path)
+	const bool is_textured = (texture != 0);
+	const uint8_t program_id = static_cast<uint8_t>(m_p_renderer->Get_ProgramIdForBatch(is_textured));
+
+	// 2. TextureEnableWithoutBinding inherits the texture of the previous record (guaranteed textured by
+	// CanAccumulate); resolve it to the raw handle now so a mid-accumulation flush can safely re-intern the value
+	Rml::TextureHandle texture_value = 0;
+
+	if (texture == RenderInterface_DX12::TextureEnableWithoutBinding)
+	{
+		RMLUI_ASSERTMSG(!m_batches.empty(), "CanAccumulate guarantees a previous record for TextureEnableWithoutBinding!");
+		RMLUI_ASSERTMSG(m_batches.back().texture_id != kBatchNoTexture, "the inherited record must be textured!");
+
+		if (!m_batches.empty() && m_batches.back().texture_id != kBatchNoTexture)
+			texture_value = m_textures[m_batches.back().texture_id];
+	}
+	else if (texture)
+	{
+		texture_value = texture;
+	}
+
+	// 3. scissor: id 0 means full-frame; otherwise intern the clamped emission rect (the same clamping SetScissor
+	// applies). The active flag must be m_is_scissor_was_set (what legacy RenderGeometry consults), NOT
+	// m_scissor.Valid(): SetScissor's disable path early-returns without updating m_scissor, so the rectangle goes
+	// stale-valid once scissoring is disabled.
+	const bool is_scissor_active = m_p_renderer->m_is_scissor_was_set;
+	const Rml::Rectanglei scissor_rect = is_scissor_active
+		? GetClampedScissorEmissionRect(m_p_renderer->m_scissor, m_p_renderer->m_width, m_p_renderer->m_height)
+		: Rml::Rectanglei::MakeInvalid();
+
+	// 4. transform: deduped against the last table entry only
+	const Rml::Matrix4f& transform = m_p_renderer->m_constant_buffer_data_transform;
+
+	// the intern tables are per accumulation run; if any of them would overflow, flush everything accumulated so
+	// far (this resets the tables but keeps the arena data) and intern into the emptied tables
+	const bool needs_new_texture = (texture_value != 0) && (Find_Texture(texture_value) < 0);
+	const bool needs_new_scissor = is_scissor_active && (Find_Scissor(scissor_rect) < 0);
+	const bool needs_new_transform = m_transforms.empty() || std::memcmp(m_transforms.back().data(), transform.data(), sizeof(Rml::Matrix4f)) != 0;
+
+	if ((needs_new_texture && m_texture_count >= kMaxInternedTextures) || (needs_new_scissor && m_scissor_count >= kMaxInternedScissors) ||
+		(needs_new_transform && m_transforms.size() >= kMaxInternedTransforms))
+	{
+		m_p_renderer->FlushBatches();
+	}
+
+	const uint8_t texture_id = texture_value ? Intern_Texture(texture_value) : kBatchNoTexture;
+	const uint8_t scissor_id = is_scissor_active ? Intern_Scissor(scissor_rect) : static_cast<uint8_t>(0);
+	const uint8_t transform_id = Intern_Transform(transform);
+	const uint8_t stencil_ref =
+		m_p_renderer->m_is_stencil_enabled ? static_cast<uint8_t>(std::min<UINT>(m_p_renderer->m_stencil_ref_value, 255u)) : static_cast<uint8_t>(0);
+
+	SlotArena& slot = m_slots.at(m_slot_index);
+
+	const size_t vertex_bytes = static_cast<size_t>(num_vertices) * sizeof(Rml::Vertex);
+	const size_t index_bytes = static_cast<size_t>(num_indices) * sizeof(std::uint32_t);
+
+	// grows x2 on overflow; this is transparent for the already-recorded batches because records reference arena
+	// offsets and the new buffer holds the same bytes at the same offsets
+	if (!Ensure_ArenaCapacity(slot, vertex_bytes, index_bytes))
+		return;
+
+	// counts only geometry that actually landed in the arena (used by the per-flush marker)
+	++m_accumulated_geometry_count;
+
+	// extend the last record when the full state key matches, otherwise start a new run
+	BatchDraw* p_record = nullptr;
+
+	if (!m_batches.empty())
+	{
+		BatchDraw& last = m_batches.back();
+
+		if (last.texture_id == texture_id && last.scissor_id == scissor_id && last.program_id == program_id && last.stencil_ref == stencil_ref &&
+			last.transform_id == transform_id)
+		{
+			p_record = &last;
+		}
+	}
+
+	if (!p_record)
+	{
+		BatchDraw record = {};
+		record.first_index = static_cast<uint32_t>(slot.index_used / sizeof(std::uint32_t));
+		record.index_count = 0;
+		record.texture_id = texture_id;
+		record.scissor_id = scissor_id;
+		record.program_id = program_id;
+		record.stencil_ref = stencil_ref;
+		record.transform_id = transform_id;
+
+		m_batches.push_back(record);
+		p_record = &m_batches.back();
+	}
+
+	// the vertex shader applies the translation before the transform, so baking it into the positions on the CPU
+	// and using a zero translation in the constant buffer is exactly equivalent
+	const uint32_t vertex_base = static_cast<uint32_t>(slot.vertex_used / sizeof(Rml::Vertex));
+
+	Rml::Vertex* p_dst_vertices = reinterpret_cast<Rml::Vertex*>(slot.p_vertex_mapped + slot.vertex_used);
+	const Rml::Vertex* p_vertices = reinterpret_cast<const Rml::Vertex*>(p_src_vertices);
+
+	for (int i = 0; i < num_vertices; ++i)
+	{
+		p_dst_vertices[i] = p_vertices[i];
+		p_dst_vertices[i].position.x += translation.x;
+		p_dst_vertices[i].position.y += translation.y;
+	}
+
+	std::uint32_t* p_dst_indices = reinterpret_cast<std::uint32_t*>(slot.p_index_mapped + slot.index_used);
+	const std::int32_t* p_indices = reinterpret_cast<const std::int32_t*>(p_src_indices);
+
+	for (int i = 0; i < num_indices; ++i)
+	{
+		RMLUI_ASSERTMSG(p_indices[i] >= 0, "indices must be non-negative!");
+		p_dst_indices[i] = static_cast<std::uint32_t>(p_indices[i]) + vertex_base;
+	}
+
+	p_record->index_count += static_cast<uint32_t>(num_indices);
+	slot.vertex_used += vertex_bytes;
+	slot.index_used += index_bytes;
+}
+
+Rml::TextureHandle RenderInterface_DX12::GeometryBatcher::Get_InternedTexture(uint8_t texture_id) const
+{
+	RMLUI_ASSERTMSG(texture_id < m_texture_count, "overflow of the texture intern table!");
+
+	if (texture_id < m_texture_count)
+		return m_textures[texture_id];
+
+	return 0;
+}
+
+Rml::Rectanglei RenderInterface_DX12::GeometryBatcher::Get_InternedScissor(uint8_t scissor_id) const
+{
+	RMLUI_ASSERTMSG(scissor_id >= 1 && scissor_id <= m_scissor_count, "overflow of the scissor intern table!");
+
+	if (scissor_id >= 1 && scissor_id <= m_scissor_count)
+		return m_scissors[scissor_id - 1];
+
+	return Rml::Rectanglei::MakeInvalid();
+}
+
+void RenderInterface_DX12::GeometryBatcher::Reset_Accumulation()
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::Reset_Accumulation");
+
+	m_batches.clear();
+	m_transforms.clear();
+	m_texture_count = 0;
+	m_scissor_count = 0;
+	m_accumulated_geometry_count = 0;
+}
+
+D3D12MA::Allocation* RenderInterface_DX12::GeometryBatcher::Alloc_ArenaBuffer(size_t size, void** pp_mapped)
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::Alloc_ArenaBuffer");
+	RMLUI_ASSERTMSG(size, "must be greater than 0");
+	RMLUI_ASSERTMSG(pp_mapped, "must be valid!");
+	RMLUI_ASSERTMSG(m_p_allocator, "you must initialize the batcher first!");
+
+	D3D12MA::Allocation* p_result{};
+
+	if (m_p_allocator && pp_mapped)
+	{
+		D3D12_RESOURCE_DESC desc_buffer = {};
+		desc_buffer.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+		desc_buffer.Alignment = 0;
+		desc_buffer.Width = size;
+		desc_buffer.Height = 1;
+		desc_buffer.DepthOrArraySize = 1;
+		desc_buffer.MipLevels = 1;
+		desc_buffer.Format = DXGI_FORMAT_UNKNOWN;
+		desc_buffer.SampleDesc.Count = 1;
+		desc_buffer.SampleDesc.Quality = 0;
+		desc_buffer.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		desc_buffer.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+		D3D12MA::ALLOCATION_DESC desc_allocation = {};
+		desc_allocation.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+
+		ID3D12Resource* p_resource{};
+
+		auto result = m_p_allocator->CreateResource(&desc_allocation, &desc_buffer, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, &p_result,
+			IID_PPV_ARGS(&p_resource));
+
+		RMLUI_DX_VERIFY_MSG(result, "failed to CreateResource");
+
+		if (SUCCEEDED(result) && p_result)
+		{
+			D3D12_RANGE range;
+			range.Begin = 0;
+			range.End = 0;
+
+			result = p_result->GetResource()->Map(0, &range, pp_mapped);
+
+			RMLUI_DX_VERIFY_MSG(result, "failed to ID3D12Resource::Map");
+
+	#ifdef RMLUI_DX_DEBUG
+			p_result->SetName(L"GeometryBatcher frame arena buffer");
+	#endif
+		}
+	}
+
+	return p_result;
+}
+
+void RenderInterface_DX12::GeometryBatcher::Free_ArenaBuffer(D3D12MA::Allocation* p_allocation)
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::Free_ArenaBuffer");
+
+	if (!p_allocation)
+		return;
+
+	if (p_allocation->GetResource())
+	{
+		p_allocation->GetResource()->Unmap(0, nullptr);
+		p_allocation->GetResource()->Release();
+	}
+
+	RMLUI_ATTR_ASSERT_VARIABLE auto ref_count = p_allocation->Release();
+	RMLUI_ASSERTMSG(ref_count == 0, "leak!");
+}
+
+bool RenderInterface_DX12::GeometryBatcher::Ensure_ArenaCapacity(SlotArena& slot, size_t vertex_bytes_needed, size_t index_bytes_needed)
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::Ensure_ArenaCapacity");
+
+	if (slot.vertex_used + vertex_bytes_needed > slot.vertex_capacity)
+	{
+		size_t capacity_new = slot.vertex_capacity * 2;
+
+		while (capacity_new < slot.vertex_used + vertex_bytes_needed)
+			capacity_new *= 2;
+
+		void* p_mapped = nullptr;
+		D3D12MA::Allocation* p_buffer_new = Alloc_ArenaBuffer(capacity_new, &p_mapped);
+
+		RMLUI_ASSERTMSG(p_buffer_new && p_mapped, "failed to grow the batching vertex arena!");
+
+		if (!p_buffer_new || !p_mapped)
+			return false;
+
+		// keep the used bytes at identical offsets: batch records reference arena offsets, not buffer objects
+		std::memcpy(p_mapped, slot.p_vertex_mapped, slot.vertex_used);
+
+		Retire_ArenaBuffer(slot.p_vertex_buffer);
+
+		slot.p_vertex_buffer = p_buffer_new;
+		slot.p_vertex_mapped = static_cast<uint8_t*>(p_mapped);
+		slot.vertex_capacity = capacity_new;
+	}
+
+	if (slot.index_used + index_bytes_needed > slot.index_capacity)
+	{
+		size_t capacity_new = slot.index_capacity * 2;
+
+		while (capacity_new < slot.index_used + index_bytes_needed)
+			capacity_new *= 2;
+
+		void* p_mapped = nullptr;
+		D3D12MA::Allocation* p_buffer_new = Alloc_ArenaBuffer(capacity_new, &p_mapped);
+
+		RMLUI_ASSERTMSG(p_buffer_new && p_mapped, "failed to grow the batching index arena!");
+
+		if (!p_buffer_new || !p_mapped)
+			return false;
+
+		std::memcpy(p_mapped, slot.p_index_mapped, slot.index_used);
+
+		Retire_ArenaBuffer(slot.p_index_buffer);
+
+		slot.p_index_buffer = p_buffer_new;
+		slot.p_index_mapped = static_cast<uint8_t*>(p_mapped);
+		slot.index_capacity = capacity_new;
+	}
+
+	return true;
+}
+
+void RenderInterface_DX12::GeometryBatcher::Retire_ArenaBuffer(D3D12MA::Allocation* p_allocation)
+{
+	RMLUI_ZoneScopedN("DirectX 12 - GeometryBatcher::Retire_ArenaBuffer");
+
+	// the old buffer may still be read by draws recorded earlier in this frame, so it is only freed once the GPU
+	// has passed the fence value that the current frame will signal at EndFrame (see BeginFrame of this batcher)
+	if (p_allocation)
+	{
+		m_retired_arenas.push_back({p_allocation, m_p_renderer->m_backbuffers_fence_values[m_p_renderer->m_current_back_buffer_index]});
+	}
+}
+
+int RenderInterface_DX12::GeometryBatcher::Find_Texture(Rml::TextureHandle texture) const
+{
+	for (int i = 0; i < m_texture_count; ++i)
+	{
+		if (m_textures[i] == texture)
+			return i;
+	}
+
+	return -1;
+}
+
+uint8_t RenderInterface_DX12::GeometryBatcher::Intern_Texture(Rml::TextureHandle texture)
+{
+	const int found = Find_Texture(texture);
+
+	if (found >= 0)
+		return static_cast<uint8_t>(found);
+
+	RMLUI_ASSERTMSG(m_texture_count < kMaxInternedTextures, "texture intern table overflow; must be resolved by flush + retry!");
+
+	if (m_texture_count >= kMaxInternedTextures)
+		return kBatchNoTexture;
+
+	m_textures[m_texture_count] = texture;
+
+	return m_texture_count++;
+}
+
+int RenderInterface_DX12::GeometryBatcher::Find_Scissor(const Rml::Rectanglei& rect) const
+{
+	for (int i = 0; i < m_scissor_count; ++i)
+	{
+		if (m_scissors[i] == rect)
+			return i;
+	}
+
+	return -1;
+}
+
+uint8_t RenderInterface_DX12::GeometryBatcher::Intern_Scissor(const Rml::Rectanglei& rect)
+{
+	const int found = Find_Scissor(rect);
+
+	if (found >= 0)
+		return static_cast<uint8_t>(found + 1);
+
+	RMLUI_ASSERTMSG(m_scissor_count < kMaxInternedScissors, "scissor intern table overflow; must be resolved by flush + retry!");
+
+	if (m_scissor_count >= kMaxInternedScissors)
+		return 0;
+
+	m_scissors[m_scissor_count] = rect;
+	++m_scissor_count;
+
+	// id 0 is reserved for the full-frame scissor, table ids start at 1
+	return m_scissor_count;
+}
+
+uint8_t RenderInterface_DX12::GeometryBatcher::Intern_Transform(const Rml::Matrix4f& transform)
+{
+	if (!m_transforms.empty())
+	{
+		if (std::memcmp(m_transforms.back().data(), transform.data(), sizeof(Rml::Matrix4f)) == 0)
+			return static_cast<uint8_t>(m_transforms.size() - 1);
+	}
+
+	RMLUI_ASSERTMSG(m_transforms.size() < kMaxInternedTransforms, "transform intern table overflow; must be resolved by flush + retry!");
+
+	if (m_transforms.size() >= kMaxInternedTransforms)
+		return 0;
+
+	m_transforms.push_back(transform);
+
+	return static_cast<uint8_t>(m_transforms.size() - 1);
+}
+
+#endif // RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
 
 RenderInterface_DX12::BufferMemoryManager::BufferMemoryManager() :
 	m_descriptor_increment_size_srv_cbv_uav{}, m_size_for_allocation_in_bytes{}, m_size_alignment_in_bytes{}, m_p_device{}, m_p_allocator{},
