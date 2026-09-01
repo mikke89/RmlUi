@@ -160,20 +160,20 @@ TEST_CASE("Properties")
 			},
 			{
 				"lab(55% none none), lab(30% 67% -110) 50%, lab(90% -90 80 / 0.5) 10dp",
-				"#838383, #0000fb 50%, #00ff267f 10dp",
+				"#838383, #0000fb 50%, #00ff287f 10dp",
 				{
 					ColorStop{ColourbPremultiplied(131, 131, 131), NumericValue{}},
 					ColorStop{ColourbPremultiplied(0, 0, 251), NumericValue{50.f, Unit::PERCENT}},
-					ColorStop{ColourbPremultiplied(0, 127, 19, 127), NumericValue{10.f, Unit::DP}},
+					ColorStop{ColourbPremultiplied(0, 127, 20, 127), NumericValue{10.f, Unit::DP}},
 				},
 			},
 			{
 				"lch(55% none 300.0), lch(30% 85% 180.0) 50%, lch(90% 90 100.0 / 50%) 10dp",
-				"#838383, #006044 50%, #f0e6007f 10dp",
+				"#838383, #006044 50%, #f0e6027f 10dp",
 				{
 					ColorStop{ColourbPremultiplied(131, 131, 131), NumericValue{}},
 					ColorStop{ColourbPremultiplied(0, 96, 68), NumericValue{50.f, Unit::PERCENT}},
-					ColorStop{ColourbPremultiplied(120, 115, 0, 127), NumericValue{10.f, Unit::DP}},
+					ColorStop{ColourbPremultiplied(120, 115, 1, 127), NumericValue{10.f, Unit::DP}},
 				},
 			},
 			{
@@ -187,11 +187,11 @@ TEST_CASE("Properties")
 			},
 			{
 				"oklch(75% 100% 30.0), oklch(0.5 0.2 270) 50%, oklch(1.0 0.1 none / 0.5) 10dp",
-				"#ff0000, #3a50d2 50%, #ffe2fa7f 10dp",
+				"#ff0000, #3a50d2 50%, #ffe2fc7f 10dp",
 				{
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{}},
 					ColorStop{ColourbPremultiplied(58, 80, 210), NumericValue{50.f, Unit::PERCENT}},
-					ColorStop{ColourbPremultiplied(127, 113, 125, 127), NumericValue{10.f, Unit::DP}},
+					ColorStop{ColourbPremultiplied(127, 113, 126, 127), NumericValue{10.f, Unit::DP}},
 				},
 			},
 			{

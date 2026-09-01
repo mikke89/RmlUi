@@ -77,9 +77,9 @@ public:
 	inline Colour<ColourType, AlphaDefault, true> ToPremultiplied() const
 	{
 		return {
-			ColourType((red * alpha) / 255),
-			ColourType((green * alpha) / 255),
-			ColourType((blue * alpha) / 255),
+			ColourType((red * alpha + 127) / 255),
+			ColourType((green * alpha + 127) / 255),
+			ColourType((blue * alpha + 127) / 255),
 			alpha,
 		};
 	}
@@ -90,9 +90,9 @@ public:
 	{
 		const float new_alpha = alpha * opacity;
 		return {
-			ColourType(red * (new_alpha / 255.f)),
-			ColourType(green * (new_alpha / 255.f)),
-			ColourType(blue * (new_alpha / 255.f)),
+			ColourType(red * (new_alpha / 255.f) + 0.5f),
+			ColourType(green * (new_alpha / 255.f) + 0.5f),
+			ColourType(blue * (new_alpha / 255.f) + 0.5f),
 			ColourType(new_alpha),
 		};
 	}

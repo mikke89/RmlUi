@@ -4,6 +4,12 @@
 
 using namespace Rml;
 
+TEST_CASE("Colour.ToPremultiplied")
+{
+	CHECK(Colourb(100, 150, 200, 127).ToPremultiplied() == ColourbPremultiplied(50, 75, 100, 127));
+	CHECK(Colourb(100, 150, 200, 128).ToPremultiplied(0.5f) == ColourbPremultiplied(25, 38, 50, 64));
+}
+
 TEST_CASE("Math.RoundedLerp")
 {
 	const ColourbPremultiplied c0(0, 0, 0, 255);
