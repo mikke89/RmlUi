@@ -1,8 +1,11 @@
 #include "RmlUi_Renderer_SDL_GPU.h"
 #include "RmlUi_SDL_GPU/ShadersCompiledSPV.h"
 #include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/DecorationTypes.h>
+#include <RmlUi/Core/Dictionary.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/Math.h>
 #include <RmlUi/Core/Types.h>
 #include <SDL3_image/SDL_image.h>
 
@@ -11,6 +14,7 @@ using namespace Rml;
 enum ShaderType {
 	ShaderTypeColor,
 	ShaderTypeTexture,
+	ShaderTypeGradient,
 	ShaderTypeVert,
 	ShaderTypeCount,
 };
@@ -39,6 +43,7 @@ struct Shader {
 static const Shader shaders[ShaderTypeCount] = {
 	{{X(shader_frag_color_spirv), X(shader_frag_color_msl), X(shader_frag_color_dxil)}, 0, 0, SDL_GPU_SHADERSTAGE_FRAGMENT},
 	{{X(shader_frag_texture_spirv), X(shader_frag_texture_msl), X(shader_frag_texture_dxil)}, 0, 1, SDL_GPU_SHADERSTAGE_FRAGMENT},
+	{{X(shader_frag_gradient_spirv), X(shader_frag_gradient_msl), X(shader_frag_gradient_dxil)}, 1, 0, SDL_GPU_SHADERSTAGE_FRAGMENT},
 	{{X(shader_vert_spirv), X(shader_vert_msl), X(shader_vert_dxil)}, 2, 0, SDL_GPU_SHADERSTAGE_VERTEX}};
 
 #undef X
@@ -93,6 +98,7 @@ void RenderInterface_SDL_GPU::CreatePipelines()
 {
 	SDL_GPUShader* color_shader = CreateShaderFromMemory(device, ShaderTypeColor);
 	SDL_GPUShader* texture_shader = CreateShaderFromMemory(device, ShaderTypeTexture);
+	SDL_GPUShader* gradient_shader = CreateShaderFromMemory(device, ShaderTypeGradient);
 	SDL_GPUShader* vert_shader = CreateShaderFromMemory(device, ShaderTypeVert);
 
 	SDL_GPUColorTargetDescription target{};
@@ -146,8 +152,17 @@ void RenderInterface_SDL_GPU::CreatePipelines()
 		RMLUI_ERROR;
 	}
 
+	info.fragment_shader = gradient_shader;
+	gradient_pipeline = SDL_CreateGPUGraphicsPipeline(device, &info);
+	if (!gradient_pipeline)
+	{
+		Log::Message(Log::LT_ERROR, "Failed to create gradient pipeline: %s", SDL_GetError());
+		RMLUI_ERROR;
+	}
+
 	SDL_ReleaseGPUShader(device, color_shader);
 	SDL_ReleaseGPUShader(device, texture_shader);
+	SDL_ReleaseGPUShader(device, gradient_shader);
 	SDL_ReleaseGPUShader(device, vert_shader);
 }
 
@@ -185,6 +200,7 @@ void RenderInterface_SDL_GPU::Shutdown()
 	SDL_ReleaseGPUSampler(device, linear_sampler);
 	SDL_ReleaseGPUGraphicsPipeline(device, color_pipeline);
 	SDL_ReleaseGPUGraphicsPipeline(device, texture_pipeline);
+	SDL_ReleaseGPUGraphicsPipeline(device, gradient_pipeline);
 }
 
 void RenderInterface_SDL_GPU::BeginFrame(SDL_GPUCommandBuffer* command_buffer, SDL_GPUTexture* swapchain_texture, uint32_t width, uint32_t height)
@@ -372,6 +388,162 @@ void RenderInterface_SDL_GPU::RenderGeometryCommand::Update(RenderInterface_SDL_
 void RenderInterface_SDL_GPU::RenderGeometry(CompiledGeometryHandle handle, Vector2f translation, TextureHandle texture)
 {
 	commands.push_back(Rml::MakeUnique<RenderGeometryCommand>(handle, translation, texture));
+}
+
+// linear-gradient/radial-gradient/conic-gradient support. Ported from RmlUi's own OpenGL reference
+// backend (RmlUi_Renderer_GL3.cpp's CompileShader/RenderShader/ReleaseShader, and the
+// ShaderGradientFunction enum) -- box-shadow/blur are a separate, unimplemented code path (RmlUi's
+// filter/layer system: PushLayer/CompositeLayers/CompileFilter/RenderFilter), not covered here.
+enum class ShaderGradientFunction { Linear, Radial, Conic, RepeatingLinear, RepeatingRadial, RepeatingConic }; // Must match shader_frag_gradient.frag.
+
+constexpr int MAX_NUM_STOPS = 16; // Must match shader_frag_gradient.frag's MAX_NUM_STOPS.
+
+struct CompiledShader {
+	ShaderGradientFunction gradient_function;
+	Vector2f p;
+	Vector2f v;
+	Vector<float> stop_positions;
+	Vector<Colourf> stop_colors;
+};
+
+// Layout must match shader_frag_gradient.frag's GradientUniforms cbuffer exactly (see that file's
+// header comment for the packoffset breakdown) -- StopColors/StopPositions are declared as arrays
+// of float4 there because HLSL cbuffers give every array element its own 16-byte slot regardless
+// of the element's own size, so StopPositions only ever uses component [0] of each row here.
+struct GradientUniformsCB {
+	int32_t func;
+	int32_t num_stops;
+	float p[2];
+	float v[2];
+	float pad[2]; // c1.zw, unused
+	float stop_colors[MAX_NUM_STOPS][4];
+	float stop_positions[MAX_NUM_STOPS][4];
+};
+
+static Colourf ConvertToColorf(ColourbPremultiplied c0)
+{
+	Colourf result;
+	for (int i = 0; i < 4; i++)
+		result[i] = (1.f / 255.f) * float(c0[i]);
+	return result;
+}
+
+CompiledShaderHandle RenderInterface_SDL_GPU::CompileShader(const String& name, const Dictionary& parameters)
+{
+	auto ApplyColorStopList = [](CompiledShader& shader, const Dictionary& shader_parameters) {
+		auto it = shader_parameters.find("color_stop_list");
+		RMLUI_ASSERT(it != shader_parameters.end() && it->second.GetType() == Variant::COLORSTOPLIST);
+		const ColorStopList& color_stop_list = it->second.GetReference<ColorStopList>();
+		const int num_stops = Math::Min((int)color_stop_list.size(), MAX_NUM_STOPS);
+
+		shader.stop_positions.resize(num_stops);
+		shader.stop_colors.resize(num_stops);
+		for (int i = 0; i < num_stops; i++)
+		{
+			const ColorStop& stop = color_stop_list[i];
+			RMLUI_ASSERT(stop.position.unit == Unit::NUMBER);
+			shader.stop_positions[i] = stop.position.number;
+			shader.stop_colors[i] = ConvertToColorf(stop.color);
+		}
+	};
+
+	CompiledShader shader = {};
+	bool valid = false;
+
+	if (name == "linear-gradient")
+	{
+		valid = true;
+		const bool repeating = Get(parameters, "repeating", false);
+		shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingLinear : ShaderGradientFunction::Linear);
+		shader.p = Get(parameters, "p0", Vector2f(0.f));
+		shader.v = Get(parameters, "p1", Vector2f(0.f)) - shader.p;
+		ApplyColorStopList(shader, parameters);
+	}
+	else if (name == "radial-gradient")
+	{
+		valid = true;
+		const bool repeating = Get(parameters, "repeating", false);
+		shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingRadial : ShaderGradientFunction::Radial);
+		shader.p = Get(parameters, "center", Vector2f(0.f));
+		shader.v = Vector2f(1.f) / Get(parameters, "radius", Vector2f(1.f));
+		ApplyColorStopList(shader, parameters);
+	}
+	else if (name == "conic-gradient")
+	{
+		valid = true;
+		const bool repeating = Get(parameters, "repeating", false);
+		shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingConic : ShaderGradientFunction::Conic);
+		shader.p = Get(parameters, "center", Vector2f(0.f));
+		const float angle = Get(parameters, "angle", 0.f);
+		shader.v = Vector2f(Math::Cos(angle), Math::Sin(angle));
+		ApplyColorStopList(shader, parameters);
+	}
+
+	if (!valid)
+	{
+		Log::Message(Log::LT_WARNING, "Unsupported shader type '%s'.", name.c_str());
+		return {};
+	}
+
+	return reinterpret_cast<CompiledShaderHandle>(new CompiledShader(std::move(shader)));
+}
+
+void RenderInterface_SDL_GPU::RenderShaderCommand::Update(RenderInterface_SDL_GPU& interface)
+{
+	if (!interface.BeginRenderPass())
+	{
+		return;
+	}
+
+	const CompiledShader& compiled_shader = *reinterpret_cast<CompiledShader*>(shader);
+	GeometryView* geometry_view = reinterpret_cast<GeometryView*>(geometry);
+
+	SDL_BindGPUGraphicsPipeline(interface.render_pass, interface.gradient_pipeline);
+
+	SDL_GPUBufferBinding vertex_buffer_binding{};
+	SDL_GPUBufferBinding index_buffer_binding{};
+	vertex_buffer_binding.buffer = geometry_view->vertex_buffer->buffer;
+	index_buffer_binding.buffer = geometry_view->index_buffer->buffer;
+
+	SDL_BindGPUVertexBuffers(interface.render_pass, 0, &vertex_buffer_binding, 1);
+	SDL_BindGPUIndexBuffer(interface.render_pass, &index_buffer_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+	SDL_SetGPUScissor(interface.render_pass, &interface.scissor);
+
+	SDL_PushGPUVertexUniformData(interface.command_buffer, 0, &interface.transform, sizeof(interface.transform));
+	SDL_PushGPUVertexUniformData(interface.command_buffer, 1, &translation, sizeof(translation));
+
+	GradientUniformsCB uniforms = {};
+	uniforms.func = static_cast<int32_t>(compiled_shader.gradient_function);
+	uniforms.num_stops = static_cast<int32_t>(compiled_shader.stop_positions.size());
+	uniforms.p[0] = compiled_shader.p.x;
+	uniforms.p[1] = compiled_shader.p.y;
+	uniforms.v[0] = compiled_shader.v.x;
+	uniforms.v[1] = compiled_shader.v.y;
+	for (int i = 0; i < uniforms.num_stops; i++)
+	{
+		uniforms.stop_positions[i][0] = compiled_shader.stop_positions[i];
+		for (int c = 0; c < 4; c++)
+			uniforms.stop_colors[i][c] = compiled_shader.stop_colors[i][c];
+	}
+	SDL_PushGPUFragmentUniformData(interface.command_buffer, 0, &uniforms, sizeof(uniforms));
+
+	SDL_DrawGPUIndexedPrimitives(interface.render_pass, geometry_view->num_indices, 1, 0, 0, 0);
+}
+
+void RenderInterface_SDL_GPU::RenderShader(CompiledShaderHandle shader, CompiledGeometryHandle geometry, Vector2f translation,
+	TextureHandle /*texture*/)
+{
+	commands.push_back(Rml::MakeUnique<RenderShaderCommand>(shader, geometry, translation));
+}
+
+void RenderInterface_SDL_GPU::ReleaseShader(CompiledShaderHandle shader)
+{
+	// Unlike ReleaseGeometry/ReleaseTexture, this frees no GPU resource -- CompiledShader is a
+	// plain CPU-side parameter blob (the GPU-side gradient_pipeline is shared and permanent) -- so
+	// there's no need to defer this through the command queue for GPU-side sequencing. Matches
+	// GL3's ReleaseShader, which is likewise an immediate `delete`.
+	delete reinterpret_cast<CompiledShader*>(shader);
 }
 
 void RenderInterface_SDL_GPU::EnableScissorRegionCommand::Update(RenderInterface_SDL_GPU& interface)

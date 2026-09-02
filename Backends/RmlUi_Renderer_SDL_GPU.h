@@ -19,12 +19,17 @@ public:
 	void EnableScissorRegion(bool enable) override;
 	void SetScissorRegion(Rml::Rectanglei region) override;
 	void SetTransform(const Rml::Matrix4f* new_transform) override;
+	Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) override;
+	void RenderShader(Rml::CompiledShaderHandle shader, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation,
+		Rml::TextureHandle texture) override;
+	void ReleaseShader(Rml::CompiledShaderHandle shader) override;
 
 private:
 	SDL_GPUDevice* device;
 	SDL_Window* window;
 	SDL_GPUGraphicsPipeline* texture_pipeline;
 	SDL_GPUGraphicsPipeline* color_pipeline;
+	SDL_GPUGraphicsPipeline* gradient_pipeline;
 	SDL_GPUSampler* linear_sampler;
 	SDL_GPUCommandBuffer* command_buffer;
 	SDL_GPUTexture* swapchain_texture;
@@ -65,6 +70,17 @@ private:
 		Rml::TextureHandle texture;
 	};
 
+	struct RenderShaderCommand : Command {
+		RenderShaderCommand(Rml::CompiledShaderHandle shader, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation) :
+			shader(shader), geometry(geometry), translation(translation)
+		{}
+		void Update(RenderInterface_SDL_GPU& interface) override;
+
+		Rml::CompiledShaderHandle shader;
+		Rml::CompiledGeometryHandle geometry;
+		Rml::Vector2f translation;
+	};
+
 	struct ReleaseGeometryCommand : Command {
 		ReleaseGeometryCommand(Rml::CompiledGeometryHandle handle) : handle(handle) {}
 		void Update(RenderInterface_SDL_GPU& interface) override;
@@ -90,6 +106,7 @@ private:
 	friend struct EnableScissorRegionCommand;
 	friend struct SetScissorRegionCommand;
 	friend struct RenderGeometryCommand;
+	friend struct RenderShaderCommand;
 	friend struct ReleaseGeometryCommand;
 	friend struct ReleaseTextureCommand;
 	friend struct SetTransformCommand;
