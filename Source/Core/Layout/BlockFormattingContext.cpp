@@ -87,12 +87,8 @@ static OuterDisplayType GetOuterDisplayType(Style::Display display)
 UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box)
 {
 	RMLUI_ASSERT(parent_container && element);
-
-#ifdef RMLUI_TRACY_PROFILING
 	RMLUI_ZoneScopedC(0xB22222);
-	auto name = CreateString("%s %x", element->GetAddress(false, false).c_str(), element);
-	RMLUI_ZoneName(name.c_str(), name.size());
-#endif
+	RMLUI_ZoneNameElement(element);
 
 	const Vector2f containing_block = LayoutDetails::GetContainingBlock(parent_container, element->GetPosition()).size;
 
@@ -184,11 +180,7 @@ bool BlockFormattingContext::FormatInlineBox(BlockContainer* parent_container, E
 
 bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_container, Element* element)
 {
-#ifdef RMLUI_TRACY_PROFILING
 	RMLUI_ZoneScoped;
-	auto name = CreateString(">%s %x", element->GetAddress(false, false).c_str(), element);
-	RMLUI_ZoneName(name.c_str(), name.size());
-#endif
 
 	// Check for special formatting tags.
 	if (element->GetTagName() == "br")
@@ -221,6 +213,8 @@ bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_co
 		LogUnexpectedFlowElement(element, display);
 		return true;
 	}
+
+	RMLUI_ZoneNameElement(element);
 
 	// If the element creates an independent formatting context, then format it accordingly.
 	if (UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(parent_container, element, nullptr, FormattingContextType::None))

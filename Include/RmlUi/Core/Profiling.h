@@ -2,6 +2,7 @@
 
 #ifdef RMLUI_TRACY_PROFILING
 
+	#include <stdint.h>
 	#include <tracy/Tracy.hpp>
 
 	#define RMLUI_ZoneNamed(varname, active) ZoneNamed(varname, active)
@@ -16,6 +17,11 @@
 
 	#define RMLUI_ZoneText(txt, size) ZoneText(txt, size)
 	#define RMLUI_ZoneName(txt, size) ZoneName(txt, size)
+
+	#define RMLUI_ZoneNameElement(element)                                                                                                  \
+		const String _rmlui_zone_name =                                                                                                     \
+			CreateString(">%s %x", element->GetAddress(false, false).c_str(), static_cast<uint32_t>(reinterpret_cast<uintptr_t>(element))); \
+		RMLUI_ZoneName(_rmlui_zone_name.c_str(), _rmlui_zone_name.size())
 
 	#define RMLUI_TracyPlot(name, val) TracyPlot(name, val)
 
@@ -38,6 +44,8 @@
 
 	#define RMLUI_ZoneText(txt, size)
 	#define RMLUI_ZoneName(txt, size)
+
+	#define RMLUI_ZoneNameElement(element)
 
 	#define RMLUI_TracyPlot(name, val)
 

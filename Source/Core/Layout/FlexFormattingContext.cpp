@@ -15,6 +15,7 @@ namespace Rml {
 UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box)
 {
 	RMLUI_ZoneScopedC(0xAFAF4F);
+	RMLUI_ZoneNameElement(element);
 	auto flex_container_box = MakeUnique<FlexContainer>(element, parent_container);
 
 	ElementScroll* element_scroll = element->GetElementScroll();
