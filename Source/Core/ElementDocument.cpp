@@ -468,7 +468,7 @@ void ElementDocument::UpdateDocument()
 {
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
 	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
-	Update(dp_ratio, vp_dimensions);
+	Update(dp_ratio, vp_dimensions, true);
 	UpdateLayout();
 	UpdatePosition();
 }
