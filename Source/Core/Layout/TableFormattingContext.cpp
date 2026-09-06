@@ -1,6 +1,7 @@
 #include "TableFormattingContext.h"
 #include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/Element.h"
+#include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/Types.h"
 #include "ContainerBox.h"
 #include "LayoutDetails.h"
@@ -13,6 +14,9 @@ namespace Rml {
 
 UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_container, Element* element_table, const Box* override_initial_box)
 {
+	RMLUI_ZoneScopedC(0xAFAF4F);
+	RMLUI_ZoneNameElement(element_table);
+
 	auto table_wrapper_box = MakeUnique<TableWrapper>(element_table, parent_container);
 	if (table_wrapper_box->IsScrollContainer())
 	{
@@ -108,6 +112,7 @@ void TableFormattingContext::FormatTable(Vector2f& table_content_size, Vector2f&
 
 void TableFormattingContext::DetermineColumnWidths(TrackBoxList& columns, float& table_content_width) const
 {
+	RMLUI_ZoneScoped;
 	// The column widths are determined entirely by any <col> elements preceding the first row, and <td> elements in the first row.
 	// If <col> has a fixed width, that is used. Otherwise, if <td> has a fixed width, that is used. Otherwise the column is 'flexible' width.
 	// All flexible widths are then sized to evenly fill the width of the table.
@@ -175,6 +180,7 @@ void TableFormattingContext::InitializeCellBoxes(BoxList& cells, const TrackBoxL
 {
 	// Requires that column boxes are already generated.
 	RMLUI_ASSERT(columns.size() == grid.columns.size());
+	RMLUI_ZoneScoped;
 
 	cells.resize(grid.cells.size());
 
@@ -213,6 +219,7 @@ void TableFormattingContext::DetermineRowHeights(TrackBoxList& rows, BoxList& ce
 
 	// Requires that cell boxes have been initialized.
 	RMLUI_ASSERT(cells.size() == grid.cells.size());
+	RMLUI_ZoneScoped;
 
 	TrackMetricList row_metrics(grid.rows.size());
 	TracksSizing sizing(row_metrics, table_initial_content_size.y, table_gap.y);
@@ -317,6 +324,7 @@ void TableFormattingContext::DetermineRowHeights(TrackBoxList& rows, BoxList& ce
 void TableFormattingContext::FormatRows(const TrackBoxList& rows, float table_content_width) const
 {
 	RMLUI_ASSERT(rows.size() == grid.rows.size());
+	RMLUI_ZoneScoped;
 
 	// Size and position the row and row group elements.
 	auto FormatRow = [this, table_content_width](Element* element, float content_height, float offset_y) {
@@ -347,6 +355,7 @@ void TableFormattingContext::FormatRows(const TrackBoxList& rows, float table_co
 void TableFormattingContext::FormatColumns(const TrackBoxList& columns, float table_content_height) const
 {
 	RMLUI_ASSERT(columns.size() == grid.columns.size());
+	RMLUI_ZoneScoped;
 
 	// Size and position the column and column group elements.
 	auto FormatColumn = [this, table_content_height](Element* element, float content_width, float offset_x) {
@@ -378,6 +387,7 @@ void TableFormattingContext::FormatCells(BoxList& cells, Vector2f& table_overflo
 	float& table_baseline) const
 {
 	RMLUI_ASSERT(cells.size() == grid.cells.size());
+	RMLUI_ZoneScoped;
 
 	bool baseline_set = false;
 
