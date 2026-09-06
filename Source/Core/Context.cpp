@@ -194,7 +194,11 @@ bool Context::Update()
 
 	// Update all the data models before updating properties and layout.
 	for (auto& data_model : data_models)
+	{
+		RMLUI_ZoneScopedNC("DataModel::Update", 0xBBCCEE);
+		RMLUI_ZoneName(data_model.first.c_str(), data_model.first.size());
 		data_model.second->Update(true);
+	}
 
 	// The style definition of each document should be independent of each other. By manually resetting these flags we avoid unnecessary definition
 	// lookups in unrelated documents, such as when adding a new document. Adding an element dirties the parent definition, which in this case is the
