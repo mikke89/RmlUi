@@ -117,7 +117,7 @@ Element::~Element()
 	num_non_dom_children = 0;
 }
 
-void Element::Update(float dp_ratio, Vector2f vp_dimensions)
+void Element::Update(float dp_ratio, Vector2f vp_dimensions, bool force_descendants)
 {
 #ifdef RMLUI_TRACY_PROFILING
 	auto name = GetAddress(false, false);
@@ -145,8 +145,11 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 
 	meta->effects.InstanceEffects();
 
-	for (size_t i = 0; i < children.size(); i++)
-		children[i]->Update(dp_ratio, vp_dimensions);
+	if (force_descendants || visible || meta->computed_values.display() != Style::Display::None)
+	{
+		for (size_t i = 0; i < children.size(); i++)
+			children[i]->Update(dp_ratio, vp_dimensions, force_descendants);
+	}
 
 	if (!animations.empty() && IsVisible(true))
 	{
