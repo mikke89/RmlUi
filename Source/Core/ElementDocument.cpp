@@ -230,7 +230,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	}
 
 	// Hide this document.
-	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+	SetProperty(PropertyId::Display, Property(Style::Display::None));
 
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
 	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
@@ -360,8 +360,8 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag, ScrollFla
 		break;
 	}
 
-	// Set to visible and switch focus if necessary.
-	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+	// Make visible by removing the "display: none" property.
+	RemoveProperty(PropertyId::Display);
 
 	// Update the document now, otherwise the focusing methods below do not think we are visible. This is also important
 	// to ensure correct layout for any event handlers, such as for focused input fields to submit the proper caret
@@ -407,7 +407,7 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag, ScrollFla
 
 void ElementDocument::Hide()
 {
-	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+	SetProperty(PropertyId::Display, Property(Style::Display::None));
 
 	// We should update the document now, so that the (un)focusing will get the correct visibility
 	UpdateDocument();

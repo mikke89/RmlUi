@@ -1206,6 +1206,7 @@ TEST_CASE("custom_properties.media_theme_integration")
 
 	Context* context = TestsShell::GetContext();
 	ElementDocument* document = context->LoadDocumentFromMemory(rml_source);
+	document->Show();
 	Element* div = document->GetChild(0);
 	REQUIRE(div->SetProperty("background-color", "var(--primary, blue)"));
 
