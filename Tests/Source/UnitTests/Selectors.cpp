@@ -357,6 +357,7 @@ TEST_CASE("Selectors")
 			const String selector_css = selector.selector + " { drag: drag; } ";
 			const String document_string = doc_begin + selector_css + doc_end;
 			ElementDocument* document = context->LoadDocumentFromMemory(document_string);
+			document->Show();
 
 			// Update the context to settle any dirty state.
 			context->Update();
