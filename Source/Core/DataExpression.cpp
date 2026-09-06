@@ -1,6 +1,7 @@
 #include "DataExpression.h"
 #include "../../Include/RmlUi/Core/DataModelHandle.h"
 #include "../../Include/RmlUi/Core/Event.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Variant.h"
 #include "DataModel.h"
 #include <stack>
@@ -1121,6 +1122,7 @@ DataExpression::~DataExpression() {}
 
 bool DataExpression::Parse(const DataExpressionInterface& expression_interface, bool is_assignment_expression)
 {
+	RMLUI_ZoneScopedN("DataExpression::Parse");
 	DataParser parser(expression, expression_interface);
 	if (!parser.Parse(is_assignment_expression))
 		return false;
@@ -1133,6 +1135,7 @@ bool DataExpression::Parse(const DataExpressionInterface& expression_interface, 
 
 bool DataExpression::Run(const DataExpressionInterface& expression_interface, Variant& out_value)
 {
+	RMLUI_ZoneScopedN("DataExpression::Run");
 	DataInterpreter interpreter(program, addresses, expression_interface);
 
 	if (!interpreter.Run())

@@ -1,5 +1,6 @@
 #include "DataView.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include <algorithm>
 
 namespace Rml {
@@ -69,12 +70,14 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 	// updated until the next Update() call.
 	for (int i = 0; (i == 0 || !views_to_add.empty() || num_dirty_variables_prev != dirty_variables.size()) && i < 10; i++)
 	{
+		RMLUI_ZoneScopedN("DataViews::Update  Iteration");
 		num_dirty_variables_prev = dirty_variables.size();
 
 		Vector<DataView*> dirty_views;
 
 		if (!views_to_add.empty())
 		{
+			RMLUI_ZoneScopedN("DataViews::Update  Add views");
 			views.reserve(views.size() + views_to_add.size());
 			for (auto&& view : views_to_add)
 			{
@@ -94,14 +97,20 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 				dirty_views.push_back(it->second);
 		}
 
-		// Remove duplicate entries
-		std::sort(dirty_views.begin(), dirty_views.end());
-		auto it_remove = std::unique(dirty_views.begin(), dirty_views.end());
-		dirty_views.erase(it_remove, dirty_views.end());
+		{
+			RMLUI_ZoneScopedN("DataViews::Update  Remove duplicates");
+			// Remove duplicate entries
+			std::sort(dirty_views.begin(), dirty_views.end());
+			auto it_remove = std::unique(dirty_views.begin(), dirty_views.end());
+			dirty_views.erase(it_remove, dirty_views.end());
+		}
 
 		// Sort by the element's depth in the document tree so that any structural changes due to a changed variable are reflected in the element's
 		// children. Eg. the 'data-for' view will remove children if any of its data variable array size is reduced.
-		std::sort(dirty_views.begin(), dirty_views.end(), [](auto&& left, auto&& right) { return left->GetSortOrder() < right->GetSortOrder(); });
+		{
+			RMLUI_ZoneScopedN("DataViews::Update  Sort by element depth");
+			std::sort(dirty_views.begin(), dirty_views.end(), [](auto&& left, auto&& right) { return left->GetSortOrder() < right->GetSortOrder(); });
+		}
 
 		for (DataView* view : dirty_views)
 		{
@@ -110,13 +119,18 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 				continue;
 
 			if (view->IsValid())
+			{
+				RMLUI_ZoneScopedN("DataViews::Update  Update view");
+				RMLUI_ZoneNameElement(view->GetElement());
 				result |= view->Update(model);
+			}
 		}
 
 		// Destroy views marked for destruction
 		// @performance: Horrible...
 		if (!views_to_remove.empty())
 		{
+			RMLUI_ZoneScopedN("DataViews::Update  Remove views");
 			for (const auto& view : views_to_remove)
 			{
 				for (auto it = name_view_map.begin(); it != name_view_map.end();)
