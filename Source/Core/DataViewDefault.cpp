@@ -4,6 +4,7 @@
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core/Variant.h"
 #include "DataExpression.h"
@@ -65,6 +66,7 @@ DataViewAttribute::DataViewAttribute(Element* element, String override_attribute
 
 bool DataViewAttribute::Update(DataModel& model)
 {
+	RMLUI_ZoneScopedN("DataViewAttribute::Update");
 	const String& attribute_name = GetModifier();
 	bool result = false;
 	Variant variant;
@@ -78,6 +80,7 @@ bool DataViewAttribute::Update(DataModel& model)
 
 		if (!attribute || attribute->Get<String>() != value)
 		{
+			RMLUI_ZoneScopedN("DataViewAttribute::Update SetAttribute");
 			element->SetAttribute(attribute_name, value);
 			result = true;
 		}
@@ -89,6 +92,7 @@ DataViewAttributeIf::DataViewAttributeIf(Element* element) : DataViewCommon(elem
 
 bool DataViewAttributeIf::Update(DataModel& model)
 {
+	RMLUI_ZoneScopedN("DataViewAttributeIf::Update");
 	const String& attribute_name = GetModifier();
 	bool result = false;
 	Variant variant;
@@ -117,6 +121,7 @@ DataViewChecked::DataViewChecked(Element* element) : DataViewCommon(element, Str
 
 bool DataViewChecked::Update(DataModel& model)
 {
+	RMLUI_ZoneScopedN("DataViewChecked::Update");
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
@@ -155,6 +160,7 @@ DataViewStyle::DataViewStyle(Element* element) : DataViewCommon(element) {}
 
 bool DataViewStyle::Update(DataModel& model)
 {
+	RMLUI_ZoneScopedN("DataViewStyle::Update");
 	const String& property_name = GetModifier();
 	bool result = false;
 	Variant variant;
@@ -178,6 +184,7 @@ DataViewClass::DataViewClass(Element* element) : DataViewCommon(element) {}
 
 bool DataViewClass::Update(DataModel& model)
 {
+	RMLUI_ZoneScopedN("DataViewClass::Update");
 	const String& class_name = GetModifier();
 	bool result = false;
 	Variant variant;
@@ -201,6 +208,7 @@ DataViewRml::DataViewRml(Element* element) : DataViewCommon(element) {}
 
 bool DataViewRml::Update(DataModel& model)
 {
+	RMLUI_ZoneScopedN("DataViewRml::Update");
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
@@ -223,6 +231,7 @@ DataViewIf::DataViewIf(Element* element) : DataViewCommon(element) {}
 
 bool DataViewIf::Update(DataModel& model)
 {
+	RMLUI_ZoneScopedN("DataViewIf::Update");
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
@@ -248,6 +257,7 @@ DataViewVisible::DataViewVisible(Element* element) : DataViewCommon(element) {}
 
 bool DataViewVisible::Update(DataModel& model)
 {
+	RMLUI_ZoneScopedN("DataViewVisible::Update");
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
@@ -340,6 +350,7 @@ bool DataViewText::Initialize(DataModel& model, Element* element, const String& 
 
 bool DataViewText::Update(DataModel& model)
 {
+	RMLUI_ZoneScopedN("DataViewText::Update");
 	bool entries_modified = false;
 	{
 		Element* element = GetElement();
@@ -361,6 +372,7 @@ bool DataViewText::Update(DataModel& model)
 
 	if (entries_modified)
 	{
+		RMLUI_ZoneScopedN("DataViewText::Update SetText");
 		if (Element* element = GetElement())
 		{
 			String new_text = BuildText();
@@ -495,6 +507,7 @@ bool DataViewFor::Initialize(DataModel& model, Element* element, const String& i
 
 bool DataViewFor::Update(DataModel& model)
 {
+	RMLUI_ZoneScoped;
 	DataVariable variable = model.GetVariable(container_address);
 	if (!variable)
 		return false;
