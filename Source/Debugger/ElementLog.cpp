@@ -94,7 +94,7 @@ bool ElementLog::Initialise()
 		return false;
 
 	beacon->SetId("rmlui-debug-log-beacon");
-	beacon->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+	beacon->SetProperty(PropertyId::Display, Property(Style::Display::None));
 	beacon->SetInnerRML(beacon_rml);
 
 	Element* button = beacon->GetFirstChild();
@@ -148,7 +148,7 @@ void ElementLog::AddLogMessage(Log::Type type, const String& message)
 		{
 			if (type < current_beacon_level)
 			{
-				beacon->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+				beacon->SetProperty(PropertyId::Display, Property(Style::Display::Block));
 
 				current_beacon_level = type;
 				Element* beacon_button = beacon->GetFirstChild();
@@ -220,7 +220,7 @@ void ElementLog::ProcessEvent(Event& event)
 			if (event.GetTargetElement() == beacon->GetFirstChild())
 			{
 				Show();
-				beacon->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+				beacon->SetProperty(PropertyId::Display, Property(Style::Display::None));
 				current_beacon_level = Log::LT_MAX;
 			}
 			else if (event.GetTargetElement()->GetId() == "close_button")

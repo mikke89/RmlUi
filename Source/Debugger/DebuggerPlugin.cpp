@@ -111,9 +111,9 @@ bool DebuggerPlugin::SetContext(Context* context)
 void DebuggerPlugin::SetVisible(bool visibility)
 {
 	if (visibility)
-		menu_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+		menu_element->SetProperty(PropertyId::Display, Property(Style::Display::Block));
 	else
-		menu_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+		menu_element->SetProperty(PropertyId::Display, Property(Style::Display::None));
 }
 
 bool DebuggerPlugin::IsVisible()
@@ -277,7 +277,7 @@ bool DebuggerPlugin::LoadMenuElement()
 		return false;
 
 	menu_element->SetId("rmlui-debug-menu");
-	menu_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+	menu_element->SetProperty(PropertyId::Display, Property(Style::Display::None));
 	menu_element->SetInnerRML(menu_rml);
 
 	SharedPtr<StyleSheetContainer> style_sheet = Factory::InstanceStyleSheetString(menu_rcss);
@@ -309,7 +309,7 @@ bool DebuggerPlugin::LoadInfoElement()
 	if (!info_element)
 		return false;
 
-	info_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+	info_element->SetProperty(PropertyId::Display, Property(Style::Display::None));
 
 	if (!info_element->Initialise())
 	{
@@ -332,7 +332,7 @@ bool DebuggerPlugin::LoadLogElement()
 	if (!log_element)
 		return false;
 
-	log_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+	log_element->SetProperty(PropertyId::Display, Property(Style::Display::None));
 
 	if (!log_element->Initialise())
 	{
@@ -360,7 +360,7 @@ bool DebuggerPlugin::LoadDataExplorerElement()
 	if (!data_explorer_element)
 		return false;
 
-	data_explorer_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+	data_explorer_element->SetProperty(PropertyId::Display, Property(Style::Display::None));
 
 	if (!data_explorer_element->Initialise(debug_context))
 	{
