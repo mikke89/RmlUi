@@ -206,14 +206,15 @@ bool Context::Update()
 	root->dirty_definition = false;
 	root->dirty_child_definitions = false;
 
-	root->Update(density_independent_pixel_ratio, Vector2f(dimensions));
+	root->Update(density_independent_pixel_ratio, Vector2f(dimensions), false);
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 	{
-		if (auto doc = root->GetChild(i)->GetOwnerDocument())
+		auto document = root->GetChild(i)->GetOwnerDocument();
+		if (document && document->IsVisible())
 		{
-			doc->UpdateLayout();
-			doc->UpdatePosition();
+			document->UpdateLayout();
+			document->UpdatePosition();
 		}
 	}
 
@@ -297,7 +298,7 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 	root->AppendChild(std::move(element));
 
 	// The 'load' event is fired before updating the document, because the user might
-	// need to initalize things before running an update. The drawback is that computed
+	// need to initialize things before running an update. The drawback is that computed
 	// values and layouting are not performed yet, resulting in default values when
 	// querying such information in the event handler.
 	PluginRegistry::NotifyDocumentLoad(document);
