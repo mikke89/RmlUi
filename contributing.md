@@ -1,5 +1,26 @@
 # RmlUi contribution guidelines
 
+RmlUi is an open source project that welcomes contributions from users.
+
+## AI Usage policy
+
+We have strict guidelines about AI usage, please see the full [AI usage policy](./AI_POLICY.md).
+
+## Pull requests
+
+Users can submit contributions for evaluation in pull requests. All pull requests are manually reviewed.
+
+Pull requests are evaluated on the basis of:
+
+- **Quality**. The code should be well written and match the existing code style. We will work with you to ensure it meets our standards of quality. 
+- **Usefulness**. It should be useful for other use cases than just yours.
+- **Complexity**. Adding complexity comes at a long-term maintenance cost.
+- **Performance**. Performance is a key aspect of the library, degradations are rarely accepted.
+
+There is often a trade-off between usefulness, complexity, and performance. Put together, the pull request should be a net positive for the library in order to be accepted. Different users may value these trade-offs differently. Ultimately, it is up to the maintainer to decide if it should be accepted.
+
+Be prepared for multiple rounds of reviews to ensure that the pull request is of high quality before being merged.
+
 ## CMake
 
 RmlUi aims to support all of the following consumption modes:
