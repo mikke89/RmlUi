@@ -506,7 +506,10 @@ void RenderInterface_VK::Initialize_Instance(Rml::Vector<const char*> required_e
 #else
 	info_instance.pNext = nullptr;
 #endif
-	info_instance.flags = 0;
+	info_instance.flags = std::any_of(instance_extension_names.begin(), instance_extension_names.end(),
+		[](const char* name) { return strcmp(name, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME) == 0; })
+		? VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR
+		: 0;
 	info_instance.pApplicationInfo = &info;
 	info_instance.enabledExtensionCount = static_cast<uint32_t>(instance_extension_names.size());
 	info_instance.ppEnabledExtensionNames = instance_extension_names.data();
@@ -526,6 +529,7 @@ void RenderInterface_VK::Initialize_Device() noexcept
 
 	Rml::Vector<const char*> device_extension_names;
 	AddExtensionToDevice(device_extension_names, device_extension_properties, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	AddExtensionToDevice(device_extension_names, device_extension_properties, "VK_KHR_portability_subset");
 	AddExtensionToDevice(device_extension_names, device_extension_properties, VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
 
 #ifdef RMLUI_DEBUG
@@ -551,11 +555,9 @@ void RenderInterface_VK::Initialize_Device() noexcept
 	VkPhysicalDeviceFeatures features_physical_device = {};
 
 	features_physical_device.fillModeNonSolid = true;
-	features_physical_device.pipelineStatisticsQuery = true;
 	features_physical_device.fragmentStoresAndAtomics = true;
 	features_physical_device.vertexPipelineStoresAndAtomics = true;
 	features_physical_device.shaderImageGatherExtended = true;
-	features_physical_device.wideLines = true;
 
 	VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR shader_subgroup_extended_type = {};
 
@@ -1109,6 +1111,7 @@ void RenderInterface_VK::CreatePropertiesFor_Instance(Rml::Vector<const char*>& 
 
 	AddExtensionToInstance(instance_extension_names, instance_extension_properties, "VK_EXT_debug_utils");
 	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 
 #ifdef RMLUI_VK_DEBUG
 	AddLayerToInstance(instance_layer_names, instance_layer_properties, "VK_LAYER_LUNARG_monitor");
