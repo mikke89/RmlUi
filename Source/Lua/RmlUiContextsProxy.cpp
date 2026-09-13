@@ -1,6 +1,6 @@
 #include "RmlUiContextsProxy.h"
+#include <RmlUi/Lua/Context.h>
 #include "Pairs.h"
-#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 
 namespace Rml {

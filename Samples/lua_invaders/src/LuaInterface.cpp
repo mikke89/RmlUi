@@ -7,7 +7,7 @@
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Lua/IncludeLua.h>
-#include <RmlUi/Lua/LuaType.h>
+#include <RmlUi/Lua/Colourb.h>
 #include <RmlUi_Backend.h>
 #include <Shell.h>
 

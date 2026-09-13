@@ -1,6 +1,6 @@
 #include "SelectOptionsProxy.h"
+#include <RmlUi/Lua/Element.h>
 #include "../Pairs.h"
-#include <RmlUi/Core/Element.h>
 
 namespace Rml {
 namespace Lua {
@@ -17,7 +17,7 @@ int SelectOptionsProxy__index(lua_State* L)
 		Element* opt = proxy->owner->GetOption(index - 1);
 		RMLUI_CHECK_OBJ(opt);
 		lua_newtable(L);
-		LuaType<Element>::push(L, opt, false);
+		LuaType<Element>::push(L, opt);
 		lua_setfield(L, -2, "element");
 		lua_pushstring(L, opt->GetAttribute("value", String()).c_str());
 		lua_setfield(L, -2, "value");

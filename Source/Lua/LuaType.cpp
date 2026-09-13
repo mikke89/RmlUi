@@ -86,5 +86,21 @@ int LuaTypeImpl::newindex(lua_State* L, const char* class_name)
 	return 0;
 }
 
+bool LuaTypeImpl::FindUniqueObject(lua_State* L, void* key)
+{
+	lua_getfield(L, LUA_REGISTRYINDEX, UNIQUE_REF_TABLE_NAME);
+	lua_pushlightuserdata(L, key);
+	lua_gettable(L, -2);
+
+	if (lua_isnil(L, -1))
+	{
+		lua_pop(L, 1); // Remove the nil from the stack, but keep the table
+		return false;
+	}
+
+	lua_remove(L, -2); // Object was found, so keep the object but remove the ref table
+	return true;
+}
+
 } // namespace Lua
 } // namespace Rml

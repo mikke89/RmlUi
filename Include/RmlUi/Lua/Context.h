@@ -35,6 +35,6 @@ extern RegType<Context> ContextMethods[];
 extern luaL_Reg ContextGetters[];
 extern luaL_Reg ContextSetters[];
 
-RMLUI_LUATYPE_DECLARE(Context)
+RMLUI_LUATYPE_DECLARE_EXTERNAL(Context)
 } // namespace Lua
 } // namespace Rml

@@ -66,8 +66,33 @@ public:
 
 using ClassId = void*;
 
-} // namespace Rml
+template <typename T>
+struct has_custom_rtti {
+	template <typename U>
+	static auto test(int) -> decltype(U::GetStaticClassIdentifier(), std::true_type());
 
+	template <typename U>
+	static std::false_type test(...);
+
+	static constexpr bool value = decltype(test<T>(0))::value;
+};
+
+/** Checks if a type is complete, i.e. not only forward declared */
+template <typename T>
+struct is_complete {
+	template <typename U>
+	static auto test(int) -> decltype(!sizeof(U), std::true_type());
+
+	template <typename U>
+	static std::false_type test(...);
+
+	static constexpr bool value = decltype(test<T>(0))::value;
+};
+
+using ClassId = void*;
+
+} // namespace Rml
+ 
 #define RMLUI_RTTI_Declare(NAME)                     \
 	using RttiClassType = NAME;                      \
 	using RttiParentClassType = NAME;                \

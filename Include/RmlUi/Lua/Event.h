@@ -21,6 +21,6 @@ extern RegType<Event> EventMethods[];
 extern luaL_Reg EventGetters[];
 extern luaL_Reg EventSetters[];
 
-RMLUI_LUATYPE_DECLARE(Event)
+RMLUI_LUATYPE_DECLARE_EXTERNAL(Event)
 } // namespace Lua
 } // namespace Rml

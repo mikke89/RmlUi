@@ -1,7 +1,6 @@
-#include "Document.h"
-#include "Element.h"
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Lua/Context.h>
+#include <RmlUi/Lua/Document.h>
+#include <RmlUi/Lua/Element.h>
 #include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {
@@ -95,8 +94,7 @@ int DocumentClose(lua_State* /*L*/, Document* obj)
 int DocumentCreateElement(lua_State* L, Document* obj)
 {
 	const char* tag = luaL_checkstring(L, 1);
-	ElementPtr* ele = new ElementPtr(obj->CreateElement(tag));
-	LuaType<ElementPtr>::push(L, ele, true);
+	LuaType<Element>::push(L, obj->CreateElement(tag));
 	return 1;
 }
 
@@ -104,8 +102,7 @@ int DocumentCreateTextNode(lua_State* L, Document* obj)
 {
 	// need ElementText object first
 	const char* text = luaL_checkstring(L, 1);
-	ElementPtr* et = new ElementPtr(obj->CreateTextNode(text));
-	LuaType<ElementPtr>::push(L, et, true);
+	LuaType<Element>::push(L, obj->CreateTextNode(text));
 	return 1;
 }
 
@@ -122,7 +119,7 @@ int DocumentGetAttrcontext(lua_State* L)
 {
 	Document* doc = LuaType<Document>::check(L, 1);
 	RMLUI_CHECK_OBJ(doc);
-	LuaType<Context>::push(L, doc->GetContext(), false);
+	LuaType<Context>::push(L, doc->GetContext());
 	return 1;
 }
 

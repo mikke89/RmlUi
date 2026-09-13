@@ -17,6 +17,6 @@ extern luaL_Reg ElementFormSetters[];
 // this will be used to "inherit" from Element
 template <>
 void ExtraInit<ElementForm>(lua_State* L, int metatable_index);
-RMLUI_LUATYPE_DECLARE(ElementForm)
+RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(ElementForm, Element)
 } // namespace Lua
 } // namespace Rml

@@ -1,8 +1,11 @@
 #include "RmlUi.h"
+#include <RmlUi/Lua/Context.h>
 #include "ElementInstancer.h"
+#include <RmlUi/Lua/Vector2i.h>
 #include "LuaElementInstancer.h"
 #include "RmlUiContextsProxy.h"
 #include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Event.h>
 #include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/Input.h>
 
@@ -25,7 +28,7 @@ void LuaRmlUiPushrmluiGlobal(lua_State* L)
 	lua_global_rmlui.key_identifier_ref = luaL_ref(L, -2);
 	LuaRmlUiEnumkey_modifier(L);
 	lua_global_rmlui.key_modifier_ref = luaL_ref(L, -2);
-	LuaType<LuaRmlUi>::push(L, &lua_global_rmlui, false);
+	LuaType<LuaRmlUi>::push(L, &lua_global_rmlui);
 	lua_setglobal(L, "rmlui");
 }
 
@@ -63,16 +66,42 @@ int LuaRmlUiLoadFontFace(lua_State* L, LuaRmlUi* /*obj*/)
 int LuaRmlUiRegisterTag(lua_State* L, LuaRmlUi* /*obj*/)
 {
 	const char* tag = luaL_checkstring(L, 1);
-	LuaElementInstancer* lei = (LuaElementInstancer*)LuaType<ElementInstancer>::check(L, 2);
+	auto lei = LuaType<LuaElementInstancer>::check(L, 2);
 	RMLUI_CHECK_OBJ(lei);
 	Factory::RegisterElementInstancer(tag, lei);
 	return 0;
 }
 
+int LuaRmlUitypeof(lua_State* L, LuaRmlUi* /*obj*/)
+{
+	lua_getmetatable(L, 1);
+
+	if (lua_isnil(L, -1))
+	{
+		lua_pop(L, 1);
+		lua_pushstring(L, luaL_typename(L, 1));
+	}
+	else
+	{
+		lua_getfield(L, -1, "__type");
+
+		if (lua_isnil(L, -1))
+		{
+			lua_pop(L, 2);
+			lua_pushstring(L, luaL_typename(L, 1));
+		}
+		else
+		{
+			lua_remove(L, -2); // Remove metatable from stack
+		}
+	}
+
+	return 1;
+}
+
 int LuaRmlUiGetAttrcontexts(lua_State* L)
 {
-	RmlUiContextsProxy* proxy = new RmlUiContextsProxy();
-	LuaType<RmlUiContextsProxy>::push(L, proxy, true);
+	LuaType<RmlUiContextsProxy>::emplace(L);
 	return 1;
 }
 
@@ -288,6 +317,7 @@ RegType<LuaRmlUi> LuaRmlUiMethods[] = {
 	RMLUI_LUAMETHOD(LuaRmlUi, CreateContext),
 	RMLUI_LUAMETHOD(LuaRmlUi, LoadFontFace),
 	RMLUI_LUAMETHOD(LuaRmlUi, RegisterTag),
+	RMLUI_LUAMETHOD(LuaRmlUi, typeof),
 	{nullptr, nullptr},
 };
 
