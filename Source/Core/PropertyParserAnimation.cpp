@@ -4,8 +4,126 @@
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "PropertyShorthandDefinition.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "CalculationParser.h"
+#endif
 
 namespace Rml {
+
+namespace {
+
+	enum class SplitMode { List, Components };
+
+	bool SplitAnimationValue(StringList& output, const String& input, SplitMode mode)
+	{
+		output.clear();
+		size_t begin = 0;
+		int depth = 0;
+		char quote = 0;
+		bool escaped = false;
+		for (size_t i = 0; i < input.size(); ++i)
+		{
+			const char c = input[i];
+			if (quote)
+			{
+				if (escaped)
+					escaped = false;
+				else if (c == '\\')
+					escaped = true;
+				else if (c == quote)
+					quote = 0;
+				continue;
+			}
+			if (c == '\'' || c == '"')
+			{
+				quote = c;
+				continue;
+			}
+			if (c == '(')
+			{
+				++depth;
+				continue;
+			}
+			if (c == ')')
+			{
+				if (depth == 0)
+					return false;
+				--depth;
+				continue;
+			}
+
+			const bool separator = depth == 0 && (mode == SplitMode::List ? c == ',' : StringUtilities::IsWhitespace(c));
+			if (!separator)
+				continue;
+
+			String token = StringUtilities::StripWhitespace(input.substr(begin, i - begin));
+			if (!token.empty())
+				output.push_back(std::move(token));
+			else if (mode == SplitMode::List)
+				return false;
+
+			begin = i + 1;
+			if (mode == SplitMode::Components)
+				while (begin < input.size() && StringUtilities::IsWhitespace(input[begin]))
+					++begin;
+			i = begin ? begin - 1 : 0;
+		}
+		if (quote || depth != 0)
+			return false;
+		String token = StringUtilities::StripWhitespace(input.substr(begin));
+		if (!token.empty())
+			output.push_back(std::move(token));
+		else if (mode == SplitMode::List)
+			return false;
+		return !output.empty();
+	}
+
+	bool ParseOrdinaryTime(const String& argument, float& seconds)
+	{
+		int count = 0;
+		return sscanf(argument.c_str(), "%fs%n", &seconds, &count) == 1 && count > 0;
+	}
+
+	bool ParseOrdinaryNumber(const String& argument, float& number)
+	{
+		int count = 0;
+		return sscanf(argument.c_str(), "%fs%n", &number, &count) == 1 && count == 0;
+	}
+
+#ifdef RMLUI_MATH_EXPRESSIONS
+	bool BeginsMathFunction(const String& argument)
+	{
+		const String lower = StringUtilities::ToLower(argument);
+		for (const char* name : {"calc(", "min(", "max(", "clamp("})
+			if (lower.rfind(name, 0) == 0)
+				return true;
+		return false;
+	}
+
+	bool ParseMathArgument(const String& argument, bool allow_number, CalculationTypeMask& final_type, float& value)
+	{
+		CalculationPtr calculation;
+		CalculationParseTarget target = MakeCalculationParseTarget(CalculationFinalType::Time);
+		if (allow_number)
+			target.allowed_final_types |= CalculationTypeMask(CalculationFinalType::Number);
+		if (!ParseCalculation(argument, target, calculation))
+			return false;
+		final_type = GetCalculationFinalType(*calculation);
+		if (final_type == CalculationTypeMask(CalculationFinalType::Time))
+			return EvaluateCalculationTime(*calculation, value);
+		if (final_type == CalculationTypeMask(CalculationFinalType::Number))
+		{
+			CalculationConstantValue constant;
+			if (!EvaluateCalculation(*calculation, constant) || constant.unit != Unit::NUMBER)
+				return false;
+			value = constant.value;
+			return true;
+		}
+		return false;
+	}
+#endif
+
+} // namespace
 
 enum class KeywordType { None, Tween, All, Alternate, Infinite, Paused };
 
@@ -94,7 +212,8 @@ PropertyParserAnimation::PropertyParserAnimation(Type type) : type(type) {}
 bool PropertyParserAnimation::ParseValue(Property& property, const String& value, const ParameterMap& /*parameters*/) const
 {
 	StringList list_of_values;
-	StringUtilities::ExpandString(list_of_values, value, ',');
+	if (!SplitAnimationValue(list_of_values, value, SplitMode::List))
+		return false;
 
 	bool result = false;
 	if (type == ANIMATION_PARSER)
@@ -118,7 +237,8 @@ bool PropertyParserAnimation::ParseAnimation(Property& property, const StringLis
 		Animation animation;
 
 		StringList arguments;
-		StringUtilities::ExpandString(arguments, single_animation_value, ' ');
+		if (!SplitAnimationValue(arguments, single_animation_value, SplitMode::Components))
+			return false;
 
 		bool duration_found = false;
 		bool delay_found = false;
@@ -159,12 +279,35 @@ bool PropertyParserAnimation::ParseAnimation(Property& property, const StringLis
 			{
 				// Either <duration>, <delay>, <num_iterations> or a <keyframes-name>
 				float number = 0.0f;
-				int count = 0;
+				bool parsed_numeric = false;
+				bool is_time = false;
+				bool is_number = false;
 
-				if (sscanf(argument.c_str(), "%fs%n", &number, &count) == 1)
+				if (ParseOrdinaryTime(argument, number))
 				{
-					// Found a number, if there was an 's' unit, count will be positive
-					if (count > 0)
+					parsed_numeric = true;
+					is_time = true;
+				}
+				else if (ParseOrdinaryNumber(argument, number))
+				{
+					parsed_numeric = true;
+					is_number = true;
+				}
+#ifdef RMLUI_MATH_EXPRESSIONS
+				else if (BeginsMathFunction(argument))
+				{
+					CalculationTypeMask final_type = 0;
+					if (!ParseMathArgument(argument, true, final_type, number))
+						return false;
+					parsed_numeric = true;
+					is_time = final_type == CalculationTypeMask(CalculationFinalType::Time);
+					is_number = final_type == CalculationTypeMask(CalculationFinalType::Number);
+				}
+#endif
+
+				if (parsed_numeric)
+				{
+					if (is_time)
 					{
 						// Duration or delay was assigned
 						if (!duration_found)
@@ -180,7 +323,7 @@ bool PropertyParserAnimation::ParseAnimation(Property& property, const StringLis
 						else
 							return false;
 					}
-					else
+					else if (is_number)
 					{
 						// No 's' unit means num_iterations was found
 						if (!num_iterations_found)
@@ -191,9 +334,15 @@ bool PropertyParserAnimation::ParseAnimation(Property& property, const StringLis
 						else
 							return false;
 					}
+					else
+						return false;
 				}
 				else
 				{
+#ifdef RMLUI_MATH_EXPRESSIONS
+					if (BeginsMathFunction(argument))
+						return false;
+#endif
 					// Must be an animation name
 					animation.name = argument;
 				}
@@ -225,7 +374,8 @@ bool PropertyParserAnimation::ParseTransition(Property& property, const StringLi
 		PropertyIdSet target_property_ids;
 
 		StringList arguments;
-		StringUtilities::ExpandString(arguments, single_transition_value, ' ');
+		if (!SplitAnimationValue(arguments, single_transition_value, SplitMode::Components))
+			return false;
 
 		bool duration_found = false;
 		bool delay_found = false;
@@ -262,12 +412,34 @@ bool PropertyParserAnimation::ParseTransition(Property& property, const StringLi
 			{
 				// Either <duration>, <delay> or a <property name>
 				float number = 0.0f;
-				int count = 0;
+				bool parsed_numeric = false;
+				bool is_time = false;
+				bool is_number = false;
 
-				if (sscanf(argument.c_str(), "%fs%n", &number, &count) == 1)
+				if (ParseOrdinaryTime(argument, number))
 				{
-					// Found a number, if there was an 's' unit, count will be positive
-					if (count > 0)
+					parsed_numeric = true;
+					is_time = true;
+				}
+				else if (ParseOrdinaryNumber(argument, number))
+				{
+					parsed_numeric = true;
+					is_number = true;
+				}
+#ifdef RMLUI_MATH_EXPRESSIONS
+				else if (BeginsMathFunction(argument))
+				{
+					CalculationTypeMask final_type = 0;
+					if (!ParseMathArgument(argument, false, final_type, number))
+						return false;
+					parsed_numeric = true;
+					is_time = final_type == CalculationTypeMask(CalculationFinalType::Time);
+				}
+#endif
+
+				if (parsed_numeric)
+				{
+					if (is_time)
 					{
 						// Duration or delay was assigned
 						if (!duration_found)
@@ -283,7 +455,7 @@ bool PropertyParserAnimation::ParseTransition(Property& property, const StringLi
 						else
 							return false;
 					}
-					else
+					else if (is_number)
 					{
 						// No 's' unit means reverse adjustment factor was found
 						if (!reverse_adjustment_factor_found)
@@ -294,9 +466,15 @@ bool PropertyParserAnimation::ParseTransition(Property& property, const StringLi
 						else
 							return false;
 					}
+					else
+						return false;
 				}
 				else
 				{
+#ifdef RMLUI_MATH_EXPRESSIONS
+					if (BeginsMathFunction(argument))
+						return false;
+#endif
 					// Must be a property name or shorthand, expand now
 					if (auto shorthand = StyleSheetSpecification::GetShorthand(argument))
 					{

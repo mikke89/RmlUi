@@ -19,7 +19,8 @@ public:
 
 private:
 	PropertyParser* parser_color;
-	PropertyParserNumber parser_length_percent_angle;
+	PropertyParserNumber parser_length_percent;
+	PropertyParserNumber parser_angle_percent;
 };
 
 } // namespace Rml

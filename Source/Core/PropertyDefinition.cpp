@@ -1,4 +1,7 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "Calculation.h"
+#endif
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 
@@ -90,6 +93,14 @@ bool PropertyDefinition::ParseValue(Property& property, const String& value) con
 
 bool PropertyDefinition::GetValue(String& value, const Property& property) const
 {
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property.unit == Unit::CALCULATION)
+	{
+		const CalculationPtr calculation = property.value.Get<CalculationPtr>();
+		value = calculation ? calculation->ToString() : String();
+		return bool(calculation);
+	}
+#endif
 	value = property.value.Get<String>();
 
 	switch (property.unit)

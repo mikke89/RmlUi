@@ -189,6 +189,13 @@ private:
 	void ComputeValue(Style::ComputedValues& values, float dp_ratio, Vector2f vp_dimensions, float font_size, float document_font_size,
 		bool& dirty_font_face_handle, PropertyId id, const Property* p);
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+	Units GetMutableUnitDependencies(const Property& property) const;
+	Units GetResolvedUnitDependencies(PropertyId id) const;
+	void UpdateResolvedUnitDependencies(PropertyId id, const Property& specified_property, const Property* resolved_property);
+	void EraseResolvedUnitDependencies(PropertyId id);
+#endif
+
 	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary& inline_properties, const ElementDefinition* definition);
 	static const Property* GetLocalCustomProperty(const String& name, const PropertyDictionary& inline_properties,
 		const ElementDefinition* definition);
@@ -233,6 +240,9 @@ private:
 	PropertyIdSet dirty_properties;
 	UnorderedSet<String> dirty_variables;
 	UnorderedSet<ShorthandId> dirty_var_shorthands;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	UniquePtr<UnorderedMap<PropertyId, Units>> resolved_unit_dependencies;
+#endif
 };
 
 } // namespace Rml

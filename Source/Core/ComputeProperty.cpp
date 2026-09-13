@@ -3,6 +3,9 @@
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "ControlledLifetimeResource.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "CalculationResolver.h"
+#endif
 
 namespace Rml {
 
@@ -84,9 +87,26 @@ float ComputeAngle(NumericValue value)
 	return 0.0f;
 }
 
-float ComputeFontsize(NumericValue value, const Style::ComputedValues& values, const Style::ComputedValues* parent_values,
+float ComputeFontsize(const Property* property, const Style::ComputedValues& values, const Style::ComputedValues* parent_values,
 	const Style::ComputedValues* document_values, float dp_ratio, Vector2f vp_dimensions)
 {
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property->unit == Unit::CALCULATION)
+	{
+		const float parent_font_size = parent_values ? parent_values->font_size() : 0.f;
+		const float root_font_size =
+			(!document_values || &values == document_values) ? DefaultComputedValues().font_size() : document_values->font_size();
+		CalculationResolverContext context{values.font_size(), parent_font_size, root_font_size, values.line_height().value, vp_dimensions, dp_ratio,
+			property->definition ? property->definition->GetRelativeTarget() : RelativeTarget::ParentFontSize};
+		ResolvedCalculation resolved;
+		const CalculationPtr calculation = property->value.Get<CalculationPtr>();
+		if (calculation && ResolveCalculation(*calculation, context, resolved) && resolved.is_constant && resolved.unit == Unit::PX)
+			return resolved.value;
+		return values.font_size();
+	}
+#endif
+
+	NumericValue value = property->GetNumericValue();
 	if (Any(value.unit & (Unit::PERCENT | Unit::EM | Unit::REM)))
 	{
 		// Relative values are based on the parent's or document's font size instead of our own.
@@ -117,6 +137,49 @@ float ComputeFontsize(NumericValue value, const Style::ComputedValues& values, c
 	return ComputeLength(value, 0.f, 0.f, dp_ratio, vp_dimensions);
 }
 
+bool ComputeDefiniteLength(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions, float& result)
+{
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property->unit == Unit::CALCULATION)
+	{
+		CalculationResolverContext context{font_size, font_size, document_font_size, 0.f, vp_dimensions, dp_ratio,
+			property->definition ? property->definition->GetRelativeTarget() : RelativeTarget::None};
+		ResolvedCalculation resolved;
+		const CalculationPtr calculation = property->value.Get<CalculationPtr>();
+		if (!calculation || !ResolveCalculation(*calculation, context, resolved) || !resolved.is_constant || resolved.unit != Unit::PX)
+			return false;
+		result = resolved.value;
+		return true;
+	}
+#endif
+	result = ComputeLength(property->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions);
+	return true;
+}
+
+bool ComputeDefiniteNumber(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions, float& result)
+{
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property->unit == Unit::CALCULATION)
+	{
+		CalculationResolverContext context{font_size, font_size, document_font_size, 0.f, vp_dimensions, dp_ratio,
+			property->definition ? property->definition->GetRelativeTarget() : RelativeTarget::None};
+		ResolvedCalculation resolved;
+		const CalculationPtr calculation = property->value.Get<CalculationPtr>();
+		if (!calculation || !ResolveCalculation(*calculation, context, resolved) || !resolved.is_constant || resolved.unit != Unit::NUMBER)
+			return false;
+		result = resolved.value;
+		return true;
+	}
+#else
+	(void)font_size;
+	(void)document_font_size;
+	(void)dp_ratio;
+	(void)vp_dimensions;
+#endif
+	result = property->Get<float>();
+	return true;
+}
+
 String ComputeFontFamily(String font_family)
 {
 	return StringUtilities::ToLower(std::move(font_family));
@@ -124,6 +187,15 @@ String ComputeFontFamily(String font_family)
 
 Style::Clip ComputeClip(const Property* property)
 {
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property->unit == Unit::CALCULATION)
+	{
+		float value = 0.f;
+		if (ComputeDefiniteNumber(property, 0.f, 0.f, 1.f, Vector2f(1.f), value))
+			return Style::Clip(Style::Clip::Type::Number, static_cast<int8_t>(value));
+		return Style::Clip();
+	}
+#endif
 	const int value = property->Get<int>();
 	if (property->unit == Unit::KEYWORD)
 		return Style::Clip(static_cast<Style::Clip::Type>(value));
@@ -135,6 +207,23 @@ Style::Clip ComputeClip(const Property* property)
 
 Style::LineHeight ComputeLineHeight(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
 {
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property->unit == Unit::CALCULATION)
+	{
+		CalculationResolverContext context{font_size, font_size, document_font_size, 0.f, vp_dimensions, dp_ratio,
+			property->definition ? property->definition->GetRelativeTarget() : RelativeTarget::FontSize};
+		ResolvedCalculation resolved;
+		const CalculationPtr calculation = property->value.Get<CalculationPtr>();
+		if (calculation && ResolveCalculation(*calculation, context, resolved) && resolved.is_constant)
+		{
+			if (resolved.unit == Unit::NUMBER)
+				return Style::LineHeight(font_size * resolved.value, Style::LineHeight::Number, resolved.value);
+			if (resolved.unit == Unit::PX)
+				return Style::LineHeight(resolved.value, Style::LineHeight::Length, resolved.value);
+		}
+		return Style::LineHeight();
+	}
+#endif
 	if (Any(property->unit & Unit::LENGTH))
 	{
 		float value = ComputeLength(property->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions);
@@ -157,6 +246,18 @@ Style::LineHeight ComputeLineHeight(const Property* property, float font_size, f
 Style::VerticalAlign ComputeVerticalAlign(const Property* property, float line_height, float font_size, float document_font_size, float dp_ratio,
 	Vector2f vp_dimensions)
 {
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property->unit == Unit::CALCULATION)
+	{
+		CalculationResolverContext context{font_size, font_size, document_font_size, line_height, vp_dimensions, dp_ratio,
+			property->definition ? property->definition->GetRelativeTarget() : RelativeTarget::LineHeight};
+		ResolvedCalculation resolved;
+		const CalculationPtr calculation = property->value.Get<CalculationPtr>();
+		if (calculation && ResolveCalculation(*calculation, context, resolved) && resolved.is_constant && resolved.unit == Unit::PX)
+			return Style::VerticalAlign(resolved.value);
+		return Style::VerticalAlign();
+	}
+#endif
 	if (Any(property->unit & Unit::LENGTH))
 	{
 		float value = ComputeLength(property->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions);
@@ -175,6 +276,25 @@ Style::LengthPercentage ComputeLengthPercentage(const Property* property, float 
 	Vector2f vp_dimensions)
 {
 	using namespace Style;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property->unit == Unit::CALCULATION)
+	{
+		CalculationResolverContext context{font_size, font_size, document_font_size, 0.f, vp_dimensions, dp_ratio,
+			property->definition ? property->definition->GetRelativeTarget() : RelativeTarget::None};
+		ResolvedCalculation resolved;
+		const CalculationPtr calculation = property->value.Get<CalculationPtr>();
+		if (calculation && ResolveCalculation(*calculation, context, resolved))
+		{
+			if (resolved.is_constant && resolved.unit == Unit::PX)
+				return LengthPercentage(LengthPercentage::Length, resolved.value);
+			if (resolved.is_constant && resolved.unit == Unit::PERCENT)
+				return LengthPercentage(LengthPercentage::Percentage, resolved.value);
+			if (resolved.residual)
+				return LengthPercentage(std::move(resolved.residual));
+		}
+		return LengthPercentage();
+	}
+#endif
 	if (property->unit == Unit::PERCENT)
 		return LengthPercentage(LengthPercentage::Percentage, property->Get<float>());
 
@@ -186,6 +306,17 @@ Style::LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property
 	Vector2f vp_dimensions)
 {
 	using namespace Style;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property->unit == Unit::CALCULATION)
+	{
+		const LengthPercentage value = ComputeLengthPercentage(property, font_size, document_font_size, dp_ratio, vp_dimensions);
+		if (value.type == LengthPercentage::Calculation)
+			return LengthPercentageAuto(value.calculation);
+		if (value.type == LengthPercentage::Percentage)
+			return LengthPercentageAuto(LengthPercentageAuto::Percentage, value.value);
+		return LengthPercentageAuto(LengthPercentageAuto::Length, value.value);
+	}
+#endif
 	if (property->unit == Unit::PERCENT)
 		return LengthPercentageAuto(LengthPercentageAuto::Percentage, property->Get<float>());
 	else if (property->unit == Unit::KEYWORD)
@@ -198,6 +329,10 @@ Style::LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property
 Style::LengthPercentage ComputeOrigin(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
 {
 	using namespace Style;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property->unit == Unit::CALCULATION)
+		return ComputeLengthPercentage(property, font_size, document_font_size, dp_ratio, vp_dimensions);
+#endif
 	static_assert(
 		(int)OriginX::Left == (int)OriginY::Top && (int)OriginX::Center == (int)OriginY::Center && (int)OriginX::Right == (int)OriginY::Bottom, "");
 
@@ -223,6 +358,15 @@ Style::LengthPercentage ComputeOrigin(const Property* property, float font_size,
 Style::LengthPercentage ComputeMaxSize(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
 {
 	using namespace Style;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (property->unit == Unit::CALCULATION)
+	{
+		LengthPercentage value = ComputeLengthPercentage(property, font_size, document_font_size, dp_ratio, vp_dimensions);
+		if (value.type == LengthPercentage::Length && value.value < 0.f)
+			value.value = FLT_MAX;
+		return value;
+	}
+#endif
 	if (Any(property->unit & Unit::KEYWORD))
 		return LengthPercentage(LengthPercentage::Length, FLT_MAX);
 	else if (Any(property->unit & Unit::PERCENT))

@@ -1,4 +1,7 @@
 #include "DecoratorGradient.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "CalculationResolver.h"
+#endif
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
@@ -10,6 +13,18 @@
 #include "DecoratorShader.h"
 
 namespace Rml {
+
+#ifdef RMLUI_MATH_EXPRESSIONS
+static bool CalculationContainsPercentage(const Calculation::Node& node)
+{
+	if (node.kind == Calculation::Kind::Value && node.unit == Unit::PERCENT)
+		return true;
+	for (const auto& child : node.children)
+		if (child && CalculationContainsPercentage(*child))
+			return true;
+	return false;
+}
+#endif
 
 // Returns the point along the input line ('line_point', 'line_vector') closest to the input 'point'.
 static Vector2f IntersectionPointToLineNormal(const Vector2f point, const Vector2f line_point, const Vector2f line_vector)
@@ -25,14 +40,30 @@ static Vector2f IntersectionPointToLineNormal(const Vector2f point, const Vector
 /// @param[in] unresolved_stops
 /// @return A list of resolved color stops, all in number units.
 static ColorStopList ResolveColorStops(Element* element, const float gradient_line_length, const float soft_spacing,
-	const ColorStopList& unresolved_stops)
+	const ColorStopList& unresolved_stops, bool angle_positions = false)
 {
+#ifndef RMLUI_MATH_EXPRESSIONS
+	(void)angle_positions;
+#endif
 	ColorStopList stops = unresolved_stops;
 	const int num_stops = (int)stops.size();
 
 	// Resolve all lengths, percentages, and angles to numbers. After this step all stops with a unit other than Number are considered as Auto.
 	for (ColorStop& stop : stops)
 	{
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (stop.position_calculation)
+		{
+			float resolved_position = 0.f;
+			const float percentage_basis = (angle_positions ? 2.f * Math::RMLUI_PI : gradient_line_length);
+			if (ResolveElementCalculation(*stop.position_calculation, *element, percentage_basis, resolved_position))
+				stop.position = NumericValue(resolved_position / percentage_basis, Unit::NUMBER);
+			else
+				stop.position = NumericValue(0.f, Unit::UNKNOWN);
+			stop.position_calculation.reset();
+			continue;
+		}
+#endif
 		if (Any(stop.position.unit & Unit::LENGTH))
 		{
 			const float resolved_position = element->ResolveLength(stop.position);
@@ -370,7 +401,19 @@ SharedPtr<Decorator> DecoratorLinearGradientInstancer::InstanceDecorator(const S
 	}
 	else
 	{
-		angle = ComputeAngle(p_angle->GetNumericValue());
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (p_angle->unit == Unit::CALCULATION)
+		{
+			const CalculationPtr calculation = p_angle->value.Get<CalculationPtr>();
+			ResolvedCalculation resolved;
+			if (!calculation || !ResolveCalculation(*calculation, CalculationResolverContext{}, resolved) || !resolved.is_constant ||
+				resolved.unit != Unit::RAD)
+				return nullptr;
+			angle = resolved.value;
+		}
+		else
+#endif
+			angle = ComputeAngle(p_angle->GetNumericValue());
 	}
 
 	if (p_color_stop_list->unit != Unit::COLORSTOPLIST)
@@ -390,13 +433,22 @@ DecoratorRadialGradient::DecoratorRadialGradient() {}
 DecoratorRadialGradient::~DecoratorRadialGradient() {}
 
 bool DecoratorRadialGradient::Initialise(bool in_repeating, Shape in_shape, SizeType in_size_type, Vector2Numeric in_size, Vector2Numeric in_position,
-	const ColorStopList& in_color_stops)
+	const ColorStopList& in_color_stops
+#ifdef RMLUI_MATH_EXPRESSIONS
+	,
+	Array<CalculationPtr, 2> in_size_calculations, Array<CalculationPtr, 2> in_position_calculations
+#endif
+)
 {
 	repeating = in_repeating;
 	shape = in_shape;
 	size_type = in_size_type;
 	size = in_size;
 	position = in_position;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	size_calculations = std::move(in_size_calculations);
+	position_calculations = std::move(in_position_calculations);
+#endif
 	color_stops = in_color_stops;
 	return !color_stops.empty();
 }
@@ -458,8 +510,24 @@ void DecoratorRadialGradient::RenderElement(Element* element, DecoratorDataHandl
 DecoratorRadialGradient::RadialGradientShape DecoratorRadialGradient::CalculateRadialGradientShape(Element* element, Vector2f dimensions) const
 {
 	RadialGradientShape result;
-	result.center.x = element->ResolveNumericValue(position.x, dimensions.x);
-	result.center.y = element->ResolveNumericValue(position.y, dimensions.y);
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (position_calculations[0])
+	{
+		if (!ResolveElementCalculation(*position_calculations[0], *element, dimensions.x, result.center.x))
+			result.center.x = 0.f;
+	}
+	else
+#endif
+		result.center.x = element->ResolveNumericValue(position.x, dimensions.x);
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (position_calculations[1])
+	{
+		if (!ResolveElementCalculation(*position_calculations[1], *element, dimensions.y, result.center.y))
+			result.center.y = 0.f;
+	}
+	else
+#endif
+		result.center.y = element->ResolveNumericValue(position.y, dimensions.y);
 	const bool is_circle = (shape == Shape::Circle);
 
 	auto Abs = [](Vector2f v) { return Vector2f{Math::Absolute(v.x), Math::Absolute(v.y)}; };
@@ -503,8 +571,29 @@ DecoratorRadialGradient::RadialGradientShape DecoratorRadialGradient::CalculateR
 	break;
 	case SizeType::LengthPercentage:
 	{
-		result.radius.x = element->ResolveNumericValue(size.x, d.x);
-		result.radius.y = (is_circle ? result.radius.x : element->ResolveNumericValue(size.y, d.y));
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (size_calculations[0])
+		{
+			if (!ResolveElementCalculation(*size_calculations[0], *element, d.x, result.radius.x))
+				result.radius.x = 0.f;
+		}
+		else
+#endif
+			result.radius.x = element->ResolveNumericValue(size.x, d.x);
+		if (is_circle)
+			result.radius.y = result.radius.x;
+		else
+		{
+#ifdef RMLUI_MATH_EXPRESSIONS
+			if (size_calculations[1])
+			{
+				if (!ResolveElementCalculation(*size_calculations[1], *element, d.y, result.radius.y))
+					result.radius.y = 0.f;
+			}
+			else
+#endif
+				result.radius.y = element->ResolveNumericValue(size.y, d.y);
+		}
 		result.radius = Abs(result.radius);
 	}
 	break;
@@ -554,14 +643,31 @@ SharedPtr<Decorator> DecoratorRadialGradientInstancer::InstanceDecorator(const S
 	Shape shape = (Shape)p_ending_shape->Get<int>();
 	if (shape == Shape::Unspecified)
 	{
-		const bool circle_sized = (Any(p_size_x->unit & Unit::LENGTH_PERCENT) && p_size_y->unit == Unit::KEYWORD);
+		const bool circle_sized = ((Any(p_size_x->unit & Unit::LENGTH_PERCENT)
+#ifdef RMLUI_MATH_EXPRESSIONS
+									   || p_size_x->unit == Unit::CALCULATION
+#endif
+									   ) &&
+			p_size_y->unit == Unit::KEYWORD);
 		shape = (circle_sized ? Shape::Circle : Shape::Ellipse);
 	}
-	if (shape == Shape::Circle && (p_size_x->unit == Unit::PERCENT || p_size_y->unit != Unit::KEYWORD))
+	bool circle_size_has_percentage = p_size_x->unit == Unit::PERCENT;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (p_size_x->unit == Unit::CALCULATION)
+	{
+		const CalculationPtr calculation = p_size_x->value.Get<CalculationPtr>();
+		circle_size_has_percentage = calculation && calculation->GetRoot() && CalculationContainsPercentage(*calculation->GetRoot());
+	}
+#endif
+	if (shape == Shape::Circle && (circle_size_has_percentage || p_size_y->unit != Unit::KEYWORD))
 		return nullptr;
 
 	SizeType size_type = {};
 	Vector2Numeric size;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	Array<CalculationPtr, 2> size_calculations;
+	Array<CalculationPtr, 2> position_calculations;
+#endif
 	if (p_size_x->unit == Unit::KEYWORD)
 	{
 		size_type = (SizeType)p_size_x->Get<int>();
@@ -569,11 +675,62 @@ SharedPtr<Decorator> DecoratorRadialGradientInstancer::InstanceDecorator(const S
 	else
 	{
 		size_type = SizeType::LengthPercentage;
-		size.x = p_size_x->GetNumericValue();
-		size.y = (p_size_y->unit == Unit::KEYWORD ? size.x : p_size_y->GetNumericValue());
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (p_size_x->unit == Unit::CALCULATION)
+		{
+			size.x = NumericValue(0.f, Unit::PX);
+			size_calculations[0] = p_size_x->value.Get<CalculationPtr>();
+			if (!size_calculations[0])
+				return nullptr;
+		}
+		else
+#endif
+			size.x = p_size_x->GetNumericValue();
+		if (p_size_y->unit == Unit::KEYWORD)
+		{
+			size.y = size.x;
+#ifdef RMLUI_MATH_EXPRESSIONS
+			size_calculations[1] = size_calculations[0];
+#endif
+		}
+		else
+		{
+#ifdef RMLUI_MATH_EXPRESSIONS
+			if (p_size_y->unit == Unit::CALCULATION)
+			{
+				size.y = NumericValue(0.f, Unit::PX);
+				size_calculations[1] = p_size_y->value.Get<CalculationPtr>();
+				if (!size_calculations[1])
+					return nullptr;
+			}
+			else
+#endif
+				size.y = p_size_y->GetNumericValue();
+		}
 	}
 
-	const Vector2Numeric position = ComputePosition(p_position);
+	Vector2Numeric position;
+	for (int dimension = 0; dimension < 2; ++dimension)
+	{
+		const Property& p = *p_position[dimension];
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (p.unit == Unit::CALCULATION)
+		{
+			position[dimension] = NumericValue(0.f, Unit::PX);
+			position_calculations[dimension] = p.value.Get<CalculationPtr>();
+			if (!position_calculations[dimension])
+				return nullptr;
+			continue;
+		}
+#endif
+		if (p.unit == Unit::KEYWORD)
+		{
+			const int keyword = p.Get<int>();
+			position[dimension] = NumericValue(keyword == 0 ? 0.f : (keyword == 1 ? 50.f : 100.f), Unit::PERCENT);
+		}
+		else
+			position[dimension] = p.GetNumericValue();
+	}
 	const bool repeating = (name == "repeating-radial-gradient");
 
 	if (p_color_stop_list->unit != Unit::COLORSTOPLIST)
@@ -581,7 +738,12 @@ SharedPtr<Decorator> DecoratorRadialGradientInstancer::InstanceDecorator(const S
 	const ColorStopList& color_stop_list = p_color_stop_list->value.GetReference<ColorStopList>();
 
 	auto decorator = MakeShared<DecoratorRadialGradient>();
-	if (decorator->Initialise(repeating, shape, size_type, size, position, color_stop_list))
+	if (decorator->Initialise(repeating, shape, size_type, size, position, color_stop_list
+#ifdef RMLUI_MATH_EXPRESSIONS
+			,
+			std::move(size_calculations), std::move(position_calculations)
+#endif
+				))
 		return decorator;
 
 	return nullptr;
@@ -591,11 +753,19 @@ DecoratorConicGradient::DecoratorConicGradient() {}
 
 DecoratorConicGradient::~DecoratorConicGradient() {}
 
-bool DecoratorConicGradient::Initialise(bool in_repeating, float in_angle, Vector2Numeric in_position, const ColorStopList& in_color_stops)
+bool DecoratorConicGradient::Initialise(bool in_repeating, float in_angle, Vector2Numeric in_position, const ColorStopList& in_color_stops
+#ifdef RMLUI_MATH_EXPRESSIONS
+	,
+	Array<CalculationPtr, 2> in_position_calculations
+#endif
+)
 {
 	repeating = in_repeating;
 	angle = in_angle;
 	position = in_position;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	position_calculations = std::move(in_position_calculations);
+#endif
 	color_stops = in_color_stops;
 	return !color_stops.empty();
 }
@@ -611,10 +781,28 @@ DecoratorDataHandle DecoratorConicGradient::GenerateElementData(Element* element
 	const RenderBox render_box = element->GetRenderBox(paint_area);
 	const Vector2f dimensions = render_box.GetFillSize();
 
-	const Vector2f center =
-		Vector2f{element->ResolveNumericValue(position.x, dimensions.x), element->ResolveNumericValue(position.y, dimensions.y)}.Round();
+	Vector2f center;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (position_calculations[0])
+	{
+		if (!ResolveElementCalculation(*position_calculations[0], *element, dimensions.x, center.x))
+			center.x = 0.f;
+	}
+	else
+#endif
+		center.x = element->ResolveNumericValue(position.x, dimensions.x);
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (position_calculations[1])
+	{
+		if (!ResolveElementCalculation(*position_calculations[1], *element, dimensions.y, center.y))
+			center.y = 0.f;
+	}
+	else
+#endif
+		center.y = element->ResolveNumericValue(position.y, dimensions.y);
+	center = center.Round();
 
-	ColorStopList resolved_stops = ResolveColorStops(element, 1.f, 0.f, color_stops);
+	ColorStopList resolved_stops = ResolveColorStops(element, 1.f, 0.f, color_stops, true);
 
 	CompiledShader shader = render_manager->CompileShader("conic-gradient",
 		Dictionary{
@@ -679,8 +867,45 @@ SharedPtr<Decorator> DecoratorConicGradientInstancer::InstanceDecorator(const St
 	if (!p_angle || !p_position[0] || !p_position[1] || !p_color_stop_list)
 		return nullptr;
 
-	const float angle = ComputeAngle(p_angle->GetNumericValue());
-	const Vector2Numeric position = ComputePosition(p_position);
+	float angle = 0.f;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (p_angle->unit == Unit::CALCULATION)
+	{
+		const CalculationPtr calculation = p_angle->value.Get<CalculationPtr>();
+		ResolvedCalculation resolved;
+		if (!calculation || !ResolveCalculation(*calculation, CalculationResolverContext{}, resolved) || !resolved.is_constant ||
+			resolved.unit != Unit::RAD)
+			return nullptr;
+		angle = resolved.value;
+	}
+	else
+#endif
+		angle = ComputeAngle(p_angle->GetNumericValue());
+	Vector2Numeric position;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	Array<CalculationPtr, 2> position_calculations;
+#endif
+	for (int dimension = 0; dimension < 2; ++dimension)
+	{
+		const Property& p = *p_position[dimension];
+#ifdef RMLUI_MATH_EXPRESSIONS
+		if (p.unit == Unit::CALCULATION)
+		{
+			position[dimension] = NumericValue(0.f, Unit::PX);
+			position_calculations[dimension] = p.value.Get<CalculationPtr>();
+			if (!position_calculations[dimension])
+				return nullptr;
+			continue;
+		}
+#endif
+		if (p.unit == Unit::KEYWORD)
+		{
+			const int keyword = p.Get<int>();
+			position[dimension] = NumericValue(keyword == 0 ? 0.f : (keyword == 1 ? 50.f : 100.f), Unit::PERCENT);
+		}
+		else
+			position[dimension] = p.GetNumericValue();
+	}
 	const bool repeating = (name == "repeating-conic-gradient");
 
 	if (p_color_stop_list->unit != Unit::COLORSTOPLIST)
@@ -688,7 +913,12 @@ SharedPtr<Decorator> DecoratorConicGradientInstancer::InstanceDecorator(const St
 	const ColorStopList& color_stop_list = p_color_stop_list->value.GetReference<ColorStopList>();
 
 	auto decorator = MakeShared<DecoratorConicGradient>();
-	if (decorator->Initialise(repeating, angle, position, color_stop_list))
+	if (decorator->Initialise(repeating, angle, position, color_stop_list
+#ifdef RMLUI_MATH_EXPRESSIONS
+			,
+			std::move(position_calculations)
+#endif
+				))
 		return decorator;
 
 	return nullptr;

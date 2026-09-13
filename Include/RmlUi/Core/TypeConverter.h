@@ -71,6 +71,19 @@ public:
 	RMLUICORE_API static bool Convert(const TransformPtr& src, String& dest);
 };
 
+#ifdef RMLUI_MATH_EXPRESSIONS
+template <>
+class TypeConverter<CalculationPtr, CalculationPtr> {
+public:
+	RMLUICORE_API static bool Convert(const CalculationPtr& src, CalculationPtr& dest);
+};
+template <>
+class TypeConverter<CalculationPtr, String> {
+public:
+	RMLUICORE_API static bool Convert(const CalculationPtr& src, String& dest);
+};
+#endif
+
 template <>
 class TypeConverter<TransitionList, TransitionList> {
 public:

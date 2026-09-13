@@ -369,6 +369,19 @@ float BlockContainer::GetShrinkToFitWidth() const
 
 	float min_width, max_width;
 	LayoutDetails::GetMinMaxWidth(min_width, max_width, computed, box, 0.f);
+	const auto percentage_dependent = [](Style::LengthPercentage value) {
+		return value.type == Style::LengthPercentage::Percentage
+#ifdef RMLUI_MATH_EXPRESSIONS
+			|| value.type == Style::LengthPercentage::Calculation
+#endif
+			;
+	};
+	// Percentage-dependent min/max widths are indefinite while measuring intrinsic width. Treat them
+	// as their unconstrained defaults here, and resolve them later against the real containing block.
+	if (percentage_dependent(computed.min_width()))
+		min_width = 0.f;
+	if (percentage_dependent(computed.max_width()))
+		max_width = FLT_MAX;
 	content_width = Math::Clamp(content_width, min_width, max_width);
 
 	return content_width;

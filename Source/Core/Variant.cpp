@@ -1,5 +1,8 @@
 #include "../../Include/RmlUi/Core/Variant.h"
 #include "../../Include/RmlUi/Core/DecorationTypes.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "Calculation.h"
+#endif
 #include <string.h>
 
 namespace Rml {
@@ -12,6 +15,9 @@ Variant::Variant()
 	static_assert(sizeof(Vector4f) <= LOCAL_DATA_SIZE, "Local data too small for Vector4f");
 	static_assert(sizeof(String) <= LOCAL_DATA_SIZE, "Local data too small for String");
 	static_assert(sizeof(TransformPtr) <= LOCAL_DATA_SIZE, "Local data too small for TransformPtr");
+#ifdef RMLUI_MATH_EXPRESSIONS
+	static_assert(sizeof(CalculationPtr) <= LOCAL_DATA_SIZE, "Local data too small for CalculationPtr");
+#endif
 	static_assert(sizeof(TransitionList) <= LOCAL_DATA_SIZE, "Local data too small for TransitionList");
 	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
 	static_assert(sizeof(DecoratorsPtr) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorsPtr");
@@ -55,6 +61,14 @@ void Variant::Clear()
 		transform->~TransformPtr();
 	}
 	break;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	case CALCULATIONPTR:
+	{
+		CalculationPtr* calculation = (CalculationPtr*)data;
+		calculation->~CalculationPtr();
+	}
+	break;
+#endif
 	case TRANSITIONLIST:
 	{
 		// Clean up the transition list.
@@ -112,6 +126,9 @@ void Variant::Set(const Variant& copy)
 	{
 	case STRING: Set(*reinterpret_cast<const String*>(copy.data)); break;
 	case TRANSFORMPTR: Set(*reinterpret_cast<const TransformPtr*>(copy.data)); break;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	case CALCULATIONPTR: Set(*reinterpret_cast<const CalculationPtr*>(copy.data)); break;
+#endif
 	case TRANSITIONLIST: Set(*reinterpret_cast<const TransitionList*>(copy.data)); break;
 	case ANIMATIONLIST: Set(*reinterpret_cast<const AnimationList*>(copy.data)); break;
 	case DECORATORSPTR: Set(*reinterpret_cast<const DecoratorsPtr*>(copy.data)); break;
@@ -133,6 +150,9 @@ void Variant::Set(Variant&& other)
 	{
 	case STRING: Set(std::move(*reinterpret_cast<String*>(other.data))); break;
 	case TRANSFORMPTR: Set(std::move(*reinterpret_cast<TransformPtr*>(other.data))); break;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	case CALCULATIONPTR: Set(std::move(*reinterpret_cast<CalculationPtr*>(other.data))); break;
+#endif
 	case TRANSITIONLIST: Set(std::move(*reinterpret_cast<TransitionList*>(other.data))); break;
 	case ANIMATIONLIST: Set(std::move(*reinterpret_cast<AnimationList*>(other.data))); break;
 	case DECORATORSPTR: Set(std::move(*reinterpret_cast<DecoratorsPtr*>(other.data))); break;
@@ -298,6 +318,29 @@ void Variant::Set(TransformPtr&& value)
 		new (data) TransformPtr(std::move(value));
 	}
 }
+
+#ifdef RMLUI_MATH_EXPRESSIONS
+void Variant::Set(const CalculationPtr& value)
+{
+	if (type == CALCULATIONPTR)
+		*(CalculationPtr*)data = value;
+	else
+	{
+		type = CALCULATIONPTR;
+		new (data) CalculationPtr(value);
+	}
+}
+void Variant::Set(CalculationPtr&& value)
+{
+	if (type == CALCULATIONPTR)
+		*(CalculationPtr*)data = std::move(value);
+	else
+	{
+		type = CALCULATIONPTR;
+		new (data) CalculationPtr(std::move(value));
+	}
+}
+#endif
 
 void Variant::Set(const TransitionList& value)
 {
@@ -517,6 +560,16 @@ bool Variant::operator==(const Variant& other) const
 	case SCRIPTINTERFACE: return DEFAULT_VARIANT_COMPARE(ScriptInterface*);
 	case VOIDPTR: return DEFAULT_VARIANT_COMPARE(void*);
 	case TRANSFORMPTR: return DEFAULT_VARIANT_COMPARE(TransformPtr);
+#ifdef RMLUI_MATH_EXPRESSIONS
+	case CALCULATIONPTR:
+	{
+		const CalculationPtr& lhs = *reinterpret_cast<const CalculationPtr*>(data);
+		const CalculationPtr& rhs = *reinterpret_cast<const CalculationPtr*>(other.data);
+		if (!lhs || !rhs)
+			return lhs == rhs;
+		return *lhs == *rhs;
+	}
+#endif
 	case TRANSITIONLIST: return DEFAULT_VARIANT_COMPARE(TransitionList);
 	case ANIMATIONLIST: return DEFAULT_VARIANT_COMPARE(AnimationList);
 	case DECORATORSPTR: return DEFAULT_VARIANT_COMPARE(DecoratorsPtr);

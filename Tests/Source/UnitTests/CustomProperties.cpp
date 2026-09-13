@@ -1403,15 +1403,13 @@ TEST_CASE("custom_properties.misc_properties")
 		Element* div = document->GetFirstChild();
 
 		CHECK(div->GetComputedValues().has_box_shadow());
-		CHECK(div->GetProperty(PropertyId::BoxShadow)->Get<BoxShadowList>() ==
-			BoxShadowList{BoxShadow{
-				ColourbPremultiplied{0, 255, 0, 255},
-				NumericValue{0, Unit::DP},
-				NumericValue{8, Unit::DP},
-				NumericValue{24, Unit::DP},
-				NumericValue{0, Unit::DP},
-				false,
-			}});
+		BoxShadow expected_shadow;
+		expected_shadow.color = ColourbPremultiplied{0, 255, 0, 255};
+		expected_shadow.offset_x = NumericValue{0, Unit::DP};
+		expected_shadow.offset_y = NumericValue{8, Unit::DP};
+		expected_shadow.blur_radius = NumericValue{24, Unit::DP};
+		expected_shadow.spread_distance = NumericValue{0, Unit::DP};
+		CHECK(div->GetProperty(PropertyId::BoxShadow)->Get<BoxShadowList>() == BoxShadowList{expected_shadow});
 	}
 
 	SUBCASE("flex")

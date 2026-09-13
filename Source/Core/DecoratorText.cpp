@@ -124,6 +124,10 @@ SharedPtr<Decorator> DecoratorTextInstancer::InstanceDecorator(const String& /*n
 	Array<const Property*, 2> p_align = {properties.GetProperty(ids.align_x), properties.GetProperty(ids.align_y)};
 	if (!p_text || !p_color || !p_align[0] || !p_align[1])
 		return nullptr;
+#ifdef RMLUI_MATH_EXPRESSIONS
+	if (p_align[0]->unit == Unit::CALCULATION || p_align[1]->unit == Unit::CALCULATION)
+		return nullptr;
+#endif
 
 	String text = StringUtilities::DecodeRml(p_text->Get<String>());
 	if (text.empty())

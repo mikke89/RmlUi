@@ -6,16 +6,41 @@ namespace Rml {
 namespace Style {
 
 	struct LengthPercentageAuto {
-		enum Type : uint8_t { Auto, Length, Percentage } type = Length;
+		enum Type : uint8_t {
+			Auto,
+			Length,
+			Percentage,
+#ifdef RMLUI_MATH_EXPRESSIONS
+			Calculation,
+#endif
+		} type = Length;
 		float value = 0;
+#ifdef RMLUI_MATH_EXPRESSIONS
+		CalculationPtr calculation;
+#endif
 		LengthPercentageAuto() {}
 		LengthPercentageAuto(Type type, float value = 0) : type(type), value(value) {}
+#ifdef RMLUI_MATH_EXPRESSIONS
+		explicit LengthPercentageAuto(CalculationPtr calculation) : type(Calculation), calculation(std::move(calculation)) {}
+#endif
 	};
 	struct LengthPercentage {
-		enum Type : uint8_t { Length, Percentage } type = Length;
+		enum Type : uint8_t {
+			Length,
+			Percentage,
+#ifdef RMLUI_MATH_EXPRESSIONS
+			Calculation,
+#endif
+		} type = Length;
 		float value = 0;
+#ifdef RMLUI_MATH_EXPRESSIONS
+		CalculationPtr calculation;
+#endif
 		LengthPercentage() {}
 		LengthPercentage(Type type, float value = 0) : type(type), value(value) {}
+#ifdef RMLUI_MATH_EXPRESSIONS
+		explicit LengthPercentage(CalculationPtr calculation) : type(Calculation), calculation(std::move(calculation)) {}
+#endif
 	};
 
 	struct NumberAuto {

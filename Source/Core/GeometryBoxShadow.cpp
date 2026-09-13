@@ -9,6 +9,9 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/RenderManager.h"
 #include "ElementStyle.h"
+#ifdef RMLUI_MATH_EXPRESSIONS
+	#include "CalculationResolver.h"
+#endif
 
 namespace Rml {
 
@@ -28,10 +31,27 @@ BoxShadowGeometryInfo GeometryBoxShadow::Resolve(Element* element, const CornerS
 	// Resolve all lengths to px units.
 	for (BoxShadow& shadow : shadow_list)
 	{
+#ifdef RMLUI_MATH_EXPRESSIONS
+		auto resolve_length = [&](NumericValue value, const CalculationPtr& calculation) {
+			if (!calculation)
+				return element->ResolveLength(value);
+			float result = 0.f;
+			return ResolveElementCalculation(*calculation, *element, 0.f, result) ? result : 0.f;
+		};
+		shadow.blur_radius = NumericValue(resolve_length(shadow.blur_radius, shadow.blur_radius_calculation), Unit::PX);
+		shadow.spread_distance = NumericValue(resolve_length(shadow.spread_distance, shadow.spread_distance_calculation), Unit::PX);
+		shadow.offset_x = NumericValue(resolve_length(shadow.offset_x, shadow.offset_x_calculation), Unit::PX);
+		shadow.offset_y = NumericValue(resolve_length(shadow.offset_y, shadow.offset_y_calculation), Unit::PX);
+		shadow.blur_radius_calculation.reset();
+		shadow.spread_distance_calculation.reset();
+		shadow.offset_x_calculation.reset();
+		shadow.offset_y_calculation.reset();
+#else
 		shadow.blur_radius = NumericValue(element->ResolveLength(shadow.blur_radius), Unit::PX);
 		shadow.spread_distance = NumericValue(element->ResolveLength(shadow.spread_distance), Unit::PX);
 		shadow.offset_x = NumericValue(element->ResolveLength(shadow.offset_x), Unit::PX);
 		shadow.offset_y = NumericValue(element->ResolveLength(shadow.offset_y), Unit::PX);
+#endif
 	}
 
 	{

@@ -37,6 +37,9 @@ public:
 		COLOURB = 'h',
 		SCRIPTINTERFACE = 'p',
 		TRANSFORMPTR = 't',
+#ifdef RMLUI_MATH_EXPRESSIONS
+		CALCULATIONPTR = 'M',
+#endif
 		TRANSITIONLIST = 'T',
 		ANIMATIONLIST = 'A',
 		DECORATORSPTR = 'D',
@@ -117,6 +120,10 @@ private:
 	void Set(String&& value);
 	void Set(const TransformPtr& value);
 	void Set(TransformPtr&& value);
+#ifdef RMLUI_MATH_EXPRESSIONS
+	void Set(const CalculationPtr& value);
+	void Set(CalculationPtr&& value);
+#endif
 	void Set(const TransitionList& value);
 	void Set(TransitionList&& value);
 	void Set(const AnimationList& value);

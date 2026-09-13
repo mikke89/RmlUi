@@ -235,7 +235,11 @@ void TableFormattingContext::DetermineRowHeights(TrackBoxList& rows, BoxList& ce
 			// The padding/border/margin and widths of columns are used.
 			const ComputedAxisSize computed = LayoutDetails::BuildComputedVerticalSize(element_row->GetComputedValues());
 
-			if (computed.size.type == Style::LengthPercentageAuto::Percentage)
+			if (computed.size.type == Style::LengthPercentageAuto::Percentage
+#ifdef RMLUI_MATH_EXPRESSIONS
+				|| computed.size.type == Style::LengthPercentageAuto::Calculation
+#endif
+			)
 				percentage_size_used = true;
 
 			sizing.ApplyTrackElement(i, 1, computed);

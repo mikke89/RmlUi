@@ -29,7 +29,12 @@ private:
 	/// @param[out] args The numeric arguments encountered
 	/// @param[in] nargs The number of numeric arguments expected
 	/// @return True if parsed successfully, false otherwise.
-	bool Scan(int& out_bytes_read, const char* str, const char* keyword, const PropertyParser** parsers, NumericValue* args, int nargs) const;
+	bool Scan(int& out_bytes_read, const char* str, const char* keyword, const PropertyParser** parsers, NumericValue* args, int nargs
+#ifdef RMLUI_MATH_EXPRESSIONS
+		,
+		CalculationPtr* calculations
+#endif
+	) const;
 
 	PropertyParserNumber number, length, length_pct, angle;
 };
