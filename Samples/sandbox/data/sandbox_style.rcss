@@ -30,11 +30,11 @@ p { margin: 0.8em 0; }
 
 scrollbarvertical
 {
-	width: 16dp;
+	width: 16rem;
 }
 scrollbarhorizontal
 {
-	height: 16dp;
+	height: 16rem;
 }
 scrollbarvertical slidertrack,
 scrollbarhorizontal slidertrack
