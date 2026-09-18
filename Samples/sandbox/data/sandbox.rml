@@ -11,7 +11,7 @@
 		<h1>Load document</h1>
 		<div class="row">
 			<label for="load_file_path">File path</label>
-			<input id="load_file_path" type="text" placeholder="File path" />
+			<input id="load_file_path" type="text" />
 			<button id="load_file">Load</button>
 		</div>
 		<div class="row">
@@ -26,17 +26,17 @@
 	<section>
 		<h1>Runtime settings</h1>
 		<div class="row">
-			<label for="working_directory">Working directory</label><input id="working_directory" type="text" placeholder="Directory of the file" />
+			<label for="working_directory">Working directory</label><input id="working_directory" type="text" />
 		</div>
 	</section>
 
 	<section>
 		<h1>Context</h1>
 		<div class="row">
-			<label for="active_themes">Active themes</label><input id="active_themes" type="text" placeholder="dark, sparkly" />
+			<label for="active_themes">Active themes</label><input id="active_themes" type="text" />
 		</div>
 		<div class="row">
-			<label for="dp_ratio">DP-ratio</label><input id="dp_ratio" type="text" placeholder="1.0" />
+			<label for="dp_ratio">DP-ratio</label><input id="dp_ratio" type="text" />
 		</div>
 	</section>
 
@@ -47,7 +47,7 @@
 		</div>
 		<div class="row buttons">
 			<label for="save_file_path">To file</label>
-			<input id="save_file_path" type="text" placeholder="basic/demo/data/demo.rml" />
+			<input id="save_file_path" type="text" />
 			<button id="save_file">Save</button>
 		</div>
 		<div class="row buttons">

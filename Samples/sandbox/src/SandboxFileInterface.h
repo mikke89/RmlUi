@@ -18,19 +18,26 @@ public:
 		if (!directory.empty() && directory.back() != '/' && directory.back() != '\\')
 			directory += '/';
 		working_directory = std::move(directory);
+		ClearLoadedFiles();
 	}
 
 	Rml::FileHandle Open(const Rml::String& path) override
 	{
+		loaded_files.push_back(path);
 		if (!working_directory.empty())
 		{
-			Rml::Log::Message(Rml::Log::LT_DEBUG, "Trying to load from: %s", (working_directory + path).c_str());
-			if (FILE* fp = std::fopen((working_directory + path).c_str(), "rb"))
+			const Rml::String full_path = working_directory + path;
+			if (FILE* fp = std::fopen(full_path.c_str(), "rb"))
 				return (Rml::FileHandle)fp;
 		}
 		return ShellFileInterface::Open(path);
 	}
 
+	const Rml::StringList& GetLoadedFiles() const { return loaded_files; }
+
+	void ClearLoadedFiles() { loaded_files.clear(); }
+
 private:
 	Rml::String working_directory;
+	Rml::StringList loaded_files;
 };

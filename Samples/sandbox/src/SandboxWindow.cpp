@@ -5,6 +5,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Elements/ElementFormControl.h>
+#include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/StreamMemory.h>
 #include <RmlUi/Core/StringUtilities.h>
@@ -98,6 +99,13 @@ static bool SetPlaceholderAndCompare(Rml::Element* element, const Rml::String& v
 	return GetValueOrPlaceholder(element) != value_before;
 }
 
+static void ClearCaches()
+{
+	Rml::Factory::ClearStyleSheetCache();
+	Rml::Factory::ClearTemplateCache();
+	Rml::ReleaseTextures();
+}
+
 SandboxWindow::SandboxWindow(SandboxSystemInterface* system_interface, SandboxFileInterface* file_interface) :
 	system_interface(system_interface), file_interface(file_interface)
 {}
@@ -183,6 +191,8 @@ void SandboxWindow::Update()
 {
 	if (sandbox_document)
 		sandbox_document->UpdateDocument();
+
+	RefreshMessages();
 }
 
 void SandboxWindow::ProcessEvent(Rml::Event& event)
@@ -210,9 +220,20 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 	{
 		Rml::Element* target = event.GetTargetElement();
 		if (target->GetId() == "load_file")
+		{
 			LoadDocumentFromFile();
+		}
 		else if (target->GetId() == "load_from_clipboard")
+		{
 			LoadDocumentFromClipboard();
+		}
+		else if (target->GetId() == "save_file")
+		{
+			for (const Rml::String& source : file_interface->GetLoadedFiles())
+			{
+				Rml::Log::Message(Rml::Log::LT_INFO, "Loaded file: %s", source.c_str());
+			}
+		}
 	}
 	break;
 	case Rml::EventId::Change:
@@ -260,9 +281,14 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 		{
 			UpdateSandboxStylesheet();
 		}
-		else if ((element == el_file_path || element == el_working_directory) && submitted)
+		else if (element == el_file_path && submitted)
 		{
 			LoadDocumentFromFile();
+		}
+		else if (element == el_working_directory)
+		{
+			file_interface->SetWorkingDirectory(GetValueOrPlaceholder(el_working_directory));
+			ReloadSandboxDocument();
 		}
 	}
 	break;
@@ -272,8 +298,12 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 
 void SandboxWindow::ReloadSandboxDocument()
 {
+	ClearCaches();
+
 	Rml::Context* context = document->GetContext();
 	system_interface->PopMessages();
+	el_messages->SetInnerRML("");
+	file_interface->ClearLoadedFiles();
 
 	if (sandbox_document)
 	{
@@ -285,13 +315,19 @@ void SandboxWindow::ReloadSandboxDocument()
 	const Rml::String rml_source = el_rml_source->GetValue();
 	const bool is_complete_document = IsCompleteDocument(rml_source);
 
-	Rml::ElementDocument* new_document = nullptr;
+	Rml::ElementPtr new_element = nullptr;
 	if (is_complete_document)
 	{
 		meta_handler->ClearMetaList();
-		new_document = context->LoadDocumentFromMemory(rml_source, sandbox_source_url.empty() ? Rml::String("sandbox://rml") : sandbox_source_url);
 
-		if (!new_document)
+		const Rml::String source_url = sandbox_source_url.empty() ? Rml::String("sandbox://rml") : sandbox_source_url;
+		Rml::StreamMemory stream((const Rml::byte*)rml_source.data(), rml_source.size());
+		stream.SetSourceURL(Rml::StringUtilities::Replace(source_url, ':', '|'));
+
+		// Instance the document directly to avoid the document being formatted before we apply the proper styles.
+		new_element = Rml::Factory::InstanceDocumentStream(context, &stream, context->GetDocumentsBaseTag(), nullptr);
+
+		if (!new_element)
 		{
 			SetStatus("Failed to instance the sandboxed document.", true);
 			return;
@@ -312,20 +348,22 @@ void SandboxWindow::ReloadSandboxDocument()
 		}
 
 		auto defaults = MakeStyleSheet(g_sandbox_document_rcss, "sandbox://document_rcss");
-		if (const Rml::StyleSheetContainer* document_style_sheet = new_document->GetStyleSheetContainer())
+		if (const Rml::StyleSheetContainer* document_style_sheet =
+				rmlui_static_cast<Rml::ElementDocument*>(new_element.get())->GetStyleSheetContainer())
 			base_style_sheet = defaults->CombineStyleSheetContainer(*document_style_sheet);
 		else
 			base_style_sheet = std::move(defaults);
 	}
 	else
 	{
-		new_document = context->CreateDocument();
+		Rml::ElementDocument* document = context->CreateDocument();
+		new_element = document->GetParentNode()->RemoveChild(document);
 		base_style_sheet = fragment_style_sheet;
-		new_document->SetInnerRML(rml_source);
+		new_element->SetInnerRML(rml_source);
 	}
 
-	el_target->AppendChild(new_document->GetParentNode()->RemoveChild(new_document));
-	sandbox_document = new_document;
+	sandbox_document = rmlui_static_cast<Rml::ElementDocument*>(new_element.get());
+	el_target->AppendChild(std::move(new_element));
 
 	UpdateSandboxStylesheet();
 
@@ -356,20 +394,20 @@ void SandboxWindow::UpdateSandboxStylesheet()
 	}
 
 	sandbox_document->SetStyleSheetContainer(new_style);
-
-	RefreshMessages();
 }
 
 void SandboxWindow::LoadDocumentFromFile()
 {
-	const Rml::String path = Rml::StringUtilities::StripWhitespace(el_file_path->GetValue());
+	ClearCaches();
+
+	const Rml::String path = el_file_path->GetValue();
 	if (path.empty())
 	{
 		SetStatus("Enter the path of a document to load.", true);
 		return;
 	}
 
-	const Rml::String working_directory_placeholder = GetDirectoryOf(path);
+	Rml::String working_directory_placeholder = GetDirectoryOf(path);
 	SetPlaceholder(el_working_directory, working_directory_placeholder);
 
 	file_interface->SetWorkingDirectory(GetValueOrPlaceholder(el_working_directory));
@@ -394,6 +432,8 @@ void SandboxWindow::LoadDocumentFromFile()
 
 void SandboxWindow::LoadDocumentFromClipboard()
 {
+	ClearCaches();
+
 	Rml::String rml_source;
 	Rml::GetSystemInterface()->GetClipboardText(rml_source);
 
@@ -422,8 +462,6 @@ void SandboxWindow::RefreshMessages()
 {
 	Rml::Vector<SandboxSystemInterface::Message> messages = system_interface->PopMessages();
 
-	el_messages->SetInnerRML("");
-
 	for (const SandboxSystemInterface::Message& message : messages)
 	{
 		Rml::ElementPtr entry = document->CreateElement("div");
@@ -431,9 +469,6 @@ void SandboxWindow::RefreshMessages()
 		entry->SetInnerRML(Rml::StringUtilities::EncodeRml(message.text));
 		el_messages->AppendChild(std::move(entry));
 	}
-
-	document->UpdateDocument();
-	el_messages->SetScrollTop(el_messages->GetScrollHeight());
 }
 
 void SandboxWindow::SetStatus(const Rml::String& message, bool error)
