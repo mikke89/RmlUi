@@ -150,19 +150,20 @@ void FileTextureDatabase::GetSourceList(StringList& source_list) const
 
 bool FileTextureDatabase::ReleaseTexture(RenderInterface* render_interface, const String& source)
 {
+	bool result = false;
 	auto it = texture_map.find(source);
 	if (it == texture_map.end())
-		return false;
+		return result;
 
 	FileTextureEntry& texture = texture_list[size_t(it->second)];
 	if (texture.texture_handle)
 	{
 		render_interface->ReleaseTexture(texture.texture_handle);
-		texture = {};
-		return true;
+		result = true;
 	}
 
-	return false;
+	texture = {};
+	return result;
 }
 
 void FileTextureDatabase::ReleaseAllTextures(RenderInterface* render_interface)
@@ -170,10 +171,9 @@ void FileTextureDatabase::ReleaseAllTextures(RenderInterface* render_interface)
 	for (FileTextureEntry& texture : texture_list)
 	{
 		if (texture.texture_handle)
-		{
 			render_interface->ReleaseTexture(texture.texture_handle);
-			texture = {};
-		}
+
+		texture = {};
 	}
 }
 
