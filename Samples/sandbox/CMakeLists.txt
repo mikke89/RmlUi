@@ -4,6 +4,8 @@ set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
 add_executable(${TARGET_NAME} WIN32
 	src/main.cpp
 	src/SandboxFileInterface.h
+	src/SandboxStorage.cpp
+	src/SandboxStorage.h
 	src/SandboxSystemInterface.h
 	src/SandboxWindow.cpp
 	src/SandboxWindow.h

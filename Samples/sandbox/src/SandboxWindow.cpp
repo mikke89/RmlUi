@@ -1,16 +1,28 @@
 #include "SandboxWindow.h"
+#include "SandboxStorage.h"
 #include "SandboxSystemInterface.h"
 #include "XmlNodeHandlerSandboxMeta.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/ElementUtilities.h>
 #include <RmlUi/Core/Elements/ElementFormControl.h>
+#include <RmlUi/Core/Elements/ElementFormControlInput.h>
 #include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/StreamMemory.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Core/StyleSheetContainer.h>
 #include <RmlUi_Backend.h>
+#include <algorithm>
+#include <optional>
+
+static const Rml::String g_options_path = "sandbox_options.ini";
+static const Rml::String g_source_rml_path = "sandbox_source.rml";
+static const Rml::String g_source_rcss_path = "sandbox_source.rcss";
+
+// After making a change, wait for this amount of time before saving options and sources.
+static constexpr double g_options_save_delay = 3.0;
 
 static const Rml::String g_sandbox_document_rcss = R"(
 body { display: block; }
@@ -99,6 +111,19 @@ static bool SetPlaceholderAndCompare(Rml::Element* element, const Rml::String& v
 	return GetValueOrPlaceholder(element) != value_before;
 }
 
+static bool IsCheckbox(Rml::Element* element)
+{
+	return rmlui_dynamic_cast<Rml::ElementFormControlInput*>(element) && element->GetAttribute<Rml::String>("type", "") == "checkbox";
+}
+
+static void SetChecked(Rml::Element* element, bool checked)
+{
+	if (checked)
+		element->SetAttribute("checked", true);
+	else
+		element->RemoveAttribute("checked");
+}
+
 static void ClearCaches()
 {
 	Rml::Factory::ClearStyleSheetCache();
@@ -136,12 +161,13 @@ bool SandboxWindow::Initialize(Rml::Context* context)
 	el_inject_rcss = GetFormControl("inject_rcss");
 	el_override_font_family = GetFormControl("override_font_family");
 	el_target = document->GetElementById("sandbox_target");
-	el_status = document->GetElementById("load_file_status");
+	el_status = document->GetElementById("status");
+	el_menu = document->GetElementById("menu");
 	el_sources = document->GetElementById("sources");
 	el_messages = document->GetElementById("messages");
 
 	if (!el_rml_source || !el_rcss_source || !el_file_path || !el_working_directory || !el_themes || !el_dp_ratio || !el_inject_rcss ||
-		!el_override_font_family || !el_target || !el_status || !el_sources || !el_messages)
+		!el_override_font_family || !el_target || !el_status || !el_menu || !el_sources || !el_messages)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Sandbox document is missing one or more of its required elements.");
 		return false;
@@ -158,24 +184,31 @@ bool SandboxWindow::Initialize(Rml::Context* context)
 	el_rml_source->SetValue(g_default_rml_source);
 	el_rcss_source->SetValue(g_default_rcss_source);
 
-	for (Rml::ElementFormControl* element :
-		{el_rml_source, el_rcss_source, el_file_path, el_working_directory, el_themes, el_dp_ratio, el_inject_rcss, el_override_font_family})
-	{
+	LoadFromStorage();
+
+	ApplyWorkingDirectory();
+	ApplyActiveThemes();
+	ApplyDpRatio();
+	ApplyRcssSourceVisibility();
+
+	for (Rml::Element* element : GetFormControls())
 		element->AddEventListener(Rml::EventId::Change, this);
-	}
 
 	document->AddEventListener(Rml::EventId::Click, this);
 	document->AddEventListener(Rml::EventId::Keydown, this);
 
 	ReloadSandboxDocument();
 
-	document->Show();
+	document->Show(Rml::ModalFlag::None, Rml::FocusFlag::Document);
 
 	return true;
 }
 
 void SandboxWindow::Shutdown()
 {
+	if (document)
+		SaveToStorage();
+
 	base_style_sheet.reset();
 	fragment_style_sheet.reset();
 	sandbox_document = nullptr;
@@ -192,13 +225,17 @@ void SandboxWindow::Update()
 	if (sandbox_document)
 		sandbox_document->UpdateDocument();
 
+	if (storage_dirty)
+	{
+		if (system_interface->GetElapsedTime() >= next_storage_save_time)
+			SaveToStorage();
+	}
+
 	RefreshMessages();
 }
 
 void SandboxWindow::ProcessEvent(Rml::Event& event)
 {
-	Rml::Context* context = document->GetContext();
-
 	Rml::Element* element = event.GetCurrentElement();
 
 	switch (event.GetId())
@@ -238,8 +275,8 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 	break;
 	case Rml::EventId::Change:
 	{
-		const Rml::String value = event.GetParameter<Rml::String>("value", "");
 		const bool submitted = event.GetParameter<bool>("linebreak", false);
+		DirtyStorage();
 
 		if (element == el_rml_source)
 		{
@@ -247,38 +284,28 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 		}
 		else if (element == el_rcss_source)
 		{
+			ClearMessages();
 			UpdateSandboxStylesheet();
 		}
 		else if (element == el_themes)
 		{
-			const Rml::String effective_value = GetValueOrPlaceholder(element);
-			Rml::StringList set_themes;
-			Rml::StringUtilities::ExpandString(set_themes, effective_value);
-
-			const Rml::StringList active_themes = context->GetActiveThemes();
-			for (const Rml::String& theme : active_themes)
-			{
-				if (std::find(set_themes.begin(), set_themes.end(), theme) == set_themes.end())
-					context->ActivateTheme(theme, false);
-			}
-			for (const Rml::String& theme : set_themes)
-				context->ActivateTheme(theme, true);
-
+			ClearMessages();
+			ApplyActiveThemes();
 			UpdateSandboxStylesheet();
 		}
 		else if (element == el_dp_ratio)
 		{
-			const Rml::String effective_value = GetValueOrPlaceholder(element);
-			const float dp_ratio = Rml::FromString(effective_value, 1.f);
-			context->SetDensityIndependentPixelRatio(Rml::Math::Clamp(dp_ratio, 0.5f, 5.f));
+			ApplyDpRatio();
 		}
 		else if (element == el_inject_rcss)
 		{
-			el_sources->SetClass("hide_rcss_source", !event.GetParameter<bool>("checked", false));
+			ClearMessages();
+			ApplyRcssSourceVisibility();
 			UpdateSandboxStylesheet();
 		}
 		else if (element == el_override_font_family)
 		{
+			ClearMessages();
 			UpdateSandboxStylesheet();
 		}
 		else if (element == el_file_path && submitted)
@@ -287,7 +314,7 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 		}
 		else if (element == el_working_directory)
 		{
-			file_interface->SetWorkingDirectory(GetValueOrPlaceholder(el_working_directory));
+			ApplyWorkingDirectory();
 			ReloadSandboxDocument();
 		}
 	}
@@ -301,8 +328,7 @@ void SandboxWindow::ReloadSandboxDocument()
 	ClearCaches();
 
 	Rml::Context* context = document->GetContext();
-	system_interface->PopMessages();
-	el_messages->SetInnerRML("");
+	ClearMessages();
 	file_interface->ClearLoadedFiles();
 
 	if (sandbox_document)
@@ -333,19 +359,21 @@ void SandboxWindow::ReloadSandboxDocument()
 			return;
 		}
 
+		Rml::String new_dp_ratio;
+		Rml::String new_active_themes;
+
 		for (const auto& [name, content] : meta_handler->GetMetaList())
 		{
 			if (name == "density-independent-pixel-ratio")
-			{
-				if (SetPlaceholderAndCompare(el_dp_ratio, content))
-					el_dp_ratio->DispatchEvent(Rml::EventId::Change, Rml::Dictionary{{"value", Rml::Variant{Rml::String()}}});
-			}
+				new_dp_ratio = content;
 			else if (name == "active-themes")
-			{
-				if (SetPlaceholderAndCompare(el_themes, content))
-					el_themes->DispatchEvent(Rml::EventId::Change, Rml::Dictionary{{"value", Rml::Variant{Rml::String()}}});
-			}
+				new_active_themes = content;
 		}
+
+		if (SetPlaceholderAndCompare(el_dp_ratio, new_dp_ratio))
+			el_dp_ratio->DispatchEvent(Rml::EventId::Change, Rml::Dictionary{{"value", Rml::Variant{Rml::String()}}});
+		if (SetPlaceholderAndCompare(el_themes, new_active_themes))
+			el_themes->DispatchEvent(Rml::EventId::Change, Rml::Dictionary{{"value", Rml::Variant{Rml::String()}}});
 
 		auto defaults = MakeStyleSheet(g_sandbox_document_rcss, "sandbox://document_rcss");
 		if (const Rml::StyleSheetContainer* document_style_sheet =
@@ -419,13 +447,12 @@ void SandboxWindow::LoadDocumentFromFile()
 		return;
 	}
 
-	if (IsCompleteDocument(rml_source))
-		el_inject_rcss->RemoveAttribute("checked");
-	else
-		el_inject_rcss->SetAttribute("checked", true);
+	SetChecked(el_inject_rcss, !IsCompleteDocument(rml_source));
+	ApplyRcssSourceVisibility();
 
 	sandbox_source_url = path;
 	el_rml_source->SetValue(rml_source);
+	DirtyStorage();
 
 	SetStatus("Successfully loaded file.", false);
 }
@@ -447,13 +474,12 @@ void SandboxWindow::LoadDocumentFromClipboard()
 	const Rml::String working_directory = GetValueOrPlaceholder(el_working_directory);
 	file_interface->SetWorkingDirectory(working_directory);
 
-	if (IsCompleteDocument(rml_source))
-		el_inject_rcss->RemoveAttribute("checked");
-	else
-		el_inject_rcss->SetAttribute("checked", true);
+	SetChecked(el_inject_rcss, !IsCompleteDocument(rml_source));
+	ApplyRcssSourceVisibility();
 
 	sandbox_source_url = working_directory + "./rml_pasted_document.rml";
 	el_rml_source->SetValue(rml_source);
+	DirtyStorage();
 
 	SetStatus("Successfully loaded from clipboard.", false);
 }
@@ -480,4 +506,136 @@ void SandboxWindow::SetStatus(const Rml::String& message, bool error)
 	// Update document to trigger transition on next visibility change.
 	document->UpdateDocument();
 	el_status->SetClass("visible", false);
+}
+
+Rml::ElementList SandboxWindow::GetFormControls()
+{
+	Rml::ElementList elements;
+	for (Rml::Element* panel : {el_menu, el_sources})
+		panel->QuerySelectorAll(elements, "input, textarea, select");
+
+	elements.erase(std::remove_if(elements.begin(), elements.end(), [](Rml::Element* element) { return element->GetId().empty(); }), elements.end());
+
+	return elements;
+}
+
+void SandboxWindow::ApplyWorkingDirectory()
+{
+	file_interface->SetWorkingDirectory(GetValueOrPlaceholder(el_working_directory));
+}
+
+void SandboxWindow::ApplyActiveThemes()
+{
+	Rml::Context* context = document->GetContext();
+
+	Rml::StringList set_themes;
+	Rml::StringUtilities::ExpandString(set_themes, GetValueOrPlaceholder(el_themes));
+
+	const Rml::StringList active_themes = context->GetActiveThemes();
+	for (const Rml::String& theme : active_themes)
+	{
+		if (std::find(set_themes.begin(), set_themes.end(), theme) == set_themes.end())
+			context->ActivateTheme(theme, false);
+	}
+	for (const Rml::String& theme : set_themes)
+		context->ActivateTheme(theme, true);
+}
+
+void SandboxWindow::ApplyDpRatio()
+{
+	const Rml::String value = GetValueOrPlaceholder(el_dp_ratio);
+	float dp_ratio = 1.f;
+	if (!value.empty() && Rml::TypeConverter<Rml::String, float>::Convert(value, dp_ratio))
+		dp_ratio = Rml::Math::Clamp(dp_ratio, 0.5f, 4.f);
+
+	document->GetContext()->SetDensityIndependentPixelRatio(Rml::Math::Clamp(dp_ratio, 0.5f, 4.f));
+}
+
+void SandboxWindow::ApplyRcssSourceVisibility()
+{
+	el_sources->SetClass("hide_rcss_source", !el_inject_rcss->HasAttribute("checked"));
+}
+
+void SandboxWindow::ClearMessages()
+{
+	system_interface->PopMessages();
+	el_messages->SetInnerRML("");
+}
+
+void SandboxWindow::DirtyStorage()
+{
+	storage_dirty = true;
+	next_storage_save_time = system_interface->GetElapsedTime() + g_options_save_delay;
+}
+
+void SandboxWindow::LoadFromStorage()
+{
+	const Rml::UnorderedMap<Rml::String, Rml::String> options = LoadOptions(g_options_path);
+
+	auto GetIfOption = [&](const Rml::String& name) -> std::optional<Rml::String> {
+		auto it = options.find(name);
+		if (it != options.end())
+			return it->second;
+		return std::nullopt;
+	};
+
+	if (auto value = GetIfOption("source_url"))
+		sandbox_source_url = *value;
+
+	for (Rml::Element* element : GetFormControls())
+	{
+		const Rml::String& id = element->GetId();
+		if (element == el_rml_source || element == el_rcss_source || id.empty())
+			continue;
+
+		if (IsCheckbox(element))
+		{
+			if (auto value = GetIfOption(id))
+				SetChecked(element, Rml::FromString<bool>(*value));
+		}
+		else
+		{
+			if (auto value = GetIfOption(id))
+				element->SetAttribute("value", *value);
+
+			if (auto value = GetIfOption(id + ".placeholder"))
+				element->SetAttribute("placeholder", *value);
+		}
+	}
+
+	if (Rml::String source = LoadFile(g_source_rml_path); !source.empty())
+		el_rml_source->SetValue(source);
+	if (Rml::String source = LoadFile(g_source_rcss_path); !source.empty())
+		el_rcss_source->SetValue(source);
+}
+
+void SandboxWindow::SaveToStorage()
+{
+	storage_dirty = false;
+
+	Rml::UnorderedMap<Rml::String, Rml::String> options;
+	options["source_url"] = sandbox_source_url;
+
+	for (Rml::Element* element : GetFormControls())
+	{
+		const Rml::String& id = element->GetId();
+		if (element == el_rml_source || element == el_rcss_source || id.empty())
+			continue;
+
+		if (IsCheckbox(element))
+		{
+			options[id] = Rml::ToString<bool>(element->HasAttribute("checked"));
+		}
+		else
+		{
+			options[id] = element->GetAttribute("value", Rml::String());
+			if (element->HasAttribute("placeholder"))
+				options[id + "placeholder"] = element->GetAttribute("placeholder", Rml::String());
+		}
+	}
+
+	SaveOptions(g_options_path, options);
+
+	SaveFile(g_source_rml_path, el_rml_source->GetValue());
+	SaveFile(g_source_rcss_path, el_rcss_source->GetValue());
 }

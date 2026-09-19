@@ -29,6 +29,18 @@ private:
 
 	void SetStatus(const Rml::String& message, bool error);
 
+	Rml::ElementList GetFormControls();
+
+	void ApplyWorkingDirectory();
+	void ApplyActiveThemes();
+	void ApplyDpRatio();
+	void ApplyRcssSourceVisibility();
+	void ClearMessages();
+
+	void DirtyStorage();
+	void LoadFromStorage();
+	void SaveToStorage();
+
 	SandboxSystemInterface* system_interface;
 	SandboxFileInterface* file_interface;
 
@@ -49,9 +61,13 @@ private:
 	Rml::ElementFormControl* el_inject_rcss = nullptr;
 	Rml::ElementFormControl* el_override_font_family = nullptr;
 	Rml::Element* el_target = nullptr;
+	Rml::Element* el_menu = nullptr;
 	Rml::Element* el_sources = nullptr;
 	Rml::Element* el_status = nullptr;
 	Rml::Element* el_messages = nullptr;
+
+	bool storage_dirty = false;
+	double next_storage_save_time = 0;
 
 	Rml::SharedPtr<XMLNodeHandlerSandboxMeta> meta_handler;
 };
