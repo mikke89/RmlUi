@@ -158,7 +158,7 @@ textarea scrollbarcorner {
 #menu {
 	flex: none;
 	font-size: 15rem;
-	min-width: 300rem;
+	min-width: 370rem;
 	max-width: 50%;
 	width: 400rem;
 	height: 100%;
@@ -171,6 +171,7 @@ textarea scrollbarcorner {
 	padding-bottom: 0.25em;
 	margin-bottom: 1em;
 	border-bottom: 1rem #555;
+	color: #ffecb9;
 }
 #menu section {
 	display: block;
@@ -198,18 +199,19 @@ textarea scrollbarcorner {
 	justify-content: space-between;
 	align-items: center;
 }
-#load_file_status {
-	margin-right: 1em;
-	font-size: 0.9em;
+#menu #status {
+	font-size: 0.95em;
 	color: #7c7;
-	visibility: hidden;
-	transition: visibility 5s;
+	display: none;
+	transition: display 5s;
+	padding-top: 0;
+	text-align: center;
 }
-#load_file_status.error {
+#menu #status.error {
 	color: #e77;
 }
-#load_file_status.visible {
-	visibility: visible;
+#menu #status.visible {
+	display: block;
 }
 
 section#messages_section {
@@ -300,7 +302,7 @@ section#messages_section {
 }
 #sandbox_target  {
 	height: 100%;
-	color: #000;
+	color: #fff;
 	text-align: left;
 }
 #col_rml_source

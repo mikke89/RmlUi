@@ -18,9 +18,6 @@
 			<label>Clipboard</label>
 			<button id="load_from_clipboard">Load from clipboard</button>
 		</div>
-		<div class="row buttons">
-			<div id="load_file_status"></div>
-		</div>
 	</section>
 
 	<section>
@@ -59,6 +56,8 @@
 		<h1>Messages</h1>
 		<div id="messages"/>
 	</section>
+
+	<section id="status"></section>
 </div>
 
 <handle class="slider vertical" size_target="menu" axis="x" />
