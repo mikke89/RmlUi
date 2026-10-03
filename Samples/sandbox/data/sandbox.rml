@@ -60,7 +60,7 @@
 	<section id="status"></section>
 </div>
 
-<handle class="slider vertical" size_target="menu" axis="x" />
+<handle class="slider vertical" size_target="menu" axis="x"><knob/></handle>
 
 <div id="sources" class="rml_source_only">
 	<textarea id="sandbox_rml_source" wrap="nowrap"></textarea>
@@ -68,11 +68,11 @@
 		<label><input type="checkbox" id="inject_rcss" checked /> Inject RCSS</label>
 		<label><input type="checkbox" id="override_font_family" checked /> Override font family</label>
 	</div>
-	<handle class="slider horizontal" size_target="sandbox_rml_source" axis="y" />
+	<handle class="slider horizontal" size_target="sandbox_rml_source" axis="y"><knob/></handle>
 	<textarea id="sandbox_rcss_source" wrap="nowrap"></textarea>
 </div>
 
-<handle class="slider vertical" size_target="sources" axis="x" />
+<handle class="slider vertical" size_target="sources" axis="x"><knob/></handle>
 
 <div id="sandbox_wrapper">
 	<div id="sandbox_target"/>

@@ -104,6 +104,23 @@ handle {
 .slider:hover, .slider:active {
 	background: #886;
 }
+.slider knob {
+	display: block;
+	background: #2f2f2f;
+}
+.slider:hover knob, .slider:active knob {
+	background: #bb9;
+}
+.slider.horizontal knob {
+	width: 30rem;
+	height: 100%;
+	margin: 0 auto;
+}
+.slider.vertical knob {
+	width: 100%;
+	height: 30rem;
+	margin: auto 0;
+}
 
 input.radio, input.checkbox {
 	width: 10rem;
