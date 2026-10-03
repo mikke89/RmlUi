@@ -191,6 +191,10 @@ void GeometryBoxShadow::GenerateTexture(CallbackTexture& out_shadow_texture, Geo
 				MeshUtilities::GenerateBackground(mesh_shadow, render_box, shadow.color);
 			}
 
+			// Check pre-conditions before submitting rendering commands. Transparent or zero-area boxes may produce an empty mesh.
+			if (!mesh_shadow || (inset && !mesh_padding))
+				continue;
+
 			CompiledFilter blur;
 			if (blur_radius >= 0.5f)
 			{
@@ -216,9 +220,15 @@ void GeometryBoxShadow::GenerateTexture(CallbackTexture& out_shadow_texture, Geo
 			}
 			else
 			{
-				Mesh mesh = mesh_padding_border;
-				Geometry geometry_padding_border = render_manager.MakeGeometry(std::move(mesh));
-				render_manager.SetClipMask(ClipMaskOperation::SetInverse, &geometry_padding_border, info.element_offset_in_texture);
+				if (mesh_padding_border)
+				{
+					Geometry geometry_padding_border = render_manager.MakeGeometry(Mesh(mesh_padding_border));
+					render_manager.SetClipMask(ClipMaskOperation::SetInverse, &geometry_padding_border, info.element_offset_in_texture);
+				}
+				else
+				{
+					render_manager.DisableClipMask();
+				}
 				geometry_shadow.Render(shadow_offset + info.element_offset_in_texture);
 			}
 
