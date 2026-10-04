@@ -20,6 +20,9 @@ namespace Detail {
 template <typename T>
 class EnableObserverPtr;
 
+template <typename T>
+class ScriptPtr;
+
 /**
     Observer pointer.
 
@@ -99,6 +102,8 @@ public:
 
 private:
 	friend class Rml::EnableObserverPtr<T>;
+	template <typename U>
+	friend class Rml::ScriptPtr;
 
 	explicit ObserverPtr(Detail::ObserverPtrBlock* block) noexcept : block(block)
 	{

@@ -3,6 +3,8 @@
 #include "Header.h"
 #include "IncludeLua.h"
 
+#include <RmlUi/Core/ScriptPtr.h>
+
 // As an example, if you used this macro like
 // RMLUI_LUAMETHOD(Unit,GetId)
 // it would result in code that looks like
@@ -54,22 +56,61 @@ types.*/
 		return type##Setters;             \
 	}
 
+/** Declares only the functions related to defining a LuaType, allowing the user to define the LuaTypeTraits
+manually */
+#define RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)               \
+	template <>                                             \
+	RMLUILUA_API const char* GetTClassName<type>();         \
+	template <>                                             \
+	RMLUILUA_API RegType<type>* GetMethodTable<type>();     \
+	template <>                                             \
+	RMLUILUA_API luaL_Reg* GetAttrTable<type>();            \
+	template <>                                             \
+	RMLUILUA_API luaL_Reg* SetAttrTable<type>();
+
 /** Used to remove repetitive typing at the cost of flexibility. It creates function prototypes for
 getting the name of the type, method tables, and if it is reference counted.
 When you use this, you either must also use
 the RMLUI_LUATYPE_DEFINE macro, or make sure that the function signatures are @em exact.*/
-#define RMLUI_LUATYPE_DECLARE(type)                     \
-	template <>                                         \
-	RMLUILUA_API const char* GetTClassName<type>();     \
-	template <>                                         \
-	RMLUILUA_API RegType<type>* GetMethodTable<type>(); \
-	template <>                                         \
-	RMLUILUA_API luaL_Reg* GetAttrTable<type>();        \
-	template <>                                         \
-	RMLUILUA_API luaL_Reg* SetAttrTable<type>();
+#define RMLUI_LUATYPE_DECLARE(type)                         \
+	template <>                                             \
+	struct LuaTypeTraits<type> {                            \
+		static constexpr const bool use_script_ptr = false; \
+		static constexpr const bool lua_owned = true;       \
+		static constexpr const bool unique_refs = false;    \
+		using storage_type = type;                          \
+	};                                                      \
+	RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)
 
+
+/** Declares a type as "external" to the Lua environment, meaning that Lua does not interact with its lifetime
+at all */
+#define RMLUI_LUATYPE_DECLARE_EXTERNAL(type)                \
+	template <>                                             \
+	struct LuaTypeTraits<type> {                            \
+		static constexpr const bool use_script_ptr = false; \
+		static constexpr const bool lua_owned = false;      \
+		static constexpr const bool unique_refs = false;    \
+		using storage_type = type*;                         \
+	};                                                      \
+	RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)
+	
+/** Identical to RMLUI_LUATYPE_DECLARE, except that it declares the type as managed via ScriptPtr<baseType>. */
+#define RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(type, baseType)    \
+	template <>                                             \
+	struct LuaTypeTraits<type> {                            \
+		static constexpr const bool use_script_ptr = true;  \
+		static constexpr const bool lua_owned = true;       \
+		static constexpr const bool unique_refs = true;     \
+		using storage_type = ScriptPtr<baseType>;           \
+	};                                                      \
+	RMLUI_LUATYPE_DECLARE_FUNCTIONS(type)
+	
 namespace Rml {
 namespace Lua {
+	// Name of the table in the Lua registry containing unique ref objects
+	constexpr const char* UNIQUE_REF_TABLE_NAME = "_RMLUI_UNIQUE_REFS";
+
 	// replacement for luaL_Reg that uses a different function pointer signature, but similar syntax
 	template <typename T>
 	struct RMLUILUA_API RegType {
@@ -98,6 +139,32 @@ namespace Lua {
 	template <typename T>
 	RMLUILUA_API void ExtraInit(lua_State* L, int metatable_index);
 
+	/** Defines metadata about T for how its data should be managed. */
+	template <typename>
+	struct LuaTypeTraits;
+
+	/** Helper type to register and bind metatables for types, depending on whether or not they
+	use the custom RTTI system. RTTI-enabled types have their metatable placed in the registry keyed to
+	their ClassIdentifer as a lightuserdata. */
+	template <typename, typename = void>
+	struct LuaTypeMetatable;
+
+	template <typename T>
+	struct LuaTypeMetatable<T, typename std::enable_if<has_custom_rtti<T>::value>::type> {
+		/** Registers the metatable for T in the Lua registry to T::GetStaticClassIdentifier() */
+		static void Register(lua_State* L);
+		/** Fetches the metatable keyed to obj.GetClassIdentifier() */
+		static void Get(lua_State* L, const T& obj);
+	};
+
+	template <typename T>
+	struct LuaTypeMetatable<T, typename std::enable_if<!has_custom_rtti<T>::value>::type> {
+		/** Registers the metatable for T in the Lua registry to GetTClassName<T>() */
+		static void Register(lua_State* L);
+		/** Fetches the metatable keyed to GetTClassName<T>() */
+		static void Get(lua_State* L, const T& obj);
+	};
+
 	/**
 	    This is mostly the definition of the Lua userdata that C++ gives to the user, plus
 	    some helper functions.
@@ -121,7 +188,14 @@ namespace Lua {
 		@param gc[in] If the obj should be deleted or decrease reference count upon the garbage collection
 		metamethod being called from the object in Lua
 		@return Position on the stack where the userdata resides   */
-		static inline int push(lua_State* L, T* obj, bool gc = false);
+		static inline void push(lua_State* L, T* obj);
+		static inline void push(lua_State* L, T& obj);
+		static inline void push(lua_State* L, ElementPtr&& ptr);
+
+		/** Identical to push, but constructs a new object in place with the given args. */
+		template <typename... Args>
+		static inline void emplace(lua_State* L, Args&&... args);
+
 		/** Statically casts the item at the position on the Lua stack
 		@param narg[in] Position of the item to cast on the Lua stack
 		@return A pointer to an object of type T or @c nullptr   */
@@ -164,6 +238,11 @@ namespace Lua {
 	namespace LuaTypeImpl {
 		RMLUILUA_API int index(lua_State* L, const char* class_name);
 		RMLUILUA_API int newindex(lua_State* L, const char* class_name);
+
+		/** Tries to find an object with the given key in the unique ref storage. If it is found, only
+		the object is left on the stack. Otherwise, leaves the unique ref table on the stack.
+		@return Whether an object matching key was found */
+		RMLUILUA_API bool FindUniqueObject(lua_State* L, void* key);
 	} // namespace LuaTypeImpl
 
 } // namespace Lua

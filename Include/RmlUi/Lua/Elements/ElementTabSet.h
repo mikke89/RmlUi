@@ -25,6 +25,6 @@ extern luaL_Reg ElementTabSetSetters[];
 // this will be used to "inherit" from Element
 template <>
 void ExtraInit<ElementTabSet>(lua_State* L, int metatable_index);
-RMLUI_LUATYPE_DECLARE(ElementTabSet)
+RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(ElementTabSet, Element)
 } // namespace Lua
 } // namespace Rml

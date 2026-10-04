@@ -3,7 +3,7 @@
 namespace Rml {
 namespace Lua {
 template <>
-void ExtraInit<ElementInstancer>(lua_State* L, int metatable_index)
+void ExtraInit<LuaElementInstancer>(lua_State* L, int metatable_index)
 {
 	lua_pushcfunction(L, ElementInstancernew);
 	lua_setfield(L, metatable_index - 1, "new");
@@ -12,15 +12,14 @@ void ExtraInit<ElementInstancer>(lua_State* L, int metatable_index)
 // method
 int ElementInstancernew(lua_State* L)
 {
-	LuaElementInstancer* lei = new LuaElementInstancer(L);
-	LuaType<ElementInstancer>::push(L, lei, true);
+	LuaType<LuaElementInstancer>::emplace(L, L);
 	return 1;
 }
 
 // setter
 int ElementInstancerSetAttrInstanceElement(lua_State* L)
 {
-	LuaElementInstancer* lei = (LuaElementInstancer*)LuaType<ElementInstancer>::check(L, 1);
+	auto lei = LuaType<LuaElementInstancer>::check(L, 1);
 	RMLUI_CHECK_OBJ(lei);
 
 	if (lua_type(L, 2) != LUA_TFUNCTION)
@@ -35,7 +34,7 @@ int ElementInstancerSetAttrInstanceElement(lua_State* L)
 	return 0;
 }
 
-RegType<ElementInstancer> ElementInstancerMethods[] = {
+RegType<LuaElementInstancer> ElementInstancerMethods[] = {
 	{nullptr, nullptr},
 };
 
@@ -48,6 +47,29 @@ luaL_Reg ElementInstancerSetters[] = {
 	{nullptr, nullptr},
 };
 
-RMLUI_LUATYPE_DEFINE(ElementInstancer)
+template <>
+const char* GetTClassName<LuaElementInstancer>()
+{
+	return "ElementInstancer";
+}
+
+template <>
+RegType<LuaElementInstancer>* GetMethodTable<LuaElementInstancer>()
+{
+	return ElementInstancerMethods;
+}
+
+template <>
+luaL_Reg* GetAttrTable<LuaElementInstancer>()
+{
+	return ElementInstancerGetters;
+}
+
+template <>
+luaL_Reg* SetAttrTable<LuaElementInstancer>()
+{
+	return ElementInstancerSetters;
+}
+
 } // namespace Lua
 } // namespace Rml

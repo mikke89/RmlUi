@@ -25,6 +25,6 @@ extern luaL_Reg ElementFormControlSelectSetters[];
 // inherits from ElementFormControl which inherits from Element
 template <>
 void ExtraInit<ElementFormControlSelect>(lua_State* L, int metatable_index);
-RMLUI_LUATYPE_DECLARE(ElementFormControlSelect)
+RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(ElementFormControlSelect, Element)
 } // namespace Lua
 } // namespace Rml

@@ -17,6 +17,6 @@ extern RegType<ElementText> ElementTextMethods[];
 extern luaL_Reg ElementTextGetters[];
 extern luaL_Reg ElementTextSetters[];
 
-RMLUI_LUATYPE_DECLARE(ElementText)
+RMLUI_LUATYPE_DECLARE_SCRIPT_PTR(ElementText, Element)
 } // namespace Lua
 } // namespace Rml

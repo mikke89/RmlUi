@@ -2,6 +2,8 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/DataVariable.h>
+#include <RmlUi/Core/Event.h>
+#include <RmlUi/Lua/Event.h>
 #include <RmlUi/Lua/Utilities.h>
 
 #define RMLDATAMODEL "RMLDATAMODEL"
@@ -589,7 +591,7 @@ static void BindVariable(struct LuaDataModel* model)
 			luabind::invoke(
 				L,
 				[&]() {
-					LuaType<Event>::push(L, &event, false);
+					LuaType<Event>::push(L, &event);
 					for (const auto& variant : varlist)
 					{
 						PushVariant(L, &variant);

@@ -1,4 +1,4 @@
-#include "Colourb.h"
+#include <RmlUi/Lua/Colourb.h>
 
 namespace Rml {
 namespace Lua {
@@ -27,9 +27,7 @@ int Colourbnew(lua_State* L)
 	byte blue = (byte)luaL_checkinteger(L, 3);
 	byte alpha = (byte)luaL_checkinteger(L, 4);
 
-	Colourb* col = new Colourb(red, green, blue, alpha);
-
-	LuaType<Colourb>::push(L, col, true);
+	LuaType<Colourb>::emplace(L, red, green, blue, alpha);
 	return 1;
 }
 
@@ -51,9 +49,7 @@ int Colourb__add(lua_State* L)
 	Colourb* rhs = LuaType<Colourb>::check(L, 2);
 	RMLUI_CHECK_OBJ(rhs);
 
-	Colourb* res = new Colourb((*lhs) + (*rhs));
-
-	LuaType<Colourb>::push(L, res, true);
+	LuaType<Colourb>::emplace(L, (*lhs) + (*rhs));
 	return 1;
 }
 
@@ -63,9 +59,7 @@ int Colourb__mul(lua_State* L)
 	RMLUI_CHECK_OBJ(lhs);
 	float rhs = (float)luaL_checknumber(L, 2);
 
-	Colourb* res = new Colourb((*lhs) * rhs);
-
-	LuaType<Colourb>::push(L, res, true);
+	LuaType<Colourb>::emplace(L, (*lhs) * rhs);
 	return 1;
 }
 

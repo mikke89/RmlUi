@@ -6,34 +6,33 @@
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Lua/Lua.h>
-#include <RmlUi/Lua/LuaType.h>
 #include <RmlUi/Lua/Utilities.h>
 // the types I made
-#include "Colourb.h"
-#include "Colourf.h"
-#include "Context.h"
+#include <RmlUi/Lua/Colourb.h>
+#include <RmlUi/Lua/Colourf.h>
+#include <RmlUi/Lua/Context.h>
 #include "ContextDocumentsProxy.h"
-#include "Document.h"
-#include "Element.h"
+#include <RmlUi/Lua/Document.h>
+#include <RmlUi/Lua/Element.h>
 #include "ElementAttributesProxy.h"
 #include "ElementChildNodesProxy.h"
 #include "ElementInstancer.h"
 #include "ElementStyleProxy.h"
-#include "ElementText.h"
-#include "Event.h"
+#include <RmlUi/Lua/ElementText.h>
+#include <RmlUi/Lua/Event.h>
 #include "EventParametersProxy.h"
 #include "GlobalLuaFunctions.h"
 #include "Log.h"
 #include "RmlUiContextsProxy.h"
-#include "Vector2f.h"
-#include "Vector2i.h"
+#include <RmlUi/Lua/Vector2f.h>
+#include <RmlUi/Lua/Vector2i.h>
 // Control types
-#include "Elements/ElementForm.h"
-#include "Elements/ElementFormControl.h"
-#include "Elements/ElementFormControlInput.h"
-#include "Elements/ElementFormControlSelect.h"
-#include "Elements/ElementFormControlTextArea.h"
-#include "Elements/ElementTabSet.h"
+#include <RmlUi/Lua/Elements/ElementForm.h>
+#include <RmlUi/Lua/Elements/ElementFormControl.h>
+#include <RmlUi/Lua/Elements/ElementFormControlInput.h>
+#include <RmlUi/Lua/Elements/ElementFormControlSelect.h>
+#include <RmlUi/Lua/Elements/ElementFormControlTextArea.h>
+#include <RmlUi/Lua/Elements/ElementTabSet.h>
 #include "Elements/SelectOptionsProxy.h"
 
 namespace Rml {
@@ -98,6 +97,16 @@ static void RegisterTypes()
 	RMLUI_ASSERT(g_L);
 	lua_State* L = g_L;
 
+	// Create unique ref storage table as a weak table in the registry
+	lua_newtable(L); // [1] = {}
+
+	lua_newtable(L); // [2] = {}
+	lua_pushstring(L, "v");
+	lua_setfield(L, -2, "__mode"); // [2].__mode = "v"
+	lua_setmetatable(L, -2); // setmetatable([1], [2])
+
+	lua_setfield(L, LUA_REGISTRYINDEX, UNIQUE_REF_TABLE_NAME); // Place table in registry
+
 	LuaType<Vector2i>::Register(L);
 	LuaType<Vector2f>::Register(L);
 	LuaType<Colourf>::Register(L);
@@ -108,11 +117,10 @@ static void RegisterTypes()
 	// things that inherit from Element
 	LuaType<Document>::Register(L);
 	LuaType<ElementText>::Register(L);
-	LuaType<ElementPtr>::Register(L);
 	LuaType<Event>::Register(L);
 	LuaType<Context>::Register(L);
 	LuaType<LuaRmlUi>::Register(L);
-	LuaType<ElementInstancer>::Register(L);
+	LuaType<LuaElementInstancer>::Register(L);
 	// Proxy tables
 	LuaType<ContextDocumentsProxy>::Register(L);
 	LuaType<EventParametersProxy>::Register(L);
