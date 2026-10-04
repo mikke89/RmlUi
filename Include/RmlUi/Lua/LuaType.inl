@@ -129,12 +129,6 @@ namespace Lua {
 	}
 
 	template <typename T>
-	void LuaType<T>::tostring(char* buff, size_t buff_size, void* obj)
-	{
-		snprintf(buff, buff_size, "%p", obj);
-	}
-
-	template <typename T>
 	int LuaType<T>::gc_T(lua_State* L)
 	{
 		T* obj = check(L, 1); //[1] = this userdata
