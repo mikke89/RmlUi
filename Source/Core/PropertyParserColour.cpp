@@ -76,22 +76,6 @@ static void CIELABToRGBA(Array<float, 4>& values)
 	values[2] = Math::Clamp(InverseSRGBNonlinearTransfer(b), 0.0f, 1.0f);
 }
 
-// Constructs the colour from its four channels, instead of writing them through the colour's pointer conversion, which would index past
-// its 'red' member.
-static Colourb ToColour(const byte (&channels)[4])
-{
-	return Colourb(channels[0], channels[1], channels[2], channels[3]);
-}
-
-// Constructs the colour from its four channels in the range [0, 1].
-static Colourb ToColour(const Array<float, 4>& channels)
-{
-	byte bytes[4];
-	for (int i = 0; i < 4; ++i)
-		bytes[i] = (byte)(Math::Clamp((int)(channels[i] * 255.0f), 0, 255));
-	return ToColour(bytes);
-}
-
 // References: https://en.wikipedia.org/wiki/Oklab_color_space#Conversions_between_color_spaces and https://bottosson.github.io/posts/oklab/
 static void OklabToRGBA(Array<float, 4>& values)
 {
@@ -253,7 +237,6 @@ bool PropertyParserColour::ParseHexColour(Colourb& colour, const String& value)
 	}
 
 	// Parse each of the colour elements.
-	byte channels[4];
 	for (int i = 0; i < 4; i++)
 	{
 		int tens = Math::HexToDecimal(hex_values[i][0]);
@@ -261,10 +244,9 @@ bool PropertyParserColour::ParseHexColour(Colourb& colour, const String& value)
 		if (tens == -1 || ones == -1)
 			return false;
 
-		channels[i] = (byte)(tens * 16 + ones);
+		colour[i] = (byte)(tens * 16 + ones);
 	}
 
-	colour = ToColour(channels);
 	return true;
 }
 
@@ -290,7 +272,6 @@ bool PropertyParserColour::ParseRGBColour(Colourb& colour, const String& value)
 	}
 
 	// Parse the RGBA values.
-	byte channels[4];
 	for (int i = 0; i < 4; ++i)
 	{
 		int component;
@@ -302,10 +283,9 @@ bool PropertyParserColour::ParseRGBColour(Colourb& colour, const String& value)
 		else
 			component = atoi(values[i].c_str());
 
-		channels[i] = (byte)(Math::Clamp(component, 0, 255));
+		colour[i] = (byte)(Math::Clamp(component, 0, 255));
 	}
 
-	colour = ToColour(channels);
 	return true;
 }
 
@@ -343,7 +323,9 @@ bool PropertyParserColour::ParseHSLColour(Colourb& colour, const String& value)
 			return false;
 
 	HSLAToRGBA(vals);
-	colour = ToColour(vals);
+	for (int i = 0; i < 4; ++i)
+		colour[i] = (byte)(Math::Clamp((int)(vals[i] * 255.0f), 0, 255));
+
 	return true;
 }
 
@@ -444,7 +426,9 @@ bool PropertyParserColour::ParseCIELABColour(Colourb& colour, const String& valu
 	}
 
 	CIELABToRGBA(lab_values);
-	colour = ToColour(lab_values);
+	for (int i = 0; i < 4; ++i)
+		colour[i] = (byte)(Math::Clamp((int)(lab_values[i] * 255.0f), 0, 255));
+
 	return true;
 }
 
@@ -541,7 +525,9 @@ bool PropertyParserColour::ParseOklabColour(Colourb& colour, const String& value
 	}
 
 	OklabToRGBA(oklab_values);
-	colour = ToColour(oklab_values);
+	for (int i = 0; i < 4; ++i)
+		colour[i] = (byte)(Math::Clamp((int)(oklab_values[i] * 255.0f), 0, 255));
+
 	return true;
 }
 

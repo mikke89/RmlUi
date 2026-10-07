@@ -1709,7 +1709,7 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 		glUniform2f(GetUniformLocation(UniformId::V), shader.v.x, shader.v.y);
 		glUniform1i(GetUniformLocation(UniformId::NumStops), num_stops);
 		glUniform1fv(GetUniformLocation(UniformId::StopPositions), num_stops, shader.stop_positions.data());
-		glUniform4fv(GetUniformLocation(UniformId::StopColors), num_stops, shader.stop_colors[0]);
+		glUniform4fv(GetUniformLocation(UniformId::StopColors), num_stops, shader.stop_colors[0].data());
 
 		SubmitTransformUniform(translation);
 		glBindVertexArray(geometry.vao);
