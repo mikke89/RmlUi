@@ -92,11 +92,6 @@ public:
 		}
 	}
 
-	/// Returns a pointer so that the colour components can be accessed as an array.
-	ColourType* data() { return &red; }
-	/// Returns a pointer so that the colour components can be accessed as an array.
-	const ColourType* data() const { return &red; }
-
 	// Convert color to premultiplied alpha.
 	template <typename IsPremultiplied = std::integral_constant<bool, PremultipliedAlpha>,
 		typename = std::enable_if_t<!IsPremultiplied::value && std::is_same_v<ColourType, byte>>>
