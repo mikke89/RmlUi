@@ -92,12 +92,12 @@ public:
 	/// @return True if the two vectors are not equal, false otherwise.
 	inline bool operator!=(const Vector4& rhs) const;
 
-	/// Auto-cast operator to array of components.
-	/// @return A pointer to the first value.
-	inline operator const Type*() const;
-	/// Constant auto-cast operator to array of components.
-	/// @return A constant pointer to the first value.
-	inline operator Type*();
+	/// Returns a reference to the component at the given index.
+	/// @param[in] index The index of the component (0 = x, 1 = y, 2 = z, 3 = w).
+	inline Type& operator[](size_t index);
+	/// Returns a reference to the component at the given index.
+	/// @param[in] index The index of the component (0 = x, 1 = y, 2 = z, 3 = w).
+	inline const Type& operator[](size_t index) const;
 
 	/// Underlying type-cast operator.
 	/// @return A copy of the vector with another underlying type.
