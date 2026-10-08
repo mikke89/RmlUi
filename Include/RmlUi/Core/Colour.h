@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Debug.h"
 #include "Header.h"
 #include <type_traits>
 
@@ -64,12 +65,32 @@ public:
 	/// @return True if the two colours are not equal, false otherwise.
 	inline bool operator!=(Colour rhs) const { return !(*this == rhs); }
 
-	/// Auto-cast operator.
-	/// @return A pointer to the first value.
-	inline operator const ColourType*() const { return &red; }
-	/// Constant auto-cast operator.
-	/// @return A constant pointer to the first value.
-	inline operator ColourType*() { return &red; }
+	/// Returns a reference to the colour component at the given index.
+	/// @param[in] index The index of the colour component (0 = red, 1 = green, 2 = blue, 3 = alpha).
+	ColourType& operator[](size_t index)
+	{
+		RMLUI_ASSERT(index < 4);
+		switch (index)
+		{
+		case 0: return red;
+		case 1: return green;
+		case 2: return blue;
+		default: return alpha;
+		}
+	}
+	/// Returns a reference to the colour component at the given index.
+	/// @param[in] index The index of the colour component (0 = red, 1 = green, 2 = blue, 3 = alpha).
+	const ColourType& operator[](size_t index) const
+	{
+		RMLUI_ASSERT(index < 4);
+		switch (index)
+		{
+		case 0: return red;
+		case 1: return green;
+		case 2: return blue;
+		default: return alpha;
+		}
+	}
 
 	// Convert color to premultiplied alpha.
 	template <typename IsPremultiplied = std::integral_constant<bool, PremultipliedAlpha>,

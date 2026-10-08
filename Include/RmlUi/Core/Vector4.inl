@@ -146,15 +146,29 @@ bool Vector4<Type>::operator!=(const Vector4& rhs) const
 }
 
 template <typename Type>
-Vector4<Type>::operator const Type*() const
+Type& Vector4<Type>::operator[](size_t index)
 {
-	return &x;
+	RMLUI_ASSERT(index < 4);
+	switch (index)
+	{
+	case 0: return x;
+	case 1: return y;
+	case 2: return z;
+	default: return w;
+	}
 }
 
 template <typename Type>
-Vector4<Type>::operator Type*()
+const Type& Vector4<Type>::operator[](size_t index) const
 {
-	return &x;
+	RMLUI_ASSERT(index < 4);
+	switch (index)
+	{
+	case 0: return x;
+	case 1: return y;
+	case 2: return z;
+	default: return w;
+	}
 }
 
 template <typename Type>
