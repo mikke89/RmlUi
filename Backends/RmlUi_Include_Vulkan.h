@@ -90,6 +90,25 @@
 	#ifndef RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_UNIFORM_BUFFER_DYNAMIC
 		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_UNIFORM_BUFFER_DYNAMIC 64
 	#endif
+
+	// 1 = merge consecutive RenderGeometry draws that share pipeline state into single draw calls through a per-frame
+	// ring arena; 0 = legacy one-draw-call-per-geometry path (the batching code is fully compiled out).
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED
+		#define RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED 1
+	#endif
+	static_assert(RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 0 || RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1);
+
+	// Initial per-frame-slot capacity of the batching vertex arena in bytes; doubles automatically on overflow.
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_BATCHING_VERTEX_ARENA_SIZE
+		#define RMLUI_RENDER_BACKEND_FIELD_BATCHING_VERTEX_ARENA_SIZE (512 * 1024)
+	#endif
+	static_assert(RMLUI_RENDER_BACKEND_FIELD_BATCHING_VERTEX_ARENA_SIZE > 0, "the batching vertex arena must be non-empty");
+
+	// Initial per-frame-slot capacity of the batching index arena in bytes; doubles automatically on overflow.
+	#ifndef RMLUI_RENDER_BACKEND_FIELD_BATCHING_INDEX_ARENA_SIZE
+		#define RMLUI_RENDER_BACKEND_FIELD_BATCHING_INDEX_ARENA_SIZE (384 * 1024)
+	#endif
+	static_assert(RMLUI_RENDER_BACKEND_FIELD_BATCHING_INDEX_ARENA_SIZE > 0, "the batching index arena must be non-empty");
 #endif
 
 // The remainder of this file is purposefully placed outside the header guard, so the header can be included again with implementation macros defined.
