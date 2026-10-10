@@ -91,6 +91,16 @@ public:
 		default: return alpha;
 		}
 	}
+	/// Returns colour components as array
+	ColourType* data()
+	{
+		return &red;
+	}
+	/// Returns colour components as array
+	const ColourType* data() const
+	{
+		return &red;
+	}
 
 	// Convert color to premultiplied alpha.
 	template <typename IsPremultiplied = std::integral_constant<bool, PremultipliedAlpha>,
