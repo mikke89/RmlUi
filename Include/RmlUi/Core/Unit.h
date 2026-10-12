@@ -51,6 +51,10 @@ enum class Unit {
 	COLORSTOPLIST = 1 << 26, // color stop list; fetch as <ColorStopList>
 	BOXSHADOWLIST = 1 << 27, // shadow list; fetch as <BoxShadowList>
 
+	// Custom properties.
+	VAR_EXPRESSION = 1 << 28,        // substituted and resolved at compute time; fetch as <String>
+	SHORTHAND_PLACEHOLDER = 1 << 29, // dependent on a shorthand that must be substituted and resolved at compute time; always empty
+
 	LENGTH = PX | DP | VW | VH | EM | REM | PPI_UNIT,
 	LENGTH_PERCENT = LENGTH | PERCENT,
 	NUMBER_PERCENT = NUMBER | PERCENT,

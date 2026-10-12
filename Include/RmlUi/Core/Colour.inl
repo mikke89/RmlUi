@@ -10,17 +10,15 @@ Colour<ColourType, AlphaDefault, PremultipliedAlpha>::Colour(ColourType red, Col
 {}
 
 template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
-Colour<ColourType, AlphaDefault, PremultipliedAlpha> Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator+(
-	const Colour<ColourType, AlphaDefault, PremultipliedAlpha> rhs) const
+Colour<ColourType, AlphaDefault, PremultipliedAlpha> Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator+(const Colour rhs) const
 {
-	return Colour<ColourType, AlphaDefault, PremultipliedAlpha>(red + rhs.red, green + rhs.green, blue + rhs.blue, alpha + rhs.alpha);
+	return Colour(red + rhs.red, green + rhs.green, blue + rhs.blue, alpha + rhs.alpha);
 }
 
 template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
-Colour<ColourType, AlphaDefault, PremultipliedAlpha> Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator-(
-	const Colour<ColourType, AlphaDefault, PremultipliedAlpha> rhs) const
+Colour<ColourType, AlphaDefault, PremultipliedAlpha> Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator-(const Colour rhs) const
 {
-	return Colour<ColourType, AlphaDefault, PremultipliedAlpha>(red - rhs.red, green - rhs.green, blue - rhs.blue, alpha - rhs.alpha);
+	return Colour(red - rhs.red, green - rhs.green, blue - rhs.blue, alpha - rhs.alpha);
 }
 
 template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>

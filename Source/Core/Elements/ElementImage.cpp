@@ -11,6 +11,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define(ElementImage)
+
 ElementImage::ElementImage(const String& tag) : Element(tag), dimensions(-1, -1), rect_source(RectSource::None)
 {
 	dimensions_scale = 1.0f;

@@ -108,6 +108,12 @@ int ContextOpenDataModel(lua_State* L, Context* obj)
 	return 1;
 }
 
+int ContextCloseDataModel(lua_State* L, Context* obj)
+{
+	CloseLuaDataModel(L, obj, 1);
+	return 0;
+}
+
 // input
 int ContextProcessMouseMove(lua_State* L, Context* obj)
 {
@@ -278,7 +284,7 @@ RegType<Context> ContextMethods[] = {
 	RMLUI_LUAMETHOD(Context, UnloadDocument),
 	RMLUI_LUAMETHOD(Context, Update),
 	RMLUI_LUAMETHOD(Context, OpenDataModel),
-	// todo: CloseDataModel
+	RMLUI_LUAMETHOD(Context, CloseDataModel),
 	RMLUI_LUAMETHOD(Context, ProcessMouseMove),
 	RMLUI_LUAMETHOD(Context, ProcessMouseButtonDown),
 	RMLUI_LUAMETHOD(Context, ProcessMouseButtonUp),

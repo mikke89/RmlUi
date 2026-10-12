@@ -45,7 +45,7 @@ private:
 class TextInputMethodEditor_Win32;
 
 /**
-    Optional helper functions for the Win32 plaform.
+    Optional helper functions for the Win32 platform.
  */
 namespace RmlWin32 {
 

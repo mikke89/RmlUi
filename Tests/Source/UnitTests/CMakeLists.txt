@@ -2,7 +2,9 @@ set(TARGET_NAME "rmlui_unit_tests")
 
 add_executable(${TARGET_NAME}
 	Animation.cpp
+	BoxShadow.cpp
 	Core.cpp
+	CustomProperties.cpp
 	DataBinding.cpp
 	DataExpression.cpp
 	DataModel.cpp
@@ -12,6 +14,7 @@ add_executable(${TARGET_NAME}
 	ElementBackgroundBorder.cpp
 	ElementDocument.cpp
 	ElementHandle.cpp
+	ElementFormControlInput.cpp
 	ElementFormControlSelect.cpp
 	ElementImage.cpp
 	ElementStyle.cpp
@@ -23,6 +26,7 @@ add_executable(${TARGET_NAME}
 	main.cpp
 	Math.cpp
 	MediaQuery.cpp
+	Navigation.cpp
 	Properties.cpp
 	PropertySpecification.cpp
 	Selectors.cpp
@@ -35,6 +39,7 @@ add_executable(${TARGET_NAME}
 	URL.cpp
 	Variant.cpp
 	XMLParser.cpp
+	PluginDataModel.cpp
 )
 
 set_common_target_options(${TARGET_NAME})

@@ -167,7 +167,6 @@ void BaseXMLParser::ReadBody()
 		}
 	}
 
-	// Check for error conditions
 	if (open_tag_depth > 0)
 	{
 		Log::Message(Log::LT_WARNING, "XML parse error on line %d of %s.", GetLineNumber(), source_url->GetURL().c_str());
@@ -268,6 +267,12 @@ bool BaseXMLParser::ReadOpenTag()
 
 bool BaseXMLParser::ReadCloseTag(const size_t xml_index_tag)
 {
+	if (open_tag_depth <= 0)
+	{
+		Log::Message(Log::LT_WARNING, "Found unexpected XML close tag on line %d of %s", GetLineNumber(), source_url->GetURL().c_str());
+		return false;
+	}
+
 	if (inner_xml_data && open_tag_depth == inner_xml_data_terminate_depth)
 	{
 		// Closing the tag that initiated the inner xml data parsing. Set all its contents as Data to be

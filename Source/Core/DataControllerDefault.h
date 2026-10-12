@@ -16,7 +16,7 @@ using DataExpressionPtr = UniquePtr<DataExpression>;
 class DataControllerValue : public DataController, private EventListener {
 public:
 	DataControllerValue(Element* element);
-	~DataControllerValue();
+	~DataControllerValue() override;
 
 	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
@@ -33,7 +33,7 @@ private:
 class DataControllerEvent final : public DataController, private EventListener {
 public:
 	DataControllerEvent(Element* element);
-	~DataControllerEvent();
+	~DataControllerEvent() override;
 
 	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 

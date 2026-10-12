@@ -13,7 +13,7 @@ class InputType;
 
 class RMLUICORE_API ElementFormControlInput : public ElementFormControl {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementFormControlInput, ElementFormControl)
+	RMLUI_RTTI_DeclareWithParent(ElementFormControlInput, ElementFormControl)
 
 	/// Constructs a new ElementFormControlInput. This should not be called directly; use the
 	/// Factory instead.

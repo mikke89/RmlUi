@@ -37,6 +37,7 @@ private:
 	Rml::Matrix4f proj;
 
 	struct Command {
+		virtual ~Command() = default;
 		virtual void Update(RenderInterface_SDL_GPU& interface) = 0;
 	};
 

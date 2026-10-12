@@ -12,7 +12,7 @@ typedef Vector<NamedProperty> NamedPropertyList;
 
 class ElementInfo : public ElementDebugDocument, public EventListener {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementInfo, ElementDebugDocument)
+	RMLUI_RTTI_DeclareWithParent(ElementInfo, ElementDebugDocument)
 
 	ElementInfo(const String& tag);
 	~ElementInfo();

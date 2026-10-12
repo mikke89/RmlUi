@@ -16,7 +16,7 @@ class FuncDefinition;
 
 class DataModel : NonCopyMoveable {
 public:
-	DataModel(DataTypeRegister* data_type_register = nullptr);
+	DataModel(DataTypeRegister* data_type_register = nullptr, bool allow_missing_variables = false);
 	~DataModel();
 
 	void AddView(DataViewPtr view);
@@ -52,6 +52,7 @@ public:
 	bool Update(bool clear_dirty_variables);
 
 	DataTypeRegister* GetDataTypeRegister() const { return data_type_register; }
+	bool AllowMissingVariables() const { return allow_missing_variables; }
 	const UnorderedMap<String, DataVariable>& GetAllVariables() const { return variables; }
 
 private:
@@ -68,6 +69,7 @@ private:
 	ScopedAliases aliases;
 
 	DataTypeRegister* data_type_register;
+	bool allow_missing_variables;
 
 	SmallUnorderedSet<Element*> attached_elements;
 };

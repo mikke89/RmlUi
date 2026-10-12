@@ -39,14 +39,14 @@
 </head>
 
 <body>
-<p>There should should only be one scroll bar visible, inside the black border.</p>
+<p>There should only be one scroll bar visible, inside the black border.</p>
 <div class="outer overflow">
 	<div class="inner overflow">
 		<div class="wide">Wide element</div>
 	</div>
 </div>
 
-<p>There should should only be one scroll bar visible, inside the white border.</p>
+<p>There should only be one scroll bar visible, inside the white border.</p>
 <div class="outer overflow">
 	<div class="inner">
 		<div class="wide">Wide element</div>

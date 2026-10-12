@@ -1,3 +1,4 @@
+#include "../../../Source/Core/TransformState.h"
 #include "../Common/Mocks.h"
 #include "../Common/TestsInterface.h"
 #include "../Common/TestsShell.h"
@@ -5,6 +6,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/ElementScroll.h>
 #include <RmlUi/Core/Factory.h>
 #include <doctest.h>
 
@@ -118,13 +120,61 @@ static const String document_scroll_rml = R"(
 </rml>
 )";
 
-void Run(Context* context)
-{
-	context->Update();
-	context->Render();
-
-	TestsShell::RenderLoop();
-}
+static const String document_scroll_target_rml = R"(
+<rml>
+<head>
+	<style>
+		body { margin: 0; }
+		div { display: block; }
+		#vertical {
+			width: 100px;
+			height: 100px;
+			overflow-x: hidden;
+			overflow-y: auto;
+		}
+		#vertical-content {
+			width: 100px;
+			height: 220px;
+		}
+		#horizontal {
+			width: 100px;
+			height: 50px;
+			overflow-x: auto;
+			overflow-y: hidden;
+		}
+		#horizontal-content {
+			width: 200px;
+			height: 50px;
+		}
+		#contained-y {
+			width: 100px;
+			height: 50px;
+			overflow-y: auto;
+			overscroll-behavior: contain;
+		}
+		#target, #contained-target {
+			display: block;
+			width: 20px;
+			height: 20px;
+		}
+		scrollbarvertical, scrollbarhorizontal {
+			width: 0;
+			height: 0;
+		}
+	</style>
+</head>
+<body>
+	<div id="vertical">
+		<div id="vertical-content">
+			<div id="horizontal">
+				<div id="horizontal-content"><span id="target"/></div>
+			</div>
+			<div id="contained-y"><span id="contained-target"/></div>
+		</div>
+	</div>
+</body>
+</rml>
+)";
 
 TEST_CASE("Element")
 {
@@ -166,8 +216,8 @@ TEST_CASE("Element")
 			MockEventListenerInstancer mockEventListenerInstancer;
 			const auto configureMockEventListenerInstancer = [&](const auto value) {
 				expectations.emplace_back(NAMED_REQUIRE_CALL(mockEventListenerInstancer, InstanceEventListener(value, button))
-											  .LR_SIDE_EFFECT(configureMockEventListener())
-											  .LR_RETURN(mockEventListener.get()));
+						.LR_SIDE_EFFECT(configureMockEventListener())
+						.LR_RETURN(mockEventListener.get()));
 			};
 
 			Factory::RegisterEventListenerInstancer(&mockEventListenerInstancer);
@@ -313,6 +363,53 @@ TEST_CASE("Element")
 	TestsShell::ShutdownShell();
 }
 
+TEST_CASE("Element.GetClosestScrollableContainer")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_scroll_target_rml);
+	REQUIRE(document);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	Element* vertical = document->GetElementById("vertical");
+	Element* horizontal = document->GetElementById("horizontal");
+	Element* target = document->GetElementById("target");
+	Element* contained_y = document->GetElementById("contained-y");
+	Element* contained_target = document->GetElementById("contained-target");
+	REQUIRE(vertical);
+	REQUIRE(horizontal);
+	REQUIRE(target);
+	REQUIRE(contained_y);
+	REQUIRE(contained_target);
+
+	CHECK(target->GetClosestScrollableContainer() == horizontal);
+	CHECK(target->GetClosestScrollableContainer({1.f, 0.f}) == horizontal);
+	CHECK(target->GetClosestScrollableContainer({0.f, 1.f}) == vertical);
+	REQUIRE(horizontal->SetProperty("overscroll-behavior", "contain"));
+	TestsShell::RenderLoop();
+	CHECK(target->GetClosestScrollableContainer({0.f, 1.f}) == horizontal);
+	horizontal->RemoveProperty(PropertyId::OverscrollBehavior);
+	TestsShell::RenderLoop();
+	CHECK(contained_target->GetClosestScrollableContainer() == contained_y);
+	CHECK(contained_target->GetClosestScrollableContainer({0.f, 1.f}) == contained_y);
+
+	context->SetDefaultScrollBehavior(ScrollBehavior::Instant, 1.f);
+	const Vector2f target_position = target->GetAbsoluteOffset(BoxArea::Border) + Vector2f(5.f);
+	context->ProcessMouseMove(int(target_position.x), int(target_position.y), 0);
+	context->ProcessMouseWheel({0.f, 1.f}, 0);
+	const float vertical_scroll_top = vertical->GetScrollTop();
+	const float horizontal_scroll_left_after_vertical_wheel = horizontal->GetScrollLeft();
+	context->SetDefaultScrollBehavior(ScrollBehavior::Smooth, 1.f);
+
+	CHECK(vertical_scroll_top > 0.f);
+	CHECK(horizontal_scroll_left_after_vertical_wheel == 0.f);
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
 TEST_CASE("Element.ScrollIntoView")
 {
 	Context* context = TestsShell::GetContext();
@@ -322,7 +419,7 @@ TEST_CASE("Element.ScrollIntoView")
 	REQUIRE(document);
 	document->Show();
 
-	Run(context);
+	TestsShell::RenderLoop();
 
 	Element* scrollable = document->GetElementById("scrollable");
 	REQUIRE(scrollable);
@@ -346,7 +443,7 @@ TEST_CASE("Element.ScrollIntoView")
 	{
 		cells[2][2]->ScrollIntoView(true);
 
-		Run(context);
+		TestsShell::RenderLoop();
 
 		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -100));
 		CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(50, 0));
@@ -356,7 +453,7 @@ TEST_CASE("Element.ScrollIntoView")
 
 		cells[2][2]->ScrollIntoView(false);
 
-		Run(context);
+		TestsShell::RenderLoop();
 
 		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -50));
 		CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(50, 50));
@@ -368,8 +465,7 @@ TEST_CASE("Element.ScrollIntoView")
 	SUBCASE("AdvancedScroll")
 	{
 		cells[2][2]->ScrollIntoView({ScrollAlignment::Center, ScrollAlignment::Center});
-
-		Run(context);
+		TestsShell::RenderLoop();
 
 		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-75, -75));
 		CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(25, 25));
@@ -378,8 +474,7 @@ TEST_CASE("Element.ScrollIntoView")
 		SUBCASE("NearestAlready")
 		{
 			cells[2][2]->ScrollIntoView(ScrollAlignment::Nearest);
-
-			Run(context);
+			TestsShell::RenderLoop();
 
 			CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-75, -75));
 			CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(25, 25));
@@ -389,8 +484,7 @@ TEST_CASE("Element.ScrollIntoView")
 		SUBCASE("NearestBefore")
 		{
 			cells[1][1]->ScrollIntoView(ScrollAlignment::Nearest);
-
-			Run(context);
+			TestsShell::RenderLoop();
 
 			CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -50));
 			CHECK(cells[1][1]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(0, 0));
@@ -400,8 +494,7 @@ TEST_CASE("Element.ScrollIntoView")
 		SUBCASE("NearestAfter")
 		{
 			cells[3][3]->ScrollIntoView(ScrollAlignment::Nearest);
-
-			Run(context);
+			TestsShell::RenderLoop();
 
 			CHECK(cells[1][1]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -50));
 			CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(0, 0));
@@ -416,7 +509,7 @@ TEST_CASE("Element.ScrollIntoView")
 
 			constexpr double dt = 1.0 / 15.0;
 			system_interface->SetManualTime(dt);
-			Run(context);
+			TestsShell::RenderLoop();
 
 			// We don't define the exact offset at this time step, but it should be somewhere between the start and end offsets.
 			Vector2f offset = cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border);
@@ -429,11 +522,162 @@ TEST_CASE("Element.ScrollIntoView")
 			for (double t = 2.0 * dt; t < 1.0; t += dt)
 			{
 				system_interface->SetManualTime(t);
-				Run(context);
+				context->Update();
+				context->Render();
 			}
+			TestsShell::RenderLoop();
 			CHECK(cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(50, 50));
 		}
 	}
+
+	SUBCASE("Adaptive")
+	{
+		cells[2][2]->ScrollIntoView({ScrollAlignment::Adaptive, ScrollAlignment::Adaptive});
+		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-75, -75));
+		TestsShell::RenderLoop();
+
+		cells[2][2]->ScrollIntoView({ScrollAlignment::End, ScrollAlignment::End});
+		REQUIRE(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -50));
+
+		cells[2][2]->ScrollIntoView({ScrollAlignment::Adaptive, ScrollAlignment::Adaptive});
+		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -50));
+
+		cells[1][1]->ScrollIntoView({ScrollAlignment::Adaptive, ScrollAlignment::Adaptive});
+		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -50));
+	}
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("Element.ScrollbarDestruction")
+{
+	const String document_rml = R"(
+<rml>
+<head>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		#scroll {
+			display: block;
+			width: 200px;
+			height: 100px;
+			overflow-y: scroll;
+		}
+		#scroll div {
+			height: 300px;
+		}
+	</style>
+</head>
+<body>
+	<div id="scroll"><div/></div>
+</body>
+</rml>
+)";
+
+	// Run under address sanitizer to verify that destruction of ElementScroll do not lead to use-after-free within ~Element.
+	Context* context = TestsShell::GetContext();
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	document->Show();
+
+	Element* scroll = document->GetElementById("scroll");
+	REQUIRE(scroll->GetElementScroll()->GetScrollbar(ElementScroll::VERTICAL) != nullptr);
+
+	scroll->GetParentNode()->RemoveChild(scroll);
+
+	document->Close();
+	context->Update();
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("Element.TransformStateAfterVisibilityChange")
+{
+	const String document_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<style>
+		body {
+			left: 0;
+			top: 0;
+			width: 400px;
+			height: 400px;
+		}
+		#window {
+			position: absolute;
+			left: 0;
+			top: 0;
+			width: 200px;
+			height: 200px;
+			transform: translateX(100px);
+		}
+		div.pane {
+			display: block;
+			width: 50px;
+			height: 50px;
+		}
+		#pane_display { display: none; }
+		#pane_visibility { visibility: hidden; }
+	</style>
+</head>
+<body>
+	<div id="window">
+		<div class="pane" id="pane_reference"/>
+		<div class="pane" id="pane_display"/>
+		<div class="pane" id="pane_visibility"/>
+	</div>
+</body>
+</rml>
+)";
+
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	REQUIRE(document);
+	document->Show();
+
+	context->Update();
+	context->Render();
+
+	const auto ElementTransform = [](Element* element) -> Matrix4f {
+		const TransformState* transform_state = element->GetTransformState();
+		const Matrix4f* transform = (transform_state ? transform_state->GetTransform() : nullptr);
+		return transform ? *transform : Matrix4f::Identity();
+	};
+
+	const Matrix4f window_transform = Matrix4f::TranslateX(100.f);
+
+	Element* window = document->GetElementById("window");
+	CHECK(ElementTransform(window) == window_transform);
+
+	Element* pane_reference = document->GetElementById("pane_reference");
+	CHECK(ElementTransform(pane_reference) == window_transform);
+
+	// Ensure the correct transform is applied to an element after it becomes visible.
+	String pane_id, set_property, set_value;
+
+	SUBCASE("Display")
+	{
+		pane_id = "pane_display";
+		set_property = "display";
+		set_value = "block";
+	}
+	SUBCASE("Visibility")
+	{
+		pane_id = "pane_visibility";
+		set_property = "visibility";
+		set_value = "visible";
+	}
+
+	Element* pane = document->GetElementById(pane_id);
+	CHECK(ElementTransform(pane) == Matrix4f::Identity());
+
+	pane->SetProperty(set_property, set_value);
+	context->Update();
+	context->Render();
+
+	CHECK(ElementTransform(pane) == window_transform);
 
 	document->Close();
 	TestsShell::ShutdownShell();

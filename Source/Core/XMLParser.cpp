@@ -162,28 +162,23 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& att
 
 void XMLParser::HandleElementEnd(const String& _name)
 {
+	RMLUI_ASSERT(stack.size() >= 1);
 	RMLUI_ZoneScoped;
 	String name = StringUtilities::ToLower(_name);
 
-	// Copy the top of the stack
-	ParseFrame frame = stack.top();
-	// Pop the frame
+	ParseFrame frame = std::move(stack.top());
 	stack.pop();
-	// Restore active handler to the previous frame's child handler
+
 	active_handler = stack.top().child_handler;
 
-	// Check frame names
 	if (name != frame.tag)
 	{
 		Log::Message(Log::LT_ERROR, "Closing tag '%s' mismatched on %s:%d was expecting '%s'.", name.c_str(), GetSourceURL().GetURL().c_str(),
 			GetLineNumber(), frame.tag.c_str());
 	}
 
-	// Call element end handler
 	if (frame.node_handler)
-	{
 		frame.node_handler->ElementEnd(this, name);
-	}
 }
 
 void XMLParser::HandleData(const String& data, XMLDataType type)

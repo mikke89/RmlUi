@@ -13,11 +13,12 @@ namespace Rml {
 class TestPropertySpecification {
 public:
 	using SplitOption = PropertySpecification::SplitOption;
+	using ParsePropertyResult = PropertySpecification::ParsePropertyResult;
 	TestPropertySpecification(const PropertySpecification& specification) : specification(specification) {}
 
-	void ParsePropertyValues(StringList& values_list, const String& values, SplitOption split_option) const
+	ParsePropertyResult ParsePropertyValues(StringList& values_list, const String& values, SplitOption split_option) const
 	{
-		specification.ParsePropertyValues(values_list, values, split_option);
+		return specification.ParsePropertyValues(values_list, values, split_option);
 	}
 
 private:
@@ -49,6 +50,7 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 	Rml::Initialise();
 
 	using SplitOption = TestPropertySpecification::SplitOption;
+	using ParsePropertyResult = TestPropertySpecification::ParsePropertyResult;
 	const TestPropertySpecification& specification = TestPropertySpecification(StyleSheetSpecification::GetPropertySpecification());
 
 	struct Expected {
@@ -57,14 +59,16 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 		StringList values;
 	};
 
-	auto Parse = [&](const String& test_value, const Expected& expected, SplitOption split = SplitOption::Whitespace) {
+	auto Parse = [&](const String& test_value, const Expected& expected, SplitOption split = SplitOption::Whitespace,
+					 ParsePropertyResult expected_result = ParsePropertyResult::Success) {
 		StringList parsed_values;
-		specification.ParsePropertyValues(parsed_values, test_value, split);
+		ParsePropertyResult result = specification.ParsePropertyValues(parsed_values, test_value, split);
 		const String split_str[] = {"none", "whitespace", "comma"};
 
 		INFO("\n\tSplit:     ", split_str[(int)split], "\n\tInput:     ", test_value, "\n\tExpected: ", Stringify(expected.values),
-			"\n\tResult:   ", Stringify(parsed_values));
+			"\n\tParsed:   ", Stringify(parsed_values));
 		CHECK(parsed_values == expected.values);
+		CHECK(result == expected_result);
 	};
 
 	Parse("red", "red");
@@ -109,9 +113,9 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 	Parse("\"string with spaces\" two", {"string with spaces", "two"});
 	Parse("\"string with spaces\"two", {"string with spaces", "two"});
 
-	Parse("\"string\"two", {}, SplitOption::None);
-	Parse("one\"string\"", {}, SplitOption::None);
-	Parse("one \"string\"", {}, SplitOption::None);
+	Parse("\"string\"two", {}, SplitOption::None, ParsePropertyResult::Error);
+	Parse("one\"string\"", {}, SplitOption::None, ParsePropertyResult::Error);
+	Parse("one \"string\"", {}, SplitOption::None, ParsePropertyResult::Error);
 
 	Parse("\"string (with) ((parenthesis\" two", {"string (with) ((parenthesis", "two"});
 	Parse("\"none,,red\" two", {"none,,red", "two"});
@@ -151,7 +155,7 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 	Parse(R"(image("a\\\b"))", R"(image("a\\b"))");
 	Parse(R"(image("a\\\\b"))", R"(image("a\\b"))");
 
-	Parse(R"()", {});
+	Parse(R"()", {}, SplitOption::Whitespace, ParsePropertyResult::Error);
 	Parse(R"("")", R"()");
 	Parse(R"(" ")", R"( )");
 	Parse(R"("abc")", R"(abc)");
@@ -170,7 +174,7 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 	Parse(R"(' abc ')", R"( abc )");
 	Parse(R"('test'  none)", {R"(test)", R"(none)"});
 
-	Parse(R"()", {}, SplitOption::None);
+	Parse(R"()", {}, SplitOption::None, ParsePropertyResult::Error);
 	Parse(R"("")", R"()", SplitOption::None);
 	Parse(R"(" ")", R"( )", SplitOption::None);
 	Parse(R"("abc")", R"(abc)", SplitOption::None);
@@ -178,7 +182,7 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 	Parse(R"(" abc")", R"( abc)", SplitOption::None);
 	Parse(R"("abc ")", R"(abc )", SplitOption::None);
 	Parse(R"(" abc ")", R"( abc )", SplitOption::None);
-	Parse(R"("test"  none)", {}, SplitOption::None);
+	Parse(R"("test"  none)", {}, SplitOption::None, ParsePropertyResult::Error);
 
 	Parse(R"("","")", {R"("")", R"("")"}, SplitOption::Comma);
 	Parse(R"(" "," ")", {R"(" ")", R"(" ")"}, SplitOption::Comma);
@@ -189,6 +193,94 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 	Parse(R"(' ',' ')", {R"(' ')", R"(' ')"}, SplitOption::Comma);
 	Parse(R"(' ' , ' ')", {R"(' ')", R"(' ')"}, SplitOption::Comma);
 	Parse(R"( ' ' none, yes)", {R"(' ' none)", R"(yes)"}, SplitOption::Comma);
+
+	Parse("var(--x)", {}, SplitOption::None, ParsePropertyResult::ContainsVariable);
+	Parse("var(--x, 10px)", {}, SplitOption::None, ParsePropertyResult::ContainsVariable);
+	Parse("10px var(--x)", {}, SplitOption::Whitespace, ParsePropertyResult::ContainsVariable);
+	Parse("var(--x) var(--y)", {}, SplitOption::Whitespace, ParsePropertyResult::ContainsVariable);
+	Parse("var(--x), var(--y)", {}, SplitOption::Comma, ParsePropertyResult::ContainsVariable);
+	Parse("calc(var(--x) + 2px)", {}, SplitOption::None, ParsePropertyResult::ContainsVariable);
+	Parse("rgba(var(--r), 0, 0, 1)", {}, SplitOption::None, ParsePropertyResult::ContainsVariable);
+
+	Parse("var", "var", SplitOption::None, ParsePropertyResult::Success);
+	Parse("myvar(x)", "myvar(x)", SplitOption::None, ParsePropertyResult::Success);
+	Parse("avar(x)", "avar(x)", SplitOption::None, ParsePropertyResult::Success);
+	Parse("varx(--x)", "varx(--x)", SplitOption::None, ParsePropertyResult::Success);
+	Parse(R"V("var(--x)")V", R"V(var(--x))V", SplitOption::None, ParsePropertyResult::Success);
+
+	Parse("", {}, SplitOption::None, ParsePropertyResult::Error);
+	Parse("(unbalanced", {}, SplitOption::None, ParsePropertyResult::Error);
+	Parse(R"("unterminated)", {}, SplitOption::None, ParsePropertyResult::Error);
+	Parse(R"("a"b)", {}, SplitOption::None, ParsePropertyResult::Error);
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("PropertySpecification.ParsePropertyDeclaration.variables")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	Rml::Initialise();
+
+	SUBCASE("plain property")
+	{
+		auto ParseProperty = [](const String& name, const String& value, Unit expected_unit) {
+			INFO(name, ": ", value);
+			PropertyDictionary dictionary;
+			REQUIRE(StyleSheetSpecification::ParsePropertyDeclaration(dictionary, name, value));
+			REQUIRE(dictionary.GetProperties().size() == 1);
+			const Property& property = dictionary.GetProperties().begin()->second;
+			CHECK(property.unit == expected_unit);
+		};
+
+		ParseProperty("width", "10px", Unit::PX);
+		ParseProperty("width", "var(--w)", Unit::VAR_EXPRESSION);
+		ParseProperty("width", "calc(var(--w) * 2)", Unit::VAR_EXPRESSION);
+	}
+
+	SUBCASE("custom property")
+	{
+		auto ParseCustom = [](const String& name, const String& value, bool expected_result, Unit expected_unit) {
+			INFO(name, ": ", value);
+			PropertyDictionary dictionary;
+			CHECK(StyleSheetSpecification::ParsePropertyDeclaration(dictionary, name, value) == expected_result);
+			if (!expected_result)
+				return;
+			const Property* property = dictionary.GetCustomProperty(name);
+			CHECK(property->unit == expected_unit);
+		};
+
+		ParseCustom("--x", "10px", true, Unit::STRING);
+		ParseCustom("--x", "", true, Unit::STRING);
+		ParseCustom("--x", "var(--y)", true, Unit::VAR_EXPRESSION);
+		ParseCustom("--x", "calc(var(--y) + 2px)", true, Unit::VAR_EXPRESSION);
+		ParseCustom("--x", "(unbalanced", false, {});
+	}
+
+	SUBCASE("shorthand")
+	{
+		auto ParseShorthand = [](const String& name, const String& value, bool expected_variable) {
+			INFO(name, ": ", value);
+			PropertyDictionary dictionary;
+			REQUIRE(StyleSheetSpecification::ParsePropertyDeclaration(dictionary, name, value));
+			if (expected_variable)
+			{
+				REQUIRE(dictionary.GetVarShorthands().size() == 1);
+				const Property& property = dictionary.GetVarShorthands().begin()->second;
+				CHECK(property.unit == Unit::VAR_EXPRESSION);
+			}
+			else
+			{
+				CHECK(dictionary.GetVarShorthands().empty());
+			}
+		};
+
+		ParseShorthand("margin", "10px", false);
+		ParseShorthand("margin", "var(--m)", true);
+		ParseShorthand("margin", "10px var(--m)", true);
+	}
 
 	Rml::Shutdown();
 }

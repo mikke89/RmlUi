@@ -130,8 +130,6 @@ namespace Lua {
 		/** For calling a C closure with upvalues. Used by the functions defined by RegType
 		@return The value that RegType.func returns   */
 		static inline int thunk(lua_State* L);
-		/** String representation of the pointer. Called by the __tostring metamethod  */
-		static inline void tostring(char* buff, size_t buff_size, void* obj);
 		// these are metamethods
 		/** The __gc metamethod. If the object was pushed by push(lua_State*,T*,bool) with the third
 		argument as true, it will either decrease the reference count or call delete depending on if

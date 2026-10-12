@@ -10,7 +10,6 @@
 	#include <gl/Gl.h>
 	#include <gl/Glu.h>
 #elif defined RMLUI_PLATFORM_MACOSX
-	#include <AGL/agl.h>
 	#include <OpenGL/gl.h>
 	#include <OpenGL/glext.h>
 	#include <OpenGL/glu.h>

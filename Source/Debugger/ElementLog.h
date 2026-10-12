@@ -12,7 +12,7 @@ class DebuggerSystemInterface;
 
 class ElementLog : public ElementDebugDocument, public Rml::EventListener {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementLog, ElementDebugDocument)
+	RMLUI_RTTI_DeclareWithParent(ElementLog, ElementDebugDocument)
 
 	ElementLog(const String& tag);
 	~ElementLog();

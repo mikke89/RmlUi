@@ -20,8 +20,14 @@ bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name, int face_
 	return FontProvider::LoadFontFace(file_name, face_index, fallback_face, weight);
 }
 
-bool FontEngineInterfaceDefault::LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
-	bool fallback_face)
+bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name, int face_index, const String& font_family, Style::FontStyle style,
+	Style::FontWeight weight, bool fallback_face)
+{
+	return FontProvider::LoadFontFace(file_name, face_index, font_family, style, weight, fallback_face);
+}
+
+bool FontEngineInterfaceDefault::LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style,
+	Style::FontWeight weight, bool fallback_face)
 {
 	return FontProvider::LoadFontFace(data, face_index, font_family, style, weight, fallback_face);
 }

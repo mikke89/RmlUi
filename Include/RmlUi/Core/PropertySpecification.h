@@ -105,8 +105,9 @@ private:
 	PropertyIdSet property_ids_inherited;
 	PropertyIdSet property_ids_forcing_layout;
 
+	enum class ParsePropertyResult { Success, ContainsVariable, Error };
 	enum class SplitOption { None, Whitespace, Comma };
-	void ParsePropertyValues(StringList& values_list, const String& values, SplitOption split_option) const;
+	ParsePropertyResult ParsePropertyValues(StringList& values_list, const String& values, SplitOption split_option) const;
 
 	friend class Rml::StyleSheetSpecification;
 	friend class TestPropertySpecification;

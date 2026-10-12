@@ -85,6 +85,8 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 			content_area.y = BorderSizeToContentSize(content_area.y, border_padding_height);
 		}
 
+		max_size = Math::Max(min_size, max_size);
+
 		if (content_area.x >= 0)
 			content_area.x = Math::Clamp(content_area.x, min_size.x, max_size.x);
 		if (content_area.y >= 0)
@@ -440,7 +442,6 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 		else
 		{
 			content_area.x = GetShrinkToFitWidth(element, containing_block);
-			override_shrink_to_fit_width = content_area.x;
 		}
 	}
 	// Otherwise, the margins that are set to auto will pick up the remaining width of the containing block.

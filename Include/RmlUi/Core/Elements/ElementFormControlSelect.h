@@ -13,7 +13,7 @@ class WidgetDropDown;
 
 class RMLUICORE_API ElementFormControlSelect : public ElementFormControl {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementFormControlSelect, ElementFormControl)
+	RMLUI_RTTI_DeclareWithParent(ElementFormControlSelect, ElementFormControl)
 
 	/// Constructs a new ElementFormControlSelect. This should not be called directly; use the
 	/// Factory instead.

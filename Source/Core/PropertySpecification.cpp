@@ -12,6 +12,23 @@
 
 namespace Rml {
 
+static void SetShorthandPropertiesToPendingSubstitution(PropertyDictionary& dictionary, const ShorthandDefinition* shorthand_definition)
+{
+	for (const ShorthandItem& shorthand_item : shorthand_definition->items)
+	{
+		if (shorthand_item.type == ShorthandItemType::Property)
+		{
+			Property property;
+			property.unit = Unit::SHORTHAND_PLACEHOLDER;
+			dictionary.SetProperty(shorthand_item.property_id, property);
+		}
+		else if (shorthand_item.type == ShorthandItemType::Shorthand)
+		{
+			SetShorthandPropertiesToPendingSubstitution(dictionary, shorthand_item.shorthand_definition);
+		}
+	}
+}
+
 PropertySpecification::PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands) :
 	// Increment reserve numbers by one because the 'invalid' property occupies the first element
 	properties(reserve_num_properties + 1), shorthands(reserve_num_shorthands + 1),
@@ -154,6 +171,10 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 
 	property_shorthand->id = id;
 	property_shorthand->type = type;
+	property_shorthand->inherited = std::any_of(property_shorthand->items.begin(), property_shorthand->items.end(), [](const ShorthandItem& item) {
+		return (item.type == ShorthandItemType::Property && item.property_definition->IsInherited()) ||
+			(item.type == ShorthandItemType::Shorthand && item.shorthand_definition->inherited);
+	});
 
 	const size_t index = (size_t)id;
 
@@ -165,7 +186,7 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 
 	if (index < shorthands.size())
 	{
-		// We don't want to owerwrite an existing entry.
+		// We don't want to overwrite an existing entry.
 		if (shorthands[index])
 		{
 			Log::Message(Log::LT_ERROR, "The shorthand '%s' already exists, ignoring.", shorthand_name.c_str());
@@ -209,6 +230,23 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 	if (shorthand_id != ShorthandId::Invalid)
 		return ParseShorthandDeclaration(dictionary, shorthand_id, property_value);
 
+	if (StringUtilities::StartsWith(property_name, "--"))
+	{
+		Unit unit = {};
+		StringList property_values;
+		// Allow empty strings for custom properties, otherwise one has to specify an extra pair of quotes for an empty string with the API.
+		ParsePropertyResult parse_result =
+			(property_value.empty() ? ParsePropertyResult::Success : ParsePropertyValues(property_values, property_value, SplitOption::None));
+		switch (parse_result)
+		{
+		case ParsePropertyResult::Success: unit = Unit::STRING; break;
+		case ParsePropertyResult::ContainsVariable: unit = Unit::VAR_EXPRESSION; break;
+		case ParsePropertyResult::Error: return false;
+		}
+		dictionary.SetCustomProperty(property_name, Property{property_value, unit});
+		return true;
+	}
+
 	return false;
 }
 
@@ -220,9 +258,20 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 		return false;
 
 	StringList property_values;
-	ParsePropertyValues(property_values, property_value, SplitOption::None);
-	if (property_values.empty())
+	switch (ParsePropertyValues(property_values, property_value, SplitOption::None))
+	{
+	case ParsePropertyResult::Success: break;
+	case ParsePropertyResult::ContainsVariable:
+	{
+		dictionary.SetProperty(property_id, Property{property_value, Unit::VAR_EXPRESSION});
+		return true;
+	}
+	case ParsePropertyResult::Error:
+	{
 		return false;
+	}
+	}
+	RMLUI_ASSERT(!property_values.empty());
 
 	Property new_property;
 	if (!property_definition->ParseValue(new_property, property_values[0]))
@@ -242,9 +291,21 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		(shorthand_definition->type == ShorthandType::RecursiveCommaSeparated ? SplitOption::Comma : SplitOption::Whitespace);
 
 	StringList property_values;
-	ParsePropertyValues(property_values, property_value, split_option);
-	if (property_values.empty())
+	switch (ParsePropertyValues(property_values, property_value, split_option))
+	{
+	case ParsePropertyResult::Success: break;
+	case ParsePropertyResult::ContainsVariable:
+	{
+		dictionary.SetVarShorthand(shorthand_id, Property{property_value, Unit::VAR_EXPRESSION});
+		SetShorthandPropertiesToPendingSubstitution(dictionary, shorthand_definition);
+		return true;
+	}
+	case ParsePropertyResult::Error:
+	{
 		return false;
+	}
+	}
+	RMLUI_ASSERT(!property_values.empty());
 
 	// Handle the special behavior of the flex shorthand first, otherwise it acts like 'FallThrough'.
 	if (shorthand_definition->type == ShorthandType::Flex && !property_values.empty())
@@ -449,7 +510,8 @@ String PropertySpecification::PropertiesToString(const PropertyDictionary& dicti
 	return result;
 }
 
-void PropertySpecification::ParsePropertyValues(StringList& values_list, const String& values, const SplitOption split_option) const
+PropertySpecification::ParsePropertyResult PropertySpecification::ParsePropertyValues(StringList& values_list, const String& values,
+	const SplitOption split_option) const
 {
 	RMLUI_ASSERT(values_list.empty());
 
@@ -471,8 +533,19 @@ void PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 	};
 
 	auto IsAllWhitespace = [](const String& string) { return std::all_of(string.begin(), string.end(), StringUtilities::IsWhitespace); };
+	auto IsIdentifierChar = [](char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_'; };
+	auto EndsWithVariable = [&](const String& string) {
+		return StringUtilities::EndsWith(string, "var") && (string.size() == 3 || !IsIdentifierChar(string[string.size() - 4]));
+	};
 
-	auto Error = [&]() { values_list.clear(); };
+	auto Error = [&]() {
+		values_list.clear();
+		return ParsePropertyResult::Error;
+	};
+	auto ContainsVariable = [&]() {
+		values_list.clear();
+		return ParsePropertyResult::ContainsVariable;
+	};
 
 	enum ParseState { VALUE, VALUE_PARENTHESIS, VALUE_QUOTE, VALUE_QUOTE_ESCAPE_NEXT };
 	ParseState state = VALUE;
@@ -516,6 +589,8 @@ void PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 			}
 			else if (character == '(')
 			{
+				if (EndsWithVariable(value))
+					return ContainsVariable();
 				open_parentheses = 1;
 				value += character;
 				state = VALUE_PARENTHESIS;
@@ -530,6 +605,8 @@ void PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 		{
 			if (character == '(')
 			{
+				if (EndsWithVariable(value))
+					return ContainsVariable();
 				open_parentheses++;
 			}
 			else if (character == ')')
@@ -597,6 +674,11 @@ void PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 
 	if (!split_values && values_list.size() > 1)
 		return Error();
+
+	if (values_list.empty())
+		return ParsePropertyResult::Error;
+
+	return ParsePropertyResult::Success;
 }
 
 } // namespace Rml

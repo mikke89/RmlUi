@@ -23,7 +23,6 @@ protected:
 	const String& GetModifier() const;
 	DataExpression& GetExpression();
 
-	// Delete this
 	void Release() override;
 
 private:
@@ -148,7 +147,7 @@ private:
 class DataViewAlias final : public DataView {
 public:
 	DataViewAlias(Element* element);
-	virtual StringList GetVariableNameList() const override;
+	StringList GetVariableNameList() const override;
 	bool Update(DataModel& model) override;
 	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 

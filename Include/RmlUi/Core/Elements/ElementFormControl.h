@@ -11,7 +11,7 @@ namespace Rml {
 
 class RMLUICORE_API ElementFormControl : public Element {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementFormControl, Element)
+	RMLUI_RTTI_DeclareWithParent(ElementFormControl, Element)
 
 	/// Constructs a new ElementFormControl. This should not be called directly; use the Factory
 	/// instead.

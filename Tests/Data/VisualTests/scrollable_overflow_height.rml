@@ -1,0 +1,70 @@
+<rml>
+<head>
+	<title>Scrollable overflow - height sizing</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-overflow/#scrollable" />
+	<meta name="Description" content="Scrollable overflow across height-sizing modes." />
+	<meta name="Assert" content="The 'auto height + horizontal overflow' boxes should grow to fit the horizontal scrollbar." />
+	<meta name="Assert" content="The max-height cases should clamp to produce a vertical scrollbar, whose scrollable region includes trailing child margins and container end padding." />
+	<meta name="Assert" content="Block and flex cases should look identical." />
+	<style>
+		body { color: #222; font-size: 13dp; }
+		h1 { font-weight: bold; margin: 1.0em 0 0.3em; padding-bottom: 2dp; border-bottom: 1dp #999; }
+		.cases { display: flex; flex-wrap: wrap; align-items: flex-start; }
+		.case { margin: 0 16dp 8dp 0; }
+		.case p { font-size: 0.8em; color: #555; margin: 0 0 2dp; }
+
+		.scroller {
+			width: 120dp;
+			border: 2dp #383;
+			background: #dfd;
+			overflow: auto;
+		}
+		.col { display: flex; flex-direction: column; }
+		.row { display: flex; flex-direction: row; }
+
+		.child {
+			flex-shrink: 0;
+			width: 80dp;
+			height: 60dp;
+			background: #fc8;
+			border: 1dp #a50;
+		}
+		.tall { height: 140dp; }
+		.wide { width: 240dp; }
+
+		.height-fixed { height: 80dp; }
+		.height-auto { height: auto; }
+		.height-min { height: auto; min-height: 130dp; }
+		.height-max { height: auto; max-height: 80dp; }
+
+		/* Container end padding + child trailing margin, to check they are part of the clamped scroll region. */
+		.padded { padding-bottom: 20dp; padding-right: 20dp; }
+		.padded .child { margin-bottom: 20dp; margin-right: 20dp; }
+	</style>
+</head>
+
+<body>
+<h1>Block</h1>
+<div class="cases">
+	<div class="case"><p>fixed height, vertical overflow</p><div class="scroller height-fixed"><div class="child tall"/></div></div>
+	<div class="case"><p>auto height, horizontal overflow</p><div class="scroller height-auto"><div class="child wide"/></div></div>
+	<div class="case"><p>auto height, fits (no scrollbar)</p><div class="scroller height-auto"><div class="child"/></div></div>
+	<div class="case"><p>min-height (box grows to min)</p><div class="scroller height-min"><div class="child"/></div></div>
+	<div class="case"><p>max-height, vertical overflow</p><div class="scroller height-max"><div class="child tall"/></div></div>
+	<div class="case"><p>max-height + margin/padding</p><div class="scroller height-max padded"><div class="child tall"/></div></div>
+</div>
+
+<h1>Flex</h1>
+<div class="cases">
+	<div class="case"><p>fixed height, vertical overflow</p><div class="scroller col height-fixed"><div class="child tall"/></div></div>
+	<div class="case"><p>auto height, horizontal overflow</p><div class="scroller row height-auto"><div class="child wide"/></div></div>
+	<div class="case"><p>auto height, fits (no scrollbar)</p><div class="scroller col height-auto"><div class="child"/></div></div>
+	<div class="case"><p>min-height (box grows to min)</p><div class="scroller col height-min"><div class="child"/></div></div>
+	<div class="case"><p>max-height, vertical overflow</p><div class="scroller col height-max"><div class="child tall"/></div></div>
+	<div class="case"><p>max-height + margin/padding</p><div class="scroller col height-max padded"><div class="child tall"/></div></div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

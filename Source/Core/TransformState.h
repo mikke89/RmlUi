@@ -10,7 +10,7 @@ public:
 	// Returns true if transform was changed.
 	bool SetTransform(const Matrix4f* in_transform);
 
-	// Returns true if local perspecitve was changed.
+	// Returns true if local perspective was changed.
 	bool SetLocalPerspective(const Matrix4f* in_perspective);
 
 	const Matrix4f* GetTransform() const;

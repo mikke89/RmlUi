@@ -14,7 +14,7 @@ class DebuggerPlugin;
 
 class ElementContextHook : public ElementDebugDocument {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementContextHook, ElementDebugDocument)
+	RMLUI_RTTI_DeclareWithParent(ElementContextHook, ElementDebugDocument)
 
 	ElementContextHook(const String& tag);
 	virtual ~ElementContextHook();

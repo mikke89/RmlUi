@@ -12,7 +12,7 @@ namespace Rml {
 
 class RMLUICORE_API ElementHandle : public Element {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementHandle, Element)
+	RMLUI_RTTI_DeclareWithParent(ElementHandle, Element)
 
 	ElementHandle(const String& tag);
 	virtual ~ElementHandle();

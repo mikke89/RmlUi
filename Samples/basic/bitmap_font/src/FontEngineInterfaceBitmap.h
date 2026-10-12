@@ -36,6 +36,9 @@ public:
 	/// Called by RmlUi when it wants to load a font face from file.
 	bool LoadFontFace(const String& file_name, int face_index, bool fallback_face, FontWeight weight) override;
 
+	/// Called by RmlUi when it wants to load a font face from file, registered using the provided family, style, and weight.
+	bool LoadFontFace(const String& file_name, int face_index, const String& family, FontStyle style, FontWeight weight, bool fallback_face) override;
+
 	/// Called by RmlUi when it wants to load a font face from memory, registered using the provided family, style, and weight.
 	/// @param[in] data A pointer to the data.
 	bool LoadFontFace(Span<const byte> data, int face_index, const String& family, FontStyle style, FontWeight weight, bool fallback_face) override;

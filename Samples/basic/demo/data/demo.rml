@@ -523,6 +523,11 @@ progress {
 	background-color: #aca;
 	color: #999;
 }
+#controls textarea:placeholder-shown
+{
+	font-effect: outline(2dp #aba);
+	color: #fafafa;
+}
 
 
 /***  Sandbox  ***/
@@ -546,11 +551,26 @@ progress {
 {
 	background-color: transparent;
 }
+
+/* font-face sample */
+@font-face
+{
+	font-family: "monospace";
+	src: "/assets/RobotoMono-Regular.ttf", "/assets/RobotoMono-Bold.ttf";
+}
+
+@font-face
+{
+	font-family: "monospace";
+	src: "/assets/RobotoMono-Italic.ttf", "/assets/RobotoMono-BoldItalic.ttf";
+	font-style: italic;
+}
+
 #sandbox textarea
 {
 	font-size: 13dp;
 	color: #222;
-	font-family: rmlui-debugger-font;
+	font-family: monospace;
 	box-sizing: border-box;
 	width: 100%;
 	height: 100%;
@@ -838,12 +858,12 @@ form .nav-auto, form input.checkbox, form input.radio
 	<form onsubmit="submit_form">
 		<h2>Full name</h2>
 		<div>
-			<input class="two-wide" type="text" name="name"/>
+			<input class="two-wide" type="text" name="name" placeholder="Full name"/>
 		</div>
 		<h2>Email and password</h2>
 		<div>
-			<input type="text" name="email" class="nav-auto"/>
-			<input type="password" name="password" class="nav-auto"/>
+			<input type="text" name="email" class="nav-auto" placeholder="Email"/>
+			<input type="password" name="password" class="nav-auto" placeholder="Password"/>
 		</div>
 		<h2>Favorite animal</h2>
 		<div>
@@ -874,7 +894,9 @@ form .nav-auto, form input.checkbox, form input.radio
 		</div>
 		<h2>Message</h2>
 		<div>
-			<textarea cols="25" rows="4" name="message">😍 Hello 🌐 World! 😎</textarea>
+<textarea cols="25" rows="4" name="message" placeholder="Type
+your message
+here.">😍 Hello 🌐 World! 😎</textarea>
 		</div>
 		<div style="margin-bottom: 15dp;">
 			<input type="submit">Submit</input>

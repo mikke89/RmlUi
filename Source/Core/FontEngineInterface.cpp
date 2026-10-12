@@ -16,8 +16,14 @@ bool FontEngineInterface::LoadFontFace(const String& /*file_path*/, int /*face_i
 	return false;
 }
 
-bool FontEngineInterface::LoadFontFace(Span<const byte> /*data*/, int /*face_index*/, const String& /*family*/, Style::FontStyle /*style*/, Style::FontWeight /*weight*/,
-	bool /*fallback_face*/)
+bool FontEngineInterface::LoadFontFace(const String& /*file_path*/, int /*face_index*/, const String& /*family*/, Style::FontStyle /*style*/,
+	Style::FontWeight /*weight*/, bool /*fallback_face*/)
+{
+	return false;
+}
+
+bool FontEngineInterface::LoadFontFace(Span<const byte> /*data*/, int /*face_index*/, const String& /*family*/, Style::FontStyle /*style*/,
+	Style::FontWeight /*weight*/, bool /*fallback_face*/)
 {
 	return false;
 }

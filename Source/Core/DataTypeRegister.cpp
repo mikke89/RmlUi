@@ -31,7 +31,7 @@ DataTypeRegister::DataTypeRegister()
 		//   0 : number     Number to format.
 		//   1 : int[0,32]  Precision. Number of digits after the decimal point.
 		//  [2]: bool       True to remove trailing zeros (default = false).
-		if (arguments.empty() || arguments.size() > 3)
+		if (arguments.size() < 2 || arguments.size() > 3)
 		{
 			Log::Message(Log::LT_WARNING, "Transform function 'format' requires at least two arguments, at most three arguments.");
 			return {};

@@ -27,6 +27,7 @@ This directory contains basic applications that demonstrate initialisation, usag
 - `svg` Render SVG images, only enabled with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html).
 - `transform` Demonstration of transforms.
 - `tree_view` Using data bindings to create a file browser.
+- `variables` RCSS variables and custom properties.
 
 #### `invaders`
 

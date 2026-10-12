@@ -108,8 +108,11 @@ public:
     Lifetime governed by the calls to Backend::Initialize() and Backend::Shutdown().
  */
 struct BackendData {
+	BackendData(SDL_Window* window) : system_interface(window) {}
+
 	SystemInterface_SDL system_interface;
 	RenderInterface_GL3_SDL render_interface;
+	TextInputMethodEditor_SDL text_input_method_editor;
 
 	SDL_Window* window = nullptr;
 	SDL_GLContext glcontext = nullptr;
@@ -123,9 +126,11 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	RMLUI_ASSERT(!data);
 
 #if SDL_MAJOR_VERSION >= 3
+	SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "composition");
 	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 		return false;
 #else
+	SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
 		return false;
 #endif
@@ -141,23 +146,23 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 #endif
 
 #if defined(RMLUI_PLATFORM_EMSCRIPTEN)
-    // GLES 3.0 (WebGL 2.0)
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	// GLES 3.0 (WebGL 2.0)
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #elif defined(__ANDROID__)
-    // GLES 3.2 on Android
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+	// GLES 3.2 on Android
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 #else
-    // GL 3.3 Core
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	// GL 3.3 Core
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 #endif
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -198,7 +203,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 		return false;
 	}
 
-	data = Rml::MakeUnique<BackendData>();
+	data = Rml::MakeUnique<BackendData>(window);
 
 	if (!data->render_interface)
 	{
@@ -210,8 +215,9 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	data->window = window;
 	data->glcontext = glcontext;
 
-	data->system_interface.SetWindow(window);
 	data->render_interface.SetViewport(width, height);
+
+	Rml::SetTextInputHandler(&data->text_input_method_editor);
 
 	return true;
 }
@@ -220,15 +226,18 @@ void Backend::Shutdown()
 {
 	RMLUI_ASSERT(data);
 
+    SDL_Window* window = data->window;
+    SDL_GLContext glcontext = data->glcontext;
+
+    data.reset();
+
 #if SDL_MAJOR_VERSION >= 3
-	SDL_GL_DestroyContext(data->glcontext);
+	SDL_GL_DestroyContext(glcontext);
 #else
-	SDL_GL_DeleteContext(data->glcontext);
+	SDL_GL_DeleteContext(glcontext);
 #endif
 
-	SDL_DestroyWindow(data->window);
-
-	data.reset();
+	SDL_DestroyWindow(window);
 
 	SDL_Quit();
 }
@@ -270,6 +279,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	auto GetDisplayScale = []() { return SDL_GetWindowDisplayScale(data->window); };
 	constexpr auto event_quit = SDL_EVENT_QUIT;
 	constexpr auto event_key_down = SDL_EVENT_KEY_DOWN;
+	constexpr auto event_text_editing = SDL_EVENT_TEXT_EDITING;
 	constexpr auto event_window_size_changed = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED;
 	bool has_event = false;
 #else
@@ -286,6 +296,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	auto GetDisplayScale = []() { return 1.f; };
 	constexpr auto event_quit = SDL_QUIT;
 	constexpr auto event_key_down = SDL_KEYDOWN;
+	constexpr auto event_text_editing = SDL_TEXTEDITING;
 	constexpr auto event_window_size_changed = SDL_WINDOWEVENT_SIZE_CHANGED;
 	int has_event = 0;
 #endif
@@ -326,6 +337,12 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 			// The key was not consumed by the context either, try keyboard shortcuts of lower priority.
 			if (key_down_callback && !key_down_callback(context, key, key_modifier, native_dp_ratio, false))
 				break;
+		}
+		break;
+		case event_text_editing:
+		{
+			propagate_event = false;
+			data->text_input_method_editor.HandleEdit(ev.edit);
 		}
 		break;
 

@@ -1,3 +1,4 @@
+* [RmlUi 6.3](#rmlui-63)
 * [RmlUi 6.2](#rmlui-62)
 * [RmlUi 6.1](#rmlui-61)
 * [RmlUi 6.0](#rmlui-60)
@@ -13,6 +14,185 @@
 * [RmlUi 3.1](#rmlui-31)
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
+
+## RmlUi 6.3
+
+### RCSS variables and custom properties
+
+Custom properties and variables are now supported in RCSS, and are generally compatible with their CSS counterparts. #388 #517 #937 #947 #951 #974 (thanks @Dakror, @mupersega, @geforcefan)
+
+- Custom properties are defined like in CSS: `--my-var: some-value`.
+- Cascading and inheritance work as expected.
+- Variables (`var(--my-var)`) can be used in plain properties, custom properties, and shorthands. They are resolved at compute time.
+- Animations and transitions are supported.
+- Fallbacks are supported for missing variables, and cycles are detected.
+- The debugger is updated to show variables in properties and shorthands.
+- Features a new sample: `rmlui_sample_variables`. See a screenshot below.
+
+Please see the [full documentation here](https://mikke89.github.io/RmlUiDoc/pages/rcss/custom_properties.html).
+
+Some minor differences from CSS:
+
+- Custom properties themselves cannot be animated. However, plain properties and shorthands with variables *can* be animated.
+- Variable fallbacks are supported, except they are only used for missing values, not for cycles.
+- There are still some edge cases not fully handled, see open issues and pull requests for details.
+
+<img width="897" height="601" alt="image" src="https://github.com/user-attachments/assets/a20d14a4-3aeb-486e-af66-83a310a45a2b" />
+
+### New backends
+
+Two completely new fully-featured renderers:
+
+- DirectX 12. New backends: `Win32_DX12`, `SDL_DX12`, and `GLFW_DX12`. #648 #975 (thanks @wh1t3lord)
+- DirectX 11. New backends: `Win32_DX11` and `GLFW_DX11`. #675 (thanks @hyblocker)
+
+Additionally, a native Wayland platform has been added, featuring the `Wayland_GL3` backend. #961 (thanks @Third-Thing)
+
+### Existing backends
+
+- Add input method editor (IME) support to the SDL backends. #928 (thanks @MirageCode)
+  - Try it on the IME sample by additionally enabling the CMake option `RMLUI_IME_SAMPLE_USE_NOTO_FONTS`. This option downloads the required Noto fonts at build time.
+- SDL GPU: Switch to repeat sampling, which fixes rendering of image decorators set to repeat. #907 (thanks @GlaireDaggers)
+- SDL GPU: Fix a missing virtual destructor in the renderer. #926 (thanks @Jiboo)
+- SDL_GL3: Fix a crash on Wayland during `Backend::Shutdown`. #933 (thanks @xjtsnc)
+- SDLrenderer: Fix context dimensions when `SDL_SetRenderLogicalPresentation` is enabled. #889 (thanks @Igorantivirus)
+- SDLrenderer: Use a reusable allocation buffer for `sdl_vertices`. #892 (thanks @silbinarywolf)
+- The SDL and GLFW system interfaces now require their respective windows to be passed during construction. #891
+- OpenGL 2 renderer: Fix textures occasionally rendering black.
+
+### Text input placeholder
+
+Text input fields now support placeholder text, which is shown when the widget's value is empty (#868):
+
+- Placeholder text is set using the `placeholder` attribute.
+- An element holding a placeholder can be styled with the `:placeholder-shown` pseudo class.
+
+### RCSS `@font-face` rule
+
+Add support for `@font-face` in RCSS, as an alternate, user-facing method of specifying fonts. #929 (thanks @Paril)
+
+This is the first, base level support which simply wraps the original `Rml::LoadFontFace` function. Example:
+
+```css
+@font-face  {
+	font-family: "monospace";
+	src: "assets/RobotoMono-Italic.ttf", "assets/RobotoMono-BoldItalic.ttf";
+	font-style: italic;
+}
+```
+
+### Navigation and scrolling to elements
+
+- Navigation and tabbing now use a new adaptive scroll-into-view mode, `ScrollAlignment::Adaptive`. This mode avoids scrolling when the target is already in view. Otherwise, it is aligned to the center of the scroll container.
+- Add [`nav: tree-order`](https://mikke89.github.io/RmlUiDoc/pages/rcss/user_interface.html#nav) value for navigating in document tree order.
+  - For situations where the document tree order better reflects the navigation direction, such as when elements are not spatially well-defined or nicely gridded.
+  - This mode works across scroll containers, as opposed to `nav: auto`.
+  - This mode does not wrap around the document root, as opposed to tabbing.
+- Add `ScrollFlag` to `ElementDocument::Show` to control whether the focused element is scrolled into view when showing the document. #875
+
+### Layout improvements
+
+Improve the scroll area of scroll containers to better align with CSS. Margins of direct children of scroll containers now contribute to the scroll area, which visually helps provide more spacing around children. Additionally, horizontal scrollbars now contribute to the height of block boxes with automatic height. #941 (thanks @encounter)
+
+Here is a comparison between the old and new RmlUi behavior, as well as Firefox:
+
+<img width="1468" height="646" alt="image" src="https://github.com/user-attachments/assets/a6afd83c-280d-442d-94d5-1ae228e8ddf9" />
+
+*Note*: This may lead to some new situations where a scroll bar appears. And the scroll area may become larger in some cases.
+
+### Data bindings
+
+- Add option to allow missing data variables when calling `Context::CreateDataModel`. This allows variables to be bound after document load. #912 (thanks @espkk)
+- Add data model events `Plugin::OnDataModelCreate` and `Plugin::OnDataModelDestroy` to the plugin API. #932 (thanks @espkk)
+- Data variable reflection now also works for pointer definitions, allowing their values to be shown in the Debugger. #927
+- Fix `data-value` responding to `change` events in descendant elements.
+- Fix a crash when calling data function `format` without all required arguments. #944
+
+### Lua plugin
+
+The Lua data model implementation has been reworked. This effectively makes defining data models directly in Lua scripts functional. See the `lua_invaders` sample for an example. #945 (thanks @MirageCode)
+
+### Transforms
+
+- Solve an issue where transform updates would be applied in the incorrect order, leading to some elements rendering with an incorrect transform applied. #919
+- The `transform` and `perspective` properties now form a local stacking context, matching CSS behavior. This fixes some scenarios where transforms would not inherit correctly down the element tree.
+- Fix `transform` and `perspective` not always being recalculated when an element changes size.
+- Fix some situations where an element's exit effects would have an incorrect transform applied. #886
+- Fix an assertion when interpolating between an identity transform and `rotate3d`.
+- Fix an interim issue where an element's transform was not being applied after turning visible. #982 (thanks @0x4d696e68)
+
+### Elements
+
+- Scale intrinsic sizes of elements by the dp-ratio and line-height as appropriate. Applies to several form controls. #917 (thanks @irrld)
+- Fix the text widget cursor not always scrolling all the way to the edge after a text change.
+- Fix an out-of-bounds access in the text input widget when used before formatting. #958
+- Fix a crash from inifinite recursion when the document body has a minimum size greater than its maximum size. #938 (thanks @barotto)
+- Fix a crash when retrieving the bounding box with the `box-shadow: none` property specified. #904
+- Fix an interim regression where virtual keyboard would not be hidden on mobile devices. #953 (thanks @encounter)
+
+### RCSS
+
+- Allow escaping characters in RCSS selector rules. #615 #922 (thanks @EastArctica)
+  - This now works: `.width-\[10\] { width: 10px; }` combined with `<div class="width-[10]"></div>`.
+- Fix parsing of RCSS comments ending with `**/`. #905 (thanks @tretre91)
+
+### RML
+
+- Fix a crash when there are more XML closing tags than open tags.
+
+### Rendering
+
+- Skip invalid clip geometry to avoid a render manager assertion. #958
+- Avoid creating geometry for empty meshes. A small optimization which helps particularly for undecorated elements.
+
+### Debugger
+
+- Fix an issue where power saving mode could lead to the element info not being auto-updated.
+- The Debugger plugin can now be re-initialized multiple times. #952
+
+### Developer experience
+
+- The FreeType interface now prints error messages in debug mode. #893 (thanks @miss-programgamer)
+- Loading a duplicate font is no longer considered an error. #952
+- Add `PropertyIdSet` to the [`natvis` visualization file](Utilities/natvis/RmlUi.natvis).
+
+### Undefined behavior and sanitizers
+
+- Fix undefined behavior after `~ElementDocument` with children. #968
+- Fix the scroll element destruction order within `~Element`. #968
+- Add address sanitizer support for pools, through memory poisoning.
+- Add address sanitizer and undefined behavior sanitizer builds to CI.
+
+### Runtime type identification (RTTI)
+
+Extend the custom RTTI implementation and make it always enabled. #979 (thanks @forenoonwatch)
+
+- Language RTTI is now only used for debug asserts and for logging type names, when detected.
+- Language RTTI is now detected automatically, and the CMake option `RMLUI_CUSTOM_RTTI` has been removed.
+- Fixes custom RTTI in some environments, particularly with Clang on Windows when using shared libraries.
+- Adds an extra virtual method `GetClassIdentifier`, to facilitate building mappings against the type identifier.
+
+### Build
+
+- Bump to C++17 as the minimum requirement, as announced in the previous release.
+- Fix CMake backend `native` auto-selection on Windows. #930 (thanks @mupersega)
+- Add a missing `<type_traits>` include. #967 (thanks @hatrickek)
+- Fix building on macOS 26 with the OpenGL 2 renderer.
+- Binary packages are now built using Visual Studio 18 2026.
+
+### Breaking changes
+
+- C++17 is now required to build RmlUi.
+- Layouts may change due to the improved scroll area of scroll containers, please see the "layout improvements" above.
+- Layouts may change due to intrinsic sizes of form controls now being scaled by the dp-ratio and line-height.
+- The SDL and GLFW platform's system interfaces now require the window to be set before use.
+- The CMake option `RMLUI_CUSTOM_RTTI` has been removed, RTTI support is now detected automatically.
+- Changed the signature of `Element::IterateLocalProperties()`, please see the docstring for details.
+
+### Deprecation notice
+
+- The renderer `SDLrenderer` is deprecated as of this release, and will be removed in the future. Consider moving to the `SDL GPU` renderer together with SDL 3, which is still fully supported.
+
 
 ## RmlUi 6.2
 

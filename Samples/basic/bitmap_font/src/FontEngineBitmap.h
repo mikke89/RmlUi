@@ -11,7 +11,7 @@ using Rml::TextureSource;
 namespace FontProviderBitmap {
 void Initialise();
 void Shutdown();
-bool LoadFontFace(const String& file_name);
+bool LoadFontFace(const String& file_name, const String& family = "");
 FontFaceBitmap* GetFontFaceHandle(const String& family, FontStyle style, FontWeight weight, int size);
 } // namespace FontProviderBitmap
 

@@ -7,6 +7,7 @@
 #include "../../Include/RmlUi/Core/Filter.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "ElementStyle.h"
 
 namespace Rml {
 
@@ -45,7 +46,7 @@ void ElementEffects::InstanceEffects()
 
 		for (const auto id : {PropertyId::Decorator, PropertyId::MaskImage})
 		{
-			const Property* property = element->GetLocalProperty(id);
+			const Property* property = element->GetStyle()->GetLocalPropertyWithResolvedVariables(id);
 			if (!property || property->unit != Unit::DECORATOR)
 				continue;
 
@@ -94,7 +95,7 @@ void ElementEffects::InstanceEffects()
 	{
 		for (const auto id : {PropertyId::Filter, PropertyId::BackdropFilter})
 		{
-			const Property* property = element->GetLocalProperty(id);
+			const Property* property = element->GetStyle()->GetLocalPropertyWithResolvedVariables(id);
 			if (!property || property->unit != Unit::FILTER)
 				continue;
 

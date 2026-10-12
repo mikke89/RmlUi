@@ -9,6 +9,7 @@ struct PluginVectors {
 	Vector<Plugin*> basic;
 	Vector<Plugin*> document;
 	Vector<Plugin*> element;
+	Vector<Plugin*> data_model;
 };
 
 static ControlledLifetimeResource<PluginVectors> plugin_vectors;
@@ -33,10 +34,17 @@ void PluginRegistry::RegisterPlugin(Plugin* plugin)
 		plugin_vectors->document.push_back(plugin);
 	if (event_classes & Plugin::EVT_ELEMENT)
 		plugin_vectors->element.push_back(plugin);
+	if (event_classes & Plugin::EVT_DATA_MODEL)
+		plugin_vectors->data_model.push_back(plugin);
 }
 
 void PluginRegistry::UnregisterPlugin(Plugin* plugin)
 {
+	// Safe to call after NotifyShutdown() (e.g. from a plugin destructor): the backing storage has been released
+	// and there is nothing left to unregister.
+	if (!plugin_vectors)
+		return;
+
 	auto erase_value = [](Vector<Plugin*>& container, Plugin* value) {
 		container.erase(std::remove(container.begin(), container.end(), value), container.end());
 	};
@@ -48,6 +56,8 @@ void PluginRegistry::UnregisterPlugin(Plugin* plugin)
 		erase_value(plugin_vectors->document, plugin);
 	if (event_classes & Plugin::EVT_ELEMENT)
 		erase_value(plugin_vectors->element, plugin);
+	if (event_classes & Plugin::EVT_DATA_MODEL)
+		erase_value(plugin_vectors->data_model, plugin);
 }
 
 void PluginRegistry::NotifyInitialise()
@@ -110,6 +120,18 @@ void PluginRegistry::NotifyElementDestroy(Element* element)
 {
 	for (Plugin* plugin : plugin_vectors->element)
 		plugin->OnElementDestroy(element);
+}
+
+void PluginRegistry::NotifyDataModelCreate(Context* context, const String& name)
+{
+	for (Plugin* plugin : plugin_vectors->data_model)
+		plugin->OnDataModelCreate(context, name);
+}
+
+void PluginRegistry::NotifyDataModelDestroy(Context* context, const String& name)
+{
+	for (Plugin* plugin : plugin_vectors->data_model)
+		plugin->OnDataModelDestroy(context, name);
 }
 
 } // namespace Rml

@@ -4,6 +4,8 @@
 namespace Rml {
 namespace Debugger {
 
+RMLUI_RTTI_Define(ElementContextHook)
+
 ElementContextHook::ElementContextHook(const String& tag) : ElementDebugDocument(tag)
 {
 	debugger = nullptr;

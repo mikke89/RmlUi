@@ -64,6 +64,19 @@ TEST_CASE("debugger")
 		TestsShell::RenderLoop();
 	}
 
+	SUBCASE("repeated_initialise")
+	{
+		Rml::Debugger::Initialise(context);
+		TestsShell::RenderLoop();
+		Rml::Debugger::Shutdown();
+
+		TestsShell::RenderLoop();
+
+		Rml::Debugger::Initialise(context);
+		TestsShell::RenderLoop();
+		Rml::Debugger::Shutdown();
+	}
+
 	TestsShell::ShutdownShell();
 }
 

@@ -1,4 +1,5 @@
 #include "InputTypeRange.h"
+#include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControlInput.h"
 #include "WidgetSlider.h"
 
@@ -66,6 +67,7 @@ void InputTypeRange::ProcessDefaultAction(Event& /*event*/) {}
 bool InputTypeRange::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {
 	widget->GetDimensions(dimensions);
+	dimensions *= ElementUtilities::GetDensityIndependentPixelRatio(element);
 	return true;
 }
 

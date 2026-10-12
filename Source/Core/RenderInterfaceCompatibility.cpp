@@ -66,7 +66,7 @@ CompiledGeometryHandle RenderInterfaceAdapter::CompileGeometry(Span<const Vertex
 	Vector<Vertex> vertices_unpremultiplied(vertices.begin(), vertices.end());
 	for (size_t i = 0; i < vertices.size(); i++)
 	{
-		UnPremultiplyAlpha(vertices[i].colour, vertices_unpremultiplied[i].colour);
+		UnPremultiplyAlpha(&vertices[i].colour[0], &vertices_unpremultiplied[i].colour[0]);
 	}
 
 	Vector<int> indices_copy(indices.begin(), indices.end());

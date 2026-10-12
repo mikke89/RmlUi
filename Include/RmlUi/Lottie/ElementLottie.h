@@ -13,7 +13,7 @@ namespace Rml {
 
 class RMLUICORE_API ElementLottie : public Element {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementLottie, Element)
+	RMLUI_RTTI_DeclareWithParent(ElementLottie, Element)
 
 	ElementLottie(const String& tag);
 	virtual ~ElementLottie();

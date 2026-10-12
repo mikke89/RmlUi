@@ -4,7 +4,7 @@
 
 namespace Rml {
 
-PropertiesIteratorView::PropertiesIteratorView(UniquePtr<PropertiesIterator> ptr) : ptr(std::move(ptr)) {}
+PropertiesIteratorView::PropertiesIteratorView(UniquePtr<AllPropertiesIterator> ptr) : ptr(std::move(ptr)) {}
 
 PropertiesIteratorView::PropertiesIteratorView(PropertiesIteratorView&& other) noexcept : ptr(std::move(other.ptr)) {}
 
@@ -22,24 +22,14 @@ PropertiesIteratorView& PropertiesIteratorView::operator++()
 	return *this;
 }
 
-PropertyId PropertiesIteratorView::GetId() const
-{
-	return (*(*ptr)).first;
-}
-
-const String& PropertiesIteratorView::GetName() const
-{
-	return StyleSheetSpecification::GetPropertyName(GetId());
-}
-
-const Property& PropertiesIteratorView::GetProperty() const
-{
-	return (*(*ptr)).second;
-}
-
 bool PropertiesIteratorView::AtEnd() const
 {
 	return ptr->AtEnd();
+}
+
+Pair<String, const Property&> PropertiesIteratorView::operator*() const
+{
+	return *(*ptr);
 }
 
 } // namespace Rml

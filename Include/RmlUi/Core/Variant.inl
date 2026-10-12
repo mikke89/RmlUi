@@ -19,52 +19,52 @@ Variant& Variant::operator=(T&& t)
 	return *this;
 }
 
-template <typename T, typename std::enable_if_t<!std::is_enum<T>::value, int>>
+template <typename T>
 bool Variant::GetInto(T& value) const
 {
-	switch (type)
+	if constexpr (std::is_enum_v<T>)
 	{
-	case BOOL: return TypeConverter<bool, T>::Convert(*reinterpret_cast<const bool*>(data), value);
-	case BYTE: return TypeConverter<byte, T>::Convert(*reinterpret_cast<const byte*>(data), value);
-	case CHAR: return TypeConverter<char, T>::Convert(*reinterpret_cast<const char*>(data), value);
-	case FLOAT: return TypeConverter<float, T>::Convert(*reinterpret_cast<const float*>(data), value);
-	case DOUBLE: return TypeConverter<double, T>::Convert(*reinterpret_cast<const double*>(data), value);
-	case INT: return TypeConverter<int, T>::Convert(*reinterpret_cast<const int*>(data), value);
-	case INT64: return TypeConverter<int64_t, T>::Convert(*reinterpret_cast<const int64_t*>(data), value);
-	case UINT: return TypeConverter<unsigned int, T>::Convert(*reinterpret_cast<const unsigned int*>(data), value);
-	case UINT64: return TypeConverter<uint64_t, T>::Convert(*reinterpret_cast<const uint64_t*>(data), value);
-	case STRING: return TypeConverter<String, T>::Convert(*reinterpret_cast<const String*>(data), value);
-	case VECTOR2: return TypeConverter<Vector2f, T>::Convert(*reinterpret_cast<const Vector2f*>(data), value);
-	case VECTOR3: return TypeConverter<Vector3f, T>::Convert(*reinterpret_cast<const Vector3f*>(data), value);
-	case VECTOR4: return TypeConverter<Vector4f, T>::Convert(*reinterpret_cast<const Vector4f*>(data), value);
-	case COLOURF: return TypeConverter<Colourf, T>::Convert(*reinterpret_cast<const Colourf*>(data), value);
-	case COLOURB: return TypeConverter<Colourb, T>::Convert(*reinterpret_cast<const Colourb*>(data), value);
-	case SCRIPTINTERFACE: return TypeConverter<ScriptInterface*, T>::Convert(*reinterpret_cast<ScriptInterface* const*>(data), value);
-	case VOIDPTR: return TypeConverter<void*, T>::Convert(*reinterpret_cast<void* const*>(data), value);
-	case TRANSFORMPTR: return TypeConverter<TransformPtr, T>::Convert(*reinterpret_cast<const TransformPtr*>(data), value);
-	case TRANSITIONLIST: return TypeConverter<TransitionList, T>::Convert(*reinterpret_cast<const TransitionList*>(data), value);
-	case ANIMATIONLIST: return TypeConverter<AnimationList, T>::Convert(*reinterpret_cast<const AnimationList*>(data), value);
-	case DECORATORSPTR: return TypeConverter<DecoratorsPtr, T>::Convert(*reinterpret_cast<const DecoratorsPtr*>(data), value);
-	case FILTERSPTR: return TypeConverter<FiltersPtr, T>::Convert(*reinterpret_cast<const FiltersPtr*>(data), value);
-	case FONTEFFECTSPTR: return TypeConverter<FontEffectsPtr, T>::Convert(*reinterpret_cast<const FontEffectsPtr*>(data), value);
-	case COLORSTOPLIST: return TypeConverter<ColorStopList, T>::Convert(*(ColorStopList*)data, value); break;
-	case BOXSHADOWLIST: return TypeConverter<BoxShadowList, T>::Convert(*reinterpret_cast<const BoxShadowList*>(data), value);
-	case NONE: break;
+		static_assert(sizeof(T) <= sizeof(int64_t), "Enum underlying type exceeds maximum supported integer type size");
+		int64_t stored_value = 0;
+		if (GetInto(stored_value))
+		{
+			value = static_cast<T>(stored_value);
+			return true;
+		}
+	}
+	else
+	{
+		switch (type)
+		{
+		case BOOL: return TypeConverter<bool, T>::Convert(*reinterpret_cast<const bool*>(data), value);
+		case BYTE: return TypeConverter<byte, T>::Convert(*reinterpret_cast<const byte*>(data), value);
+		case CHAR: return TypeConverter<char, T>::Convert(*reinterpret_cast<const char*>(data), value);
+		case FLOAT: return TypeConverter<float, T>::Convert(*reinterpret_cast<const float*>(data), value);
+		case DOUBLE: return TypeConverter<double, T>::Convert(*reinterpret_cast<const double*>(data), value);
+		case INT: return TypeConverter<int, T>::Convert(*reinterpret_cast<const int*>(data), value);
+		case INT64: return TypeConverter<int64_t, T>::Convert(*reinterpret_cast<const int64_t*>(data), value);
+		case UINT: return TypeConverter<unsigned int, T>::Convert(*reinterpret_cast<const unsigned int*>(data), value);
+		case UINT64: return TypeConverter<uint64_t, T>::Convert(*reinterpret_cast<const uint64_t*>(data), value);
+		case STRING: return TypeConverter<String, T>::Convert(*reinterpret_cast<const String*>(data), value);
+		case VECTOR2: return TypeConverter<Vector2f, T>::Convert(*reinterpret_cast<const Vector2f*>(data), value);
+		case VECTOR3: return TypeConverter<Vector3f, T>::Convert(*reinterpret_cast<const Vector3f*>(data), value);
+		case VECTOR4: return TypeConverter<Vector4f, T>::Convert(*reinterpret_cast<const Vector4f*>(data), value);
+		case COLOURF: return TypeConverter<Colourf, T>::Convert(*reinterpret_cast<const Colourf*>(data), value);
+		case COLOURB: return TypeConverter<Colourb, T>::Convert(*reinterpret_cast<const Colourb*>(data), value);
+		case SCRIPTINTERFACE: return TypeConverter<ScriptInterface*, T>::Convert(*reinterpret_cast<ScriptInterface* const*>(data), value);
+		case VOIDPTR: return TypeConverter<void*, T>::Convert(*reinterpret_cast<void* const*>(data), value);
+		case TRANSFORMPTR: return TypeConverter<TransformPtr, T>::Convert(*reinterpret_cast<const TransformPtr*>(data), value);
+		case TRANSITIONLIST: return TypeConverter<TransitionList, T>::Convert(*reinterpret_cast<const TransitionList*>(data), value);
+		case ANIMATIONLIST: return TypeConverter<AnimationList, T>::Convert(*reinterpret_cast<const AnimationList*>(data), value);
+		case DECORATORSPTR: return TypeConverter<DecoratorsPtr, T>::Convert(*reinterpret_cast<const DecoratorsPtr*>(data), value);
+		case FILTERSPTR: return TypeConverter<FiltersPtr, T>::Convert(*reinterpret_cast<const FiltersPtr*>(data), value);
+		case FONTEFFECTSPTR: return TypeConverter<FontEffectsPtr, T>::Convert(*reinterpret_cast<const FontEffectsPtr*>(data), value);
+		case COLORSTOPLIST: return TypeConverter<ColorStopList, T>::Convert(*(ColorStopList*)data, value); break;
+		case BOXSHADOWLIST: return TypeConverter<BoxShadowList, T>::Convert(*reinterpret_cast<const BoxShadowList*>(data), value);
+		case NONE: break;
+		}
 	}
 
-	return false;
-}
-
-template <typename T, typename std::enable_if_t<std::is_enum<T>::value, int>>
-bool Variant::GetInto(T& value) const
-{
-	static_assert(sizeof(T) <= sizeof(int64_t), "Enum underlying type exceeds maximum supported integer type size");
-	int64_t stored_value = 0;
-	if (GetInto(stored_value))
-	{
-		value = static_cast<T>(stored_value);
-		return true;
-	}
 	return false;
 }
 

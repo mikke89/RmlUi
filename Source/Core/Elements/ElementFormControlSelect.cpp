@@ -6,6 +6,8 @@
 
 namespace Rml {
 
+RMLUI_RTTI_Define(ElementFormControlSelect)
+
 ElementFormControlSelect::ElementFormControlSelect(const String& tag) : ElementFormControl(tag), widget(nullptr)
 {
 	widget = new WidgetDropDown(this);
@@ -146,8 +148,9 @@ void ElementFormControlSelect::MoveChildren()
 
 bool ElementFormControlSelect::GetIntrinsicDimensions(Vector2f& intrinsic_dimensions, float& /*ratio*/)
 {
-	intrinsic_dimensions.x = 128;
-	intrinsic_dimensions.y = 16;
+	intrinsic_dimensions.x = 128 * ElementUtilities::GetDensityIndependentPixelRatio(this);
+	intrinsic_dimensions.y = GetLineHeight();
+
 	return true;
 }
 

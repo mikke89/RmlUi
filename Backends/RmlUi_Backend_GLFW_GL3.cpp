@@ -19,6 +19,8 @@ static void LogErrorFromGLFW(int error, const char* description)
     Lifetime governed by the calls to Backend::Initialize() and Backend::Shutdown().
  */
 struct BackendData {
+	BackendData(GLFWwindow* window) : system_interface(window) {}
+
 	SystemInterface_GLFW system_interface;
 	RenderInterface_GL3 render_interface;
 	GLFWwindow* window = nullptr;
@@ -50,7 +52,7 @@ bool Backend::Initialize(const char* name, int width, int height, bool allow_res
 	glfwWindowHint(GLFW_RESIZABLE, allow_resize ? GLFW_TRUE : GLFW_FALSE);
 	glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 	GLFWwindow* window = glfwCreateWindow(width, height, name, nullptr, nullptr);
 	if (!window)
@@ -65,12 +67,11 @@ bool Backend::Initialize(const char* name, int width, int height, bool allow_res
 		return false;
 
 	// Construct the system and render interface, this includes compiling all the shaders. If this fails, it is likely an error in the shader code.
-	data = Rml::MakeUnique<BackendData>();
+	data = Rml::MakeUnique<BackendData>(window);
 	if (!data || !data->render_interface)
 		return false;
 
 	data->window = window;
-	data->system_interface.SetWindow(window);
 	data->system_interface.LogMessage(Rml::Log::LT_INFO, renderer_message);
 
 	// The window size may have been scaled by DPI settings, get the actual pixel size.

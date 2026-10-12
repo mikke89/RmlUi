@@ -168,3 +168,29 @@ TEST_CASE("XMLParser.comments_and_cdata")
 	}
 	TestsShell::ShutdownShell();
 }
+
+TEST_CASE("XMLParser.invalid.extra_closing")
+{
+	const String document_source = R"(_icon class="exit"><disc_icon_inner /></disc_icon></disc_slice>
+				<type id="disc_title" />
+				<type id="disc_desc" />
+			</main_inner>
+		</menu_container>
+    </body>
+</rml>)";
+
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	TestsShell::SetNumExpectedWarnings(3);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_source);
+	REQUIRE(document);
+
+	CHECK(document->GetInnerRML() == R"(_icon class=&quot;exit&quot;&gt;)");
+
+	document->Close();
+	context->Update();
+
+	TestsShell::ShutdownShell();
+}

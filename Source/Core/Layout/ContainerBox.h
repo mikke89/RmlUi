@@ -17,6 +17,15 @@ public:
 	// Enable or disable scrollbars for the element we represent, preparing it for the first round of layouting, according to our properties.
 	void ResetScrollbars(const Box& box);
 
+	/// Checks if we have a new overflow on an auto-scrolling element. If so, our vertical scrollbar will be enabled and
+	/// our block boxes will be destroyed. All content will need to be re-formatted.
+	/// @param[in] visible_overflow_size The border-box overflow of our descendants, relative to our content area, propagated to ancestors.
+	/// @param[in] scrollable_content_size The margin-box overflow of our direct children, relative to our content area.
+	/// @param[in] box The box built for the element, possibly with a non-determinate height.
+	/// @param[in] max_height Maximum height of the content area, if any.
+	/// @returns True if no overflow occurred, false if it did.
+	bool CatchOverflow(Vector2f visible_overflow_size, Vector2f scrollable_content_size, const Box& box, float max_height) const;
+
 	// Adds an absolutely positioned element, to be formatted and positioned when closing this container, see 'ClosePositionedElements'.
 	void AddAbsoluteElement(Element* element, Vector2f static_position, Element* static_relative_offset_parent);
 	// Adds a relatively positioned element which we act as a containing block for.
@@ -33,20 +42,13 @@ public:
 protected:
 	ContainerBox(Type type, Element* element, ContainerBox* parent_container);
 
-	/// Checks if we have a new overflow on an auto-scrolling element. If so, our vertical scrollbar will be enabled and
-	/// our block boxes will be destroyed. All content will need to be re-formatted.
-	/// @param[in] content_overflow_size The size of the visible content, relative to our content area.
-	/// @param[in] box The box built for the element, possibly with a non-determinate height.
-	/// @param[in] max_height Maximum height of the content area, if any.
-	/// @returns True if no overflow occured, false if it did.
-	bool CatchOverflow(const Vector2f content_overflow_size, const Box& box, const float max_height) const;
-
 	/// Set the box and scrollable area on our element, possibly catching any overflow.
-	/// @param[in] content_overflow_size The size of the visible content, relative to our content area.
+	/// @param[in] visible_overflow_size The border-box overflow of our descendants, relative to our content area, propagated to ancestors.
+	/// @param[in] scrollable_content_size The margin-box overflow of our direct children, relative to our content area.
 	/// @param[in] box The box to be set on the element.
 	/// @param[in] max_height Maximum height of the content area, if any.
-	/// @returns True if no overflow occured, false if it did.
-	bool SubmitBox(const Vector2f content_overflow_size, const Box& box, const float max_height);
+	/// @returns True if no overflow occurred, false if it did.
+	bool SubmitBox(Vector2f visible_overflow_size, Vector2f scrollable_content_size, const Box& box, float max_height);
 
 	/// Formats, sizes, and positions all absolute elements whose containing block is this, and offsets relative elements.
 	void ClosePositionedElements();
@@ -65,6 +67,10 @@ private:
 		Element* static_position_offset_parent; // The element for which the static position is offset from.
 	};
 	using AbsoluteElementMap = SmallUnorderedMap<Element*, AbsoluteElement>;
+
+	// Get the scrollable overflow size relative to the content area of this box.
+	Vector2f GetScrollableOverflowContentSize(Vector2f visible_overflow_size, Vector2f scrollable_content_size,
+		const Vector2f padding_bottom_right) const;
 
 	AbsoluteElementMap absolute_elements; // List of absolutely positioned elements that we act as a containing block for.
 	ElementList relative_elements;        // List of relatively positioned elements that we act as a containing block for.
@@ -100,7 +106,7 @@ public:
 
 	// Submits the formatted box to the flex container element, and propagates any uncaught overflow to this box.
 	// @returns True if it succeeds, otherwise false if it needs to be formatted again because scrollbars were enabled.
-	bool Close(const Vector2f content_overflow_size, const Box& box, float element_baseline);
+	bool Close(const Vector2f visible_overflow_size, Vector2f scrollable_content_size, const Box& box, float element_baseline);
 
 	float GetShrinkToFitWidth() const override;
 
@@ -123,7 +129,7 @@ public:
 	TableWrapper(Element* element, ContainerBox* parent_container);
 
 	// Submits the formatted box to the table element, and propagates any uncaught overflow to this box.
-	void Close(const Vector2f content_overflow_size, const Box& box, float element_baseline);
+	void Close(const Vector2f visible_overflow_size, const Box& box, float element_baseline);
 
 	float GetShrinkToFitWidth() const override;
 

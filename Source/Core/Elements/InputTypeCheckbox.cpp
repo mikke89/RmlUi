@@ -1,4 +1,5 @@
 #include "InputTypeCheckbox.h"
+#include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControlInput.h"
 
 namespace Rml {
@@ -50,6 +51,7 @@ bool InputTypeCheckbox::GetIntrinsicDimensions(Vector2f& dimensions, float& rati
 {
 	dimensions.x = 16;
 	dimensions.y = 16;
+	dimensions *= ElementUtilities::GetDensityIndependentPixelRatio(element);
 	ratio = 1;
 
 	return true;

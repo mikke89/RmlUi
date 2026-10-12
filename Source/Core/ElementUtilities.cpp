@@ -14,6 +14,7 @@
 #include "DataModel.h"
 #include "DataView.h"
 #include "ElementBackgroundBorder.h"
+#include "ElementStyle.h"
 #include "Layout/LayoutDetails.h"
 #include "Layout/LayoutEngine.h"
 #include "TransformState.h"
@@ -163,7 +164,8 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 					Geometry* clip_geometry = clipping_element->GetElementBackgroundBorder()->GetClipGeometry(clipping_element, clip_area);
 					const ClipMaskOperation clip_operation = (out_clip_mask_list->empty() ? ClipMaskOperation::Set : ClipMaskOperation::Intersect);
 					const Vector2f absolute_offset = clipping_element->GetAbsoluteOffset(BoxArea::Border).Round();
-					out_clip_mask_list->push_back(ClipMaskGeometry{clip_operation, clip_geometry, absolute_offset, transform});
+					if (*clip_geometry)
+						out_clip_mask_list->push_back(ClipMaskGeometry{clip_operation, clip_geometry, absolute_offset, transform});
 				}
 
 				// If we only have border-radius then we add this element to the scissor region as well as the clip mask. This may help with e.g.
@@ -241,7 +243,7 @@ bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* elemen
 		// Note: Does not currently include ink overflow due to filters, as that is handled manually in ElementEffects.
 		box_area = BoxArea::Border;
 
-		if (const Property* p_box_shadow = element->GetLocalProperty(PropertyId::BoxShadow))
+		if (const Property* p_box_shadow = element->GetStyle()->GetLocalPropertyWithResolvedVariables(PropertyId::BoxShadow))
 		{
 			RMLUI_ASSERT(p_box_shadow->value.GetType() == Variant::BOXSHADOWLIST);
 			const BoxShadowList& shadow_list = p_box_shadow->value.GetReference<BoxShadowList>();

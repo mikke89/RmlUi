@@ -13,7 +13,7 @@ namespace Rml {
 
 class ElementLabel : public Element, public EventListener {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementLabel, Element)
+	RMLUI_RTTI_DeclareWithParent(ElementLabel, Element)
 
 	ElementLabel(const String& tag);
 	virtual ~ElementLabel();

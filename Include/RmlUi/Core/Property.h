@@ -27,7 +27,7 @@ public:
 		definition = nullptr;
 		parser_index = -1;
 	}
-	template <typename EnumType, typename = typename std::enable_if_t<std::is_enum<EnumType>::value, EnumType>>
+	template <typename EnumType, typename = typename std::enable_if_t<std::is_enum_v<EnumType>, EnumType>>
 	Property(EnumType value) : value(static_cast<int>(value)), unit(Unit::KEYWORD), specificity(-1)
 	{}
 

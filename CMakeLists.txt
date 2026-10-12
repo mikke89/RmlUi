@@ -3,12 +3,12 @@
 cmake_minimum_required(VERSION 3.10...3.27)
 
 project("RmlUi"
-	VERSION "6.2"
+	VERSION "6.4"
 	DESCRIPTION "C++ user interface library based on the HTML and CSS standards"
 	LANGUAGES "C" "CXX"
 )
 
-set(RMLUI_VERSION_RELEASE TRUE)
+set(RMLUI_VERSION_RELEASE FALSE)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	set(RMLUI_IS_ROOT_PROJECT TRUE)
@@ -25,6 +25,7 @@ option(BUILD_SHARED_LIBS "CMake standard option. Choose whether to build shared 
 #   - Do not include a verb prefix (such as "enable" and "build"), as these are often superfluous.
 option(RMLUI_SAMPLES "Build samples of the library." OFF)
 option(RMLUI_BACKEND_SIMULATE_TOUCH "Simulate touch events with mouse events" OFF)
+option(RMLUI_IME_SAMPLE_USE_NOTO_FONTS "Enable Noto fonts as fallback for Asian languages in IME sample. Downloads the fonts at build time." OFF)
 set(RMLUI_BACKEND "auto" CACHE STRING "Backend to use when building the RmlUi samples. Choose one from ./CMake/OptionsLists.cmake.")
 set_property(CACHE RMLUI_BACKEND PROPERTY STRINGS ${RMLUI_BACKEND_OPTIONS})
 if(NOT RMLUI_BACKEND IN_LIST RMLUI_BACKEND_OPTIONS)
@@ -71,8 +72,6 @@ option(RMLUI_HARFBUZZ_SAMPLE "Enable harfbuzz text shaping sample. Requires the 
 option(RMLUI_THIRDPARTY_CONTAINERS "Enable integrated third-party containers for improved performance, rather than their standard library counterparts." ON)
 
 option(RMLUI_MATRIX_ROW_MAJOR "Use row-major matrices. Column-major matrices are used by default." OFF)
-
-option(RMLUI_CUSTOM_RTTI "Build RmlUi with a custom implementation of run-time type information (RTTI). When enabled, all usage of language RTTI features such as dynamic_cast will be disabled." OFF)
 
 option(RMLUI_PRECOMPILED_HEADERS "Enable precompiled headers for RmlUi." ON)
 
@@ -175,8 +174,6 @@ configure_file(
 	"${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake"
 	@ONLY
 )
-# RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
-# From CMake 3.11 use compatibility mode `SameMinorVersion`.
 write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake"
 	COMPATIBILITY ExactVersion
 )

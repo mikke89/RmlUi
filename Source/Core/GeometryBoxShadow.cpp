@@ -8,6 +8,7 @@
 #include "../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/RenderManager.h"
+#include "ElementStyle.h"
 
 namespace Rml {
 
@@ -20,7 +21,7 @@ BoxShadowGeometryInfo GeometryBoxShadow::Resolve(Element* element, const CornerS
 	Vector2f element_offset_in_texture;
 	Vector2i texture_dimensions;
 
-	const Property* p_box_shadow = element->GetLocalProperty(PropertyId::BoxShadow);
+	const Property* p_box_shadow = element->GetStyle()->GetLocalPropertyWithResolvedVariables(PropertyId::BoxShadow);
 	RMLUI_ASSERT(p_box_shadow->value.GetType() == Variant::BOXSHADOWLIST);
 	BoxShadowList shadow_list = p_box_shadow->value.Get<BoxShadowList>();
 
@@ -190,6 +191,10 @@ void GeometryBoxShadow::GenerateTexture(CallbackTexture& out_shadow_texture, Geo
 				MeshUtilities::GenerateBackground(mesh_shadow, render_box, shadow.color);
 			}
 
+			// Check pre-conditions before submitting rendering commands. Transparent or zero-area boxes may produce an empty mesh.
+			if (!mesh_shadow || (inset && !mesh_padding))
+				continue;
+
 			CompiledFilter blur;
 			if (blur_radius >= 0.5f)
 			{
@@ -215,9 +220,15 @@ void GeometryBoxShadow::GenerateTexture(CallbackTexture& out_shadow_texture, Geo
 			}
 			else
 			{
-				Mesh mesh = mesh_padding_border;
-				Geometry geometry_padding_border = render_manager.MakeGeometry(std::move(mesh));
-				render_manager.SetClipMask(ClipMaskOperation::SetInverse, &geometry_padding_border, info.element_offset_in_texture);
+				if (mesh_padding_border)
+				{
+					Geometry geometry_padding_border = render_manager.MakeGeometry(Mesh(mesh_padding_border));
+					render_manager.SetClipMask(ClipMaskOperation::SetInverse, &geometry_padding_border, info.element_offset_in_texture);
+				}
+				else
+				{
+					render_manager.DisableClipMask();
+				}
 				geometry_shadow.Render(shadow_offset + info.element_offset_in_texture);
 			}
 

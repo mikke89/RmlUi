@@ -9,7 +9,6 @@
 	#include "RmlUi_Include_Windows.h"
 	#include <gl/Gl.h>
 #elif defined RMLUI_PLATFORM_MACOSX
-	#include <AGL/agl.h>
 	#include <OpenGL/gl.h>
 	#include <OpenGL/glext.h>
 #elif defined RMLUI_PLATFORM_UNIX
@@ -37,6 +36,9 @@ void RenderInterface_GL2::BeginFrame()
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -315,9 +317,9 @@ void RenderInterface_GL2::SetTransform(const Rml::Matrix4f* transform)
 
 	if (transform)
 	{
-		if (std::is_same<Rml::Matrix4f, Rml::ColumnMajorMatrix4f>::value)
+		if (std::is_same_v<Rml::Matrix4f, Rml::ColumnMajorMatrix4f>)
 			glLoadMatrixf(transform->data());
-		else if (std::is_same<Rml::Matrix4f, Rml::RowMajorMatrix4f>::value)
+		else if (std::is_same_v<Rml::Matrix4f, Rml::RowMajorMatrix4f>)
 			glLoadMatrixf(transform->Transpose().data());
 	}
 	else

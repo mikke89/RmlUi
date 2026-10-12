@@ -19,6 +19,11 @@ const Property* ElementDefinition::GetProperty(PropertyId id) const
 	return properties.GetProperty(id);
 }
 
+const Property* ElementDefinition::GetCustomProperty(const String& name) const
+{
+	return properties.GetCustomProperty(name);
+}
+
 const PropertyIdSet& ElementDefinition::GetPropertyIds() const
 {
 	return property_ids;

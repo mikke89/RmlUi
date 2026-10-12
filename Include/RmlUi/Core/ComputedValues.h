@@ -397,17 +397,19 @@ namespace Style {
 		template <typename T>
 		inline T GetLocalPropertyKeyword(PropertyId id, T default_value) const
 		{
-			if (auto p = element->GetLocalProperty(id))
+			if (auto p = GetLocalPropertyWithResolvedVariables(id))
 				return static_cast<T>(p->Get<int>());
 			return default_value;
 		}
 		template <typename T>
 		inline T GetLocalProperty(PropertyId id, T default_value) const
 		{
-			if (auto p = element->GetLocalProperty(id))
+			if (auto p = GetLocalPropertyWithResolvedVariables(id))
 				return p->Get<T>();
 			return default_value;
 		}
+
+		const Property* GetLocalPropertyWithResolvedVariables(PropertyId id) const;
 
 		Element* element = nullptr;
 

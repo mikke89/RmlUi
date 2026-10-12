@@ -3,10 +3,10 @@
 
 namespace Rml {
 
-Box::Box() {}
+Box::Box() = default;
 Box::Box(Vector2f content) : content(content) {}
 
-Box::~Box() {}
+Box::~Box() = default;
 
 Vector2f Box::GetPosition(BoxArea area) const
 {

@@ -1709,7 +1709,7 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 		glUniform2f(GetUniformLocation(UniformId::V), shader.v.x, shader.v.y);
 		glUniform1i(GetUniformLocation(UniformId::NumStops), num_stops);
 		glUniform1fv(GetUniformLocation(UniformId::StopPositions), num_stops, shader.stop_positions.data());
-		glUniform4fv(GetUniformLocation(UniformId::StopColors), num_stops, shader.stop_colors[0]);
+		glUniform4fv(GetUniformLocation(UniformId::StopColors), num_stops, &shader.stop_colors[0][0]);
 
 		SubmitTransformUniform(translation);
 		glBindVertexArray(geometry.vao);
@@ -1836,7 +1836,7 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 			glDisable(GL_BLEND);
 
 			const GLint uniform_location = program_data->uniforms.Get(ProgramId::ColorMatrix, UniformId::ColorMatrix);
-			constexpr bool transpose = std::is_same<decltype(filter.color_matrix), Rml::RowMajorMatrix4f>::value;
+			constexpr bool transpose = std::is_same_v<decltype(filter.color_matrix), Rml::RowMajorMatrix4f>;
 			glUniformMatrix4fv(uniform_location, 1, transpose, filter.color_matrix.data());
 
 			const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
@@ -2142,11 +2142,11 @@ void RenderInterface_GL3::ResetProgram()
 bool RmlGL3::Initialize(Rml::String* out_message)
 {
 #if defined(RMLUI_PLATFORM_EMSCRIPTEN)
-    if (out_message)
-        *out_message = "Started Emscripten WebGL renderer.";
+	if (out_message)
+		*out_message = "Started Emscripten WebGL renderer.";
 #elif defined(__ANDROID__)
-    if (out_message)
-        *out_message = "Started OpenGL ES 3 renderer.";
+	if (out_message)
+		*out_message = "Started OpenGL ES 3 renderer.";
 #elif !defined RMLUI_GL3_CUSTOM_LOADER
 	const int gl_version = gladLoaderLoadGL();
 	if (gl_version == 0)

@@ -25,6 +25,11 @@ enum class FocusFlag {
 	Keep,     // Focus the element in the document which last had focus.
 	Auto,     // Focus the first tab element with the 'autofocus' attribute or else the document.
 };
+/** ScrollFlag controls whether an element is scrolled into view when showing the document. */
+enum class ScrollFlag {
+	None, // Never scroll.
+	Auto, // Scroll the focused element into view, if applicable.
+};
 
 /**
     Represents a document in the dom tree.
@@ -32,7 +37,7 @@ enum class FocusFlag {
 
 class RMLUICORE_API ElementDocument : public Element {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementDocument, Element)
+	RMLUI_RTTI_DeclareWithParent(ElementDocument, Element)
 
 	ElementDocument(const String& tag);
 	virtual ~ElementDocument();
@@ -70,9 +75,10 @@ public:
 	void PushToBack();
 
 	/// Show the document.
-	/// @param[in] modal_flag Flags controlling the modal state of the document, see the 'ModalFlag' description for details.
-	/// @param[in] focus_flag Flags controlling the focus, see the 'FocusFlag' description for details.
-	void Show(ModalFlag modal_flag = ModalFlag::None, FocusFlag focus_flag = FocusFlag::Auto);
+	/// @param[in] modal_flag Flag controlling the modal state of the document, see the 'ModalFlag' description for details.
+	/// @param[in] focus_flag Flag controlling the focus, see the 'FocusFlag' description for details.
+	/// @param[in] scroll_flag Flag controlling scrolling, see the 'ScrollFlag' description for details.
+	void Show(ModalFlag modal_flag = ModalFlag::None, FocusFlag focus_flag = FocusFlag::Auto, ScrollFlag scroll_flag = ScrollFlag::Auto);
 	/// Hide the document.
 	void Hide();
 	/// Close the document.
@@ -93,8 +99,9 @@ public:
 	/// Finds the next tabbable element in the document tree, starting at the given element, possibly wrapping around the document.
 	/// @param[in] current_element The element to start from.
 	/// @param[in] forward True to search forward, false to search backward.
+	/// @param[in] wrap_around True to continue searching wrapping around the document root.
 	/// @return The next tabbable element, or nullptr if none could be found.
-	Element* FindNextTabElement(Element* current_element, bool forward);
+	Element* FindNextTabElement(Element* current_element, bool forward, bool wrap_around = true);
 
 	/// Loads an inline script into the document. Note that the base implementation does nothing, but script plugins can hook into this method.
 	/// @param[in] content The script content.
@@ -128,6 +135,8 @@ protected:
 private:
 	/// Searches forwards or backwards for a focusable element in the given subtree.
 	Element* SearchFocusSubtree(Element* element, bool forward);
+	/// Searches children of the given subtree for a focusable child.
+	Element* SearchFocusSubtreeChildren(Element* element, bool forward);
 	/// Find the next element to navigate to, starting at the current element.
 	Element* FindNextNavigationElement(Element* current_element, NavigationSearchDirection direction, const Property& property);
 

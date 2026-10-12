@@ -1,6 +1,7 @@
 #pragma once
 
 #include <RmlUi/Core/RenderInterface.h>
+#include <deque>
 
 #ifdef RMLUI_PLATFORM_WIN32
 	#include "RmlUi_Include_Windows.h"
@@ -9,121 +10,186 @@
 
 #include "RmlUi_Include_Vulkan.h"
 
-#ifdef RMLUI_DEBUG
-	#define RMLUI_VK_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(statement, msg)
+// The 23 rendering programs (pipelines) of this backend. Defined in the .cpp, mirrors the DX12 renderer 1:1.
+enum class ProgramId;
 
-// Uncomment the following line to enable additional Vulkan debugging.
-// #define RMLUI_VK_DEBUG
-#else
-	#define RMLUI_VK_ASSERTMSG(statement, msg) static_cast<void>(statement)
-#endif
+namespace Gfx {
+struct FramebufferData;
+}
 
-// Your specified API version. Ideally, this will be dynamic in the future.
-#define RMLUI_VK_API_VERSION VK_API_VERSION_1_0
-
+/*
+ * Vulkan port of the DirectX 12 renderer backend (see RmlUi_Renderer_DX12).
+ *
+ * The architecture mirrors the DX12 renderer one-to-one:
+ *  - BufferMemoryManager: growable pool of persistently-mapped, host-visible VMA buffers suballocated through
+ *    VmaVirtualBlock (the analog of D3D12MA virtual blocks over UPLOAD heaps). Geometry is memcpy'd straight into
+ *    it; constant-buffer payloads are suballocated with dynamic-UBO alignment and bound through per-buffer
+ *    descriptor sets using dynamic offsets (the analog of root constant buffer views).
+ *  - TextureMemoryManager: VMA-allocated images. Small textures are suballocated by VMA automatically (the analog
+ *    of DX12's placed resources), large ones become dedicated allocations (the analog of committed resources).
+ *    Uploads go through a staging buffer and are fully synchronous, like the DX12 copy-queue path.
+ *  - RenderLayerStack: layer framebuffers (optionally MSAA, sharing one depth-stencil) and postprocess
+ *    framebuffers (single-sample), matching the DX12 render target stack.
+ *  - 23 pipelines (ProgramId) with identical blend/depth-stencil state as the DX12 PSOs. Stencil reference and
+ *    blend constants are dynamic state (the analog of OMSetStencilRef / OMSetBlendFactor).
+ *  - DX12 resource state barriers map to Vulkan image layout transitions; ResolveSubresource/CopyResource map to
+ *    vkCmdResolveImage/vkCmdCopyImage; OMSetRenderTargets maps to ending/beginning render passes.
+ *
+ * Vulkan-specific notes (deliberate deviations forced by API differences):
+ *  - The projection matrix is pre-multiplied by the GL->Vulkan clip correction (Y-flip, Z remap to [0,1]) instead
+ *    of using a negative viewport height, so the backend stays compatible with Vulkan 1.0 (no VK_KHR_maintenance1
+ *    requirement). As a result framebuffer space is top-left-origin exactly like DX12, and none of the shaders
+ *    need the UV Y-flips the DX12 shaders carry.
+ *  - There is no root-parameter-index bookkeeping on geometry: a single dynamic-UBO descriptor binding is visible
+ *    to both vertex and fragment stages, so one bind covers what DX12 does with up to three root CBV indices.
+ *  - Swapchain images are acquired from the presentation engine, so there is no user-selectable backbuffer index
+ *    equivalent; UserSetBackbufferIndex() is intentionally not overridden.
+ */
 class RenderInterface_VK : public Rml::RenderInterface {
+private:
+	// Amount of rendering programs (ProgramId::Count), kept identical to the DX12 renderer.
+	static constexpr size_t NumPrograms = 23;
+
 public:
 	static constexpr uint32_t kSwapchainBackBufferCount = 3;
-	static constexpr VkDeviceSize kVideoMemoryForAllocation = 4 * 1024 * 1024; // [bytes]
 
-	RenderInterface_VK();
-	~RenderInterface_VK();
-
-	using CreateSurfaceCallback = bool (*)(VkInstance instance, VkSurfaceKHR* out_surface);
-
-	bool Initialize(Rml::Vector<const char*> required_extensions, CreateSurfaceCallback create_surface_callback);
-	void Shutdown();
-
-	void BeginFrame();
-	void EndFrame();
-
-	void SetViewport(int width, int height);
-	bool IsSwapchainValid();
-	void RecreateSwapchain();
-
-	// -- Inherited from Rml::RenderInterface --
-
-	/// Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
-	Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
-	/// Called by RmlUi when it wants to render application-compiled geometry.
-	void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override;
-	/// Called by RmlUi when it wants to release application-compiled geometry.
-	void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override;
-
-	/// Called by RmlUi when a texture is required by the library.
-	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
-	/// Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
-	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions) override;
-	/// Called by RmlUi when a loaded texture is no longer required.
-	void ReleaseTexture(Rml::TextureHandle texture_handle) override;
-
-	/// Called by RmlUi when it wants to enable or disable scissoring to clip content.
-	void EnableScissorRegion(bool enable) override;
-	/// Called by RmlUi when it wants to change the scissor region.
-	void SetScissorRegion(Rml::Rectanglei region) override;
-
-	/// Called by RmlUi when it wants to set the current transform matrix to a new matrix.
-	void SetTransform(const Rml::Matrix4f* transform) override;
-
-private:
-	enum class shader_type_t : int { Vertex, Fragment, Unknown = -1 };
-	enum class shader_id_t : int { Vertex, Fragment_WithoutTextures, Fragment_WithTextures };
-
-	struct shader_vertex_user_data_t {
-		// Member objects are order-sensitive to match shader.
-		Rml::Matrix4f m_transform;
-		Rml::Vector2f m_translate;
+	// Where a suballocation lives: index into BufferMemoryManager's buffer pool, plus byte offset/size inside it.
+	struct GraphicsAllocationInfo {
+		int buffer_index = -1;
+		VkDeviceSize offset = 0;
+		VkDeviceSize size = 0;
+		VmaVirtualAllocation alloc_info = VK_NULL_HANDLE;
 	};
 
-	struct texture_data_t {
-		VkImage m_p_vk_image;
-		VkImageView m_p_vk_image_view;
-		VkSampler m_p_vk_sampler;
-		VkDescriptorSet m_p_vk_descriptor_set;
-		VmaAllocation m_p_vma_allocation;
+	class TextureHandleType : Rml::NonCopyMoveable {
+	public:
+		TextureHandleType() = default;
+		~TextureHandleType()
+		{
+#ifdef RMLUI_VK_DEBUG
+			RMLUI_ASSERTMSG(m_is_destroyed, "The texture was not destroyed");
+#endif
+		}
+
+		VkImage Get_Image() const noexcept { return m_p_image; }
+		void Set_Image(VkImage p_image) noexcept { m_p_image = p_image; }
+
+		VkImageView Get_ImageView() const noexcept { return m_p_image_view; }
+		void Set_ImageView(VkImageView p_image_view) noexcept { m_p_image_view = p_image_view; }
+
+		VkDescriptorSet Get_DescriptorSet() const noexcept { return m_p_descriptor_set; }
+		void Set_DescriptorSet(VkDescriptorSet p_set) noexcept { m_p_descriptor_set = p_set; }
+
+		VmaAllocation Get_Allocation() const noexcept { return m_p_allocation; }
+		void Set_Allocation(VmaAllocation p_allocation) noexcept { m_p_allocation = p_allocation; }
+
+		// Current image layout, tracked so the renderer can emit correct barriers (DX12 tracks resource states the same way).
+		VkImageLayout Get_Layout() const noexcept { return m_layout; }
+		void Set_Layout(VkImageLayout layout) noexcept { m_layout = layout; }
+
+		int Get_Width() const noexcept { return m_width; }
+		void Set_Width(int width) noexcept { m_width = width; }
+		int Get_Height() const noexcept { return m_height; }
+		void Set_Height(int height) noexcept { m_height = height; }
+
+		// Marks the resource as released. Actual destruction is done by TextureMemoryManager::Free_Texture; do not call manually.
+		void Mark_Destroyed() noexcept
+		{
+#ifdef RMLUI_VK_DEBUG
+			RMLUI_ASSERTMSG(!m_is_destroyed, "The texture has already been destroyed");
+			m_is_destroyed = true;
+#endif
+		}
+
+#ifdef RMLUI_VK_DEBUG
+		const Rml::String& Get_ResourceName() const { return m_debug_resource_name; }
+		void Set_ResourceName(const Rml::String& resource_name) { m_debug_resource_name = resource_name; }
+#endif
+
+	private:
+		VkImage m_p_image = nullptr;
+		VkImageView m_p_image_view = nullptr;
+		// Descriptor set of the 'texture' layout (single combined image sampler), used to bind this texture per draw.
+		VkDescriptorSet m_p_descriptor_set = nullptr;
+		VmaAllocation m_p_allocation = nullptr;
+		VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+		int m_width = 0;
+		int m_height = 0;
+
+#ifdef RMLUI_VK_DEBUG
+		Rml::String m_debug_resource_name;
+		bool m_is_destroyed = false;
+#endif
 	};
 
-	struct geometry_handle_t {
-		int m_num_indices;
-
-		VkDescriptorBufferInfo m_p_vertex;
-		VkDescriptorBufferInfo m_p_index;
-		VkDescriptorBufferInfo m_p_shader;
-
-		// @ this is for freeing our logical blocks for VMA
-		// see https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/virtual_allocator.html
-		VmaVirtualAllocation m_p_vertex_allocation;
-		VmaVirtualAllocation m_p_index_allocation;
-		VmaVirtualAllocation m_p_shader_allocation;
+	struct ConstantBufferType {
+		GraphicsAllocationInfo m_alloc_info;
+		// Persistently-mapped base pointer of the pool buffer this constant buffer lives in.
+		void* m_p_gpu_start_memory_for_binding_data = nullptr;
 	};
 
-	struct buffer_data_t {
-		VkBuffer m_p_vk_buffer;
-		VmaAllocation m_p_vma_allocation;
+	class GeometryHandleType : Rml::NonCopyMoveable {
+	public:
+		GeometryHandleType() = default;
+
+		void Set_InfoVertex(const GraphicsAllocationInfo& info) { m_info_vertex = info; }
+		const GraphicsAllocationInfo& Get_InfoVertex() const noexcept { return m_info_vertex; }
+
+		void Set_InfoIndex(const GraphicsAllocationInfo& info) { m_info_index = info; }
+		const GraphicsAllocationInfo& Get_InfoIndex() const noexcept { return m_info_index; }
+
+		void Set_NumVertices(int num) { m_num_vertices = num; }
+		int Get_NumVertices() const { return m_num_vertices; }
+
+		void Set_NumIndices(int num) { m_num_indices = num; }
+		int Get_NumIndices() const { return m_num_indices; }
+
+		void Set_SizeOfOneVertex(size_t size) { m_one_element_vertex_size = size; }
+		size_t Get_SizeOfOneVertex() const { return m_one_element_vertex_size; }
+
+		void Set_SizeOfOneIndex(size_t size) { m_one_element_index_size = size; }
+		size_t Get_SizeOfOneIndex() const { return m_one_element_index_size; }
+
+		int Get_HistoryBackBufferFrameIndex(void) const { return m_history_backbuffer_frame_index; }
+		void Set_HistoryBackBufferFrameIndex(int frame_index) { m_history_backbuffer_frame_index = frame_index; }
+
+		// An override constant buffer, used when this geometry is drawn as a fullscreen postprocess quad.
+		void Set_ConstantBuffer(ConstantBufferType* p_constant_buffer)
+		{
+			RMLUI_ASSERTMSG(p_constant_buffer, "must be valid constant buffer!");
+			m_p_constant_buffer_override = p_constant_buffer;
+		}
+
+		void Reset_ConstantBuffer() { m_p_constant_buffer_override = nullptr; }
+
+		ConstantBufferType* Get_ConstantBuffer() const { return m_p_constant_buffer_override; }
+
+	private:
+		int m_num_vertices = {};
+		int m_num_indices = {};
+		int m_history_backbuffer_frame_index = -1;
+		ConstantBufferType* m_p_constant_buffer_override = {};
+		size_t m_one_element_vertex_size = {};
+		size_t m_one_element_index_size = {};
+		GraphicsAllocationInfo m_info_vertex;
+		GraphicsAllocationInfo m_info_index;
 	};
 
 	class UploadResourceManager {
+		struct upload_buffer_data_t {
+			size_t creation_size;
+			VkBuffer m_p_vk_buffer;
+			VmaAllocation m_p_vma_allocation;
+		};
+
 	public:
 		UploadResourceManager() : m_p_device{}, m_p_fence{}, m_p_command_buffer{}, m_p_command_pool{}, m_p_graphics_queue{} {}
 		~UploadResourceManager() {}
 
-		void Initialize(VkDevice p_device, VkQueue p_queue, uint32_t queue_family_index)
-		{
-			RMLUI_VK_ASSERTMSG(p_queue, "you have to pass a valid VkQueue");
-			RMLUI_VK_ASSERTMSG(p_device, "you have to pass a valid VkDevice for creation resources");
+		void Initialize(VkDevice p_device, VkQueue p_queue, VmaAllocator p_allocator, uint32_t queue_family_index, size_t staging_buffer_size);
+		void Shutdown(VmaAllocator p_allocator);
 
-			m_p_device = p_device;
-			m_p_graphics_queue = p_queue;
-
-			Create_All(queue_family_index);
-		}
-
-		void Shutdown()
-		{
-			vkDestroyFence(m_p_device, m_p_fence, nullptr);
-			vkDestroyCommandPool(m_p_device, m_p_command_pool, nullptr);
-		}
-
+		// Records p_user_commands into the one-time command buffer, submits and blocks until the GPU finished.
 		template <typename Func>
 		void UploadToGPU(Func&& p_user_commands) noexcept
 		{
@@ -150,83 +216,23 @@ private:
 			Wait();
 		}
 
+		// Cached staging buffer, reused between uploads unless the request exceeds it.
+		const upload_buffer_data_t& Get_UploadBuffer() const noexcept { return m_upload_buffer; }
+		upload_buffer_data_t& Get_UploadBuffer() noexcept { return m_upload_buffer; }
+		size_t Get_UploadBufferSize() const noexcept { return m_upload_buffer.creation_size; }
+
+		// Allocates a temporary staging buffer (used when the cached one is too small).
+		upload_buffer_data_t Create_StagingBuffer(VmaAllocator p_allocator, size_t requested_size);
+		void Destroy_StagingBuffer(VmaAllocator p_allocator, upload_buffer_data_t& data);
+
 	private:
-		void Create_Fence() noexcept
-		{
-			VkFenceCreateInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-			info.pNext = nullptr;
-			info.flags = 0;
-
-			VkResult status = vkCreateFence(m_p_device, &info, nullptr, &m_p_fence);
-
-			RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateFence");
-		}
-
-		void Create_CommandBuffer() noexcept
-		{
-			RMLUI_VK_ASSERTMSG(m_p_command_pool, "you have to initialize VkCommandPool before calling this method!");
-
-			VkCommandBufferAllocateInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-			info.pNext = nullptr;
-			info.commandPool = m_p_command_pool;
-			info.commandBufferCount = 1;
-			info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-
-			VkResult status = vkAllocateCommandBuffers(m_p_device, &info, &m_p_command_buffer);
-
-			RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkAllocateCommandBuffers");
-		}
-
-		void Create_CommandPool(uint32_t queue_family_index) noexcept
-		{
-			VkCommandPoolCreateInfo info = {};
-
-			info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-			info.pNext = nullptr;
-			info.queueFamilyIndex = queue_family_index;
-			info.flags = 0;
-
-			VkResult status = vkCreateCommandPool(m_p_device, &info, nullptr, &m_p_command_pool);
-
-			RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateCommandPool");
-		}
-
-		void Create_All(uint32_t queue_family_index) noexcept
-		{
-			Create_Fence();
-			Create_CommandPool(queue_family_index);
-			Create_CommandBuffer();
-		}
-
-		void Wait() noexcept
-		{
-			RMLUI_VK_ASSERTMSG(m_p_fence, "you must initialize your VkFence");
-
-			vkWaitForFences(m_p_device, 1, &m_p_fence, VK_TRUE, UINT64_MAX);
-			vkResetFences(m_p_device, 1, &m_p_fence);
-			vkResetCommandPool(m_p_device, m_p_command_pool, 0);
-		}
-
-		void Submit() noexcept
-		{
-			VkSubmitInfo info = {};
-
-			info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			info.pNext = nullptr;
-			info.waitSemaphoreCount = 0;
-			info.signalSemaphoreCount = 0;
-			info.pSignalSemaphores = nullptr;
-			info.pWaitSemaphores = nullptr;
-			info.pWaitDstStageMask = nullptr;
-			info.pCommandBuffers = &m_p_command_buffer;
-			info.commandBufferCount = 1;
-
-			auto status = vkQueueSubmit(m_p_graphics_queue, 1, &info, m_p_fence);
-
-			RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkQueueSubmit");
-		}
+		void Create_Fence() noexcept;
+		void Create_CommandBuffer() noexcept;
+		void Create_StagingBuffer(VmaAllocator p_allocator, size_t requested_size, upload_buffer_data_t* init_buffer);
+		void Create_CommandPool(uint32_t queue_family_index) noexcept;
+		void Create_All(uint32_t queue_family_index, VmaAllocator p_allocator, size_t staging_buffer_size) noexcept;
+		void Wait() noexcept;
+		void Submit() noexcept;
 
 	private:
 		VkDevice m_p_device;
@@ -234,47 +240,17 @@ private:
 		VkCommandBuffer m_p_command_buffer;
 		VkCommandPool m_p_command_pool;
 		VkQueue m_p_graphics_queue;
-	};
 
-	// @ main manager for "allocating" vertex, index, uniform stuff
-	class MemoryPool {
-	public:
-		MemoryPool();
-		~MemoryPool();
-
-		void Initialize(VkDeviceSize byte_size, VkDeviceSize device_min_uniform_alignment, VmaAllocator p_allocator, VkDevice p_device) noexcept;
-		void Shutdown() noexcept;
-
-		bool Alloc_GeneralBuffer(VkDeviceSize size, void** p_data, VkDescriptorBufferInfo* p_out, VmaVirtualAllocation* p_alloc) noexcept;
-		bool Alloc_VertexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out,
-			VmaVirtualAllocation* p_alloc) noexcept;
-		bool Alloc_IndexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out,
-			VmaVirtualAllocation* p_alloc) noexcept;
-
-		void SetDescriptorSet(uint32_t binding_index, uint32_t size, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept;
-		void SetDescriptorSet(uint32_t binding_index, VkDescriptorBufferInfo* p_info, VkDescriptorType descriptor_type,
-			VkDescriptorSet p_set) noexcept;
-		void SetDescriptorSet(uint32_t binding_index, VkSampler p_sampler, VkImageLayout layout, VkImageView p_view, VkDescriptorType descriptor_type,
-			VkDescriptorSet p_set) noexcept;
-
-		void Free_GeometryHandle(geometry_handle_t* p_valid_geometry_handle) noexcept;
-		void Free_GeometryHandle_ShaderDataOnly(geometry_handle_t* p_valid_geometry_handle) noexcept;
-
-	private:
-		VkDeviceSize m_memory_total_size;
-		VkDeviceSize m_device_min_uniform_alignment;
-		char* m_p_data;
-		VkBuffer m_p_buffer;
-		VmaAllocation m_p_buffer_alloc;
-		VkDevice m_p_device;
-		VmaAllocator m_p_vk_allocator;
-		VmaVirtualBlock m_p_block;
+		// system talks with these buffers when we want to upload texture
+		// we avoid reallocation, but if the requested resource is bigger than upload buffer we temporarely create that staging temp buffer and then
+		// delete, but this buffer we don't delete until session of RenderInterface_VK instance is not ended
+		upload_buffer_data_t m_upload_buffer;
 	};
 
 	// If we need additional command buffers, we can add them to this list and retrieve them from the ring.
 	enum class CommandBufferName { Primary, Count };
 
-	// The command buffer ring stores a unique set of named command buffers for each bufferd frame.
+	// The command buffer ring stores a unique set of named command buffers for each buffered frame.
 	// Explanation of how to use Vulkan efficiently: https://vkguide.dev/docs/chapter-4/double_buffering/
 	class CommandBufferRing {
 	public:
@@ -288,6 +264,7 @@ private:
 
 		void OnBeginFrame();
 		VkCommandBuffer GetCommandBufferForActiveFrame(CommandBufferName named_command_buffer);
+		uint32_t Get_ActiveFrameIndex() const noexcept { return m_frame_index; }
 
 	private:
 		struct CommandBuffersPerFrame {
@@ -310,73 +287,198 @@ private:
 		}
 
 		void Initialize(VkDevice p_device, uint32_t count_uniform_buffer, uint32_t count_image_sampler, uint32_t count_sampler,
-			uint32_t count_storage_buffer) noexcept
-		{
-			RMLUI_VK_ASSERTMSG(p_device, "you can't pass an invalid VkDevice here");
+			uint32_t count_storage_buffer) noexcept;
 
-			Rml::Array<VkDescriptorPoolSize, 5> sizes;
-			sizes[0] = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, count_uniform_buffer};
-			sizes[1] = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, count_uniform_buffer};
-			sizes[2] = {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count_image_sampler};
-			sizes[3] = {VK_DESCRIPTOR_TYPE_SAMPLER, count_sampler};
-			sizes[4] = {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count_storage_buffer};
-
-			VkDescriptorPoolCreateInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-			info.pNext = nullptr;
-			info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-			info.maxSets = 1000;
-			info.poolSizeCount = static_cast<uint32_t>(sizes.size());
-			info.pPoolSizes = sizes.data();
-
-			auto status = vkCreateDescriptorPool(p_device, &info, nullptr, &m_p_descriptor_pool);
-			RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateDescriptorPool");
-		}
-
-		void Shutdown(VkDevice p_device)
-		{
-			RMLUI_VK_ASSERTMSG(p_device, "you can't pass an invalid VkDevice here");
-
-			vkDestroyDescriptorPool(p_device, m_p_descriptor_pool, nullptr);
-		}
+		void Shutdown(VkDevice p_device);
 
 		uint32_t Get_AllocatedDescriptorCount() const noexcept { return m_allocated_descriptor_count; }
 
 		bool Alloc_Descriptor(VkDevice p_device, VkDescriptorSetLayout* p_layouts, VkDescriptorSet* p_sets,
-			uint32_t descriptor_count_for_creation = 1) noexcept
-		{
-			RMLUI_VK_ASSERTMSG(p_layouts, "you have to pass a valid and initialized VkDescriptorSetLayout (probably you must create it)");
-			RMLUI_VK_ASSERTMSG(p_device, "you must pass a valid VkDevice here");
+			uint32_t descriptor_count_for_creation = 1) noexcept;
 
-			VkDescriptorSetAllocateInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-			info.pNext = nullptr;
-			info.descriptorPool = m_p_descriptor_pool;
-			info.descriptorSetCount = descriptor_count_for_creation;
-			info.pSetLayouts = p_layouts;
-
-			auto status = vkAllocateDescriptorSets(p_device, &info, p_sets);
-			RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkAllocateDescriptorSets");
-
-			m_allocated_descriptor_count += descriptor_count_for_creation;
-
-			return status == VkResult::VK_SUCCESS;
-		}
-
-		void Free_Descriptors(VkDevice p_device, VkDescriptorSet* p_sets, uint32_t descriptor_count = 1) noexcept
-		{
-			RMLUI_VK_ASSERTMSG(p_device, "you must pass a valid VkDevice here");
-
-			if (p_sets)
-			{
-				m_allocated_descriptor_count -= descriptor_count;
-				vkFreeDescriptorSets(p_device, m_p_descriptor_pool, descriptor_count, p_sets);
-			}
-		}
+		void Free_Descriptors(VkDevice p_device, VkDescriptorSet* p_sets, uint32_t descriptor_count = 1) noexcept;
 
 	private:
 		int m_allocated_descriptor_count;
 		VkDescriptorPool m_p_descriptor_pool;
+	};
+
+	/**
+	 * Growable pool of persistently-mapped host-visible buffers, suballocated with VmaVirtualBlock.
+	 *
+	 * The Vulkan analog of the DX12 renderer's BufferMemoryManager (D3D12MA virtual blocks over UPLOAD heaps):
+	 * vertex/index data is memcpy'd straight into mapped memory, and constant-buffer payloads are suballocated
+	 * with dynamic-UBO alignment. Each pool buffer owns one descriptor set of the constant-buffer layout which is
+	 * bound per draw with a dynamic offset, like DX12's root CBV binding.
+	 */
+	class BufferMemoryManager : Rml::NonCopyMoveable {
+	public:
+		BufferMemoryManager();
+		~BufferMemoryManager();
+
+		void Initialize(VkDevice p_device, VmaAllocator p_allocator, DescriptorPoolManager* p_manager_descriptors,
+			VkDescriptorSetLayout p_set_layout_constant_buffer, VkDeviceSize constant_buffer_alignment,
+			size_t size_for_allocation = RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION);
+		void Shutdown();
+
+		void Alloc_Vertex(const void* p_data, int num_vertices, size_t size_of_one_element_in_p_data, GeometryHandleType* p_handle);
+		void Alloc_Index(const void* p_data, int num_indices, size_t size_of_one_element_in_p_data, GeometryHandleType* p_handle);
+
+		GraphicsAllocationInfo Alloc_ConstantBuffer(ConstantBufferType* p_resource, size_t size);
+
+		void Free_ConstantBuffer(ConstantBufferType* p_constantbuffer);
+		void Free_Geometry(GeometryHandleType* p_geometryhandle);
+
+		void* Get_WritableMemoryFromBufferByOffset(const GraphicsAllocationInfo& info);
+
+		VkBuffer Get_BufferByIndex(int buffer_index);
+		// Descriptor set of the constant-buffer layout (dynamic UBO) referencing the given pool buffer. The same set is
+		// bound as set 0 (color/texture/gradient/creation pipelines) or as set 1 (postprocess pipelines with CB).
+		VkDescriptorSet Get_ConstantBufferDescriptorSetByIndex(int buffer_index);
+
+		// Releases pool blocks that were retired some frames ago (deferred, so in-flight command buffers stay valid).
+		void Update_PendingForDeletion_Buffers(uint64_t frame_counter);
+
+		bool Is_Initialized() const;
+
+	private:
+		void Alloc_Buffer(size_t size);
+
+		// Searches for block that has enough memory for requested allocation size, otherwise returns nullptr that means no block!
+		VmaVirtualBlock_T* Get_AvailableBlock(size_t size_for_allocation, int* p_result_buffer_index);
+		VmaVirtualBlock_T* Get_NotOutOfMemoryAndAvailableBlock(size_t size_for_allocation, int* p_result_buffer_index);
+
+		int Alloc(GraphicsAllocationInfo& info, size_t size, size_t alignment = 0);
+
+		// Moves completely empty blocks to the deferred destruction list (at most one per call, like the DX12 renderer).
+		void TryToFreeAvailableBlock(uint64_t frame_counter);
+		void Destroy_BufferAtIndex(int buffer_index);
+
+		VkDevice m_p_device;
+		VmaAllocator m_p_allocator;
+		DescriptorPoolManager* m_p_manager_descriptors;
+		VkDescriptorSetLayout m_p_set_layout_constant_buffer;
+		VkDeviceSize m_constant_buffer_alignment;
+		size_t m_size_for_allocation_in_bytes;
+		uint64_t m_frame_counter;
+
+		/// @brief this is for sub allocating purposes using 'Virtual Allocation' from VMA
+		Rml::Vector<VmaVirtualBlock> m_virtual_blocks;
+		/// @brief this is physical representation of VRAM and uses from CPU side for binding data
+		Rml::Vector<VkBuffer> m_buffers;
+		Rml::Vector<VmaAllocation> m_buffer_allocations;
+		Rml::Vector<void*> m_buffers_mapped_memory;
+		// Per pool buffer: descriptor set of the constant-buffer layout referencing it (index matches m_buffers).
+		Rml::Vector<VkDescriptorSet> m_cb_descriptor_sets;
+		// Retired pool blocks, stamped with the frame counter at retirement; destroyed once the GPU can't reference them.
+		Rml::Vector<Rml::Pair<int, uint64_t>> m_pending_for_deletion_buffers;
+	};
+
+	/**
+	 * The key feature of this manager is texture management.
+	 *
+	 * Unlike the DX12 renderer (which manually decides between placed and committed resources), Vulkan defers the
+	 * suballocation decision to VMA: images are allocated with vmaCreateImage and VMA internally suballocates small
+	 * images or dedicates memory to large ones. Uploads are synchronous through a staging buffer, mirroring the
+	 * DX12 copy-queue path. Each texture owns an image view and a descriptor set for per-draw binding.
+	 */
+	class TextureMemoryManager : Rml::NonCopyMoveable {
+	public:
+		TextureMemoryManager();
+		~TextureMemoryManager();
+
+		void Initialize(RenderInterface_VK* p_renderer, VkDevice p_device, VmaAllocator p_allocator, UploadResourceManager* p_upload_manager,
+			DescriptorPoolManager* p_manager_descriptors, VkDescriptorSetLayout p_set_layout_texture, VkSampler p_sampler);
+		void Shutdown();
+
+		// Creates a sampled texture, optionally uploading pixel data (nullptr data = uninitialized content).
+		void Alloc_Texture(TextureHandleType* p_impl, Rml::Vector2i dimensions, const Rml::byte* p_data
+#ifdef RMLUI_VK_DEBUG
+			,
+			const Rml::String& debug_name
+#endif
+		);
+
+		// Creates a texture usable as a render target (color or depth-stencil) for framebuffers.
+		void Alloc_Texture(TextureHandleType* p_impl, Rml::Vector2i dimensions, VkFormat format, VkSampleCountFlagBits sample_count,
+			bool is_depth_stencil
+#ifdef RMLUI_VK_DEBUG
+			,
+			const Rml::String& debug_name
+#endif
+		);
+
+		void Free_Texture(TextureHandleType* p_texture);
+
+		bool Is_Initialized() const;
+
+	private:
+		void Create_ImageView(TextureHandleType* p_impl, VkFormat format, VkImageAspectFlags aspect_mask, VkSampleCountFlagBits sample_count);
+		void Create_DescriptorSet_ForTexture(TextureHandleType* p_impl);
+		void Upload(TextureHandleType* p_texture, Rml::Vector2i dimensions, const Rml::byte* p_data);
+
+		RenderInterface_VK* m_p_renderer;
+		VkDevice m_p_device;
+		VmaAllocator m_p_allocator;
+		UploadResourceManager* m_p_upload_manager;
+		DescriptorPoolManager* m_p_manager_descriptors;
+		VkDescriptorSetLayout m_p_set_layout_texture;
+		VkSampler m_p_sampler_linear;
+	};
+
+	/*
+	    Manages render targets, including the layer stack and postprocessing framebuffers.
+
+	    Layers can be pushed and popped, creating new framebuffers as needed. Typically, geometry is rendered to the top
+	    layer. The layer framebuffers may have MSAA enabled.
+
+	    Postprocessing framebuffers are separate from the layers, and are commonly used to apply texture-wide effects
+	    such as filters. They are used both as input and output during rendering, and do not use MSAA.
+	*/
+	class RenderLayerStack : Rml::NonCopyMoveable {
+	public:
+		RenderLayerStack();
+		~RenderLayerStack();
+
+		void Initialize(RenderInterface_VK* p_owner);
+		void Shutdown();
+
+		// Push a new layer. All references to previously retrieved layers are invalidated.
+		Rml::LayerHandle PushLayer();
+
+		// Pop the top layer. All references to previously retrieved layers are invalidated.
+		void PopLayer();
+
+		const Gfx::FramebufferData& GetLayer(Rml::LayerHandle layer) const;
+		const Gfx::FramebufferData& GetTopLayer() const;
+		const Gfx::FramebufferData& Get_SharedDepthStencil_Layers();
+		Rml::LayerHandle GetTopLayerHandle() const;
+
+		const Gfx::FramebufferData& GetPostprocessPrimary() { return EnsureFramebufferPostprocess(0); }
+		const Gfx::FramebufferData& GetPostprocessSecondary() { return EnsureFramebufferPostprocess(1); }
+		const Gfx::FramebufferData& GetPostprocessTertiary() { return EnsureFramebufferPostprocess(2); }
+		const Gfx::FramebufferData& GetBlendMask() { return EnsureFramebufferPostprocess(3); }
+
+		void SwapPostprocessPrimarySecondary();
+
+		void BeginFrame(int new_width, int new_height);
+		void EndFrame();
+
+	private:
+		void DestroyFramebuffers();
+		const Gfx::FramebufferData& EnsureFramebufferPostprocess(int index);
+
+		void CreateFramebuffer(Gfx::FramebufferData* p_result, int width, int height, int sample_count, bool is_depth_stencil);
+		void DestroyFramebuffer(Gfx::FramebufferData* p_data);
+
+		unsigned char m_msaa_sample_count;
+		int m_layers_size;
+		int m_width;
+		int m_height;
+		RenderInterface_VK* m_p_owner;
+		Gfx::FramebufferData* m_p_shared_depth_stencil_for_layers;
+		Rml::Vector<Gfx::FramebufferData> m_fb_layers;
+		Rml::Vector<Gfx::FramebufferData> m_fb_postprocess;
 	};
 
 	struct PhysicalDeviceWrapper {
@@ -387,6 +489,75 @@ private:
 	using PhysicalDeviceWrapperList = Rml::Vector<PhysicalDeviceWrapper>;
 	using LayerPropertiesList = Rml::Vector<VkLayerProperties>;
 	using ExtensionPropertiesList = Rml::Vector<VkExtensionProperties>;
+
+	RenderInterface_VK();
+	~RenderInterface_VK();
+
+	using CreateSurfaceCallback = bool (*)(VkInstance instance, VkSurfaceKHR* out_surface);
+
+	bool Initialize(Rml::Vector<const char*> required_extensions, CreateSurfaceCallback create_surface_callback);
+	void Shutdown();
+
+	void BeginFrame();
+	void EndFrame();
+
+	// The viewport should be updated whenever the window size changes.
+	void SetViewport(int width, int height);
+	// Optional, can be used to clear the active framebuffer.
+	void Clear();
+	bool IsSwapchainValid();
+	void RecreateSwapchain();
+
+	// Captures the presented backbuffer contents into CPU memory (3 components, bottom-up rows, like the DX12 renderer).
+	bool CaptureScreen(int& width, int& height, int& num_components, Rml::UniquePtr<Rml::byte[]>& data);
+
+	// -- Inherited from Rml::RenderInterface --
+
+	/// Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
+	Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
+	/// Called by RmlUi when it wants to render application-compiled geometry.
+	void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override;
+	/// Called by RmlUi when it wants to release application-compiled geometry.
+	void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override;
+
+	/// Called by RmlUi when a texture is required by the library.
+	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
+	/// Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
+	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions) override;
+	/// Called by RmlUi when a loaded texture is no longer required.
+	void ReleaseTexture(Rml::TextureHandle texture_handle) override;
+
+	/// Called by RmlUi when it wants to enable or disable scissoring to clip content.
+	void EnableScissorRegion(bool enable) override;
+	/// Called by RmlUi when it wants to change the scissor region.
+	void SetScissorRegion(Rml::Rectanglei region) override;
+
+	/// Called by RmlUi when it wants to set the current transform matrix to a new matrix.
+	void SetTransform(const Rml::Matrix4f* transform) override;
+
+	void EnableClipMask(bool enable) override;
+	void RenderToClipMask(Rml::ClipMaskOperation mask_op, Rml::CompiledGeometryHandle geom, Rml::Vector2f translation) override;
+
+	Rml::LayerHandle PushLayer() override;
+	void CompositeLayers(Rml::LayerHandle src, Rml::LayerHandle dest, Rml::BlendMode blend,
+		Rml::Span<const Rml::CompiledFilterHandle> filters) override;
+	void PopLayer() override;
+
+	Rml::TextureHandle SaveLayerAsTexture() override;
+	Rml::CompiledFilterHandle SaveLayerAsMaskImage() override;
+
+	Rml::CompiledFilterHandle CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters) override;
+	void ReleaseFilter(Rml::CompiledFilterHandle filter) override;
+
+	Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) override;
+	void RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle, Rml::Vector2f translation,
+		Rml::TextureHandle texture) override;
+	void ReleaseShader(Rml::CompiledShaderHandle effect_handle) override;
+
+	// Can be passed to RenderGeometry() to enable texture rendering without changing the bound texture.
+	static constexpr Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
+	// Can be passed to RenderGeometry() to leave the bound texture and used program unchanged.
+	static constexpr Rml::TextureHandle TexturePostprocess = Rml::TextureHandle(-2);
 
 private:
 	Rml::TextureHandle CreateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i dimensions, const Rml::String& name);
@@ -443,60 +614,129 @@ private:
 
 	VkExtent2D GetValidSurfaceExtent() noexcept;
 
-	void CreateShaders() noexcept;
-	void CreateDescriptorSetLayout() noexcept;
-	void CreatePipelineLayout() noexcept;
-	void CreateDescriptorSets() noexcept;
-	void CreateSamplers() noexcept;
+	void Create_Shaders() noexcept;
+	void Create_DescriptorSetLayouts() noexcept;
+	void Create_PipelineLayouts() noexcept;
+	void Create_Samplers() noexcept;
 	void Create_Pipelines() noexcept;
-	void CreateRenderPass() noexcept;
 
-	void CreateSwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
+	void Create_Pipeline_Color();
+	void Create_Pipeline_Texture();
+	void Create_Pipeline_Gradient();
+	void Create_Pipeline_Creation();
+	void Create_Pipeline_Passthrough();
+	void Create_Pipeline_Passthrough_NoBlend();
+	void Create_Pipeline_ColorMatrix();
+	void Create_Pipeline_BlendMask();
+	void Create_Pipeline_Blur();
+	void Create_Pipeline_DropShadow();
+
+	// Render passes: one per framebuffer configuration (mirrors the DX12 render-target/PSO sample-count matrix).
+	void Create_RenderPasses() noexcept;
+
+	void Create_SwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
 
 	// This method is called in Views, so don't call it manually
-	void CreateSwapchainImages() noexcept;
-	void CreateSwapchainImageViews() noexcept;
+	void Create_SwapchainImages() noexcept;
+	void Create_SwapchainImageViews() noexcept;
 
 	void Create_DepthStencilImage() noexcept;
 	void Create_DepthStencilImageViews() noexcept;
 
-	void CreateResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept;
-
-	buffer_data_t CreateResource_StagingBuffer(VkDeviceSize size, VkBufferUsageFlags flags) noexcept;
-	void DestroyResource_StagingBuffer(const buffer_data_t& data) noexcept;
+	void Create_ResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept;
 
 	void Destroy_Textures() noexcept;
 	void Destroy_Geometries() noexcept;
-
-	void Destroy_Texture(const texture_data_t& p_texture) noexcept;
+	void Destroy_Texture(TextureHandleType* p_texture) noexcept;
 
 	void DestroyResourcesDependentOnSize() noexcept;
 	void DestroySwapchainImageViews() noexcept;
 	void DestroySwapchainFrameBuffers() noexcept;
-	void DestroyRenderPass() noexcept;
+	void DestroyRenderPasses() noexcept;
 	void Destroy_Pipelines() noexcept;
-	void DestroyDescriptorSets() noexcept;
-	void DestroyPipelineLayout() noexcept;
+	void DestroyDescriptorSetLayouts() noexcept;
+	void DestroyPipelineLayouts() noexcept;
 	void DestroySamplers() noexcept;
+	void Destroy_Shaders() noexcept;
 
 	void Wait() noexcept;
 
-	void Update_PendingForDeletion_Textures_By_Frames() noexcept;
+	void Update_PendingForDeletion_Textures() noexcept;
 	void Update_PendingForDeletion_Geometries() noexcept;
 
 	void Submit() noexcept;
 	void Present() noexcept;
 
+	// Program (pipeline) selection, the analog of DX12's UseProgram (PSO + root signature bind).
+	void UseProgram(ProgramId id);
+
+	// Scissor handling. Unlike DX12 there is no vertically_flip variant: Vulkan framebuffer space in this backend is
+	// already top-left-origin (see the projection correction matrix), so scissor rectangles are used as-is.
+	void SetScissor(Rml::Rectanglei region);
+
+	void SubmitTransformUniform(ConstantBufferType& constant_buffer, const Rml::Vector2f& translation);
+
+	ConstantBufferType* Get_ConstantBuffer(uint32_t current_back_buffer_index);
+
+	void Free_Geometry(GeometryHandleType* p_handle);
+	void Free_Texture(TextureHandleType* p_handle);
+
+	// -- Render pass / barrier helpers (the Vulkan analog of DX12's explicit resource state barriers) --
+
+	// Ends the currently recorded render pass (if any). Must be called before barriers/copies/resolves.
+	void EndActiveRenderPass() noexcept;
+	// Begins (or keeps) the render pass targeting the given framebuffer, binding it as the active render target.
+	void BindRenderTarget(const Gfx::FramebufferData& framebuffer, bool depth_included = true);
+	// Begins the layer render pass in its CLEAR variant (color attachment cleared to transparent black on begin, the
+	// analog of the DX12 renderer clearing the pushed layer's RTV) and marks it as the active render target. When
+	// clear_depth_stencil is set, the depth-stencil attachment is cleared instead (color is preserved via LOAD) —
+	// used by RenderToClipMask when the stencil clear happens to be the first command of a fresh pass.
+	void BindRenderTarget_Clear(const Gfx::FramebufferData& framebuffer, bool clear_depth_stencil = false);
+	// Image memory barrier on the currently recording command buffer; updates the tracked layout.
+	void TransitionImageLayout(TextureHandleType* p_texture, VkImageLayout new_layout,
+		VkImageAspectFlags aspect_mask = VK_IMAGE_ASPECT_COLOR_BIT) noexcept;
+
+	void BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_id);
+
+	void RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles);
+	void RenderBlur(float sigma, const Gfx::FramebufferData& source_destination, const Gfx::FramebufferData& temp, const Rml::Rectanglei window);
+
+	void DrawFullscreenQuad(ConstantBufferType* p_override_constant_buffer = nullptr);
+	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f),
+		ConstantBufferType* p_override_constant_buffer = nullptr);
+
+	void BindTexture(TextureHandleType* p_texture, uint32_t set_index = 0);
+
+	void OverrideConstantBufferOfGeometry(Rml::CompiledGeometryHandle geometry, ConstantBufferType* p_override_constant_buffer);
+
+	// 1 means not supported, otherwise returns max value of supported multisample count
+	unsigned char GetMSAASupportedSampleCount(unsigned char max_samples);
+
+	void BlitFramebuffer(const Gfx::FramebufferData& source, const Gfx::FramebufferData& dest, int srcX0, int srcY0, int srcX1, int srcY1, int dstX0,
+		int dstY0, int dstX1, int dstY1);
+
 	VkFormat Get_SupportedDepthFormat();
+
+	// Full GPU drain, the analog of the DX12 renderer's Flush().
+	void Flush() noexcept;
 
 private:
 	bool m_is_transform_enabled;
-	bool m_is_apply_to_regular_geometry_stencil;
-	bool m_is_use_scissor_specified;
-	bool m_is_use_stencil_pipeline;
+	bool m_is_scissor_was_set;
+	bool m_is_stencil_enabled;
+	bool m_is_stencil_equal;
+	bool m_is_use_msaa;
+
+	unsigned char m_msaa_sample_count;
 
 	int m_width;
 	int m_height;
+
+	// Current clip-mask operation being recorded (Rml::ClipMaskOperation cast, -1 when none), like the DX12 renderer.
+	int m_current_clip_operation;
+	ProgramId m_active_program_id;
+	Rml::Rectanglei m_scissor;
+	uint32_t m_stencil_ref_value;
 
 	uint32_t m_queue_index_present;
 	uint32_t m_queue_index_graphics;
@@ -505,31 +745,46 @@ private:
 	uint32_t m_semaphore_index_previous;
 	uint32_t m_image_index;
 
+	// Monotonically increasing count of submitted frames; deferred-deletion entries are stamped with it.
+	uint64_t m_frame_counter;
+
 	VkInstance m_p_instance;
 	VkDevice m_p_device;
 	VkPhysicalDevice m_p_physical_device;
 	VkSurfaceKHR m_p_surface;
 	VkSwapchainKHR m_p_swapchain;
 	VmaAllocator m_p_allocator;
-	// @ obtained from command list see PrepareRenderBuffer method
+	// @ obtained from the command buffer ring, see BeginFrame method
 	VkCommandBuffer m_p_current_command_buffer;
 
-	VkDescriptorSetLayout m_p_descriptor_set_layout_vertex_transform;
+	// Descriptor set layouts: 'transform' (dynamic UBO, vertex+fragment; bound as set 0 for color/texture/gradient/
+	// creation pipelines and as set 1 for postprocess pipelines with constant buffers), 'texture' (single combined
+	// image sampler), 'blend_mask' (two combined image samplers).
+	VkDescriptorSetLayout m_p_descriptor_set_layout_transform;
 	VkDescriptorSetLayout m_p_descriptor_set_layout_texture;
-	VkPipelineLayout m_p_pipeline_layout;
-	VkPipeline m_p_pipeline_with_textures;
-	VkPipeline m_p_pipeline_without_textures;
-	VkPipeline m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn;
-	VkPipeline m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures;
-	VkPipeline m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures;
-	VkDescriptorSet m_p_descriptor_set;
-	VkRenderPass m_p_render_pass;
-	VkSampler m_p_sampler_linear;
-	VkRect2D m_scissor;
+	VkDescriptorSetLayout m_p_descriptor_set_layout_blend_mask;
 
-	// @ means it captures the window size full width and full height, offset equals both x and y to 0
+	VkPipelineLayout m_p_pipeline_layout_transform;
+	VkPipelineLayout m_p_pipeline_layout_transform_texture;
+	VkPipelineLayout m_p_pipeline_layout_texture;
+	VkPipelineLayout m_p_pipeline_layout_texture_effect;
+	VkPipelineLayout m_p_pipeline_layout_blend_mask;
+
+	// The global descriptor set bound as set 0 for the transform UBO is owned by the buffer manager (per pool buffer).
+	VkRenderPass m_p_render_pass_layer;           // MSAA color + MSAA depth-stencil (UI layers)
+	VkRenderPass m_p_render_pass_layer_clear;     // same, but the color load-op is CLEAR (layer pushes / frame begin)
+	VkRenderPass m_p_render_pass_layer_clear_all; // same, but both color and depth-stencil load-ops are CLEAR (Clear())
+	// same, but only the depth-stencil load-op is CLEAR (clip-mask stencil clear at the start of a fresh pass)
+	VkRenderPass m_p_render_pass_layer_clear_ds;
+	VkRenderPass m_p_render_pass_postprocess; // single-sample color only (filters, blur, ...)
+	VkRenderPass m_p_render_pass_swapchain;   // swapchain color + main depth-stencil (final composite)
+	VkSampler m_p_sampler_linear;
 	VkRect2D m_scissor_original;
 	VkViewport m_viewport;
+
+	// Render-pass recording state: which framebuffer (and its render pass) is currently being recorded into.
+	VkRenderPass m_p_active_render_pass;
+	VkFramebuffer m_p_active_framebuffer;
 
 	VkQueue m_p_queue_present;
 	VkQueue m_p_queue_graphics;
@@ -540,24 +795,42 @@ private:
 #endif
 
 	VkSurfaceFormatKHR m_swapchain_format;
-	shader_vertex_user_data_t m_user_data_for_vertex_shader;
-	texture_data_t m_texture_depthstencil;
+	TextureHandleType m_texture_depthstencil;
+
+	VkPipeline m_pipelines[NumPrograms];
 
 	Rml::Matrix4f m_projection;
+	Rml::Matrix4f m_constant_buffer_data_transform;
 	Rml::Vector<VkFence> m_executed_fences;
+	// Tracks which fence slots were actually submitted to the GPU (fences are created unsignaled); guards the
+	// wait/reset in Wait() so a fence is never waited or submitted while in an invalid state.
+	Rml::Array<bool, kSwapchainBackBufferCount> m_submitted_fences;
 	Rml::Vector<VkSemaphore> m_semaphores_image_available;
+	// one per SWAPCHAIN IMAGE (not per frame slot): the presentation engine holds the semaphore a frame's present
+	// waits on until that image is re-acquired, so indexing by the acquired image index is the only safe reuse scheme
+	// (see VUID-vkQueueSubmit-pSignalSemaphores-00067 / the swapchain semaphore reuse guide)
 	Rml::Vector<VkSemaphore> m_semaphores_finished_render;
 	Rml::Vector<VkFramebuffer> m_swapchain_frame_buffers;
 	Rml::Vector<VkImage> m_swapchain_images;
 	Rml::Vector<VkImageView> m_swapchain_image_views;
-	Rml::Vector<VkShaderModule> m_shaders;
-	Rml::Array<Rml::Vector<texture_data_t*>, kSwapchainBackBufferCount> m_pending_for_deletion_textures_by_frames;
+	VkShaderModule m_shaders[static_cast<int>(eVKShaderID::count)];
+	Rml::CompiledGeometryHandle m_precompiled_fullscreen_quad_geometry;
 
-	// vma handles that thing, so there's no need for frame splitting
-	Rml::Vector<geometry_handle_t*> m_pending_for_deletion_geometries;
+	// Per backbuffer-slot constant buffer ring (per draw), like the DX12 renderer's m_constantbuffers.
+	// std::deque is used on purpose: emplace_back must never invalidate ConstantBufferType* handed out earlier in the
+	// frame (geometry override constant buffers point into this storage), which std::vector reallocation would break.
+	Rml::Array<std::deque<ConstantBufferType>, kSwapchainBackBufferCount> m_constantbuffers;
+	Rml::Array<size_t, kSwapchainBackBufferCount> m_constant_buffer_count_per_frame;
+
+	// Resources deferred for destruction. Each entry is stamped with the frame counter at release time; the memory is
+	// recycled once a full swapchain cycle passed, i.e. when the GPU has finished every frame that could reference it.
+	Rml::Vector<Rml::Pair<GeometryHandleType*, uint64_t>> m_pending_for_deletion_geometries;
+	Rml::Vector<Rml::Pair<TextureHandleType*, uint64_t>> m_pending_for_deletion_textures;
 
 	CommandBufferRing m_command_buffer_ring;
-	MemoryPool m_memory_pool;
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;
+	BufferMemoryManager m_manager_buffer;
+	TextureMemoryManager m_manager_texture;
+	RenderLayerStack m_manager_render_layer;
 };

@@ -63,6 +63,7 @@ bool InputTypeRadio::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
 	dimensions.x = 16;
 	dimensions.y = 16;
+	dimensions *= ElementUtilities::GetDensityIndependentPixelRatio(element);
 	ratio = 1;
 
 	return true;

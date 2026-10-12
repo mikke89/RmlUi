@@ -8,7 +8,7 @@ namespace Rml {
 
 class RMLUICORE_API ElementText final : public Element {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementText, Element)
+	RMLUI_RTTI_DeclareWithParent(ElementText, Element)
 
 	ElementText(const String& tag);
 	virtual ~ElementText();

@@ -9,7 +9,7 @@ namespace Debugger {
 
 class ElementDataModels : public ElementDebugDocument, public EventListener {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementDataModels, ElementDebugDocument)
+	RMLUI_RTTI_DeclareWithParent(ElementDataModels, ElementDebugDocument)
 
 	ElementDataModels(const String& tag);
 	~ElementDataModels();

@@ -62,8 +62,9 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard: Cpp11
 StatementMacros:
+  - RMLUI_RTTI_Declare
+  - RMLUI_RTTI_DeclareWithParent
   - RMLUI_RTTI_Define
-  - RMLUI_RTTI_DefineWithParent
 TabWidth: 4
 UseTab: AlignWithSpaces
 WhitespaceSensitiveMacros: ['RMLUI_STRINGIFY']
