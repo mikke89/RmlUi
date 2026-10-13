@@ -137,15 +137,22 @@ public:
 		VariableDefinition(DataVariableType::Array), underlying_definition(underlying_definition)
 	{}
 
-	int Size(void* ptr) override { return int(static_cast<Container*>(ptr)->size()); }
+	int Size(void* ptr) override
+	{
+		using std::size;
+		return int(size(*static_cast<Container*>(ptr)));
+	}
 
 protected:
 	DataVariable Child(void* void_ptr, const DataAddressEntry& address) override
 	{
+		using std::begin;
+		using std::size;
+
 		Container* ptr = static_cast<Container*>(void_ptr);
 		const int index = address.index;
 
-		const int container_size = int(ptr->size());
+		const int container_size = int(size(*ptr));
 		if (index < 0 || index >= container_size)
 		{
 			if (address.name == "size")
@@ -155,7 +162,7 @@ protected:
 			return DataVariable();
 		}
 
-		auto it = ptr->begin();
+		auto it = begin(*ptr);
 		std::advance(it, index);
 
 		void* next_ptr = &(*it);
