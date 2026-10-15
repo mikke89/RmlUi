@@ -162,8 +162,11 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 
 bool Element::IsDormantDocument() const
 {
+	if (owner_document != this || visible)
+		return false;
+	const Context* context = GetContext();
 	// A pending change on the document itself may be what shows it, so that one still runs.
-	return owner_document == this && !visible && !dirty_definition && !meta->style.AnyPropertiesDirty();
+	return context && context->GetSkipHiddenDocuments() && !dirty_definition && !meta->style.AnyPropertiesDirty();
 }
 
 void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimensions)

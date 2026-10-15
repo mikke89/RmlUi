@@ -53,6 +53,14 @@ public:
 	/// @return The current density-independent pixel ratio of the context.
 	float GetDensityIndependentPixelRatio() const;
 
+	/// Makes Update() leave out hidden documents: they are neither updated nor laid out until shown, which
+	/// ElementDocument::Show() does in full. Off by default. While on, the computed values and layout of a hidden
+	/// document stay as they were when it was hidden; call ElementDocument::UpdateDocument() before reading them.
+	/// @param[in] skip True to skip hidden documents.
+	void SetSkipHiddenDocuments(bool skip);
+	/// Returns whether Update() leaves out hidden documents.
+	bool GetSkipHiddenDocuments() const;
+
 	/// Updates all elements in the context's documents.
 	/// This must be called before Context::Render, but after any elements have been changed, added, or removed.
 	bool Update();
@@ -300,6 +308,7 @@ private:
 	String name;
 	Vector2i dimensions;
 	float density_independent_pixel_ratio = 1.f;
+	bool skip_hidden_documents = false;
 	String documents_base_tag = "body";
 
 	// Wrapper around the render interface for tracking the render state.

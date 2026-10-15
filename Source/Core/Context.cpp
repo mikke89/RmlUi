@@ -178,6 +178,16 @@ float Context::GetDensityIndependentPixelRatio() const
 	return density_independent_pixel_ratio;
 }
 
+void Context::SetSkipHiddenDocuments(bool skip)
+{
+	skip_hidden_documents = skip;
+}
+
+bool Context::GetSkipHiddenDocuments() const
+{
+	return skip_hidden_documents;
+}
+
 bool Context::Update()
 {
 	RMLUI_ZoneScoped;
