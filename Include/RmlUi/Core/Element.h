@@ -597,6 +597,10 @@ protected:
 	/// Updates definition, computed values, and runs OnPropertyChange on this element.
 	void UpdateProperties(float dp_ratio, Vector2f vp_dimensions);
 
+	/// True for a hidden document with nothing pending on itself: the context's per-frame update and layout skip it,
+	/// since ElementDocument::Show() updates it in full. Pending changes inside it are kept until then.
+	bool IsDormantDocument() const;
+
 	/// Forces the element to generate a local stacking context, regardless of the value of its z-index property.
 	void ForceLocalStackingContext();
 

@@ -146,13 +146,24 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 	meta->effects.InstanceEffects();
 
 	for (size_t i = 0; i < children.size(); i++)
+	{
+		// Show() brings a hidden document current itself (UpdateDocument()), so the per-frame walk leaves it.
+		if (children[i]->IsDormantDocument())
+			continue;
 		children[i]->Update(dp_ratio, vp_dimensions);
+	}
 
 	if (!animations.empty() && IsVisible(true))
 	{
 		if (Context* ctx = GetContext())
 			ctx->RequestNextUpdate(0);
 	}
+}
+
+bool Element::IsDormantDocument() const
+{
+	// A pending change on the document itself may be what shows it, so that one still runs.
+	return owner_document == this && !visible && !dirty_definition && !meta->style.AnyPropertiesDirty();
 }
 
 void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimensions)

@@ -206,7 +206,8 @@ bool Context::Update()
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 	{
-		if (auto doc = root->GetChild(i)->GetOwnerDocument())
+		auto doc = root->GetChild(i)->GetOwnerDocument();
+		if (doc && !doc->IsDormantDocument())
 		{
 			doc->UpdateLayout();
 			doc->UpdatePosition();
