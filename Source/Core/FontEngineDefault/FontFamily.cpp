@@ -48,7 +48,7 @@ FontFaceHandleDefault* FontFamily::GetFaceHandle(Style::FontStyle style, Style::
 	return matching_face->GetHandle(size, true);
 }
 
-auto FontFamily::AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]> face_memory)
+auto FontFamily::AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]>& face_memory)
 	-> AddFaceResult
 {
 	for (auto& face : font_faces)
