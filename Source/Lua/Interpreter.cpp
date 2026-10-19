@@ -6,6 +6,7 @@
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Lua/Interpreter.h>
 #include <RmlUi/Lua/LuaType.h>
+#include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {
 namespace Lua {

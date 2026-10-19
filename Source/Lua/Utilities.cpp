@@ -34,6 +34,68 @@ lua_Integer luaL_len(lua_State* L, int i)
 		luaL_error(L, "object length is not an integer");
 	return res;
 }
+
+	#ifdef RMLUI_LUA_51_COMPAT
+void luaL_setfuncs(lua_State* L, const luaL_Reg* l, int nup)
+{
+	luaL_checkstack(L, nup + 1, "too many upvalues");
+	for (; l->name != NULL; l++)
+	{
+		for (int i = 0; i < nup; i++)
+			lua_pushvalue(L, -nup);
+		lua_pushcclosure(L, l->func, nup);
+		lua_setfield(L, -(nup + 2), l->name);
+	}
+	lua_pop(L, nup);
+}
+
+void* luaL_testudata(lua_State* L, int i, const char* tname)
+{
+	void* p = lua_touserdata(L, i);
+	luaL_checkstack(L, 2, "not enough stack slots");
+	if (p == NULL || !lua_getmetatable(L, i))
+		return NULL;
+	luaL_getmetatable(L, tname);
+	if (!lua_rawequal(L, -1, -2))
+		p = NULL;
+	lua_pop(L, 2);
+	return p;
+}
+
+void luaL_traceback(lua_State* L, lua_State* L1, const char* msg, int level)
+{
+	lua_Debug ar;
+	int top = lua_gettop(L);
+	if (msg)
+		lua_pushfstring(L, "%s\n", msg);
+	lua_pushliteral(L, "stack traceback:");
+	while (lua_getstack(L1, level++, &ar))
+	{
+		lua_getinfo(L1, "Sln", &ar);
+		lua_pushfstring(L, "\n\t%s:", ar.short_src);
+		if (ar.currentline > 0)
+			lua_pushfstring(L, "%d:", ar.currentline);
+		if (*ar.namewhat != '\0')
+			lua_pushfstring(L, " in function '%s'", ar.name);
+		else if (*ar.what == 'm')
+			lua_pushliteral(L, " in main chunk");
+		else if (*ar.what == 'C')
+			lua_pushliteral(L, " ?");
+		else
+			lua_pushfstring(L, " in function <%s:%d>", ar.short_src, ar.linedefined);
+		lua_concat(L, lua_gettop(L) - top);
+	}
+	lua_concat(L, lua_gettop(L) - top);
+}
+
+lua_Integer lua_tointegerx(lua_State* L, int i, int* isnum)
+{
+	lua_Integer n = lua_tointeger(L, i);
+	if (isnum != NULL)
+		*isnum = (n != 0 || lua_isnumber(L, i));
+	return n;
+}
+	#endif
 #endif
 
 void PushVariant(lua_State* L, const Variant* var)
