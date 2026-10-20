@@ -45,6 +45,9 @@ public:
 	/// @return The computed metrics.
 	static BorderMetrics ComputeBorderMetrics(Vector2f outer_position, EdgeSizes edge_sizes, Vector2f inner_size, CornerSizes outer_radii);
 
+	// Width of the anti-aliased fringe added to backgrounds and borders, zero to disable.
+	static void SetAntialiasWidth(float width);
+
 	// Generate geometry for the background, defined by the inner area of the border metrics.
 	void DrawBackground(const BorderMetrics& metrics, ColourbPremultiplied color);
 
@@ -70,6 +73,9 @@ private:
 
 	// Generates triangles by connecting the added vertices.
 	void FillBackground(int index_start);
+
+	// Adds an anti-aliased fringe around a closed boundary, given as vertex indices in clockwise order.
+	void AntialiasRing(const Vector<int>& ring);
 
 	// -- Border --
 	// All draw operations place the first and last vertices in the following manner.

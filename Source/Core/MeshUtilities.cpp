@@ -7,6 +7,11 @@
 
 namespace Rml {
 
+void MeshUtilities::SetBackgroundAntialiasWidth(float width)
+{
+	GeometryBackgroundBorder::SetAntialiasWidth(width);
+}
+
 void MeshUtilities::GenerateQuad(Mesh& mesh, Vector2f origin, Vector2f dimensions, ColourbPremultiplied colour)
 {
 	GenerateQuad(mesh, origin, dimensions, colour, Vector2f(0, 0), Vector2f(1, 1));

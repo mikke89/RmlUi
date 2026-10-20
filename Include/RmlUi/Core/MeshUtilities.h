@@ -53,6 +53,10 @@ public:
 	/// @note Vertex positions are relative to the border-box, vertex texture coordinates are default initialized.
 	static void GenerateBackground(Mesh& mesh, const RenderBox& render_box, ColourbPremultiplied color);
 
+	/// Enables anti-aliased edges on backgrounds and borders, for renderers without multisampling.
+	/// @param[in] width The width of the transparent fringe added outside the edges, typically one pixel. Zero disables it, which is the default.
+	static void SetBackgroundAntialiasWidth(float width);
+
 private:
 	MeshUtilities() = delete;
 };

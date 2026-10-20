@@ -6,6 +6,13 @@
 
 namespace Rml {
 
+static float antialias_width = 0.f;
+
+void GeometryBackgroundBorder::SetAntialiasWidth(float width)
+{
+	antialias_width = Math::Max(width, 0.f);
+}
+
 GeometryBackgroundBorder::GeometryBackgroundBorder(Vector<Vertex>& vertices, Vector<int>& indices) : vertices(vertices), indices(indices) {}
 
 BorderMetrics GeometryBackgroundBorder::ComputeBorderMetrics(Vector2f outer_position, EdgeSizes edge_sizes, Vector2f inner_size,
@@ -81,6 +88,15 @@ void GeometryBackgroundBorder::DrawBackground(const BorderMetrics& metrics, Colo
 			metrics.inner_radii[corner], color);
 
 	FillBackground(offset_vertices);
+
+	if (antialias_width > 0.f)
+	{
+		Vector<int> ring((size_t)vertices.size() - offset_vertices);
+		for (size_t i = 0; i < ring.size(); i++)
+			ring[i] = offset_vertices + (int)i;
+
+		AntialiasRing(ring);
+	}
 }
 
 void GeometryBackgroundBorder::DrawBorder(const BorderMetrics& metrics, EdgeSizes edge_sizes, const ColourbPremultiplied border_colors[4])
@@ -121,6 +137,23 @@ void GeometryBackgroundBorder::DrawBorder(const BorderMetrics& metrics, EdgeSize
 				"Border edges can only be drawn if both of its connected corners are drawn.");
 
 			FillEdge(edge1 == LEFT ? offset_vertices : (int)vertices.size());
+		}
+	}
+
+	// Only for uniform, closed borders. Then every point emits an inner and an outer vertex, so the outer boundary is every odd vertex.
+	const bool uniform = (border_colors[0] == border_colors[1] && border_colors[1] == border_colors[2] && border_colors[2] == border_colors[3]);
+	const bool closed = draw_corner[0] && draw_corner[1] && draw_corner[2] && draw_corner[3];
+
+	if (antialias_width > 0.f && uniform && closed)
+	{
+		const int count = ((int)vertices.size() - offset_vertices) / 2;
+		if (count >= 3)
+		{
+			Vector<int> ring((size_t)count);
+			for (int i = 0; i < count; i++)
+				ring[i] = offset_vertices + 2 * i + 1;
+
+			AntialiasRing(ring);
 		}
 	}
 }
@@ -187,6 +220,62 @@ void GeometryBackgroundBorder::FillBackground(int index_start)
 		indices[offset_indices + 3 * i] = index_start;
 		indices[offset_indices + 3 * i + 1] = index_start + i + 2;
 		indices[offset_indices + 3 * i + 2] = index_start + i + 1;
+	}
+}
+
+void GeometryBackgroundBorder::AntialiasRing(const Vector<int>& ring)
+{
+	// Adds a fringe outside the boundary that fades to transparent. Insetting the boundary instead would keep the shape's extents, but leave a
+	// seam through the interior that shows without multisampling.
+	const float width = antialias_width;
+	const int count = (int)ring.size();
+
+	if (count < 3)
+		return;
+
+	Vector<Vector2f> outer(count);
+	for (int i = 0; i < count; i++)
+		outer[i] = vertices[ring[i]].position;
+
+	// The ring runs clockwise in screen space, y down, so (dy, -dx) points out of the shape.
+	auto edge_normal = [](Vector2f from, Vector2f to) -> Vector2f {
+		const Vector2f d = to - from;
+		const float length = Math::SquareRoot(d.x * d.x + d.y * d.y);
+		return length > 0.0001f ? Vector2f(d.y, -d.x) / length : Vector2f(0.f, 0.f);
+	};
+
+	const int offset_fringe = (int)vertices.size();
+	vertices.resize(offset_fringe + count);
+
+	const ColourbPremultiplied transparent(0, 0, 0, 0);
+
+	for (int i = 0; i < count; i++)
+	{
+		const Vector2f previous = outer[(i + count - 1) % count];
+		const Vector2f next = outer[(i + 1) % count];
+
+		Vector2f outward = edge_normal(previous, outer[i]) + edge_normal(outer[i], next);
+		const float length = Math::SquareRoot(outward.x * outward.x + outward.y * outward.y);
+
+		vertices[offset_fringe + i].position = length > 0.0001f ? outer[i] + (outward / length) * width : outer[i];
+		vertices[offset_fringe + i].colour = transparent;
+	}
+
+	const int offset_indices = (int)indices.size();
+	indices.resize(offset_indices + 6 * count);
+
+	for (int i = 0; i < count; i++)
+	{
+		const int next = (i + 1) % count;
+		int* triangle = &indices[offset_indices + 6 * i];
+
+		triangle[0] = ring[i];
+		triangle[1] = offset_fringe + next;
+		triangle[2] = offset_fringe + i;
+
+		triangle[3] = ring[i];
+		triangle[4] = ring[next];
+		triangle[5] = offset_fringe + next;
 	}
 }
 
