@@ -1709,7 +1709,7 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 		glUniform2f(GetUniformLocation(UniformId::V), shader.v.x, shader.v.y);
 		glUniform1i(GetUniformLocation(UniformId::NumStops), num_stops);
 		glUniform1fv(GetUniformLocation(UniformId::StopPositions), num_stops, shader.stop_positions.data());
-		glUniform4fv(GetUniformLocation(UniformId::StopColors), num_stops, &shader.stop_colors[0][0]);
+		glUniform4fv(GetUniformLocation(UniformId::StopColors), num_stops, shader.stop_colors.data()->data());
 
 		SubmitTransformUniform(translation);
 		glBindVertexArray(geometry.vao);
@@ -1802,7 +1802,7 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 			glDisable(GL_BLEND);
 
 			Rml::Colourf color = ConvertToColorf(filter.color);
-			glUniform4fv(GetUniformLocation(UniformId::Color), 1, &color[0]);
+			glUniform4fv(GetUniformLocation(UniformId::Color), 1, color.data());
 
 			const Gfx::FramebufferData& primary = render_layers.GetPostprocessPrimary();
 			const Gfx::FramebufferData& secondary = render_layers.GetPostprocessSecondary();

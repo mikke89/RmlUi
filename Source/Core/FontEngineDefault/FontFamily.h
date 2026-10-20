@@ -29,9 +29,10 @@ public:
 	/// @param[in] ft_face The previously loaded FreeType face.
 	/// @param[in] style The style of the new face.
 	/// @param[in] weight The weight of the new face.
-	/// @param[in] face_memory Optionally pass ownership of the face's memory to the face itself, automatically releasing it on destruction.
+	/// @param[in] face_memory Optionally, pass ownership of the face's memory to the face itself, automatically releasing it on destruction. This
+	///            will only be moved-from on success.
 	/// @return A result flag and a pointer to the new font face on success.
-	AddFaceResult AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]> face_memory);
+	AddFaceResult AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]>& face_memory);
 
 	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
 	void ReleaseFontResources();

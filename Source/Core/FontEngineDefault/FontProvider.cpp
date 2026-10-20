@@ -195,26 +195,31 @@ bool FontProvider::LoadFontFace(Span<const byte> data, int face_index, bool fall
 		const FontWeight variation_weight = (variation.weight == FontWeight::Auto ? weight : variation.weight);
 		const String font_face_description = GetFontFaceDescription(font_family, style, variation_weight);
 
-		const FontFaceLoadResult result = AddFace(ft_face, font_family, style, variation_weight, fallback_face, std::move(face_memory));
+		const FontFaceLoadResult result = AddFace(ft_face, font_family, style, variation_weight, fallback_face, face_memory);
 		switch (result)
 		{
 		case FontFaceLoadResult::Success:
 			Log::Message(Log::LT_INFO, "Loaded font face %s from '%s'.", font_face_description.c_str(), source.c_str());
 			break;
 		case FontFaceLoadResult::Duplicate:
+			FreeType::ReleaseFace(ft_face);
 			Log::Message(Log::LT_INFO, "Font face %s from '%s' already loaded, proceeding.", font_face_description.c_str(), source.c_str());
 			break;
 		case FontFaceLoadResult::Error:
+			FreeType::ReleaseFace(ft_face);
 			Log::Message(Log::LT_ERROR, "Failed to load font face %s from '%s'.", font_face_description.c_str(), source.c_str());
 			return false;
 		}
 	}
 
+	if (face_memory)
+		Log::Message(Log::LT_INFO, "No faces loaded from font '%s' from '%s', releasing memory.", font_family.c_str(), source.c_str());
+
 	return true;
 }
 
 auto FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face,
-	UniquePtr<byte[]> face_memory) -> FontFaceLoadResult
+	UniquePtr<byte[]>& face_memory) -> FontFaceLoadResult
 {
 	if (family.empty() || weight == Style::FontWeight::Auto)
 		return FontFaceLoadResult::Error;
@@ -233,7 +238,7 @@ auto FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, St
 		font_families[family_lower] = std::move(font_family_ptr);
 	}
 
-	const auto [result, face_ptr] = font_family->AddFace(face, style, weight, std::move(face_memory));
+	const auto [result, face_ptr] = font_family->AddFace(face, style, weight, face_memory);
 	if (result != FontFaceLoadResult::Success)
 		return result;
 

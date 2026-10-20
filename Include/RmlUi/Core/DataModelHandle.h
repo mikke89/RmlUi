@@ -6,6 +6,7 @@
 #include "Header.h"
 #include "Traits.h"
 #include "Types.h"
+#include <iterator>
 
 namespace Rml {
 
@@ -83,10 +84,10 @@ public:
 
 	// Register an array type.
 	// @note The type applies to every data model associated with the current Context.
-	// @note If 'Container::value_type' represents a non-scalar type, that type must already have been registered with the appropriate 'Register...()'
-	// functions.
-	// @note Container requires the following functions to be implemented: size() and begin(). This is satisfied by several containers including
-	// std::vector and std::array.
+	// @note If Container value type (as determined by begin iterator) represents a non-scalar type, that type must already have been registered
+	// with the appropriate 'Register...()' functions.
+	// @note Container requires the following member functions to be implemented: size() and begin(), or free functions to be implemented:
+	// size(const Container&) and begin(Container&). This is satisfied by several containers including std::vector and std::array.
 	template <typename Container>
 	bool RegisterArray();
 
@@ -169,7 +170,9 @@ inline StructHandle<T> DataModelConstructor::RegisterStruct()
 template <typename Container>
 inline bool DataModelConstructor::RegisterArray()
 {
-	using value_type = typename Container::value_type;
+	using std::begin;
+	using iterator = decltype(begin(std::declval<Container&>()));
+	using value_type = typename std::iterator_traits<iterator>::value_type;
 	VariableDefinition* value_variable = type_register->GetDefinition<value_type>();
 	RMLUI_LOG_TYPE_ERROR_ASSERT(value_type, value_variable, "Underlying value type of array has not been registered.");
 	if (!value_variable)

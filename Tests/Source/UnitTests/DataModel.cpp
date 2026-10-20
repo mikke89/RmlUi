@@ -89,3 +89,40 @@ TEST_CASE("Data variables")
 		CHECK(get_result.Get<String>() == "90");
 	}
 }
+
+struct CustomArray {
+	Vector<int> data;
+
+	size_t GetNum() const { return data.size(); }
+	int* GetData() { return data.data(); }
+
+	int operator[](size_t i) const { return data[i]; }
+};
+
+size_t size(const CustomArray& self) { return self.GetNum(); }
+int* begin(CustomArray& self) { return self.GetData(); }
+
+TEST_CASE("Data variables.non_standard_array_interface")
+{
+	DataTypeRegister types;
+	DataModel model(&types);
+
+	DataModelConstructor handle(&model);
+
+	CustomArray custom_array = {{1, 1, 2, 3, 5}};
+
+	handle.RegisterArray<CustomArray>();
+	handle.Bind("custom_array", &custom_array);
+
+	{
+		Variant result;
+		model.GetVariableInto(ParseAddress("custom_array[3]"), result);
+		CHECK(result.Get<int>() == custom_array[3]);
+		model.GetVariableInto(ParseAddress("custom_array.size"), result);
+		CHECK(result.Get<int>() == int(custom_array.GetNum()));
+
+		REQUIRE(model.GetVariable(ParseAddress("custom_array[1]")).Set(Variant(String("199"))));
+		CHECK(custom_array[1] == 199);
+	}
+}
+
