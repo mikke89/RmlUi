@@ -99,15 +99,15 @@ namespace StringUtilities {
 	// Seek forward in a UTF-8 string, skipping continuation bytes.
 	inline const char* SeekForwardUTF8(const char* p, const char* p_end)
 	{
-		while (p != p_end && (*p & 0b1100'0000) == 0b1000'0000)
-			++p;
+		// min 3 may occur compiler unroll optimization (duff device) and this boundray check is more clear.
+		for (ptrdiff_t count = std::min<ptrdiff_t>(3, p_end - p); --count >= 0; ++p) { if ((*p & 0xC0) != 0x80) { break; } }
 		return p;
 	}
 	// Seek backward in a UTF-8 string, skipping continuation bytes.
 	inline const char* SeekBackwardUTF8(const char* p, const char* p_begin)
 	{
-		while ((p + 1) != p_begin && (*p & 0b1100'0000) == 0b1000'0000)
-			--p;
+		// min 3 may occur compiler unroll optimization (duff device) and this boundray check is more clear.
+		for (ptrdiff_t count = std::min<ptrdiff_t>(3, p - p_begin); --count >= 0; --p) { if ((*p & 0xC0) != 0x80) { break; } }
 		return p;
 	}
 
