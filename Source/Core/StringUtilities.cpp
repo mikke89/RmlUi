@@ -497,7 +497,7 @@ Character StringUtilities::ToCharacter(const char* p, const char* p_end)
 		return Character::Null;
 	}
 	const uint32_t extra = (mask >> 7) & 3;
-	if (p_end - p < extra + 1) {
+	if (p_end - p < static_cast<ptrdiff_t>(extra + 1)) {
 		return Character::Null;
 	}
 	uint32_t code = mask & 0x7F;
