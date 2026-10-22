@@ -7,6 +7,63 @@
 #include <stdio.h>
 #include <string.h>
 
+
+// Mapping for a single utf8 character.
+// View index as utf8 character, values are masks.
+// bits [0, 6] are code value
+// bits [7, 8] are extra bytes value for utf8 first byte.
+static constexpr uint16_t utf8_sc_mask_map[256] = {
+	
+    0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007,
+    0x0008, 0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
+
+    0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015, 0x0016, 0x0017,
+    0x0018, 0x0019, 0x001A, 0x001B, 0x001C, 0x001D, 0x001E, 0x001F,
+
+    0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027,
+    0x0028, 0x0029, 0x002A, 0x002B, 0x002C, 0x002D, 0x002E, 0x002F,
+
+    0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037,
+    0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E, 0x003F,
+
+    0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
+    0x0048, 0x0049, 0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F,
+
+    0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057,
+    0x0058, 0x0059, 0x005A, 0x005B, 0x005C, 0x005D, 0x005E, 0x005F,
+
+    0x0060, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067,
+    0x0068, 0x0069, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F,
+
+    0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077,
+    0x0078, 0x0079, 0x007A, 0x007B, 0x007C, 0x007D, 0x007E, 0x007F,
+
+    0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007,
+    0x0008, 0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
+
+    0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015, 0x0016, 0x0017,
+    0x0018, 0x0019, 0x001A, 0x001B, 0x001C, 0x001D, 0x001E, 0x001F,
+
+    0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027,
+    0x0028, 0x0029, 0x002A, 0x002B, 0x002C, 0x002D, 0x002E, 0x002F,
+
+    0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037,
+    0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E, 0x003F,
+
+    0xFFFF, 0xFFFF, 0x0082, 0x0083, 0x0084, 0x0085, 0x0086, 0x0087,
+    0x0088, 0x0089, 0x008A, 0x008B, 0x008C, 0x008D, 0x008E, 0x008F,
+
+    0x0090, 0x0091, 0x0092, 0x0093, 0x0094, 0x0095, 0x0096, 0x0097,
+    0x0098, 0x0099, 0x009A, 0x009B, 0x009C, 0x009D, 0x009E, 0x009F,
+
+    0x0100, 0x0101, 0x0102, 0x0103, 0x0104, 0x0105, 0x0106, 0x0107,
+    0x0108, 0x0109, 0x010A, 0x010B, 0x010C, 0x010D, 0x010E, 0x010F,
+	
+    0x0180, 0x0181, 0x0182, 0x0183, 0x0184, 0xFFFF, 0xFFFF, 0xFFFF,
+    0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+	
+};
+
 namespace Rml {
 
 static bool IsEscapedCharacter(const String& string, size_t index)
@@ -432,66 +489,35 @@ Character StringUtilities::ToCharacter(const char* p, const char* p_end)
 {
 	RMLUI_ASSERTMSG(p && p != p_end, "ToCharacter expects a valid, non-empty input string");
 
-	if ((*p & (1 << 7)) == 0)
+	if ((*p & 0x80) == 0) {
 		return static_cast<Character>(*p);
-
-	int num_bytes = 0;
-	int code = 0;
-
-	if ((*p & 0b1110'0000) == 0b1100'0000)
-	{
-		num_bytes = 2;
-		code = (*p & 0b0001'1111);
 	}
-	else if ((*p & 0b1111'0000) == 0b1110'0000)
-	{
-		num_bytes = 3;
-		code = (*p & 0b0000'1111);
-	}
-	else if ((*p & 0b1111'1000) == 0b1111'0000)
-	{
-		num_bytes = 4;
-		code = (*p & 0b0000'0111);
-	}
-	else
-	{
-		// Invalid begin byte
+	const uint16_t mask = utf8_sc_mask_map[*reinterpret_cast<const uint8_t*>(p)];
+	if (mask == 0xFFFF) {
 		return Character::Null;
 	}
-
-	if (p_end - p < num_bytes)
+	const uint32_t extra = (mask >> 7) & 3;
+	if (p_end - p < static_cast<ptrdiff_t>(extra + 1)) {
 		return Character::Null;
-
-	for (int i = 1; i < num_bytes; i++)
-	{
-		const char byte = *(p + i);
-		if ((byte & 0b1100'0000) != 0b1000'0000)
-		{
-			// Invalid continuation byte
+	}
+	uint32_t code = mask & 0x7F;
+	for (uint32_t i = 0; i != extra; ++i) {
+		const uint8_t byte = p[i + 1];
+		if ((byte & 0xC0) != 0x80) {
 			return Character::Null;
 		}
-
-		code = ((code << 6) | (byte & 0b0011'1111));
+		code = (code << 6) | static_cast<uint32_t>(byte & 0x3F);
 	}
-
 	return static_cast<Character>(code);
 }
 
 size_t StringUtilities::BytesUTF8(Character character)
 {
 	char32_t c = (char32_t)character;
-
-	if (c < 0x80)
-		return 1;
-	else if (c < 0x800)
-		return 2;
-	else if (c < 0x10000)
-		return 3;
-	else if (c <= 0x10FFFF)
-		return 4;
-	else
-		// Invalid character.
+	if (c > 0x10FFFF) {
 		return 0;
+	}
+	return 1 + static_cast<size_t>(c >= 0x80) + static_cast<size_t>(c >= 0x800) + static_cast<size_t>(c >= 0x10000);
 }
 
 String StringUtilities::ToUTF8(Character character)
@@ -502,33 +528,44 @@ String StringUtilities::ToUTF8(Character character)
 String StringUtilities::ToUTF8(const Character* characters, int num_characters)
 {
 	String result;
-	result.reserve(num_characters);
+	result.reserve(static_cast<size_t>(num_characters) * 4); // to reduce reallocation.
 
 	bool invalid_character = false;
-
-	for (int i = 0; i < num_characters; i++)
-	{
-		char32_t c = (char32_t)characters[i];
-
-		constexpr int l3 = 0b0000'0111;
-		constexpr int l4 = 0b0000'1111;
-		constexpr int l5 = 0b0001'1111;
-		constexpr int l6 = 0b0011'1111;
-		constexpr int h1 = 0b1000'0000;
-		constexpr int h2 = 0b1100'0000;
-		constexpr int h3 = 0b1110'0000;
-		constexpr int h4 = 0b1111'0000;
-
-		if (c < 0x80)
-			result += (char)c;
-		else if (c < 0x800)
-			result += {char(((c >> 6) & l5) | h2), char((c & l6) | h1)};
-		else if (c < 0x10000)
-			result += {char(((c >> 12) & l4) | h3), char(((c >> 6) & l6) | h1), char((c & l6) | h1)};
-		else if (c <= 0x10FFFF)
-			result += {char(((c >> 18) & l3) | h4), char(((c >> 12) & l6) | h1), char(((c >> 6) & l6) | h1), char((c & l6) | h1)};
-		else
+	for (int i = 0; i < num_characters; i++) {
+		uint32_t c = static_cast<uint32_t>(characters[i]);
+		
+		// ASCII fast path.
+		if (c < 0x80) {
+			result.push_back(static_cast<char>(c & 0xFF));
+			continue;
+		}
+		
+		if (c > 0x10FFFF) {
 			invalid_character = true;
+			continue;
+		}
+		
+		const uint32_t extra  = 1 + static_cast<uint32_t>(c >= 0x800) + static_cast<uint32_t>(c >= 0x10000);
+		const uint32_t prefix = 0xFFU << (7 - extra);
+		const uint32_t mask   = 0xFFU >> (extra + 2);
+
+		result.resize(result.size() + extra + 1);
+		uint8_t*    p = reinterpret_cast<uint8_t*>(result.data() + result.size()); // fill directly is faster than +=.
+		// Compiler may know extra is within range [1, 3] so actually this `Duff's device` is not strictly necessary.
+#if 0
+		switch (extra) {
+		case 3 : *--p = (0x80U | (c & 0x3FU)) & 0xFF; c >>= 6;
+		case 2 : *--p = (0x80U | (c & 0x3FU)) & 0xFF; c >>= 6;
+		case 1 : *--p = (0x80U | (c & 0x3FU)) & 0xFF; c >>= 6;
+		default: break;
+		}
+#else
+		for (uint32_t j = 0; j != extra; ++j) {
+			*--p = (0x80U | (c & 0x3FU)) & 0xFF;
+			c >>= 6;
+		}
+#endif
+		*--p = (prefix | (c & mask)) & 0xFF;
 	}
 
 	if (invalid_character)
@@ -539,21 +576,18 @@ String StringUtilities::ToUTF8(const Character* characters, int num_characters)
 
 size_t StringUtilities::LengthUTF8(StringView string_view)
 {
-	const char* const p_end = string_view.end();
-
-	// Skip any continuation bytes at the beginning
-	const char* p = string_view.begin();
-
-	size_t num_continuation_bytes = 0;
-
-	while (p != p_end)
-	{
-		if ((*p & 0b1100'0000) == 0b1000'0000)
-			++num_continuation_bytes;
-		++p;
+#if 0
+	// Compiler may auto vertorize this.
+	return std::count_if(string_view.begin(), string_view.end(), [](uint8_t c) {
+		return (c & 0xC0) != 0x80;
+	});
+#endif
+	size_t count = 0;
+	for (const uint8_t* p = reinterpret_cast<const uint8_t*>(string_view.begin()); 
+		                p != reinterpret_cast<const uint8_t*>(string_view.end()); ++p) {
+		if ((*p & 0xC0) != 0x80) { ++count; }
 	}
-
-	return string_view.size() - num_continuation_bytes;
+	return count;
 }
 
 int StringUtilities::ConvertCharacterOffsetToByteOffset(StringView string, int character_offset)
