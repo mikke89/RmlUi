@@ -23,6 +23,18 @@ namespace Lua {
 
 	void lua_len(lua_State* L, int i);
 	lua_Integer luaL_len(lua_State* L, int i);
+
+	// Plain Lua 5.1 lacks these parts of the Lua 5.2 C API. LuaJIT 2.1 provides them, and is recognized by also
+	// defining LUA_OK.
+	#ifndef LUA_OK
+		#define RMLUI_LUA_51_COMPAT
+		#define LUA_OK 0
+
+	void luaL_setfuncs(lua_State* L, const luaL_Reg* l, int nup);
+	void* luaL_testudata(lua_State* L, int i, const char* tname);
+	void luaL_traceback(lua_State* L, lua_State* L1, const char* msg, int level);
+	lua_Integer lua_tointegerx(lua_State* L, int i, int* isnum);
+	#endif
 #endif
 
 	/** casts the variant to its specific type before pushing it to the stack
