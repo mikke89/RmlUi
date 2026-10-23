@@ -39,7 +39,7 @@ lua_Integer luaL_len(lua_State* L, int i)
 void luaL_setfuncs(lua_State* L, const luaL_Reg* l, int nup)
 {
 	luaL_checkstack(L, nup + 1, "too many upvalues");
-	for (; l->name != NULL; l++)
+	for (; l->name != nullptr; l++)
 	{
 		for (int i = 0; i < nup; i++)
 			lua_pushvalue(L, -nup);
@@ -53,11 +53,11 @@ void* luaL_testudata(lua_State* L, int i, const char* tname)
 {
 	void* p = lua_touserdata(L, i);
 	luaL_checkstack(L, 2, "not enough stack slots");
-	if (p == NULL || !lua_getmetatable(L, i))
-		return NULL;
+	if (p == nullptr || !lua_getmetatable(L, i))
+		return nullptr;
 	luaL_getmetatable(L, tname);
 	if (!lua_rawequal(L, -1, -2))
-		p = NULL;
+		p = nullptr;
 	lua_pop(L, 2);
 	return p;
 }
@@ -91,7 +91,7 @@ void luaL_traceback(lua_State* L, lua_State* L1, const char* msg, int level)
 lua_Integer lua_tointegerx(lua_State* L, int i, int* isnum)
 {
 	lua_Integer n = lua_tointeger(L, i);
-	if (isnum != NULL)
+	if (isnum != nullptr)
 		*isnum = (n != 0 || lua_isnumber(L, i));
 	return n;
 }
