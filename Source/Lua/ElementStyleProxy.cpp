@@ -5,6 +5,7 @@
 #include <RmlUi/Core/PropertyDefinition.h>
 #include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Lua/LuaType.h>
+#include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {
 namespace Lua {
