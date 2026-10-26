@@ -12,6 +12,9 @@ void ExtraInit<ElementChildNodesProxy>(lua_State* L, int metatable_index)
 	lua_setfield(L, metatable_index, "__index");
 	lua_pushcfunction(L, ElementChildNodesProxy__pairs);
 	lua_setfield(L, metatable_index, "__pairs");
+	// Lua 5.2 only accepts tables or objects with an __ipairs metamethod in ipairs.
+	lua_pushcfunction(L, ElementChildNodesProxy__pairs);
+	lua_setfield(L, metatable_index, "__ipairs");
 	lua_pushcfunction(L, ElementChildNodesProxy__len);
 	lua_setfield(L, metatable_index, "__len");
 }
