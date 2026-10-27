@@ -1125,9 +1125,9 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 	ideal_cursor_position_to_the_right_of_cursor = true;
 
 	const Line& line = lines[line_index];
-	const char* p_begin = GetValue().data() + line.value_offset;
+	const String& text = text_element->GetText();
+	const char* p_begin = text.data() + line.value_offset;
 	const char* p_end = p_begin + line.editable_length;
-
 	position -= GetAlignmentSpecificTextOffset(line);
 
 	for (auto it = StringIteratorU8(p_begin, p_begin, p_end); it;)
