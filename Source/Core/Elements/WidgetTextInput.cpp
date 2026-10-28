@@ -303,7 +303,7 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 	{
 		max_length = _max_length;
 
-		String value = GetValue();
+		String value = GetAttributeValue();
 		if (ClampValue(value, max_length))
 			GetElement()->SetAttribute("value", value);
 	}
