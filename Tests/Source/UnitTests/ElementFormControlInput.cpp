@@ -105,3 +105,45 @@ TEST_CASE("form.input.password")
 	document->Close();
 	TestsShell::ShutdownShell();
 }
+
+TEST_CASE("form.input.text.long_placeholder_mouse_click")
+{
+	const String document_rml = R"(<rml>
+        <head>
+                <link type="text/rcss" href="/assets/rml.rcss" />
+                <style>
+                        body {
+                                width: 700dp;
+                                height: 225dp;
+                                margin: 0;
+                        }
+                        input[type="text"] {
+                                font-family: LatoLatin;
+                                display: block;
+                                width: 600dp;
+                                height: 40dp;
+                                border: 1px #000000;
+                                padding: 5dp;
+                        }
+                </style>
+        </head>
+        <body>
+                <input type="text" placeholder="123456789-123456789-123456789-12345" />
+        </body>
+</rml>)";
+
+	Context* context = TestsShell::GetContext();
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	document->Show();
+	context->Update();
+	context->Render();
+
+	context->ProcessMouseMove(500, 20, 0);
+	context->Update();
+	context->ProcessMouseButtonDown(0, 0);
+	context->Update();
+	context->ProcessMouseButtonUp(0, 0);
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}

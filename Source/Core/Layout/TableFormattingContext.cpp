@@ -109,7 +109,8 @@ void TableFormattingContext::FormatTable(Vector2f& table_content_size, Vector2f&
 void TableFormattingContext::DetermineColumnWidths(TrackBoxList& columns, float& table_content_width) const
 {
 	// The column widths are determined entirely by any <col> elements preceding the first row, and <td> elements in the first row.
-	// If <col> has a fixed width, that is used. Otherwise, if <td> has a fixed width, that is used. Otherwise the column is 'flexible' width.
+	// If <col> has a fixed width, that is used. Otherwise, if <td> has a fixed width, that is used. Otherwise the column is 'flexible' width,
+	// either from a flexible width given by <col> or <td> (a percentage of 100% or more), or by default.
 	// All flexible widths are then sized to evenly fill the width of the table.
 
 	// Both <col> and <colgroup> can have border/padding which extend beyond the size of <td> and <col>, respectively.

@@ -378,11 +378,23 @@ void TracksSizing::ApplyCellElement(const int index, const int span, const Compu
 		// Merge the existing track metrics with the cell sizing data.
 		TrackMetric& destination = metrics[index + j];
 
-		if (destination.sizing_mode != TrackSizingMode::Fixed && cell_metric.sizing_mode == TrackSizingMode::Fixed)
+		// A fixed cell size takes precedence over any non-fixed track size. Otherwise the cell's size is
+		// only used while the track is still auto-sized, which includes a flexible size given by a
+		// percentage of 100% or more.
+		if (destination.sizing_mode != TrackSizingMode::Fixed)
 		{
-			destination.fixed_size = cell_metric.fixed_size;
-			destination.flex_size = 0;
-			destination.sizing_mode = TrackSizingMode::Fixed;
+			if (cell_metric.sizing_mode == TrackSizingMode::Fixed)
+			{
+				destination.fixed_size = cell_metric.fixed_size;
+				destination.flex_size = 0;
+				destination.sizing_mode = TrackSizingMode::Fixed;
+			}
+			else if (destination.sizing_mode == TrackSizingMode::Auto && cell_metric.sizing_mode == TrackSizingMode::Flexible)
+			{
+				destination.fixed_size = 0;
+				destination.flex_size = cell_metric.flex_size;
+				destination.sizing_mode = TrackSizingMode::Flexible;
+			}
 		}
 
 		if (destination.min_size == 0)

@@ -1,0 +1,59 @@
+<rml>
+<head>
+	<title>Table 06</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html" />
+	<meta name="Description" content="Flexible column widths, given by width percentages of 100% or more on the cells of the first table row." />
+	<style>
+		table {
+			width: 300dp;
+			margin-bottom: 12dp;
+			color: #333;
+			text-align: center;
+		}
+		td {
+			border: 1dp #333;
+			background: #cdd;
+		}
+		col { border: 1dp #333; }
+	</style>
+</head>
+
+<body>
+<p>100% / 200% on first-row cells.</p>
+<table>
+	<tr>
+		<td style="width: 100%;">A</td>
+		<td style="width: 200%;">B</td>
+	</tr>
+</table>
+
+<p>100% / 200% / 300% on first-row cells.</p>
+<table>
+	<tr>
+		<td style="width: 100%;">A</td>
+		<td style="width: 200%;">B</td>
+		<td style="width: 300%;">C</td>
+	</tr>
+</table>
+
+<p>A fixed width on the col element takes precedence over a flexible width on the first-row cell.</p>
+<table>
+	<col style="width: 100dp;"/>
+	<col/>
+	<tr>
+		<td style="width: 200%;">A</td>
+		<td>B</td>
+	</tr>
+</table>
+
+<p>A flexible width on a spanning first-row cell is distributed equally over the columns it spans.</p>
+<table>
+	<tr>
+		<td style="width: 400%;" colspan="2">A</td>
+		<td style="width: 100%;">B</td>
+	</tr>
+</table>
+<handle size_target="#document"/>
+</body>
+</rml>
