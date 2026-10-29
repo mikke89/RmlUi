@@ -487,37 +487,107 @@ bool StringUtilities::StringCompareCaseInsensitive(const StringView lhs, const S
 
 Character StringUtilities::ToCharacter(const char* p, const char* p_end)
 {
+#if 0
 	RMLUI_ASSERTMSG(p && p != p_end, "ToCharacter expects a valid, non-empty input string");
 
-	if ((*p & 0x80) == 0) {
+	if ((*p & (1 << 7)) == 0)
+		return static_cast<Character>(*p);
+
+	int num_bytes = 0;
+	int code = 0;
+
+	if ((*p & 0b1110'0000) == 0b1100'0000)
+	{
+		num_bytes = 2;
+		code = (*p & 0b0001'1111);
+	}
+	else if ((*p & 0b1111'0000) == 0b1110'0000)
+	{
+		num_bytes = 3;
+		code = (*p & 0b0000'1111);
+	}
+	else if ((*p & 0b1111'1000) == 0b1111'0000)
+	{
+		num_bytes = 4;
+		code = (*p & 0b0000'0111);
+	}
+	else
+	{
+		// Invalid begin byte
+		return Character::Null;
+	}
+
+	if (p_end - p < num_bytes)
+		return Character::Null;
+
+	for (int i = 1; i < num_bytes; i++)
+	{
+		const char byte = *(p + i);
+		if ((byte & 0b1100'0000) != 0b1000'0000)
+		{
+			// Invalid continuation byte
+			return Character::Null;
+		}
+
+		code = ((code << 6) | (byte & 0b0011'1111));
+	}
+
+	return static_cast<Character>(code);
+#else
+	RMLUI_ASSERTMSG(p && p != p_end, "ToCharacter expects a valid, non-empty input string");
+
+	if ((*p & 0x80) == 0)
+	{
 		return static_cast<Character>(*p);
 	}
 	const uint16_t mask = utf8_sc_mask_map[*reinterpret_cast<const uint8_t*>(p)];
-	if (mask == 0xFFFF) {
+	if (mask == 0xFFFF)
+	{
 		return Character::Null;
 	}
 	const uint32_t extra = (mask >> 7) & 3;
-	if (p_end - p < static_cast<ptrdiff_t>(extra + 1)) {
+	if (p_end - p < static_cast<ptrdiff_t>(extra + 1))
+	{
 		return Character::Null;
 	}
 	uint32_t code = mask & 0x7F;
-	for (uint32_t i = 0; i != extra; ++i) {
+	for (uint32_t i = 0; i != extra; ++i)
+	{
 		const uint8_t byte = p[i + 1];
-		if ((byte & 0xC0) != 0x80) {
+		if ((byte & 0xC0) != 0x80)
+		{
 			return Character::Null;
 		}
 		code = (code << 6) | static_cast<uint32_t>(byte & 0x3F);
 	}
 	return static_cast<Character>(code);
+#endif
 }
 
 size_t StringUtilities::BytesUTF8(Character character)
 {
+#if 0
 	char32_t c = (char32_t)character;
-	if (c > 0x10FFFF) {
+
+	if (c < 0x80)
+		return 1;
+	else if (c < 0x800)
+		return 2;
+	else if (c < 0x10000)
+		return 3;
+	else if (c <= 0x10FFFF)
+		return 4;
+	else
+		// Invalid character.
+		return 0;
+#else
+	char32_t c = (char32_t)character;
+	if (c > 0x10FFFF)
+	{
 		return 0;
 	}
 	return 1 + static_cast<size_t>(c >= 0x80) + static_cast<size_t>(c >= 0x800) + static_cast<size_t>(c >= 0x10000);
+#endif
 }
 
 String StringUtilities::ToUTF8(Character character)
@@ -527,6 +597,42 @@ String StringUtilities::ToUTF8(Character character)
 
 String StringUtilities::ToUTF8(const Character* characters, int num_characters)
 {
+#if 0
+	String result;
+	result.reserve(num_characters);
+
+	bool invalid_character = false;
+
+	for (int i = 0; i < num_characters; i++)
+	{
+		char32_t c = (char32_t)characters[i];
+
+		constexpr int l3 = 0b0000'0111;
+		constexpr int l4 = 0b0000'1111;
+		constexpr int l5 = 0b0001'1111;
+		constexpr int l6 = 0b0011'1111;
+		constexpr int h1 = 0b1000'0000;
+		constexpr int h2 = 0b1100'0000;
+		constexpr int h3 = 0b1110'0000;
+		constexpr int h4 = 0b1111'0000;
+
+		if (c < 0x80)
+			result += (char)c;
+		else if (c < 0x800)
+			result += {char(((c >> 6) & l5) | h2), char((c & l6) | h1)};
+		else if (c < 0x10000)
+			result += {char(((c >> 12) & l4) | h3), char(((c >> 6) & l6) | h1), char((c & l6) | h1)};
+		else if (c <= 0x10FFFF)
+			result += {char(((c >> 18) & l3) | h4), char(((c >> 12) & l6) | h1), char(((c >> 6) & l6) | h1), char((c & l6) | h1)};
+		else
+			invalid_character = true;
+	}
+
+	if (invalid_character)
+		Log::Message(Log::LT_WARNING, "One or more invalid code points encountered while encoding to UTF-8.");
+
+	return result;
+#else
 	String result;
 	result.reserve(static_cast<size_t>(num_characters) * 4); // to reduce reallocation.
 
@@ -549,45 +655,47 @@ String StringUtilities::ToUTF8(const Character* characters, int num_characters)
 		const uint32_t prefix = 0xFFU << (7 - extra);
 		const uint32_t mask   = 0xFFU >> (extra + 2);
 
-		result.resize(result.size() + extra + 1);
-		uint8_t*    p = reinterpret_cast<uint8_t*>(result.data() + result.size()); // fill directly is faster than +=.
-		// Compiler may know extra is within range [1, 3] so actually this `Duff's device` is not strictly necessary.
-#if 0
-		switch (extra) {
-		case 3 : *--p = (0x80U | (c & 0x3FU)) & 0xFF; c >>= 6;
-		case 2 : *--p = (0x80U | (c & 0x3FU)) & 0xFF; c >>= 6;
-		case 1 : *--p = (0x80U | (c & 0x3FU)) & 0xFF; c >>= 6;
-		default: break;
-		}
-#else
+		uint8_t     buffer[4] = {0, 0, 0, 0};
+		uint8_t*    p = reinterpret_cast<uint8_t*>(buffer + extra + 1);
+		// Compiler may know extra is within range [1, 3] and then it can do further unroll or SIMD optimization.
 		for (uint32_t j = 0; j != extra; ++j) {
 			*--p = (0x80U | (c & 0x3FU)) & 0xFF;
 			c >>= 6;
 		}
-#endif
 		*--p = (prefix | (c & mask)) & 0xFF;
+		result.append(reinterpret_cast<const char*>(buffer));
 	}
 
 	if (invalid_character)
 		Log::Message(Log::LT_WARNING, "One or more invalid code points encountered while encoding to UTF-8.");
 
 	return result;
+#endif
 }
 
 size_t StringUtilities::LengthUTF8(StringView string_view)
 {
 #if 0
-	// Compiler may auto vertorize this.
+	const char* const p_end = string_view.end();
+
+	// Skip any continuation bytes at the beginning
+	const char* p = string_view.begin();
+
+	size_t num_continuation_bytes = 0;
+
+	while (p != p_end)
+	{
+		if ((*p & 0b1100'0000) == 0b1000'0000)
+			++num_continuation_bytes;
+		++p;
+	}
+
+	return string_view.size() - num_continuation_bytes;
+#else
 	return std::count_if(string_view.begin(), string_view.end(), [](uint8_t c) {
 		return (c & 0xC0) != 0x80;
 	});
 #endif
-	size_t count = 0;
-	for (const uint8_t* p = reinterpret_cast<const uint8_t*>(string_view.begin()); 
-		                p != reinterpret_cast<const uint8_t*>(string_view.end()); ++p) {
-		if ((*p & 0xC0) != 0x80) { ++count; }
-	}
-	return count;
 }
 
 int StringUtilities::ConvertCharacterOffsetToByteOffset(StringView string, int character_offset)
