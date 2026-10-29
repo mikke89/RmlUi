@@ -592,7 +592,64 @@ size_t StringUtilities::BytesUTF8(Character character)
 
 String StringUtilities::ToUTF8(Character character)
 {
-	return ToUTF8(&character, 1);
+#if 0
+	String result;
+	result.reserve(4);
+
+	uint32_t c = static_cast<uint32_t>(character);
+	bool invalid_character = false;
+
+	constexpr int l3 = 0b0000'0111;
+	constexpr int l4 = 0b0000'1111;
+	constexpr int l5 = 0b0001'1111;
+	constexpr int l6 = 0b0011'1111;
+	constexpr int h1 = 0b1000'0000;
+	constexpr int h2 = 0b1100'0000;
+	constexpr int h3 = 0b1110'0000;
+	constexpr int h4 = 0b1111'0000;
+
+	if (c < 0x80)
+		result += (char)c;
+	else if (c < 0x800)
+		result += {char(((c >> 6) & l5) | h2), char((c & l6) | h1)};
+	else if (c < 0x10000)
+		result += {char(((c >> 12) & l4) | h3), char(((c >> 6) & l6) | h1), char((c & l6) | h1)};
+	else if (c <= 0x10FFFF)
+		result += {char(((c >> 18) & l3) | h4), char(((c >> 12) & l6) | h1), char(((c >> 6) & l6) | h1), char((c & l6) | h1)};
+	else
+		invalid_character = true;
+
+	if (invalid_character)
+		Log::Message(Log::LT_WARNING, "One or more invalid code points encountered while encoding to UTF-8.");
+
+	return result;
+#else
+	uint32_t c = static_cast<uint32_t>(character);
+
+	// ASCII fast path.
+	if (c < 0x80) {
+		return { static_cast<char>(c & 0xFF) };
+	}
+
+	if (c > 0x10FFFF) {
+		Log::Message(Log::LT_WARNING, "One or more invalid code points encountered while encoding to UTF-8.");
+		return {};
+	}
+
+	const uint32_t extra  = 1 + static_cast<uint32_t>(c >= 0x800) + static_cast<uint32_t>(c >= 0x10000);
+	const uint32_t prefix = 0xFFU << (7 - extra);
+	const uint32_t mask   = 0xFFU >> (extra + 2);
+
+	uint8_t buffer[4] = {0, 0, 0, 0};
+	uint8_t* p = reinterpret_cast<uint8_t*>(buffer + extra + 1);
+	// Compiler may know extra is within range [1, 3] and then it can do further unroll or SIMD optimization.
+	for (uint32_t j = 0; j != extra; ++j)  {
+		*--p = (0x80U | (c & 0x3FU)) & 0xFF;
+		c >>= 6;
+	}
+	*--p = (prefix | (c & mask)) & 0xFF;
+	return String(reinterpret_cast<const char*>(buffer));
+#endif
 }
 
 String StringUtilities::ToUTF8(const Character* characters, int num_characters)
