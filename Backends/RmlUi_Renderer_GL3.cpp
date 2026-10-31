@@ -86,8 +86,25 @@ in vec4 fragColor;
 
 out vec4 finalColor;
 
+float dither() {
+	const int bayer[64] = int[64](
+		 0, 32,  8, 40,  2, 34, 10, 42,
+		48, 16, 56, 24, 50, 18, 58, 26,
+		12, 44,  4, 36, 14, 46,  6, 38,
+		60, 28, 52, 20, 62, 30, 54, 22,
+		 3, 35, 11, 43,  1, 33,  9, 41,
+		51, 19, 59, 27, 49, 17, 57, 25,
+		15, 47,  7, 39, 13, 45,  5, 37,
+		63, 31, 55, 23, 61, 29, 53, 21
+	);
+	int x = int(mod(gl_FragCoord.x, 8.0));
+	int y = int(mod(gl_FragCoord.y, 8.0));
+	return (float(bayer[x + y * 8]) / 64.0 - 0.5) / 255.0;
+}
+
 void main() {
 	finalColor = fragColor;
+	finalColor.rgb += dither();
 }
 )";
 
@@ -112,6 +129,22 @@ uniform int _num_stops;
 in vec2 fragTexCoord;
 in vec4 fragColor;
 out vec4 finalColor;
+
+float dither() {
+	const int bayer[64] = int[64](
+		 0, 32,  8, 40,  2, 34, 10, 42,
+		48, 16, 56, 24, 50, 18, 58, 26,
+		12, 44,  4, 36, 14, 46,  6, 38,
+		60, 28, 52, 20, 62, 30, 54, 22,
+		 3, 35, 11, 43,  1, 33,  9, 41,
+		51, 19, 59, 27, 49, 17, 57, 25,
+		15, 47,  7, 39, 13, 45,  5, 37,
+		63, 31, 55, 23, 61, 29, 53, 21
+	);
+	int x = int(mod(gl_FragCoord.x, 8.0));
+	int y = int(mod(gl_FragCoord.y, 8.0));
+	return (float(bayer[x + y * 8]) / 64.0 - 0.5) / 255.0;
+}
 
 vec4 mix_stop_colors(float t) {
 	vec4 color = _stop_colors[0];
@@ -151,6 +184,7 @@ void main() {
 	}
 
 	finalColor = fragColor * mix_stop_colors(t);
+	finalColor.rgb += dither();
 }
 )";
 
