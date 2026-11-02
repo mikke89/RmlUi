@@ -337,9 +337,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			if (initial_box_size.x < 0.f && flex_available_content_size.x >= 0.f)
 				format_box.SetContent(Vector2f(flex_available_content_size.x - item.cross.sum_edges, initial_box_size.y));
 
-			FormattingContext::FormatIndependent(flex_container_box, element, (format_box.GetSize().x >= 0 ? &format_box : nullptr),
-				FormattingContextType::Block);
-			item.inner_flex_base_size = element->GetBox().GetSize().y;
+			item.inner_flex_base_size =
+				LayoutDetails::GetFormattedHeight(flex_container_box, element, (format_box.GetSize().x >= 0 ? &format_box : nullptr));
 
 			// Apply the automatic block size as minimum size (§4.5). Strictly speaking, we should also apply this to
 			// the other branches in column mode (and inline min-content size in row mode). However, the formatting step
@@ -680,8 +679,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				if (content_size.y < 0.0f)
 				{
 					item.box.SetContent(Vector2f(GetInnerUsedMainSize(item), content_size.y));
-					FormattingContext::FormatIndependent(flex_container_box, item.element, &item.box, FormattingContextType::Block);
-					item.hypothetical_cross_size = item.element->GetBox().GetSize().y + item.cross.sum_edges;
+					item.hypothetical_cross_size =
+						LayoutDetails::GetFormattedHeight(flex_container_box, item.element, &item.box) + item.cross.sum_edges;
 				}
 				else
 				{

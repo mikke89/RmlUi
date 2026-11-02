@@ -1,11 +1,11 @@
 #pragma once
 
+#include "../../../Include/RmlUi/Core/Box.h"
 #include "../../../Include/RmlUi/Core/StyleTypes.h"
 #include "../../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
-class Box;
 class BlockContainer;
 class ContainerBox;
 
@@ -40,6 +40,34 @@ enum class BuildBoxMode {
  */
 class LayoutDetails {
 public:
+	/// Caches content-based sizes while in scope, see GetShrinkToFitWidth, GetFlexMaxContentSize, and GetFormattedHeight. The same element is often
+	/// sized under the same constraints many times during a single layout pass, in particular with nested flex containers, where the number of times
+	/// otherwise grows exponentially with the nesting depth. Thus, it should be in scope for the duration of a layout pass, during which no element
+	/// changes, but not any longer. Nested scopes use the outermost cache.
+	class SizingCache : NonCopyMoveable {
+	public:
+		SizingCache();
+		~SizingCache();
+
+	private:
+		struct ShrinkToFitWidth {
+			Vector2f containing_block;
+			float width;
+		};
+		UnorderedMap<Element*, Vector<ShrinkToFitWidth>> shrink_to_fit_widths;
+		UnorderedMap<Element*, Vector2f> max_content_sizes;
+		struct FormattedHeight {
+			bool override_box;
+			Box box;
+			Vector2f containing_block;
+			float height;
+		};
+		UnorderedMap<Element*, Vector<FormattedHeight>> formatted_heights;
+		bool active = false;
+
+		friend class LayoutDetails;
+	};
+
 	/// Generates the box dimensions for an element.
 	/// @param[out] box The box to be built.
 	/// @param[in] containing_block The dimensions of the content area of the block containing the element.
@@ -78,7 +106,17 @@ public:
 		BuildBoxMode box_context, bool replaced_element);
 
 	/// Formats the element and returns the width of its contents.
+	/// @note The result is cached for the same element and containing block while a SizingCache is in scope.
 	static float GetShrinkToFitWidth(Element* element, Vector2f containing_block);
+
+	/// Returns the max-content size of a flex container, see FlexFormattingContext::GetMaxContentSize.
+	/// @note The result is cached for the same element while a SizingCache is in scope.
+	static Vector2f GetFlexMaxContentSize(Element* element);
+
+	/// Formats the element independently, and returns the resulting height of its content box. Only for measuring, since the element is not
+	/// formatted when the height is cached, so it must be formatted for its final layout afterwards.
+	/// @note The result is cached for the same element, initial box, and containing block while a SizingCache is in scope.
+	static float GetFormattedHeight(ContainerBox* parent_container, Element* element, const Box* override_initial_box);
 
 	/// Build computed axis size along the horizontal direction (width and friends).
 	static ComputedAxisSize BuildComputedHorizontalSize(const ComputedValues& computed);

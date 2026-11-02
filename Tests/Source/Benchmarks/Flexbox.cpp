@@ -640,3 +640,54 @@ TEST_CASE("flexbox.shrink-to-fit")
 
 	document->Close();
 }
+
+static const String rml_flexbox_nested = R"(
+<rml>
+<head>
+    <title>Flex - Nested</title>
+    <link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<style>
+		.nested {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			padding: 5px;
+			border: 1px #e8e8e8;
+		}
+	</style>
+</head>
+<body>
+</body>
+</rml>
+)";
+
+TEST_CASE("flexbox.nested")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	nanobench::Bench bench;
+	bench.title("Flexbox nested");
+	bench.relative(true);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(rml_flexbox_nested);
+	REQUIRE(document);
+	document->Show();
+
+	// Flex containers nested in each other, each one centered in its parent, which needs its content-based size.
+	for (int depth : {2, 4, 6, 8, 10})
+	{
+		String body;
+		for (int i = 0; i < depth; i++)
+			body += "<div class=\"nested\">Level " + ToString(i);
+		for (int i = 0; i < depth; i++)
+			body += "</div>";
+
+		bench.run("Depth " + ToString(depth), [&] {
+			document->SetInnerRML(body);
+			context->Update();
+		});
+	}
+
+	document->Close();
+}

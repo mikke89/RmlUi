@@ -267,7 +267,7 @@ float FlexContainer::GetShrinkToFitWidth() const
 		return box.GetSize().x;
 
 	// Infer shrink-to-fit width from the intrinsic width of the element.
-	return FlexFormattingContext::GetMaxContentSize(element).x;
+	return LayoutDetails::GetFlexMaxContentSize(element).x;
 }
 
 String FlexContainer::DebugDumpTree(int depth) const

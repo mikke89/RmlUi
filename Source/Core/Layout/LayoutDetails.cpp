@@ -6,11 +6,30 @@
 #include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/Profiling.h"
 #include "ContainerBox.h"
+#include "FlexFormattingContext.h"
 #include "FormattingContext.h"
 #include "LayoutEngine.h"
 #include <float.h>
 
 namespace Rml {
+
+// The cache in scope, if any, see LayoutDetails::SizingCache.
+static LayoutDetails::SizingCache* sizing_cache = nullptr;
+
+LayoutDetails::SizingCache::SizingCache()
+{
+	if (!sizing_cache)
+	{
+		sizing_cache = this;
+		active = true;
+	}
+}
+
+LayoutDetails::SizingCache::~SizingCache()
+{
+	if (active)
+		sizing_cache = nullptr;
+}
 
 // Convert width or height of a border box to the width or height of its corresponding content box.
 static inline float BorderSizeToContentSize(float border_size, float border_padding_edges_size)
@@ -218,6 +237,19 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 {
 	RMLUI_ASSERT(element);
 
+	if (sizing_cache)
+	{
+		auto it = sizing_cache->shrink_to_fit_widths.find(element);
+		if (it != sizing_cache->shrink_to_fit_widths.end())
+		{
+			for (const SizingCache::ShrinkToFitWidth& cached : it->second)
+			{
+				if (cached.containing_block == containing_block)
+					return cached.width;
+			}
+		}
+	}
+
 	// @performance Can we lay out the elements directly using a fit-content size mode, instead of fetching the
 	// shrink-to-fit width first? Use a non-definite placeholder for the box content width, and available width as a
 	// maximum constraint.
@@ -258,7 +290,60 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 			Math::Max(0.f, containing_block.x - box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
 		shrink_to_fit_width = Math::Min(shrink_to_fit_width, available_width);
 	}
+
+	if (sizing_cache)
+		sizing_cache->shrink_to_fit_widths[element].push_back({containing_block, shrink_to_fit_width});
+
 	return shrink_to_fit_width;
+}
+
+Vector2f LayoutDetails::GetFlexMaxContentSize(Element* element)
+{
+	RMLUI_ASSERT(element);
+
+	if (sizing_cache)
+	{
+		auto it = sizing_cache->max_content_sizes.find(element);
+		if (it != sizing_cache->max_content_sizes.end())
+			return it->second;
+	}
+
+	const Vector2f max_content_size = FlexFormattingContext::GetMaxContentSize(element);
+
+	if (sizing_cache)
+		sizing_cache->max_content_sizes[element] = max_content_size;
+
+	return max_content_size;
+}
+
+float LayoutDetails::GetFormattedHeight(ContainerBox* parent_container, Element* element, const Box* override_initial_box)
+{
+	RMLUI_ASSERT(element);
+
+	const Vector2f containing_block = GetContainingBlock(parent_container, element->GetPosition()).size;
+	const bool override_box = (override_initial_box != nullptr);
+	const Box box = (override_box ? *override_initial_box : Box());
+
+	if (sizing_cache)
+	{
+		auto it = sizing_cache->formatted_heights.find(element);
+		if (it != sizing_cache->formatted_heights.end())
+		{
+			for (const SizingCache::FormattedHeight& cached : it->second)
+			{
+				if (cached.override_box == override_box && cached.box == box && cached.containing_block == containing_block)
+					return cached.height;
+			}
+		}
+	}
+
+	FormattingContext::FormatIndependent(parent_container, element, override_initial_box, FormattingContextType::Block);
+	const float height = element->GetBox().GetSize().y;
+
+	if (sizing_cache)
+		sizing_cache->formatted_heights[element].push_back({override_box, box, containing_block, height});
+
+	return height;
 }
 
 ComputedAxisSize LayoutDetails::BuildComputedHorizontalSize(const ComputedValues& computed)
