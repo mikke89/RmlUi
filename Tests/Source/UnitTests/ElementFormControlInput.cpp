@@ -147,3 +147,48 @@ TEST_CASE("form.input.text.long_placeholder_mouse_click")
 	document->Close();
 	TestsShell::ShutdownShell();
 }
+
+TEST_CASE("form.input.password.maxlength")
+{
+	const String document_rml = R"(<rml>
+	<head>
+		<link type="text/rcss" href="/assets/rml.rcss" />
+		<style>
+			body {
+				font-family: LatoLatin;
+				font-size: 16dp;
+				color: white;
+				width: 300dp;
+				height: 225dp;
+			}
+		</style>
+	</head>
+
+	<body>
+		<input type="password" id="password" value="aé€x"/>
+	</body>
+</rml>)";
+
+	Context* context = TestsShell::GetContext();
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	document->Show();
+	context->Update();
+	context->Render();
+
+	auto input = rmlui_dynamic_cast<ElementFormControlInput*>(document->GetElementById("password"));
+	REQUIRE(input);
+
+	// Lowering the maximum length below the length of the value truncates the value itself, rather than replacing it
+	// with the displayed mask characters.
+	input->SetAttribute("maxlength", 3);
+	context->Update();
+	CHECK(input->GetValue() == "aé€");
+
+	input->SetAttribute("maxlength", 1);
+	context->Update();
+	CHECK(input->GetValue() == "a");
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
