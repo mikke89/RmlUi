@@ -549,6 +549,8 @@ void SandboxWindow::ApplyDpRatio()
 		dp_ratio = Rml::Math::Clamp(dp_ratio, 0.5f, 4.f);
 
 	document->GetContext()->SetDensityIndependentPixelRatio(Rml::Math::Clamp(dp_ratio, 0.5f, 4.f));
+	if (sandbox_document)
+		sandbox_document->UpdateDocument();
 }
 
 void SandboxWindow::ApplyRcssSourceVisibility()
