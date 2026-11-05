@@ -65,6 +65,35 @@ static int FormatString(String& string, const char* format, va_list argument_lis
 	return length;
 }
 
+static String ToUTF8Impl(Character character, bool& invalid_character)
+{
+	String result;
+	result.reserve(4);
+
+	uint32_t c = static_cast<uint32_t>(character);
+
+	constexpr int l3 = 0b0000'0111;
+	constexpr int l4 = 0b0000'1111;
+	constexpr int l5 = 0b0001'1111;
+	constexpr int l6 = 0b0011'1111;
+	constexpr int h1 = 0b1000'0000;
+	constexpr int h2 = 0b1100'0000;
+	constexpr int h3 = 0b1110'0000;
+	constexpr int h4 = 0b1111'0000;
+
+	if (c < 0x80)
+		result += (char)c;
+	else if (c < 0x800)
+		result += {char(((c >> 6) & l5) | h2), char((c & l6) | h1)};
+	else if (c < 0x10000)
+		result += {char(((c >> 12) & l4) | h3), char(((c >> 6) & l6) | h1), char((c & l6) | h1)};
+	else if (c <= 0x10FFFF)
+		result += {char(((c >> 18) & l3) | h4), char(((c >> 12) & l6) | h1), char(((c >> 6) & l6) | h1), char((c & l6) | h1)};
+	else
+		invalid_character = true;
+	return result;
+}
+
 int FormatString(String& string, const char* format, ...)
 {
 	va_list argument_list;
@@ -480,23 +509,22 @@ Character StringUtilities::ToCharacter(const char* p, const char* p_end)
 size_t StringUtilities::BytesUTF8(Character character)
 {
 	char32_t c = (char32_t)character;
-
-	if (c < 0x80)
-		return 1;
-	else if (c < 0x800)
-		return 2;
-	else if (c < 0x10000)
-		return 3;
-	else if (c <= 0x10FFFF)
-		return 4;
-	else
-		// Invalid character.
+	if (c > 0x10FFFF)
+	{
 		return 0;
+	}
+	return 1 + static_cast<size_t>(c >= 0x80) + static_cast<size_t>(c >= 0x800) + static_cast<size_t>(c >= 0x10000);
 }
 
 String StringUtilities::ToUTF8(Character character)
 {
-	return ToUTF8(&character, 1);
+	bool invalid_character = false;
+	String result = ToUTF8Impl(character, invalid_character);
+
+	if (invalid_character)
+		Log::Message(Log::LT_WARNING, "One or more invalid code points encountered while encoding to UTF-8.");
+
+	return result;
 }
 
 String StringUtilities::ToUTF8(const Character* characters, int num_characters)
@@ -507,29 +535,7 @@ String StringUtilities::ToUTF8(const Character* characters, int num_characters)
 	bool invalid_character = false;
 
 	for (int i = 0; i < num_characters; i++)
-	{
-		char32_t c = (char32_t)characters[i];
-
-		constexpr int l3 = 0b0000'0111;
-		constexpr int l4 = 0b0000'1111;
-		constexpr int l5 = 0b0001'1111;
-		constexpr int l6 = 0b0011'1111;
-		constexpr int h1 = 0b1000'0000;
-		constexpr int h2 = 0b1100'0000;
-		constexpr int h3 = 0b1110'0000;
-		constexpr int h4 = 0b1111'0000;
-
-		if (c < 0x80)
-			result += (char)c;
-		else if (c < 0x800)
-			result += {char(((c >> 6) & l5) | h2), char((c & l6) | h1)};
-		else if (c < 0x10000)
-			result += {char(((c >> 12) & l4) | h3), char(((c >> 6) & l6) | h1), char((c & l6) | h1)};
-		else if (c <= 0x10FFFF)
-			result += {char(((c >> 18) & l3) | h4), char(((c >> 12) & l6) | h1), char(((c >> 6) & l6) | h1), char((c & l6) | h1)};
-		else
-			invalid_character = true;
-	}
+		result += ToUTF8Impl(characters[i], invalid_character);
 
 	if (invalid_character)
 		Log::Message(Log::LT_WARNING, "One or more invalid code points encountered while encoding to UTF-8.");
@@ -539,21 +545,7 @@ String StringUtilities::ToUTF8(const Character* characters, int num_characters)
 
 size_t StringUtilities::LengthUTF8(StringView string_view)
 {
-	const char* const p_end = string_view.end();
-
-	// Skip any continuation bytes at the beginning
-	const char* p = string_view.begin();
-
-	size_t num_continuation_bytes = 0;
-
-	while (p != p_end)
-	{
-		if ((*p & 0b1100'0000) == 0b1000'0000)
-			++num_continuation_bytes;
-		++p;
-	}
-
-	return string_view.size() - num_continuation_bytes;
+	return std::count_if(string_view.begin(), string_view.end(), [](uint8_t c) { return (c & 0xC0) != 0x80; });
 }
 
 int StringUtilities::ConvertCharacterOffsetToByteOffset(StringView string, int character_offset)
