@@ -98,7 +98,6 @@ public:
 
 	// -- Inherited from LayoutBox --
 
-	const Box* GetIfBox() const override;
 	float GetShrinkToFitWidth() const override;
 	bool GetBaselineOfLastLine(float& out_baseline) const override;
 
@@ -139,7 +138,6 @@ private:
 	// Position of this box, relative to the border area of the root of our block formatting context.
 	Vector2f position;
 
-	Box box;
 	float min_height = 0.f;
 	float max_height = -1.f;
 

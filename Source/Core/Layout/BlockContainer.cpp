@@ -12,7 +12,7 @@ namespace Rml {
 
 BlockContainer::BlockContainer(ContainerBox* _parent_container, FloatedBoxSpace* _space, Element* _element, const Box& _box, float _min_height,
 	float _max_height) :
-	ContainerBox(Type::BlockContainer, _element, _parent_container), box(_box), min_height(_min_height), max_height(_max_height), space(_space)
+	ContainerBox(Type::BlockContainer, _element, _parent_container, _box), min_height(_min_height), max_height(_max_height), space(_space)
 {
 	RMLUI_ASSERT(element);
 	RMLUI_ASSERT(box.GetSize().x >= 0.f);
@@ -372,11 +372,6 @@ float BlockContainer::GetShrinkToFitWidth() const
 	content_width = Math::Clamp(content_width, min_width, max_width);
 
 	return content_width;
-}
-
-const Box* BlockContainer::GetIfBox() const
-{
-	return &box;
 }
 
 Element* BlockContainer::GetElement() const

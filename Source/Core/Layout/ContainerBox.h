@@ -39,13 +39,15 @@ public:
 	// Returns true if this box acts as a containing block for absolutely positioned descendants.
 	bool IsAbsolutePositioningContainingBlock() const { return is_absolute_positioning_containing_block; }
 
+	const Box* GetIfBox() const override { return &box; }
+
 protected:
-	ContainerBox(Type type, Element* element, ContainerBox* parent_container);
+	ContainerBox(Type type, Element* element, ContainerBox* parent_container, const Box& box = Box());
 
 	/// Set the box and scrollable area on our element, possibly catching any overflow.
 	/// @param[in] visible_overflow_size The border-box overflow of our descendants, relative to our content area, propagated to ancestors.
 	/// @param[in] scrollable_content_size The margin-box overflow of our direct children, relative to our content area.
-	/// @param[in] box The box to be set on the element.
+	/// @param[in] box The box to be set on the element. On success, it also becomes the box of this container.
 	/// @param[in] max_height Maximum height of the content area, if any.
 	/// @returns True if no overflow occurred, false if it did.
 	bool SubmitBox(Vector2f visible_overflow_size, Vector2f scrollable_content_size, const Box& box, float max_height);
@@ -60,6 +62,10 @@ protected:
 
 	// The element this box represents, if any.
 	Element* const element;
+
+	// The box of the element this container represents. Its content height can be indefinite (negative) while the
+	// container is being formatted. SubmitBox() stores the final box, before positioned elements are closed against it.
+	Box box;
 
 private:
 	struct AbsoluteElement {
@@ -87,14 +93,10 @@ private:
 */
 class RootBox final : public ContainerBox {
 public:
-	RootBox(Vector2f containing_block) : ContainerBox(Type::Root, nullptr, nullptr), box(containing_block) {}
-	RootBox(const Box& box) : ContainerBox(Type::Root, nullptr, nullptr), box(box) {}
+	RootBox(Vector2f containing_block) : ContainerBox(Type::Root, nullptr, nullptr, Box(containing_block)) {}
+	RootBox(const Box& box) : ContainerBox(Type::Root, nullptr, nullptr, box) {}
 
-	const Box* GetIfBox() const override { return &box; }
 	String DebugDumpTree(int depth) const override;
-
-private:
-	Box box;
 };
 
 /**
@@ -110,13 +112,9 @@ public:
 
 	float GetShrinkToFitWidth() const override;
 
-	const Box* GetIfBox() const override { return &box; }
 	String DebugDumpTree(int depth) const override;
 
 	Box& GetBox() { return box; }
-
-private:
-	Box box;
 };
 
 /**
@@ -133,13 +131,9 @@ public:
 
 	float GetShrinkToFitWidth() const override;
 
-	const Box* GetIfBox() const override { return &box; }
 	String DebugDumpTree(int depth) const override;
 
 	Box& GetBox() { return box; }
-
-private:
-	Box box;
 };
 
 } // namespace Rml
