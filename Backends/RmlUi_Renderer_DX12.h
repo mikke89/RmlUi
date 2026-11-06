@@ -374,6 +374,122 @@ public:
 		Rml::Vector<ID3D12Heap*> m_heaps_placed;
 	};
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	/*
+	    Merges consecutive RenderGeometry draws that share pipeline state into single draw calls.
+
+	    During accumulation each geometry is copied into a per-swapchain-slot vertex/index arena (UPLOAD heap,
+	    persistently mapped) with its translation baked into the vertex positions, and is recorded as a 16-byte
+	    BatchDraw whose state is keyed by unsigned-char indices into per-run intern tables (texture, scissor rect,
+	    transform matrix). Arena cursors are reset only when the owning slot begins a new frame, so records drawn
+	    by earlier flushes in the same frame keep referencing valid data; on overflow an arena doubles in place,
+	    the used bytes are copied at identical offsets, and the old buffer is retired with a fence stamp exactly
+	    like deferred geometry deletion, which is transparent because records reference arena offsets (not buffer
+	    objects) and buffers are only bound at flush time. The renderer drains the accumulated records
+	    (FlushBatches) before every operation that is not batchable - render target switches, clip-mask rendering,
+	    custom shaders, postprocess quads - binds the arenas once per flush, and emits state changes only when a
+	    key differs from the previous record. The whole path is compiled out when
+	    RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED is 0.
+	*/
+	class GeometryBatcher : Rml::NonCopyMoveable {
+	public:
+		// intern-table id reserved as the "no texture" (color pipeline) sentinel, so at most 254 real entries fit
+		static constexpr uint8_t kBatchNoTexture = 0xFF;
+		static constexpr size_t kMaxInternedTextures = 254;
+		// scissor id 0 is reserved for the full-frame scissor, table ids start at 1
+		static constexpr size_t kMaxInternedScissors = 255;
+		static constexpr size_t kMaxInternedTransforms = 255;
+
+		// a run of consecutive draws that share the exact same pipeline state; indices reference the frame arenas
+		struct BatchDraw {
+			uint32_t first_index; // first index (in indices, not bytes) in the frame index arena
+			uint32_t index_count; // number of indices in this run
+			uint8_t texture_id;   // interned texture table index; kBatchNoTexture (0xFF) = color pipeline
+			uint8_t scissor_id;   // 0 = full-frame scissor; 1..255 index into the scissor table
+			uint8_t program_id;   // ProgramId (values < 32)
+			uint8_t stencil_ref;  // stencil reference in effect (saturated at 255)
+			uint8_t transform_id; // interned transform-matrix table index
+			uint8_t reserved[3];  // zero
+		};
+		static_assert(sizeof(BatchDraw) == 16);
+
+		GeometryBatcher();
+		~GeometryBatcher();
+
+		void Initialize(ID3D12Device* p_device, D3D12MA::Allocator* p_allocator, RenderInterface_DX12* p_renderer);
+		void Shutdown();
+
+		// Resets the arena cursors and intern tables of the given slot and recycles retired arena buffers whose
+		// fence has passed; the only place where arena cursors are reset.
+		void BeginFrame(uint32_t slot_index);
+
+		// Batchable iff the draw keeps the currently bound render target and uses no override constant buffer, no
+		// clip-mask operation and no postprocess texture; TextureEnableWithoutBinding additionally requires a
+		// previous textured record to inherit the binding from.
+		bool CanAccumulate(const GeometryHandleType* p_handle_geometry, Rml::TextureHandle texture) const;
+		void Accumulate(GeometryHandleType* p_handle_geometry, Rml::Vector2f translation, Rml::TextureHandle texture);
+
+		bool Has_Batches() const { return !m_batches.empty(); }
+		const Rml::Vector<BatchDraw>& Get_BatchDraws() const { return m_batches; }
+		const Rml::Vector<Rml::Matrix4f>& Get_InternedTransforms() const { return m_transforms; }
+		// geometries merged into the current accumulation run so far (for the per-flush marker)
+		size_t Get_AccumulatedGeometryCount() const { return m_accumulated_geometry_count; }
+
+		Rml::TextureHandle Get_InternedTexture(uint8_t texture_id) const;
+		Rml::Rectanglei Get_InternedScissor(uint8_t scissor_id) const;
+
+		D3D12MA::Allocation* Get_VertexArena(uint32_t slot_index) const { return m_slots.at(slot_index).p_vertex_buffer; }
+		D3D12MA::Allocation* Get_IndexArena(uint32_t slot_index) const { return m_slots.at(slot_index).p_index_buffer; }
+		size_t Get_VertexArenaUsed(uint32_t slot_index) const { return m_slots.at(slot_index).vertex_used; }
+		size_t Get_IndexArenaUsed(uint32_t slot_index) const { return m_slots.at(slot_index).index_used; }
+
+		// Clears the batch records and intern tables; arena cursors are NOT touched, draws recorded earlier in the
+		// frame still reference the arena data.
+		void Reset_Accumulation();
+
+	private:
+		struct SlotArena {
+			D3D12MA::Allocation* p_vertex_buffer = {};
+			D3D12MA::Allocation* p_index_buffer = {};
+			uint8_t* p_vertex_mapped = {};
+			uint8_t* p_index_mapped = {};
+			size_t vertex_capacity = {}; // in bytes
+			size_t index_capacity = {};  // in bytes
+			size_t vertex_used = {};     // in bytes
+			size_t index_used = {};      // in bytes
+		};
+
+		// Creates an UPLOAD-heap, persistently mapped buffer (same pattern as BufferMemoryManager::Alloc_Buffer).
+		D3D12MA::Allocation* Alloc_ArenaBuffer(size_t size, void** pp_mapped);
+		void Free_ArenaBuffer(D3D12MA::Allocation* p_allocation);
+		// Doubles the arenas on overflow, keeping the used bytes at identical offsets and retiring the old buffers.
+		bool Ensure_ArenaCapacity(SlotArena& slot, size_t vertex_bytes_needed, size_t index_bytes_needed);
+		// Defers destruction exactly like m_pending_for_deletion_geometry: stamped with the current slot fence value.
+		void Retire_ArenaBuffer(D3D12MA::Allocation* p_allocation);
+
+		int Find_Texture(Rml::TextureHandle texture) const;
+		uint8_t Intern_Texture(Rml::TextureHandle texture);
+		int Find_Scissor(const Rml::Rectanglei& rect) const;
+		uint8_t Intern_Scissor(const Rml::Rectanglei& rect);
+		// Dedupes against the last table entry only (transforms cluster per element subtree, a full scan is not worth it).
+		uint8_t Intern_Transform(const Rml::Matrix4f& transform);
+
+		ID3D12Device* m_p_device = {};
+		D3D12MA::Allocator* m_p_allocator = {};
+		RenderInterface_DX12* m_p_renderer = {};
+		uint32_t m_slot_index = {};
+		size_t m_accumulated_geometry_count = {};
+		uint8_t m_texture_count = {};
+		uint8_t m_scissor_count = {};
+		Rml::Array<SlotArena, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_slots;
+		Rml::Vector<BatchDraw> m_batches;
+		Rml::Vector<Rml::Matrix4f> m_transforms;
+		Rml::Vector<Rml::Pair<D3D12MA::Allocation*, uint64_t>> m_retired_arenas;
+		Rml::TextureHandle m_textures[255] = {};
+		Rml::Rectanglei m_scissors[255] = {};
+	};
+#endif
+
 	/*
 	    Manages render targets, including the layer stack and postprocessing framebuffers.
 
@@ -574,6 +690,24 @@ private:
 
 	void SubmitTransformUniform(ConstantBufferType& constant_buffer, const Rml::Vector2f& translation);
 
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// Drains the accumulated batch records into the command list; no-op when nothing was accumulated. Called before
+	// every non-batchable operation so the submission order is preserved.
+	void FlushBatches();
+
+	// Program selection for the batch path; mirrors the legacy if-chain of RenderGeometry (clip-mask programs are
+	// never batched, so only the m_current_clip_operation == -1 variants appear here).
+	ProgramId Get_ProgramIdForBatch(bool is_textured) const;
+
+	// Same payload upload as SubmitTransformUniform but with an explicit transform instead of the member
+	// m_constant_buffer_data_transform; the batch flusher emits one constant buffer per interned transform.
+	void SubmitTransformUniformExplicit(ConstantBufferType& constant_buffer, const Rml::Matrix4f& transform, const Rml::Vector2f& translation);
+
+	// Emits the scissor rectangle matching the current renderer state (m_is_scissor_was_set/m_scissor). While
+	// batching is enabled SetScissor records nothing, so every legacy-path draw calls this before drawing.
+	void EmitCurrentScissorRect();
+#endif
+
 	void UseProgram(ProgramId pipeline_id);
 
 	ConstantBufferType* Get_ConstantBuffer(uint32_t current_back_buffer_index);
@@ -694,6 +828,13 @@ private:
 	Rml::Matrix4f m_constant_buffer_data_projection;
 	Rml::Matrix4f m_projection;
 	RenderLayerStack m_manager_render_layer;
+#if RMLUI_RENDER_BACKEND_FIELD_BATCHING_ENABLED == 1
+	// per-frame batching stats: reset at BeginFrame, logged at EndFrame under RMLUI_DX_DEBUG
+	size_t m_batch_stats_geometry_draws = {};
+	size_t m_batch_stats_draw_calls = {};
+	// declared last so it destructs first: batch records may still reference pool memory owned by the managers above
+	GeometryBatcher m_manager_batch;
+#endif
 };
 
 namespace Backend {
