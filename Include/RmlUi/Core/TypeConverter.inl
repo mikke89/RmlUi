@@ -48,6 +48,7 @@ bool TypeConverter<SourceType, DestType>::Convert(const SourceType& /*src*/, Des
 /////////////////////////////////////////////////
 PASS_THROUGH(int);
 PASS_THROUGH(unsigned int);
+PASS_THROUGH(unsigned char);
 PASS_THROUGH(long);
 PASS_THROUGH(unsigned long);
 PASS_THROUGH(long long);
@@ -85,6 +86,7 @@ BASIC_CONVERTER(bool, long long);
 BASIC_CONVERTER(bool, unsigned long long);
 BASIC_CONVERTER(bool, float);
 BASIC_CONVERTER(bool, double);
+BASIC_CONVERTER(bool, unsigned char);
 
 BASIC_CONVERTER_BOOL(int, bool);
 BASIC_CONVERTER(int, unsigned int);
@@ -94,6 +96,7 @@ BASIC_CONVERTER(int, long long);
 BASIC_CONVERTER(int, unsigned long long);
 BASIC_CONVERTER(int, float);
 BASIC_CONVERTER(int, double);
+BASIC_CONVERTER(int, unsigned char);
 
 BASIC_CONVERTER_BOOL(unsigned int, bool);
 BASIC_CONVERTER(unsigned int, int);
@@ -103,6 +106,7 @@ BASIC_CONVERTER(unsigned int, long long);
 BASIC_CONVERTER(unsigned int, unsigned long long);
 BASIC_CONVERTER(unsigned int, float);
 BASIC_CONVERTER(unsigned int, double);
+BASIC_CONVERTER(unsigned int, unsigned char);
 
 BASIC_CONVERTER_BOOL(long, bool);
 BASIC_CONVERTER(long, int);
@@ -112,6 +116,7 @@ BASIC_CONVERTER(long, long long);
 BASIC_CONVERTER(long, unsigned long long);
 BASIC_CONVERTER(long, float);
 BASIC_CONVERTER(long, double);
+BASIC_CONVERTER(long, unsigned char);
 
 BASIC_CONVERTER_BOOL(unsigned long, bool);
 BASIC_CONVERTER(unsigned long, int);
@@ -121,6 +126,7 @@ BASIC_CONVERTER(unsigned long, long long);
 BASIC_CONVERTER(unsigned long, unsigned long long);
 BASIC_CONVERTER(unsigned long, float);
 BASIC_CONVERTER(unsigned long, double);
+BASIC_CONVERTER(unsigned long, unsigned char);
 
 BASIC_CONVERTER_BOOL(long long, bool);
 BASIC_CONVERTER(long long, int);
@@ -130,6 +136,7 @@ BASIC_CONVERTER(long long, unsigned long);
 BASIC_CONVERTER(long long, unsigned long long);
 BASIC_CONVERTER(long long, float);
 BASIC_CONVERTER(long long, double);
+BASIC_CONVERTER(long long, unsigned char);
 
 BASIC_CONVERTER_BOOL(unsigned long long, bool);
 BASIC_CONVERTER(unsigned long long, int);
@@ -139,6 +146,7 @@ BASIC_CONVERTER(unsigned long long, unsigned long);
 BASIC_CONVERTER(unsigned long long, long long);
 BASIC_CONVERTER(unsigned long long, float);
 BASIC_CONVERTER(unsigned long long, double);
+BASIC_CONVERTER(unsigned long long, unsigned char);
 
 BASIC_CONVERTER_BOOL(float, bool);
 BASIC_CONVERTER(float, int);
@@ -148,6 +156,7 @@ BASIC_CONVERTER(float, long long);
 BASIC_CONVERTER(float, unsigned long long);
 BASIC_CONVERTER(float, double);
 BASIC_CONVERTER(float, unsigned int);
+BASIC_CONVERTER(float, unsigned char);
 
 BASIC_CONVERTER_BOOL(double, bool);
 BASIC_CONVERTER(double, int);
@@ -157,6 +166,16 @@ BASIC_CONVERTER(double, long long);
 BASIC_CONVERTER(double, unsigned long long);
 BASIC_CONVERTER(double, float);
 BASIC_CONVERTER(double, unsigned int);
+BASIC_CONVERTER(double, unsigned char);
+
+BASIC_CONVERTER_BOOL(unsigned char, bool);
+BASIC_CONVERTER(unsigned char, unsigned int);
+BASIC_CONVERTER(unsigned char, long);
+BASIC_CONVERTER(unsigned char, unsigned long);
+BASIC_CONVERTER(unsigned char, long long);
+BASIC_CONVERTER(unsigned char, unsigned long long);
+BASIC_CONVERTER(unsigned char, float);
+BASIC_CONVERTER(unsigned char, double);
 
 BASIC_CONVERTER(char, Character);
 
