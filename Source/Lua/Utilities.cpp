@@ -64,6 +64,11 @@ void* luaL_testudata(lua_State* L, int i, const char* tname)
 
 void luaL_traceback(lua_State* L, lua_State* L1, const char* msg, int level)
 {
+	// As in Lua 5.1's debug.traceback, deep stacks only show their first and last levels. Otherwise, runaway recursion
+	// would build a huge message.
+	const int levels_first = 12;
+	const int levels_last = 10;
+	bool first_part = true;
 	lua_Debug ar;
 	int top = lua_gettop(L);
 	if (msg)
@@ -71,6 +76,19 @@ void luaL_traceback(lua_State* L, lua_State* L1, const char* msg, int level)
 	lua_pushliteral(L, "stack traceback:");
 	while (lua_getstack(L1, level++, &ar))
 	{
+		if (first_part && level > levels_first)
+		{
+			if (!lua_getstack(L1, level + levels_last, &ar))
+				level--; // Few enough levels remain to show them all.
+			else
+			{
+				lua_pushliteral(L, "\n\t...");
+				while (lua_getstack(L1, level + levels_last, &ar))
+					level++;
+			}
+			first_part = false;
+			continue;
+		}
 		lua_getinfo(L1, "Sln", &ar);
 		lua_pushfstring(L, "\n\t%s:", ar.short_src);
 		if (ar.currentline > 0)
