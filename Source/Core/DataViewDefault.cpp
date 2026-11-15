@@ -246,6 +246,8 @@ bool DataViewIf::Update(DataModel& model)
 
 DataViewVisible::DataViewVisible(Element* element) : DataViewCommon(element) {}
 
+DataViewCommon::~DataViewCommon() = default;
+
 bool DataViewVisible::Update(DataModel& model)
 {
 	bool result = false;
@@ -270,6 +272,8 @@ bool DataViewVisible::Update(DataModel& model)
 }
 
 DataViewText::DataViewText(Element* element) : DataView(element, 0) {}
+
+DataViewText::~DataViewText() = default;
 
 bool DataViewText::Initialize(DataModel& model, Element* element, const String& /*expression*/, const String& /*modifier*/)
 {
