@@ -98,6 +98,13 @@ int ElementClick(lua_State* /*L*/, Element* obj)
 	return 0;
 }
 
+int ElementClone(lua_State* L, Element* obj)
+{
+	ElementPtr* ele = new ElementPtr(obj->Clone());
+	LuaType<ElementPtr>::push(L, ele, true);
+	return 1;
+}
+
 int ElementDispatchEvent(lua_State* L, Element* obj)
 {
 	const char* event = luaL_checkstring(L, 1);
@@ -228,6 +235,13 @@ int ElementIsClassSet(lua_State* L, Element* obj)
 	return 1;
 }
 
+int ElementIsPseudoClassSet(lua_State* L, Element* obj)
+{
+	const char* name = luaL_checkstring(L, 1);
+	lua_pushboolean(L, obj->IsPseudoClassSet(name));
+	return 1;
+}
+
 int ElementRemoveAttribute(lua_State* L, Element* obj)
 {
 	const char* name = luaL_checkstring(L, 1);
@@ -274,6 +288,14 @@ int ElementSetClass(lua_State* L, Element* obj)
 	const char* name = luaL_checkstring(L, 1);
 	bool value = RMLUI_CHECK_BOOL(L, 2);
 	obj->SetClass(name, value);
+	return 0;
+}
+
+int ElementSetPseudoClass(lua_State* L, Element* obj)
+{
+	const char* name = luaL_checkstring(L, 1);
+	bool value = RMLUI_CHECK_BOOL(L, 2);
+	obj->SetPseudoClass(name, value);
 	return 0;
 }
 
@@ -566,6 +588,7 @@ RegType<Element> ElementMethods[] = {
 	RMLUI_LUAMETHOD(Element, AppendChild),
 	RMLUI_LUAMETHOD(Element, Blur),
 	RMLUI_LUAMETHOD(Element, Click),
+	RMLUI_LUAMETHOD(Element, Clone),
 	RMLUI_LUAMETHOD(Element, DispatchEvent),
 	RMLUI_LUAMETHOD(Element, Focus),
 	RMLUI_LUAMETHOD(Element, GetAttribute),
@@ -578,12 +601,14 @@ RegType<Element> ElementMethods[] = {
 	RMLUI_LUAMETHOD(Element, HasChildNodes),
 	RMLUI_LUAMETHOD(Element, InsertBefore),
 	RMLUI_LUAMETHOD(Element, IsClassSet),
+	RMLUI_LUAMETHOD(Element, IsPseudoClassSet),
 	RMLUI_LUAMETHOD(Element, RemoveAttribute),
 	RMLUI_LUAMETHOD(Element, RemoveChild),
 	RMLUI_LUAMETHOD(Element, ReplaceChild),
 	RMLUI_LUAMETHOD(Element, ScrollIntoView),
 	RMLUI_LUAMETHOD(Element, SetAttribute),
 	RMLUI_LUAMETHOD(Element, SetClass),
+	RMLUI_LUAMETHOD(Element, SetPseudoClass),
 	{nullptr, nullptr},
 };
 

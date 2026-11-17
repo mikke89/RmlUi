@@ -15,6 +15,7 @@ int ElementAddEventListener(lua_State* L, Element* obj);
 int ElementAppendChild(lua_State* L, Element* obj);
 int ElementBlur(lua_State* L, Element* obj);
 int ElementClick(lua_State* L, Element* obj);
+int ElementClone(lua_State* L, Element* obj);
 int ElementDispatchEvent(lua_State* L, Element* obj);
 int ElementFocus(lua_State* L, Element* obj);
 int ElementGetAttribute(lua_State* L, Element* obj);
@@ -27,12 +28,14 @@ int ElementHasAttribute(lua_State* L, Element* obj);
 int ElementHasChildNodes(lua_State* L, Element* obj);
 int ElementInsertBefore(lua_State* L, Element* obj);
 int ElementIsClassSet(lua_State* L, Element* obj);
+int ElementIsPseudoClassSet(lua_State* L, Element* obj);
 int ElementRemoveAttribute(lua_State* L, Element* obj);
 int ElementRemoveChild(lua_State* L, Element* obj);
 int ElementReplaceChild(lua_State* L, Element* obj);
 int ElementScrollIntoView(lua_State* L, Element* obj);
 int ElementSetAttribute(lua_State* L, Element* obj);
 int ElementSetClass(lua_State* L, Element* obj);
+int ElementSetPseudoClass(lua_State* L, Element* obj);
 
 // getters
 int ElementGetAttrattributes(lua_State* L);
