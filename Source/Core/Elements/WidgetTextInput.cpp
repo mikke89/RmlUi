@@ -1141,7 +1141,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 		*end++ = static_cast<int>(it.offset());
 	}
 
-	float boundary_width  = 0.f;
+	float boundary_width = 0.f;
 	float prev_line_width = 0.f;
 	// Uses binary search under the assumption that the width of formatted strings increase monotonically with the string length.
 	// We need the widths measured during the search, and reading state recorded by the predicate relies on unspecified behaviour.
@@ -1165,10 +1165,10 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 	if (boundary == end)
 		return editable_length;
 
-	// The position falls between two character boundaries, return the one closest to it. 
+	// The position falls between two character boundaries, return the one closest to it.
 	const int prev_offset = (boundary == offsets.begin()) ? 0 : *(boundary - 1);
 	ideal_cursor_position_to_the_right_of_cursor = (position + position) < (boundary_width + prev_line_width);
-	return ideal_cursor_position_to_the_right_of_cursor ? prev_offset : * boundary;
+	return ideal_cursor_position_to_the_right_of_cursor ? prev_offset : *boundary;
 }
 
 void WidgetTextInput::ShowCursor(bool show)
