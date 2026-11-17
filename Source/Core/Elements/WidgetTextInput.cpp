@@ -1119,41 +1119,56 @@ float WidgetTextInput::GetAlignmentSpecificTextOffset(const Line& line) const
 
 int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 {
-	int prev_offset = 0;
-	float prev_line_width = 0;
-
 	ideal_cursor_position_to_the_right_of_cursor = true;
-
 	const Line& line = lines[line_index];
+
+	// The lines are formatted from the text element's own text, which is different from GetValue(). Index into the
+	// string that was actually laid out, and clamp to its length in case the layout has not caught up with the text yet.
 	const String& text = text_element->GetText();
-	const char* p_begin = text.data() + line.value_offset;
-	const char* p_end = p_begin + line.editable_length;
+	const int value_offset = Math::Min(line.value_offset, (int)text.size());
+	const int editable_length = Math::Clamp((int)text.size() - value_offset, 0, line.editable_length);
+	const char* p_begin = text.data() + value_offset;
+	const char* p_end = p_begin + editable_length;
+
 	position -= GetAlignmentSpecificTextOffset(line);
 
+	Vector<int> offsets;
+	offsets.resize(static_cast<size_t>(editable_length));
+	auto end = offsets.begin();
 	for (auto it = StringIteratorU8(p_begin, p_begin, p_end); it;)
 	{
 		++it;
-		const int offset = (int)it.offset();
-
-		const float line_width = (float)ElementUtilities::GetStringWidth(text_element, StringView(p_begin, p_begin + offset));
-		if (line_width > position)
-		{
-			if (position - prev_line_width < line_width - position)
-			{
-				return prev_offset;
-			}
-			else
-			{
-				ideal_cursor_position_to_the_right_of_cursor = false;
-				return offset;
-			}
-		}
-
-		prev_line_width = line_width;
-		prev_offset = offset;
+		*end++ = static_cast<int>(it.offset());
 	}
 
-	return prev_offset;
+	float boundary_width = 0.f;
+	float prev_line_width = 0.f;
+	// Uses binary search under the assumption that the width of formatted strings increase monotonically with the string length.
+	// We need the widths measured during the search, and reading state recorded by the predicate relies on unspecified behaviour.
+	// So no std::partition_point or std::lower_bound or std::upper_bound but a custom implementation instead.
+	auto boundary = offsets.begin();
+	for (auto limit = end; limit - boundary > 0;)
+	{
+		const auto mid = boundary + (limit - boundary) / 2;
+		const float width = static_cast<float>(ElementUtilities::GetStringWidth(text_element, StringView(p_begin, p_begin + *mid)));
+		if (width > position)
+		{
+			boundary_width = width;
+			limit = mid;
+			continue;
+		}
+		prev_line_width = width;
+		boundary = mid + 1;
+	}
+
+	// No boundary reaches past the queried position, so the cursor belongs at the end of the line.
+	if (boundary == end)
+		return editable_length;
+
+	// The position falls between two character boundaries, return the one closest to it.
+	const int prev_offset = (boundary == offsets.begin()) ? 0 : *(boundary - 1);
+	ideal_cursor_position_to_the_right_of_cursor = (position + position) < (boundary_width + prev_line_width);
+	return ideal_cursor_position_to_the_right_of_cursor ? prev_offset : *boundary;
 }
 
 void WidgetTextInput::ShowCursor(bool show)
