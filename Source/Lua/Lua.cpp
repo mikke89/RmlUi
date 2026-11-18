@@ -10,9 +10,9 @@ void Initialise()
 	::Rml::Lua::Initialise(nullptr);
 }
 
-void Initialise(lua_State* lua_state)
+void Initialise(lua_State* lua_state, const Options& options)
 {
-	::Rml::RegisterPlugin(new LuaPlugin(lua_state));
+	::Rml::RegisterPlugin(new LuaPlugin(lua_state, options));
 }
 
 } // namespace Lua

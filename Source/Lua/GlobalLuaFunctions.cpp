@@ -79,12 +79,15 @@ static void WrapPairsFunction(lua_State* L, const char* name, lua_CFunction wrap
 }
 #endif
 
-void OverrideLuaGlobalFunctions(lua_State* L)
+void OverrideLuaGlobalFunctions(lua_State* L, bool replace_print)
 {
 	lua_getglobal(L, "_G");
 
-	lua_pushcfunction(L, LuaPrint);
-	lua_setfield(L, -2, "print");
+	if (replace_print)
+	{
+		lua_pushcfunction(L, LuaPrint);
+		lua_setfield(L, -2, "print");
+	}
 
 #if LUA_VERSION_NUM < 502
 	WrapPairsFunction(L, "pairs", LuaPairs);

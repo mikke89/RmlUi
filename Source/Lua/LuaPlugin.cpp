@@ -43,9 +43,9 @@ static lua_State* g_L = nullptr;
 
 /** This will populate the global Lua table with all of the Lua core types by calling LuaType<T>::Register
 @remark This is called automatically by LuaPlugin::OnInitialise(). */
-static void RegisterTypes();
+static void RegisterTypes(const Options& options);
 
-LuaPlugin::LuaPlugin(lua_State* lua_state)
+LuaPlugin::LuaPlugin(lua_State* lua_state, const Options& options) : options(options)
 {
 	RMLUI_ASSERT(g_L == nullptr);
 	g_L = lua_state;
@@ -70,7 +70,7 @@ void LuaPlugin::OnInitialise()
 		Log::Message(Log::LT_INFO, "Loading Lua plugin using the provided Lua state.");
 		owns_lua_state = false;
 	}
-	RegisterTypes();
+	RegisterTypes(options);
 
 	lua_document_element_instancer = new LuaDocumentElementInstancer();
 	lua_event_listener_instancer = new LuaEventListenerInstancer();
@@ -93,7 +93,7 @@ void LuaPlugin::OnShutdown()
 	delete this;
 }
 
-static void RegisterTypes()
+static void RegisterTypes(const Options& options)
 {
 	RMLUI_ASSERT(g_L);
 	lua_State* L = g_L;
@@ -119,7 +119,7 @@ static void RegisterTypes()
 	LuaType<ElementAttributesProxy>::Register(L);
 	LuaType<ElementChildNodesProxy>::Register(L);
 	LuaType<RmlUiContextsProxy>::Register(L);
-	OverrideLuaGlobalFunctions(L);
+	OverrideLuaGlobalFunctions(L, options.replace_print);
 	// push the global variable "rmlui" to use the "RmlUi" methods
 	LuaRmlUiPushrmluiGlobal(L);
 
