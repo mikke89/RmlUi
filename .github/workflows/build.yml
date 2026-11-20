@@ -205,7 +205,7 @@ jobs:
         run: |-
           C:\msys64\usr\bin\bash -lc ("pacman --needed --noconfirm --sync " +
             "mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-freetype mingw-w64-x86_64-lua " +
-            "mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image")
+            "mingw-w64-x86_64-SDL3 mingw-w64-x86_64-SDL3_image")
 
       - name: Configure CMake
         run: |-
