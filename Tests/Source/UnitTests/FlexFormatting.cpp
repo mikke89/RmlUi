@@ -80,6 +80,179 @@ TEST_CASE("FlexFormatting")
 	TestsShell::ShutdownShell();
 }
 
+static const String document_flex_empty_rml = R"(
+<rml>
+<head>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			width: 500px;
+			height: 500px;
+		}
+		.band {
+			display: flex;
+			position: relative;
+			min-height: 40px;
+			padding: 5px 0;
+		}
+		.column {
+			flex-direction: column;
+		}
+		.border_box {
+			box-sizing: border-box;
+		}
+		.art {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			width: 10px;
+		}
+		.hidden {
+			display: none;
+		}
+		.definite {
+			height: 60px;
+		}
+		.row_parent {
+			display: flex;
+			align-items: flex-start;
+		}
+		.grow {
+			flex: 1;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="band" id="row"/>
+	<div class="band column" id="column"/>
+	<div class="band" id="row_absolute">
+		<div class="art"/>
+	</div>
+	<div class="band column" id="column_absolute">
+		<div class="art"/>
+	</div>
+	<div class="band border_box" id="border_box"/>
+	<div id="after"/>
+	<div class="band column" id="hidden_rows">
+		<div class="hidden"/>
+		<div class="hidden"/>
+	</div>
+	<div class="band definite" id="definite"/>
+	<div class="row_parent">
+		<div class="band grow" id="nested"/>
+	</div>
+</body>
+</rml>
+)";
+
+TEST_CASE("FlexFormatting.empty_container_min_size")
+{
+	// A flex container without in-flow flex items still takes its min-height when its height is auto.
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_flex_empty_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	struct TestCase {
+		String container_id;
+		float content_height;
+	};
+	const TestCase test_cases[] = {
+		{"row", 40.f},
+		{"column", 40.f},
+		{"row_absolute", 40.f},
+		{"column_absolute", 40.f},
+		// With border-box sizing, the min-height includes the 2 * 5px padding.
+		{"border_box", 30.f},
+		// Children with display: none are not flex items either.
+		{"hidden_rows", 40.f},
+		// A definite height is kept.
+		{"definite", 60.f},
+		// As a flex item that is not stretched, the container's height comes from its own layout.
+		{"nested", 40.f},
+	};
+
+	for (const TestCase& test_case : test_cases)
+	{
+		CAPTURE(test_case.container_id);
+
+		Element* container = document->GetElementById(test_case.container_id);
+		REQUIRE(container);
+
+		CHECK(container->GetBox().GetSize().x == doctest::Approx(500.f));
+		CHECK(container->GetBox().GetSize().y == doctest::Approx(test_case.content_height));
+	}
+
+	// The containers take up their space in the normal flow: four bands of 50px and one of 40px.
+	Element* after = document->GetElementById("after");
+	REQUIRE(after);
+	CHECK(after->GetAbsoluteTop() == doctest::Approx(240.f));
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+static const String document_flex_empty_inline_rml = R"(
+<rml>
+<head>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			width: 500px;
+			height: 500px;
+			font-family: LatoLatin;
+			font-size: 16px;
+		}
+		.atomic {
+			width: 20px;
+			min-height: 40px;
+			padding: 3px;
+			margin: 2px;
+		}
+	</style>
+</head>
+
+<body>
+	<p>Text <div class="atomic" id="inline_flex" style="display: inline-flex"/> <div class="atomic" id="inline_block" style="display: inline-block"/> text</p>
+</body>
+</rml>
+)";
+
+TEST_CASE("FlexFormatting.empty_inline_flex_baseline")
+{
+	// An inline-flex container without flex items has no baseline. Like an inline-block without line boxes, it sits on
+	// the line's baseline with its bottom margin edge, instead of hanging below it.
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_flex_empty_inline_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	Element* inline_flex = document->GetElementById("inline_flex");
+	Element* inline_block = document->GetElementById("inline_block");
+	REQUIRE(inline_flex);
+	REQUIRE(inline_block);
+
+	CHECK(inline_flex->GetBox().GetSize().y == doctest::Approx(40.f));
+	CHECK(inline_flex->GetBaseline() == doctest::Approx(0.f));
+	CHECK(inline_flex->GetBaseline() == doctest::Approx(inline_block->GetBaseline()));
+	CHECK(inline_flex->GetAbsoluteTop() == doctest::Approx(inline_block->GetAbsoluteTop()));
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
 static const String document_flex_dp_ratio_rml = R"(
 <rml>
 <head>

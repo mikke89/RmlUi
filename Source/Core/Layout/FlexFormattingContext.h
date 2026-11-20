@@ -28,7 +28,8 @@ private:
 	/// @param[out] flex_visible_overflow_size Border-box overflow in case flex items or their contents overflow the container.
 	/// @param[out] flex_scrollable_content_size Margin-box overflow of the flex items, contributing only to the container's scrollable overflow.
 	/// @param[out] flex_baseline The baseline of the flex container, in terms of the vertical distance from its top-left border corner.
-	void Format(Vector2f& flex_resulting_content_size, Vector2f& flex_visible_overflow_size, Vector2f& flex_scrollable_content_size,
+	/// @return False if the container has no flex items. It then has no baseline of its own, and flex_baseline is not set.
+	bool Format(Vector2f& flex_resulting_content_size, Vector2f& flex_visible_overflow_size, Vector2f& flex_scrollable_content_size,
 		float& flex_baseline) const;
 
 	Vector2f flex_available_content_size;

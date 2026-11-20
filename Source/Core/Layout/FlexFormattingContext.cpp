@@ -65,7 +65,7 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 		// Format the flexbox and all its children.
 		Vector2f flex_resulting_content_size, visible_overflow_size, scrollable_content_size;
 		float flex_baseline = 0.f;
-		context.Format(flex_resulting_content_size, visible_overflow_size, scrollable_content_size, flex_baseline);
+		const bool has_flex_items = context.Format(flex_resulting_content_size, visible_overflow_size, scrollable_content_size, flex_baseline);
 
 		// Catch overflow before our height becomes fixed. This way the enabled scrollbar can extend the height of the flex container, instead of
 		// eating into the content size, which could otherwise result in an unnecessary scrollbar on the opposite axis.
@@ -81,8 +81,10 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 		sized_box.SetContent(formatted_content_size);
 
 		// Change the flex baseline coordinates to the element baseline, which is defined as the distance from the element's bottom margin edge.
-		const float element_baseline =
-			sized_box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border) + sized_box.GetEdge(BoxArea::Margin, BoxEdge::Bottom) - flex_baseline;
+		// Without flex items there is no baseline, so use the bottom margin edge, as for an inline-block without line boxes.
+		const float element_baseline = has_flex_items
+			? sized_box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border) + sized_box.GetEdge(BoxArea::Margin, BoxEdge::Bottom) - flex_baseline
+			: 0.f;
 
 		// Close the box, and break out of the loop if it did not produce any new scrollbars, otherwise continue to format the flexbox again.
 		if (flex_container_box->Close(visible_overflow_size, scrollable_content_size, sized_box, element_baseline))
@@ -213,7 +215,14 @@ static float GetInnerUsedCrossSize(const FlexItem& item)
 	return Math::Max(item.used_cross_size - item.cross.sum_edges, 0.f);
 }
 
-void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector2f& flex_visible_overflow_size,
+// The used size of the flex container along one axis: its available size, or the size of its lines when the available
+// size is infinite (negative), clamped to the container's min and max sizes.
+static float GetUsedContainerSize(const float available_size, const float lines_size, const float min_size, const float max_size)
+{
+	return Math::Clamp(available_size >= 0.f ? available_size : lines_size, min_size, max_size);
+}
+
+bool FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector2f& flex_visible_overflow_size,
 	Vector2f& flex_scrollable_content_size, float& flex_baseline) const
 {
 	// The following procedure is based on the CSS flexible box layout algorithm.
@@ -355,9 +364,18 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		items.push_back(std::move(item));
 	}
 
+	auto MainCrossToVec2 = [main_axis_horizontal](const float v_main, const float v_cross) {
+		return main_axis_horizontal ? Vector2f(v_main, v_cross) : Vector2f(v_cross, v_main);
+	};
+
 	if (items.empty())
 	{
-		return;
+		// Without flex items there are no lines, but the container's min/max sizes still apply, e.g. for an auto-height
+		// container with only absolutely positioned children. There is no overflow and no baseline.
+		const float used_main_size = GetUsedContainerSize(main_available_size, 0.f, main_min_size, main_max_size);
+		const float used_cross_size = GetUsedContainerSize(cross_available_size, 0.f, cross_min_size, cross_max_size);
+		flex_resulting_content_size = MainCrossToVec2(used_main_size, used_cross_size);
+		return false;
 	}
 
 	// -- Collect the items into lines --
@@ -419,13 +437,11 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	}
 
 	// If the available main size is infinite, the used main size becomes the accumulated outer size of all items of the widest line.
-	const float used_main_size_unconstrained = main_available_size >= 0.f
-		? main_available_size
-		: std::max_element(container.lines.begin(), container.lines.end(), [](const FlexLine& a, const FlexLine& b) {
-			  return a.accumulated_hypothetical_main_size < b.accumulated_hypothetical_main_size;
-		  })->accumulated_hypothetical_main_size;
+	const float widest_line_main_size = std::max_element(container.lines.begin(), container.lines.end(), [](const FlexLine& a, const FlexLine& b) {
+		return a.accumulated_hypothetical_main_size < b.accumulated_hypothetical_main_size;
+	})->accumulated_hypothetical_main_size;
 
-	const float used_main_size = Math::Clamp(used_main_size_unconstrained, main_min_size, main_max_size);
+	const float used_main_size = GetUsedContainerSize(main_available_size, widest_line_main_size, main_min_size, main_max_size);
 
 	// -- Determine main size --
 	// Resolve flexible lengths to find the used main size of all items.
@@ -858,8 +874,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		[](float value, const FlexLine& line) { return value + line.cross_size; });
 
 	// If the available cross size is infinite, the used cross size becomes the accumulated line cross size.
-	const float used_cross_size_unconstrained = cross_available_size >= 0.f ? cross_available_size : accumulated_lines_cross_size;
-	const float used_cross_size = Math::Clamp(used_cross_size_unconstrained, cross_min_size, cross_max_size);
+	const float used_cross_size = GetUsedContainerSize(cross_available_size, accumulated_lines_cross_size, cross_min_size, cross_max_size);
 
 	// Align the lines along the cross-axis.
 	{
@@ -936,10 +951,6 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		}
 	}
 
-	auto MainCrossToVec2 = [main_axis_horizontal](const float v_main, const float v_cross) {
-		return main_axis_horizontal ? Vector2f(v_main, v_cross) : Vector2f(v_cross, v_main);
-	};
-
 	bool baseline_set = false;
 
 	// -- Format items --
@@ -978,6 +989,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	}
 
 	flex_resulting_content_size = MainCrossToVec2(used_main_size, used_cross_size);
+	return true;
 }
 
 } // namespace Rml
