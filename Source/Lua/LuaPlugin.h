@@ -22,6 +22,8 @@ public:
 
 	static lua_State* GetLuaState();
 
+	static const Options& GetOptions();
+
 private:
 	int GetEventClasses() override;
 
@@ -32,7 +34,6 @@ private:
 	LuaDocumentElementInstancer* lua_document_element_instancer = nullptr;
 	LuaEventListenerInstancer* lua_event_listener_instancer = nullptr;
 	bool owns_lua_state = false;
-	Options options;
 };
 
 } // namespace Lua

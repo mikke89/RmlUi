@@ -1,4 +1,5 @@
 #include "LuaDataModel.h"
+#include "LuaPlugin.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/DataVariable.h>
@@ -73,13 +74,17 @@ inline bool invoke(lua_State* L, call_t f, int argn = 0)
 		lua_pop(L, argn);
 		return false;
 	}
-	lua_pushcfunction(L, errhandler);
+	lua_CFunction error_handler = LuaPlugin::GetOptions().error_handler;
+	lua_pushcfunction(L, error_handler ? error_handler : errhandler);
 	lua_pushcfunction(L, function_call);
 	lua_pushlightuserdata(L, &f);
 	lua_rotate(L, -argn - 3, 3);
-	if (lua_pcall(L, 1 + argn, 0, lua_gettop(L) - argn - 2) != LUA_OK)
+	const int status = lua_pcall(L, 1 + argn, 0, lua_gettop(L) - argn - 2);
+	if (status != LUA_OK)
 	{
-		errfunc(lua_tostring(L, -1));
+		// A custom error handler reports runtime errors itself, but Lua doesn't call it for other errors.
+		if (!error_handler || status != LUA_ERRRUN)
+			errfunc(lua_tostring(L, -1));
 		lua_pop(L, 2);
 		return false;
 	}

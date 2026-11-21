@@ -16,6 +16,8 @@ public:
 	// Checks and clears previously logged messages, then sets the number of expected
 	// warnings and errors until the next call.
 	void SetNumExpectedWarnings(int num_expected_warnings);
+	// Returns the expected warnings and errors logged since the last call to SetNumExpectedWarnings().
+	const Rml::StringList& GetLoggedWarnings() const { return warnings; }
 
 	void SetManualTime(double t);
 

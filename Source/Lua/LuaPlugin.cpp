@@ -40,15 +40,17 @@ namespace Rml {
 namespace Lua {
 
 static lua_State* g_L = nullptr;
+static Options g_options;
 
 /** This will populate the global Lua table with all of the Lua core types by calling LuaType<T>::Register
 @remark This is called automatically by LuaPlugin::OnInitialise(). */
 static void RegisterTypes(const Options& options);
 
-LuaPlugin::LuaPlugin(lua_State* lua_state, const Options& options) : options(options)
+LuaPlugin::LuaPlugin(lua_State* lua_state, const Options& options)
 {
 	RMLUI_ASSERT(g_L == nullptr);
 	g_L = lua_state;
+	g_options = options;
 }
 
 int LuaPlugin::GetEventClasses()
@@ -70,7 +72,7 @@ void LuaPlugin::OnInitialise()
 		Log::Message(Log::LT_INFO, "Loading Lua plugin using the provided Lua state.");
 		owns_lua_state = false;
 	}
-	RegisterTypes(options);
+	RegisterTypes(g_options);
 
 	lua_document_element_instancer = new LuaDocumentElementInstancer();
 	lua_event_listener_instancer = new LuaEventListenerInstancer();
@@ -89,6 +91,7 @@ void LuaPlugin::OnShutdown()
 		lua_close(g_L);
 
 	g_L = nullptr;
+	g_options = Options();
 
 	delete this;
 }
@@ -138,6 +141,11 @@ static void RegisterTypes(const Options& options)
 lua_State* LuaPlugin::GetLuaState()
 {
 	return g_L;
+}
+
+const Options& LuaPlugin::GetOptions()
+{
+	return g_options;
 }
 
 } // namespace Lua
