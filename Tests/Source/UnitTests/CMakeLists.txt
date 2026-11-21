@@ -52,6 +52,11 @@ target_link_libraries(${TARGET_NAME} PRIVATE
 	trompeloeil::trompeloeil
 )
 
+if(RMLUI_LUA_BINDINGS)
+	target_sources(${TARGET_NAME} PRIVATE Lua.cpp)
+	target_link_libraries(${TARGET_NAME} PRIVATE rmlui_lua)
+endif()
+
 if(NOT EMSCRIPTEN)
 	doctest_discover_tests(${TARGET_NAME})
 endif()

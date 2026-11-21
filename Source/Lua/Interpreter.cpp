@@ -25,14 +25,48 @@ static int ErrorHandler(lua_State* L)
 	return 1;
 }
 
+// Returns the error object at the given index as a string, or a placeholder if it isn't one.
+static const char* ToErrorString(lua_State* L, int index)
+{
+	const char* msg = lua_tostring(L, index);
+	return msg ? msg : "(error object is not a string)";
+}
+
+// Reports an error from loading a chunk, with the error object on top of the stack, and pops it.
+static void ReportLoadError(lua_State* L, int status)
+{
+	// Like Lua does for runtime errors, only pass syntax errors to a custom error handler. Others, such as running out of
+	// memory, are logged.
+	lua_CFunction error_handler = LuaPlugin::GetOptions().error_handler;
+	if (error_handler && status == LUA_ERRSYNTAX)
+	{
+		lua_pushcfunction(L, error_handler);
+		lua_pushvalue(L, -2);
+		if (lua_pcall(L, 1, 0, 0) != LUA_OK)
+		{
+			Log::Message(Log::LT_WARNING, "%s\nError in Lua error handler: %s", ToErrorString(L, -2), ToErrorString(L, -1));
+			lua_pop(L, 1);
+		}
+		lua_pop(L, 1);
+		return;
+	}
+	Log::Message(Log::LT_WARNING, "%s", ToErrorString(L, -1));
+	lua_pop(L, 1);
+}
+
 static bool LuaCall(lua_State* L, int nargs, int nresults)
 {
+	lua_CFunction error_handler = LuaPlugin::GetOptions().error_handler;
 	int errfunc = -2 - nargs;
-	lua_pushcfunction(L, ErrorHandler);
+	lua_pushcfunction(L, error_handler ? error_handler : ErrorHandler);
 	lua_insert(L, errfunc);
-	if (lua_pcall(L, nargs, nresults, errfunc) != LUA_OK)
+	const int status = lua_pcall(L, nargs, nresults, errfunc);
+	if (status != LUA_OK)
 	{
-		Log::Message(Log::LT_WARNING, "%s", lua_tostring(L, -1));
+		// A custom error handler reports runtime errors itself. Lua doesn't call it for other errors, such as running out
+		// of memory or an error inside the handler, so those are still logged.
+		if (!error_handler || status != LUA_ERRRUN)
+			Log::Message(Log::LT_WARNING, "%s", ToErrorString(L, -1));
 		lua_pop(L, 2);
 		return false;
 	}
@@ -68,14 +102,12 @@ bool Interpreter::LoadFile(const String& file)
 	file_interface->Read(file_contents.get(), size, handle);
 	file_interface->Close(handle);
 
-	if (luaL_loadbuffer(L, file_contents.get(), size, ("@" + file).c_str()) != 0)
+	if (const int status = luaL_loadbuffer(L, file_contents.get(), size, ("@" + file).c_str()))
 	{
-		Log::Message(Log::LT_WARNING, "%s", lua_tostring(L, -1));
-		lua_pop(L, 1);
+		ReportLoadError(L, status);
 		return false;
 	}
 	return LuaCall(L, 0, 0);
-	;
 }
 
 bool Interpreter::DoString(const String& code, const String& name)
@@ -88,10 +120,9 @@ bool Interpreter::LoadString(const String& code, const String& name)
 {
 	lua_State* L = GetLuaState();
 
-	if (luaL_loadbuffer(L, code.c_str(), code.length(), name.c_str()) != 0)
+	if (const int status = luaL_loadbuffer(L, code.c_str(), code.length(), name.c_str()))
 	{
-		Log::Message(Log::LT_WARNING, "%s", lua_tostring(L, -1));
-		lua_pop(L, 1);
+		ReportLoadError(L, status);
 		return false;
 	}
 	return true;
