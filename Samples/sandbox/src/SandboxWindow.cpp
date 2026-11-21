@@ -445,6 +445,16 @@ void SandboxWindow::UpdateSandboxStylesheet()
 	sandbox_document->SetStyleSheetContainer(new_style);
 }
 
+void SandboxWindow::SetRmlSource(const Rml::String& rml_source)
+{
+	// Setting the value only dispatches a change event when the text area sanitizes it (e.g. strips tabs), so reload explicitly instead.
+	el_rml_source->RemoveEventListener(Rml::EventId::Change, this);
+	el_rml_source->SetValue(rml_source);
+	el_rml_source->AddEventListener(Rml::EventId::Change, this);
+
+	ReloadSandboxDocument();
+}
+
 void SandboxWindow::LoadDocumentFromFile()
 {
 	ClearCaches();
@@ -472,7 +482,7 @@ void SandboxWindow::LoadDocumentFromFile()
 	ApplyRcssSourceVisibility();
 
 	sandbox_source_url = path;
-	el_rml_source->SetValue(rml_source);
+	SetRmlSource(rml_source);
 	DirtyStorage();
 
 	SetStatus("Successfully loaded file.", false);
@@ -499,7 +509,7 @@ void SandboxWindow::LoadDocumentFromClipboard()
 	ApplyRcssSourceVisibility();
 
 	sandbox_source_url = working_directory + "./rml_pasted_document.rml";
-	el_rml_source->SetValue(rml_source);
+	SetRmlSource(rml_source);
 	DirtyStorage();
 
 	SetStatus("Successfully loaded from clipboard.", false);
@@ -570,8 +580,6 @@ void SandboxWindow::ApplyDpRatio()
 		dp_ratio = Rml::Math::Clamp(dp_ratio, 0.5f, 4.f);
 
 	document->GetContext()->SetDensityIndependentPixelRatio(Rml::Math::Clamp(dp_ratio, 0.5f, 4.f));
-	if (sandbox_document)
-		sandbox_document->UpdateDocument();
 }
 
 void SandboxWindow::ApplyRcssSourceVisibility()

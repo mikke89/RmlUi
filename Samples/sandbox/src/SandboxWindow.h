@@ -22,6 +22,7 @@ public:
 private:
 	void ReloadSandboxDocument();
 	void UpdateSandboxStylesheet();
+	void SetRmlSource(const Rml::String& rml_source);
 
 	void LoadDocumentFromFile();
 	void LoadDocumentFromClipboard();
