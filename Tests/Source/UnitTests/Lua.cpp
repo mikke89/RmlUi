@@ -178,7 +178,7 @@ TEST_CASE("lua.options.error_handler_fails")
 		TestsShell::SetNumExpectedWarnings(1);
 		CHECK_FALSE(Lua::Interpreter::DoString("this is not lua", "test"));
 		REQUIRE(warnings.size() == 1);
-		CHECK(Contains(warnings[0], "expected"));
+		CHECK(Contains(warnings[0], "near 'is'"));
 		CHECK(Contains(warnings[0], "error handler failed"));
 		TestsShell::SetNumExpectedWarnings(0);
 	}
@@ -215,7 +215,7 @@ TEST_CASE("lua.options.error_handler_unset")
 		TestsShell::SetNumExpectedWarnings(1);
 		CHECK_FALSE(Lua::Interpreter::DoString("this is not lua", "test"));
 		REQUIRE(warnings.size() == 1);
-		CHECK(Contains(warnings[0], "expected"));
+		CHECK(Contains(warnings[0], "near 'is'"));
 		TestsShell::SetNumExpectedWarnings(0);
 	}
 
