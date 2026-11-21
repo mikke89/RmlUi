@@ -15,8 +15,10 @@
 #include <RmlUi/Core/StyleSheetContainer.h>
 #include <RmlUi_Backend.h>
 #include <algorithm>
+#include <cstdio>
 #include <optional>
 
+static const Rml::String g_placeholder_key = ".placeholder";
 static const Rml::String g_options_path = "sandbox_options.ini";
 static const Rml::String g_source_rml_path = "sandbox_source.rml";
 static const Rml::String g_source_rcss_path = "sandbox_source.rcss";
@@ -139,6 +141,9 @@ bool SandboxWindow::Initialize(Rml::Context* context)
 {
 	Shutdown();
 
+	if (initial_dp_ratio == 0)
+		initial_dp_ratio = context->GetDensityIndependentPixelRatio();
+
 	meta_handler = Rml::MakeShared<XMLNodeHandlerSandboxMeta>();
 	Rml::XMLParser::RegisterNodeHandler("meta", meta_handler);
 
@@ -148,7 +153,7 @@ bool SandboxWindow::Initialize(Rml::Context* context)
 
 	// We use 'rem' like a custom 'dp' for  the built-in styles, since 'dp' is set globally for the target document. We
 	// fix this to the initial dp-ratio on document load, we won't get adaptive 'dp' like we would a normal document.
-	document->SetProperty(Rml::PropertyId::FontSize, Rml::Property{document->GetContext()->GetDensityIndependentPixelRatio(), Rml::Unit::PX});
+	document->SetProperty(Rml::PropertyId::FontSize, Rml::Property{initial_dp_ratio, Rml::Unit::PX});
 
 	auto GetFormControl = [this](const char* id) { return rmlui_dynamic_cast<Rml::ElementFormControl*>(document->GetElementById(id)); };
 
@@ -165,9 +170,12 @@ bool SandboxWindow::Initialize(Rml::Context* context)
 	el_menu = document->GetElementById("menu");
 	el_sources = document->GetElementById("sources");
 	el_messages = document->GetElementById("messages");
+	el_dropdown_menu = document->GetElementById("dropdown_menu");
+	el_dropdown_menu_button = document->GetElementById("dropdown_menu_button");
 
 	if (!el_rml_source || !el_rcss_source || !el_file_path || !el_working_directory || !el_themes || !el_dp_ratio || !el_inject_rcss ||
-		!el_override_font_family || !el_target || !el_status || !el_menu || !el_sources || !el_messages)
+		!el_override_font_family || !el_target || !el_status || !el_menu || !el_sources || !el_messages || !el_dropdown_menu ||
+		!el_dropdown_menu_button)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Sandbox document is missing one or more of its required elements.");
 		return false;
@@ -248,7 +256,12 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 		const bool alt = event.GetParameter<int>("alt_key", 0) > 0;
 
 		if (key_identifier == Rml::Input::KI_ESCAPE)
-			Backend::RequestExit();
+		{
+			if (el_dropdown_menu->IsClassSet("open"))
+				el_dropdown_menu->SetClass("open", false);
+			else
+				Backend::RequestExit();
+		}
 		else if (key_identifier == Rml::Input::KI_R && shift && ctrl && !alt)
 			Initialize(document->GetContext());
 	}
@@ -256,6 +269,10 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 	case Rml::EventId::Click:
 	{
 		Rml::Element* target = event.GetTargetElement();
+
+		const bool open_dropdown_menu = (target == el_dropdown_menu_button && !el_dropdown_menu->IsClassSet("open"));
+		el_dropdown_menu->SetClass("open", open_dropdown_menu);
+
 		if (target->GetId() == "load_file")
 		{
 			LoadDocumentFromFile();
@@ -270,6 +287,10 @@ void SandboxWindow::ProcessEvent(Rml::Event& event)
 			{
 				Rml::Log::Message(Rml::Log::LT_INFO, "Loaded file: %s", source.c_str());
 			}
+		}
+		else if (target->GetId() == "reset_all_settings")
+		{
+			ResetAllSettings();
 		}
 	}
 	break;
@@ -564,6 +585,18 @@ void SandboxWindow::ClearMessages()
 	el_messages->SetInnerRML("");
 }
 
+void SandboxWindow::ResetAllSettings()
+{
+	Rml::Context* context = document->GetContext();
+
+	Shutdown();
+	for (const Rml::String& path : {g_options_path, g_source_rml_path, g_source_rcss_path})
+		std::remove(path.c_str());
+
+	sandbox_source_url.clear();
+	Initialize(context);
+}
+
 void SandboxWindow::DirtyStorage()
 {
 	storage_dirty = true;
@@ -600,7 +633,7 @@ void SandboxWindow::LoadFromStorage()
 			if (auto value = GetIfOption(id))
 				element->SetAttribute("value", *value);
 
-			if (auto value = GetIfOption(id + ".placeholder"))
+			if (auto value = GetIfOption(id + g_placeholder_key))
 				element->SetAttribute("placeholder", *value);
 		}
 	}
@@ -632,7 +665,7 @@ void SandboxWindow::SaveToStorage()
 		{
 			options[id] = element->GetAttribute("value", Rml::String());
 			if (element->HasAttribute("placeholder"))
-				options[id + "placeholder"] = element->GetAttribute("placeholder", Rml::String());
+				options[id + g_placeholder_key] = element->GetAttribute("placeholder", Rml::String());
 		}
 	}
 

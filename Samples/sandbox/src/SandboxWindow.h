@@ -36,6 +36,7 @@ private:
 	void ApplyDpRatio();
 	void ApplyRcssSourceVisibility();
 	void ClearMessages();
+	void ResetAllSettings();
 
 	void DirtyStorage();
 	void LoadFromStorage();
@@ -43,6 +44,7 @@ private:
 
 	SandboxSystemInterface* system_interface;
 	SandboxFileInterface* file_interface;
+	float initial_dp_ratio = 0.f;
 
 	Rml::ElementDocument* document = nullptr;
 	Rml::ElementDocument* sandbox_document = nullptr;
@@ -65,6 +67,8 @@ private:
 	Rml::Element* el_sources = nullptr;
 	Rml::Element* el_status = nullptr;
 	Rml::Element* el_messages = nullptr;
+	Rml::Element* el_dropdown_menu = nullptr;
+	Rml::Element* el_dropdown_menu_button = nullptr;
 
 	bool storage_dirty = false;
 	double next_storage_save_time = 0;

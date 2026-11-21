@@ -7,6 +7,13 @@
 
 <body>
 <div id="menu">
+	<div id="dropdown_menu">
+		<button id="dropdown_menu_button">···</button>
+		<div id="dropdown_menu_items">
+			<button id="reset_all_settings">Reset all settings</button>
+		</div>
+	</div>
+
 	<section>
 		<h1>Load document</h1>
 		<div class="row">
