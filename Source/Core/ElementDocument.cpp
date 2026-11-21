@@ -570,11 +570,17 @@ void ElementDocument::UpdatePosition()
 		position_dirty = false;
 
 		Element* root = GetParentNode();
-
-		// We only position ourselves if we are a child of our context's root element. That is, we don't want to proceed
-		// if we are unparented or an iframe document.
-		if (!root || !context || (root != context->GetRootElement()))
+		if (!root || !context)
 			return;
+
+		// Nested documents, like iframes, are positioned according the their parent layouting rules. However, in some
+		// cases we may have changed our own formatting without inducing a full layout of the parent document. Re-apply
+		// our current offset to update it, and bail out.
+		if (root != context->GetRootElement())
+		{
+			SetOffset({GetOffsetLeft(), GetOffsetTop()}, GetOffsetParent());
+			return;
+		}
 
 		// Work out our containing block; relative offsets are calculated against it.
 		const Vector2f containing_block = root->GetBox().GetSize();

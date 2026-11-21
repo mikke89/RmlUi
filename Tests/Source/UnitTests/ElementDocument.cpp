@@ -500,4 +500,58 @@ TEST_CASE("DocumentDestruction")
 	TestsShell::ShutdownShell();
 }
 
+TEST_CASE("NestedDocumentAnchoredAfterResize")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(R"(
+<rml>
+<head>
+	<style>
+		body { display: block; width: 600px; height: 400px; }
+		div { display: block; }
+		#wrapper { position: relative; width: 400px; height: 300px; }
+		#target { height: 100%; }
+	</style>
+</head>
+<body><div id="wrapper"><div id="target"/></div></body>
+</rml>
+)");
+	REQUIRE(document);
+	document->Show();
+
+	ElementDocument* nested = context->CreateDocument();
+	ElementPtr nested_ptr = nested->GetParentNode()->RemoveChild(nested);
+	nested->SetProperty("display", "block");
+	nested->SetProperty("right", "0px");
+	nested->SetProperty("bottom", "0px");
+	nested->SetProperty("width", "100dp");
+	nested->SetProperty("height", "50dp");
+	document->GetElementById("target")->AppendChild(std::move(nested_ptr));
+	nested->Show(ModalFlag::None, FocusFlag::None);
+
+	auto Update = [&] {
+		nested->UpdateDocument();
+		context->Update();
+	};
+	auto CheckAnchoredToBottomRight = [&] {
+		const Vector2f bottom_right = nested->GetAbsoluteOffset(BoxArea::Border) + nested->GetBox().GetSize(BoxArea::Border);
+		CHECK(bottom_right.x == doctest::Approx(400));
+		CHECK(bottom_right.y == doctest::Approx(300));
+	};
+
+	Update();
+	CheckAnchoredToBottomRight();
+
+	// Resizing the nested document only dirties its own layout, so the parent document won't reposition it.
+	context->SetDensityIndependentPixelRatio(2.f);
+	Update();
+	CheckAnchoredToBottomRight();
+
+	context->SetDensityIndependentPixelRatio(1.f);
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
 TEST_SUITE_END();
