@@ -280,60 +280,56 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 					// Try to break up the word
 					max_token_width = RoundDownToIntegerClamped(maximum_line_width - line_width);
 					const char* const token_end = token_begin + (next_token_begin - token_begin);
+					const bool trim_next_token = line.empty() && trim_whitespace_prefix;
 
 					auto BuildAndMeasure = [&](const char* string_end) {
 						token.clear();
 						next_token_begin = token_begin;
-						BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, 
-							collapse_white_space, break_at_endline, text_transform_property, decode_escape_characters);
+						BuildToken(token, next_token_begin, string_end, trim_next_token, collapse_white_space, break_at_endline,
+							text_transform_property, decode_escape_characters);
 						return font_engine_interface->GetStringWidth(font_face_handle, token, text_shaping_context, previous_codepoint);
 					};
 
-					const char* fit_end = token_begin;
-					const char* fail_end = token_end;
+					const char* fits_until = token_begin;
+					const char* overflow_from = token_end;
 
-					// Exponential marching.
-					for (int probe_count = 1; true; probe_count *= 2)
+					// Exponential probing for the first prefix that does not fit.
+					for (int length = int(token_end - token_begin), 
+						// Using last token's measured width as starting point -- heuoristic.
+						stride = Math::Max(1, length * max_token_width / Math::Max(1, token_width)); 
+						stride < length; stride *= 2)
 					{
-						const char* probe_end = token_begin;
-						for (int i = 0; probe_end != token_end && i < probe_count; ++i)
-						{
-							probe_end = StringUtilities::SeekForwardUTF8(probe_end + 1, token_end);
-						}
-						if (probe_end == token_end)
-							break;
+						const char* const probe_end = StringUtilities::SeekForwardUTF8(token_begin + stride, token_end);
 						if (BuildAndMeasure(probe_end) > max_token_width)
 						{
-							fail_end = probe_end;
+							overflow_from = probe_end;
 							break;
 						}
-						fit_end = probe_end;
+						fits_until = probe_end;
 					}
 
-					// Binary search.
-					while (true)
+					// Bisect the remaining range, snapping to character boundaries.
+					for (auto range = overflow_from - fits_until; range > 1; range = overflow_from - fits_until)
 					{
-						const char* const mid = StringUtilities::SeekForwardUTF8(fit_end + (fail_end - fit_end) / 2, fail_end);
-						if (mid <= fit_end || mid >= fail_end)
+						const char* probe_end = StringUtilities::SeekForwardUTF8(fits_until + range / 2, overflow_from);
+						if (probe_end == overflow_from)
 							break;
-						if (BuildAndMeasure(mid) <= max_token_width)
-							fit_end = mid;
+						if (BuildAndMeasure(probe_end) <= max_token_width)
+							fits_until = probe_end;
 						else
-							fail_end = mid;
+							overflow_from = probe_end;
 					}
 
-					if (fit_end == token_begin)
+					if (fits_until == token_begin)
 					{
 						// Not even the first character of the token fits. Let it overflow onto the next line if we can.
 						if (allow_empty || !line.empty())
 							return false;
-
 						// Otherwise force the first character to be consumed, even though it will overflow.
-						fit_end = StringUtilities::SeekForwardUTF8(token_begin + 1, token_end);
+						fits_until = StringUtilities::SeekForwardUTF8(token_begin + 1, token_end);
 					}
-
-					// The last probe above may have produced a prefix that does not fit, rebuild the state for the one we settled on.
-					token_width = BuildAndMeasure(fit_end);
+					// The last probe may have been a failing one, rebuild the state for the prefix we settled on.
+					token_width = BuildAndMeasure(fits_until);
 					break_line = true;
 				}
 				else if (allow_empty || !line.empty())
