@@ -37,6 +37,7 @@ add_executable(${TARGET_NAME}
 	StringUtilities.cpp
 	StyleSheetParser.cpp
 	Template.cpp
+	TextTransform.cpp
 	URL.cpp
 	Variant.cpp
 	XMLParser.cpp
