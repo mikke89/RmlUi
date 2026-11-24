@@ -389,14 +389,18 @@ void ElementStyle::TransitionPropertyChanges(const PropertySources& sources, Pro
 	const Property* transition_property = GetLocalProperty(PropertyId::Transition, sources.inline_properties, new_definition);
 	if (!transition_property)
 		return;
-	if (transition_property->value.GetType() != Variant::TRANSITIONLIST)
+
+	SmallUnorderedSet<String> variable_dependencies;
+	Property transition_property_storage;
+	const PropertySources transition_sources{sources.element, new_definition, sources.inline_properties};
+	transition_property = ResolveVariables(transition_sources, element_style_data->empty_property_dictionary, PropertyId::Transition,
+		transition_property, variable_dependencies, transition_property_storage);
+	if (!transition_property || transition_property->value.GetType() != Variant::TRANSITIONLIST)
 		return;
 
 	const TransitionList& transition_list = transition_property->value.GetReference<TransitionList>();
 	if (transition_list.none)
 		return;
-
-	SmallUnorderedSet<String> variable_dependencies;
 
 	Property property_storage_old;
 	Property property_storage_new;

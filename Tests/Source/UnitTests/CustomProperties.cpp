@@ -911,6 +911,102 @@ TEST_CASE("custom_properties.shorthand_transition")
 	TestsShell::ShutdownShell();
 }
 
+TEST_CASE("custom_properties.transition_variable")
+{
+	static const String document_rml_template = R"(
+<rml>
+<head>
+	<style>
+%s
+	</style>
+</head>
+
+<body>
+<div></div>
+</body>
+</rml>
+)";
+
+	const char* rcss_rules = nullptr;
+	bool set_inline_duration = false;
+	SUBCASE("duration")
+	{
+		rcss_rules = R"(
+			div {
+				--duration: 0.2s;
+				transition: opacity var(--duration);
+			}
+			div.active { opacity: 0; }
+		)";
+	}
+	SUBCASE("whole_value")
+	{
+		rcss_rules = R"(
+			div {
+				--transition: opacity 0.2s;
+				transition: var(--transition);
+			}
+			div.active { opacity: 0; }
+		)";
+	}
+	SUBCASE("duration_from_new_class")
+	{
+		rcss_rules = R"(
+			div { transition: opacity var(--duration, 10s); }
+			div.active {
+				--duration: 0.2s;
+				opacity: 0;
+			}
+		)";
+	}
+	SUBCASE("inherited_duration")
+	{
+		rcss_rules = R"(
+			body { --duration: 0.2s; }
+			div { transition: opacity var(--duration); }
+			div.active { opacity: 0; }
+		)";
+	}
+	SUBCASE("inline_duration_set_with_class")
+	{
+		rcss_rules = R"(
+			div {
+				--duration: 10s;
+				transition: opacity var(--duration);
+			}
+			div.active { opacity: 0; }
+		)";
+		set_inline_duration = true;
+	}
+
+	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+	system_interface->SetManualTime(0.0);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(CreateString(document_rml_template.c_str(), rcss_rules));
+	document->Show();
+
+	Element* div = document->GetFirstChild();
+	CHECK(div->GetComputedValues().opacity() == 1.f);
+
+	if (set_inline_duration)
+		div->SetProperty("--duration", "0.2s");
+	div->SetClass("active", true);
+	TestsShell::RenderLoop();
+
+	system_interface->SetManualTime(0.1);
+	TestsShell::RenderLoop();
+	CHECK(div->GetComputedValues().opacity() == doctest::Approx(0.5f));
+
+	system_interface->SetManualTime(0.3);
+	TestsShell::RenderLoop();
+	CHECK(div->GetComputedValues().opacity() == 0.f);
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
 TEST_CASE("custom_properties.animation")
 {
 	static const String animation_rml = R"(
