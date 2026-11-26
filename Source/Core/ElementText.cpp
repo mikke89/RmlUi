@@ -22,8 +22,11 @@ static bool BuildToken(String& token, const char*& token_begin, const char* stri
 	bool break_at_endline, Style::TextTransform text_transformation, bool decode_escape_characters);
 static bool LastToken(const char* token_begin, const char* string_end, bool collapse_white_space, bool break_at_endline);
 
-// Simple case mappings for the most common alphabets beyond ASCII. Each entry covers the upper case letters from 'first' to 'last' in steps of
-// 'step', with their lower case letters offset by 'lower_offset'.
+// Simple case mappings for the most common alphabets beyond ASCII, taken from UnicodeData.txt of the Unicode Character Database 18.0.
+// Pairs of upper and lower case letters that map to each other are included when both letters are within U+00B5-U+017F, U+01A0-U+01A5,
+// U+01AF-U+01B0, U+01CD-U+01DC, U+01DE-U+01EF, U+01F8-U+021F, U+0386-U+03CE, U+0400-U+052F, U+0531-U+0586 or U+1E00-U+1EFF. Pairs with the
+// same offset and a step of one or two code points are merged into one entry, which covers the upper case letters from 'first' to 'last' in
+// steps of 'step', with their lower case letters offset by 'lower_offset'.
 struct CaseRange {
 	char32_t first;
 	char32_t last;
@@ -31,10 +34,9 @@ struct CaseRange {
 	int lower_offset;
 };
 static constexpr CaseRange case_ranges[] = {
-	// Latin-1 Supplement
+	// Latin-1 Supplement, Latin Extended-A
 	{0x00C0, 0x00D6, 1, 32},
 	{0x00D8, 0x00DE, 1, 32},
-	// Latin Extended-A
 	{0x0100, 0x012E, 2, 1},
 	{0x0132, 0x0136, 2, 1},
 	{0x0139, 0x0147, 2, 1},
@@ -54,7 +56,7 @@ static constexpr CaseRange case_ranges[] = {
 	{0x038E, 0x038F, 1, 63},
 	{0x0391, 0x03A1, 1, 32},
 	{0x03A3, 0x03AB, 1, 32},
-	// Cyrillic
+	// Cyrillic, Cyrillic Supplement
 	{0x0400, 0x040F, 1, 80},
 	{0x0410, 0x042F, 1, 32},
 	{0x0460, 0x0480, 2, 1},
@@ -69,16 +71,17 @@ static constexpr CaseRange case_ranges[] = {
 	{0x1EA0, 0x1EFE, 2, 1},
 };
 
-// Lower case letters whose upper case letter does not map back to them.
+// Lower case letters within the same ranges whose upper case letter does not map back to them.
 struct UppercaseOnly {
 	char32_t lower;
 	char32_t upper;
 };
 static constexpr UppercaseOnly uppercase_only[] = {
 	{0x00B5, 0x039C}, // Micro sign
-	{0x0131, 0x0049}, // Dotless i
-	{0x017F, 0x0053}, // Long s
-	{0x03C2, 0x03A3}, // Greek final sigma
+	{0x0131, 0x0049}, // Latin small letter dotless i
+	{0x017F, 0x0053}, // Latin small letter long s
+	{0x03C2, 0x03A3}, // Greek small letter final sigma
+	{0x1E9B, 0x1E60}, // Latin small letter long s with dot above
 };
 
 static Character TransformCase(Character character, Style::TextTransform text_transformation)
@@ -762,29 +765,31 @@ static bool BuildToken(String& token, const char*& token_begin, const char* stri
 		else
 		{
 			// Characters beyond ASCII are encoded with multiple bytes, transform them as a whole.
-			if (text_transformation != Style::TextTransform::None && (character & 0b1100'0000) == 0b1100'0000)
+			const bool is_multibyte = (text_transformation != Style::TextTransform::None && (character & 0b1100'0000) == 0b1100'0000);
+			const Character code_point = (is_multibyte ? StringUtilities::ToCharacter(token_begin, string_end) : Character::Null);
+
+			if (code_point != Character::Null)
 			{
-				const Character code_point = StringUtilities::ToCharacter(token_begin, string_end);
-				if (code_point != Character::Null)
+				token += StringUtilities::ToUTF8(TransformCase(code_point, text_transformation));
+
+				// Point to the last byte of the character, the end of the loop moves past it.
+				token_begin = StringUtilities::SeekForwardUTF8(token_begin + 1, string_end) - 1;
+			}
+			else
+			{
+				if (text_transformation == Style::TextTransform::Uppercase)
 				{
-					token += StringUtilities::ToUTF8(TransformCase(code_point, text_transformation));
-					token_begin = StringUtilities::SeekForwardUTF8(token_begin + 1, string_end);
-					continue;
+					if (character >= 'a' && character <= 'z')
+						character += ('A' - 'a');
 				}
-			}
+				else if (text_transformation == Style::TextTransform::Lowercase)
+				{
+					if (character >= 'A' && character <= 'Z')
+						character -= ('A' - 'a');
+				}
 
-			if (text_transformation == Style::TextTransform::Uppercase)
-			{
-				if (character >= 'a' && character <= 'z')
-					character += ('A' - 'a');
+				token += character;
 			}
-			else if (text_transformation == Style::TextTransform::Lowercase)
-			{
-				if (character >= 'A' && character <= 'Z')
-					character -= ('A' - 'a');
-			}
-
-			token += character;
 		}
 
 		++token_begin;

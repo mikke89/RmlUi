@@ -44,7 +44,7 @@ TEST_CASE("text_transform")
 		{"lowercase", "LÄRCHENALP QUALITÀ", "lärchenalp qualità"},
 		{"uppercase", "București, Łódź, Tiếng Việt", "BUCUREȘTI, ŁÓDŹ, TIẾNG VIỆT"},
 		{"uppercase", "Ελληνικά σοφός", "ΕΛΛΗΝΙΚΆ ΣΟΦΌΣ"},
-		{"uppercase", "ılık µ ſ", "ILIK Μ S"},
+		{"uppercase", "ılık µ ſ ẛ", "ILIK Μ S Ṡ"},
 		{"uppercase", "Привет, мир", "ПРИВЕТ, МИР"},
 		{"lowercase", "ПРИВЕТ, МИР", "привет, мир"},
 		{"uppercase", "ÿ ß € 😀", "Ÿ ß € 😀"},
