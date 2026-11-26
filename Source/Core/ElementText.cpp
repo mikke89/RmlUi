@@ -279,6 +279,38 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 				{
 					// Try to break up the word
 					max_token_width = RoundDownToIntegerClamped(maximum_line_width - line_width);
+
+#if 0
+					const int token_max_size = int(next_token_begin - token_begin);
+					const char* partial_string_end = token_begin + token_max_size;
+
+					// @performance: Can be made much faster. Use string width heuristics and logarithmic search.
+					while (true)
+					{
+						partial_string_end = StringUtilities::SeekBackwardUTF8(partial_string_end - 1, token_begin);
+
+						bool force_loop_break_at_end = false;
+						if (partial_string_end == token_begin)
+						{
+							// Not even the first character of the token fits. Let it overflow onto the next line if we can.
+							if (allow_empty || !line.empty())
+								return false;
+
+							// Continue by forcing the first character to be consumed, even though it will overflow.
+							partial_string_end = StringUtilities::SeekForwardUTF8(token_begin + 1, token_begin + token_max_size);
+							force_loop_break_at_end = true;
+						}
+
+						token.clear();
+						next_token_begin = token_begin;
+						BuildToken(token, next_token_begin, partial_string_end, line.empty() && trim_whitespace_prefix, collapse_white_space,
+							break_at_endline, text_transform_property, decode_escape_characters);
+						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, text_shaping_context, previous_codepoint);
+
+						if (force_loop_break_at_end || token_width <= max_token_width)
+							break;
+					}
+#else
 					const char* const token_end = token_begin + (next_token_begin - token_begin);
 					const bool trim_next_token = line.empty() && trim_whitespace_prefix;
 
@@ -295,7 +327,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 
 					// Exponential probing for the first prefix that does not fit.
 					for (int length = int(token_end - token_begin), 
-						// Using last token's measured width as starting point -- heuoristic.
+						// Heuoristic: ratio max_token_width / token_width approximately equal to break-point's percentage.
 						stride = Math::Max(1, length * max_token_width / Math::Max(1, token_width)); 
 						stride < length; stride *= 2)
 					{
@@ -330,6 +362,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 					}
 					// The last probe may have been a failing one, rebuild the state for the prefix we settled on.
 					token_width = BuildAndMeasure(fits_until);
+#endif
 					break_line = true;
 				}
 				else if (allow_empty || !line.empty())
