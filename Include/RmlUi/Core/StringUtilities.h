@@ -166,6 +166,7 @@ private:
 
 class RMLUICORE_API StringIteratorU8 {
 public:
+
 	StringIteratorU8(const char* p_begin, const char* p, const char* p_end);
 	StringIteratorU8(StringView string);
 	StringIteratorU8(const String& string);
